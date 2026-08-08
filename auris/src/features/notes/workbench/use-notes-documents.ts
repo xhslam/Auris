@@ -14,6 +14,7 @@ import {
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { createNoteDocument } from "@/features/notes/documents/document-repository";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import { searchDocuments } from "@/features/notes/documents/document-search";
 import {
   captureNotesRecoveryDraft,
@@ -239,7 +240,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     const searchablePaths = snapshot.entries
       .filter(
         (entry) =>
-          entry.kind === "file" && entry.path.toLowerCase().endsWith(".md"),
+          entry.kind === "file" && getFormatDescriptor(entry.path).canEdit,
       )
       .map((entry) => entry.path);
 

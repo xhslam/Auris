@@ -1,3 +1,5 @@
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
+
 export function normalizeVaultPath(path: string) {
   return path.replace(/\\/g, "/").replace(/^\/+/, "").trim();
 }
@@ -15,55 +17,27 @@ export function getVaultBasename(path: string) {
   return getVaultFileName(path).replace(/\.md$/i, "");
 }
 
-export type VaultEntryDisplayKind = "markdown" | "audio" | "attachment";
-
-const MARKDOWN_FILE_EXTENSIONS = new Set([
-  ".md",
-  ".markdown",
-  ".mdown",
-  ".mdx",
-  ".mkdn",
-]);
-
-const AUDIO_FILE_EXTENSIONS = new Set([
-  ".aac",
-  ".flac",
-  ".m4a",
-  ".mp3",
-  ".ogg",
-  ".oga",
-  ".opus",
-  ".wav",
-]);
-
-function getVaultFileExtension(path: string) {
-  const fileName = getVaultFileName(path);
-  const extensionIndex = fileName.lastIndexOf(".");
-
-  if (extensionIndex <= 0) {
-    return "";
-  }
-
-  return fileName.slice(extensionIndex).toLowerCase();
-}
+export type VaultEntryDisplayKind =
+  | "markdown"
+  | "structured-data"
+  | "text"
+  | "audio"
+  | "attachment";
 
 export function getVaultEntryDisplayKind(path: string): VaultEntryDisplayKind {
-  const extension = getVaultFileExtension(path);
-
-  if (MARKDOWN_FILE_EXTENSIONS.has(extension)) {
-    return "markdown";
-  }
-
-  if (AUDIO_FILE_EXTENSIONS.has(extension)) {
-    return "audio";
-  }
-
+  const format = getFormatDescriptor(path);
+  if (format.id === "markdown") return "markdown";
+  if (format.id === "text" || format.id === "unknown-text") return "text";
+  if (format.previewKind === "structured-tree") return "structured-data";
+  if (format.id === "audio") return "audio";
   return "attachment";
 }
 
 export function ensureMarkdownPath(path: string) {
   const normalizedPath = normalizeVaultPath(path);
-  return normalizedPath.toLowerCase().endsWith(".md") ? normalizedPath : `${normalizedPath}.md`;
+  return normalizedPath.toLowerCase().endsWith(".md")
+    ? normalizedPath
+    : `${normalizedPath}.md`;
 }
 
 export function getVaultParentPath(path: string): string {

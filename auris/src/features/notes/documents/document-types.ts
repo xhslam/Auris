@@ -1,3 +1,4 @@
+import type { NotesFormatId } from "@/features/notes/formats/format-registry";
 export type NoteHeadingIndex = {
   depth: number;
   line: number;
@@ -31,6 +32,7 @@ export type ParsedNoteIndex = {
 export type NoteDocument = {
   basename: string;
   fileName: string;
+  formatId?: NotesFormatId;
   frontmatter: Record<string, unknown>;
   mtime: string | null;
   parsed: ParsedNoteIndex;

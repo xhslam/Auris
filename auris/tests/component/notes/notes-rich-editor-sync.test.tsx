@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import type { NotesEditorBridge } from "@/features/notes/editor/editor-types";
+import type { EditorView as CodeMirrorEditorView } from "@codemirror/view";
 import type { EditorView as ProseMirrorEditorView } from "prosemirror-view";
 
 function createDocument(rawSource: string): NoteDocument {
@@ -29,6 +30,49 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("NotesRichEditorPane sync", () => {
+  it("opens structured files as editable raw source with a parsed preview", () => {
+    const onDocumentChange = vi.fn();
+    const document = {
+      ...createDocument('{\r\n  "lesson":"Grammar",\r\n  "score":92\r\n}'),
+      basename: "progress",
+      fileName: "progress.json",
+      formatId: "json" as const,
+      path: "notes/progress.json",
+      parsed: {
+        ...createDocument("").parsed,
+        title: "progress",
+      },
+    };
+
+    render(
+      <NotesEditorPane
+        document={document}
+        documents={[document]}
+        editorMode="wysiwyg"
+        onDocumentChange={onDocumentChange}
+      />,
+    );
+
+    expect(screen.getByTestId("notes-markdown-split")).toBeInTheDocument();
+    expect(screen.getByText("Grammar")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Note title")).not.toBeInTheDocument();
+
+    const host = screen.getByTestId("notes-codemirror-host") as HTMLDivElement & {
+      __notesEditorView?: CodeMirrorEditorView;
+    };
+    act(() => {
+      const view = host.__notesEditorView;
+      if (!view) return;
+      const scoreOffset = view.state.doc.toString().indexOf("92");
+      view.dispatch({
+        changes: { from: scoreOffset + 1, to: scoreOffset + 2, insert: "3" },
+      });
+    });
+    expect(onDocumentChange).toHaveBeenLastCalledWith(
+      '{\r\n  "lesson":"Grammar",\r\n  "score":93\r\n}',
+    );
+  });
+
   it("renders an editable Markdown source beside a read-only live preview", () => {
     const rawSource = "# Daily Review\n\nBody";
 

@@ -297,7 +297,7 @@ export function createNotesEditorExtensions(
       );
 
       if (update.docChanged && !isExternalSync) {
-        onDocumentChange(update.state.doc.toString());
+        onDocumentChange(update.state.sliceDoc());
       }
 
       if (update.selectionSet || update.docChanged || update.focusChanged) {

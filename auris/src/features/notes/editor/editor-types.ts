@@ -21,6 +21,7 @@ export type NotesEditorEnvironment = {
   readOnly?: boolean;
   getDocuments?: () => NoteDocument[];
   documentPath?: string;
+  lineSeparator?: "\n" | "\r\n";
   onOpenWikiLink?: (target: string) => void;
   onSelectionChange?: (line: number) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState) => void;

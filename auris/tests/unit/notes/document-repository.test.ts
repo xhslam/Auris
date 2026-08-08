@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   createNoteDocument,
   extractFrontmatterTags,
+  isProbablyTextContent,
+  loadNoteDocument,
 } from "@/features/notes/documents/document-repository";
+import type { VaultClient } from "@/features/notes/vault/vault-types";
 
 describe("extractFrontmatterTags", () => {
   it("reads a YAML list of tags", () => {
@@ -26,6 +29,31 @@ describe("extractFrontmatterTags", () => {
 
   it("returns nothing when tags are absent", () => {
     expect(extractFrontmatterTags({ title: "Daily" })).toEqual([]);
+  });
+});
+
+describe("unknown text fallback", () => {
+  it("accepts source-like unknown files without routing them to Markdown", () => {
+    expect(isProbablyTextContent("FROM node:22\nRUN npm ci\n")).toBe(true);
+    expect(
+      createNoteDocument({
+        mtime: null,
+        path: "Dockerfile",
+        rawSource: "FROM node:22\n",
+      }).formatId,
+    ).toBe("unknown-text");
+  });
+
+  it("rejects binary-looking decoded content", () => {
+    expect(isProbablyTextContent("\u0000\u0001PNG\r\n")).toBe(false);
+    expect(isProbablyTextContent("\uFFFD".repeat(20))).toBe(false);
+  });
+
+  it("does not materialize an unknown binary file as an editable document", async () => {
+    const client = { readFile: async () => "\u0000\u0001PNG\r\n" } as VaultClient;
+    await expect(
+      loadNoteDocument(client, { mtime: null, path: "asset.custom" }),
+    ).resolves.toBeNull();
   });
 });
 

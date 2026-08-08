@@ -96,6 +96,7 @@ import type {
 } from "@/platform/desktop/desktop-bridge";
 import { NiaPanel, type NiaContextRequest } from "@/components/nia/nia-panel";
 import type { NiaApplyProposal, NiaContext } from "@/features/nia/nia-context";
+import { useNotesLocale } from "@/features/notes/i18n/notes-locale";
 
 export type NotesWorkbenchProps = {
   activePath: string | null;
@@ -269,6 +270,7 @@ export function NotesWorkbench({
   pendingMcpEdit = null,
   writeConflict = null,
 }: NotesWorkbenchProps) {
+  const notesLocale = useNotesLocale();
   const shellRef = useRef<HTMLElement | null>(null);
   const editorBridgeRef = useRef<NotesEditorBridge | null>(null);
   const terminalDragStateRef = useRef<{
@@ -616,6 +618,7 @@ export function NotesWorkbench({
         data-focus-mode={viewPreferences.focusMode ? "true" : "false"}
         data-read-only={viewPreferences.readOnly ? "true" : "false"}
         data-typewriter-mode={viewPreferences.typewriterMode ? "true" : "false"}
+        lang={notesLocale}
         data-shortcut-conflicts={commandInfrastructure.conflicts.length}
         data-terminal-open={isTerminalSplitOpen ? "true" : "false"}
         ref={shellRef}

@@ -60,7 +60,10 @@ export function NotesFileTreeContextMenu({
 
   const isDirectory = target.kind === "directory";
   const isRoot = target.path === "";
-  const isMarkdown = target.displayKind === "markdown";
+  const isEditableFile =
+    target.displayKind === "markdown" ||
+    target.displayKind === "structured-data" ||
+    target.displayKind === "text";
 
   // Clamp to viewport
   const MENU_WIDTH = 180;
@@ -141,7 +144,7 @@ export function NotesFileTreeContextMenu({
         </>
       )}
 
-      {!isRoot && (isDirectory || isMarkdown) && (
+      {!isRoot && (isDirectory || isEditableFile) && (
         <button
           className="notes-v2__context-menu-item"
           onClick={handle(() => onRename(target.path, target.kind))}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NotesEditorBridge } from "@/features/notes/editor/editor-types";
 import { formatMarkdown } from "@/features/notes/formatting/cjk-formatter";
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import { loadCjkFormattingSettings } from "@/features/notes/formatting/cjk-formatting-store";
 import { buildNoteHtmlExport } from "@/features/notes/export/note-export";
 import { buildLearningPanelModel } from "@/features/notes/integrations/learning-panel-model";
@@ -425,7 +426,10 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
 
   const handleUpdateActiveTags = useCallback(
     (tags: string[]) => {
-      if (!activeDocument) {
+      if (
+        !activeDocument ||
+        getFormatDescriptor(activeDocument.path).id !== "markdown"
+      ) {
         return;
       }
       const nextSource = setNoteTags(activeDocument.rawSource, tags);
@@ -441,7 +445,10 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
   // 避免仅因排版就触发"文件名同步标题"的自动重命名。
   // 配置在调用时从 localStorage 读取，始终反映「设置 → 语言」里的最新开关。
   const handleFormatActiveCjk = useCallback(() => {
-    if (!activeDocument) {
+    if (
+      !activeDocument ||
+      getFormatDescriptor(activeDocument.path).id !== "markdown"
+    ) {
       return;
     }
     const nextSource = formatMarkdown(

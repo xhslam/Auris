@@ -348,6 +348,10 @@ export function NotesFileTree({
       );
     }
 
+    const isEditableFile =
+      node.displayKind === "markdown" ||
+      node.displayKind === "structured-data" ||
+      node.displayKind === "text";
     const extensionLabel =
       variant === "obsidian" && node.displayKind !== "markdown"
         ? getExtensionLabel(node.name)
@@ -364,13 +368,9 @@ export function NotesFileTree({
           className="notes-v2__tree-file"
           data-active={activePath === node.path ? "true" : "false"}
           data-kind={node.displayKind ?? undefined}
-          disabled={node.displayKind !== "markdown"}
-          draggable={Boolean(onMovePath) && node.displayKind === "markdown"}
-          onClick={
-            node.displayKind === "markdown"
-              ? () => onOpenPath(node.path)
-              : undefined
-          }
+          disabled={!isEditableFile}
+          draggable={Boolean(onMovePath) && isEditableFile}
+          onClick={isEditableFile ? () => onOpenPath(node.path) : undefined}
           onContextMenu={(e) => handleContextMenu(e, node)}
           onDragStart={(event) => handleDragStart(event, node)}
           onDragEnd={handleDragEnd}

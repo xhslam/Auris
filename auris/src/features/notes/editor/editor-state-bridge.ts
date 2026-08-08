@@ -28,6 +28,9 @@ export function createNotesEditorState(
           ? []
           : transaction,
       ),
+      ...(environment?.lineSeparator
+        ? [EditorState.lineSeparator.of(environment.lineSeparator)]
+        : []),
       ...(environment?.editableCompartment
         ? [environment.editableCompartment.of([
             EditorState.readOnly.of(Boolean(environment.readOnly)),
@@ -69,7 +72,7 @@ export function createNotesEditorBridge(
       };
     },
     getSource() {
-      return view?.state.doc.toString() ?? "";
+      return view?.state.sliceDoc() ?? "";
     },
     insertSnippet(snippet: string) {
       if (!view || view.state.readOnly) {

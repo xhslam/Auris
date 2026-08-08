@@ -447,10 +447,14 @@ export function useNotesActions(input: UseNotesActionsInput) {
     const confirmed = await confirmFn(`将 ${label} 移到 Auris 回收站？`, "删除");
     if (!confirmed) return;
 
-    const isMarkdown = kind === "file" && getVaultEntryDisplayKind(path) === "markdown";
+    const displayKind = kind === "file" ? getVaultEntryDisplayKind(path) : null;
+    const isEditableFile =
+      displayKind === "markdown" ||
+      displayKind === "structured-data" ||
+      displayKind === "text";
 
     try {
-      if (isMarkdown) {
+      if (isEditableFile) {
         clearPendingSave(path);
         clearPendingDerivation(path);
         clearLocalDocumentState([path]);

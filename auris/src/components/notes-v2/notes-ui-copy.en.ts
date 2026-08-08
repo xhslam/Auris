@@ -1,0 +1,312 @@
+import type { NotesUiCopy } from "@/components/notes-v2/notes-ui-copy";
+
+export const EN_US_NOTES_UI_COPY = {
+  workspace: {
+    browserFallback: "Browser vault",
+    label: "Vault",
+    sourceFirstFallback: "Source-first notes vault",
+  },
+  headerActions: {
+    command: "Commands",
+    delete: "Delete",
+    exportHtml: "HTML",
+    exportPdf: "PDF",
+    exportVault: "Export",
+    formatCjk: "CJK formatting",
+    newNote: "New",
+    rebuildIndex: "Rebuild index",
+    refresh: "Refresh",
+    rename: "Rename",
+  },
+  indexStatus: {
+    failed: "Index rebuild failed",
+    rebuiltPrefix: "Index rebuilt",
+    rebuilding: "Rebuilding index…",
+  },
+  leftRail: {
+    collapse: "Collapse sidebar",
+    expand: "Expand sidebar",
+    files: {
+      open: "Open files panel",
+      short: "F",
+    },
+    outline: {
+      open: "Open outline panel",
+      short: "O",
+    },
+    search: {
+      open: "Open search panel",
+      short: "S",
+    },
+  },
+  rightRail: {
+    collapse: "Collapse right sidebar",
+    expand: "Expand right sidebar",
+    backlinks: {
+      open: "Open backlinks panel",
+      short: "B",
+    },
+    learning: {
+      open: "Open learning panel",
+      short: "L",
+    },
+    library: {
+      open: "Open note library",
+      short: "N",
+    },
+    properties: {
+      open: "Open properties panel",
+      short: "P",
+    },
+    terminal: {
+      open: "Open terminal panel",
+      short: "T",
+    },
+  },
+  leftPane: {
+    files: {
+      chooseFolder: "Choose folder",
+      emptyRecent: "Recently opened notes will appear here.",
+      label: "Files",
+      recent: "Recent",
+      title: "Files",
+    },
+    outline: {
+      label: "Outline",
+      title: "Outline",
+    },
+    search: {
+      label: "Search",
+      title: "Search",
+    },
+  },
+  rightDock: {
+    backlinks: {
+      label: "Backlinks",
+      show: "Show backlinks panel",
+    },
+    learning: {
+      label: "Learning",
+      show: "Show learning panel",
+    },
+    properties: {
+      label: "Properties",
+      show: "Show properties panel",
+    },
+    terminal: {
+      label: "Terminal",
+      show: "Show terminal panel",
+    },
+  },
+  toolbar: {
+    delete: "Delete",
+    displayEditing: "Visual editing",
+    reading: "Preview",
+    rename: "Rename",
+    richText: "Rich text",
+    table: {
+      addColumnAfter: "Column after",
+      addColumnBefore: "Column before",
+      addRowAfter: "Row after",
+      addRowBefore: "Row before",
+      deleteColumn: "Delete column",
+      deleteRow: "Delete row",
+      deleteTable: "Delete table",
+      headerCell: "Header cell",
+      headerColumn: "Header column",
+      headerRow: "Header row",
+      label: "Table",
+      mergeCells: "Merge",
+      splitCell: "Split",
+      toolbarLabel: "Table toolbar",
+    },
+    source: "Source",
+  },
+  banners: {
+    loading: "Loading vault…",
+  },
+  emptyEditor: "Select or create a note.",
+  commandPalette: {
+    dialogLabel: "Notes command palette",
+    placeholder: "Run a command or open a note",
+  },
+  tabs: {
+    closePrefix: "Close",
+    openTabs: "Open note tabs",
+  },
+  fileTree: {
+    ariaLabel: "Vault file tree",
+    kinds: {
+      attachment: "Attachment",
+      audio: "Audio",
+      markdown: "Markdown",
+      "structured-data": "Structured data",
+      text: "Plain text",
+    },
+  },
+  panels: {
+    backlinks: {
+      description: "Notes that reference the current file.",
+      empty: "No backlinks yet.",
+      title: "Backlinks",
+    },
+    learning: {
+      description: "Insert saved words and sentences as Markdown snippets.",
+      empty: "No matching learning snippets.",
+      searchPlaceholder: "Search words or sentences",
+      searchSrOnly: "Search learning snippets",
+      sentenceSnippet: "Sentence snippet",
+      title: "Learning snippets",
+      wordSnippet: "Word snippet",
+    },
+    library: {
+      title: "Note library",
+    },
+    outline: {
+      description: "Heading structure in the current Markdown file.",
+      empty: "No headings yet.",
+      title: "Outline",
+    },
+    properties: {
+      description: "Inspect paths, metadata, and derived statistics.",
+      empty: "Select a note to view its properties.",
+      none: "None",
+      editorMode: "Editor mode",
+      openStrategy: "Open strategy",
+      path: "Path",
+      selection: "Selection",
+      selectionEmpty: "No text selected",
+      size: "Size",
+      tags: "Tags",
+      title: "Properties",
+      words: "Words",
+    },
+    reading: {
+      empty: "Open a note to preview its Markdown.",
+    },
+    search: {
+      description: "Search file names, titles, tags, and content.",
+      empty: "No matching notes.",
+      hint: "Use #tag or tag:name for an exact tag filter.",
+      searchPlaceholder: "Search this vault",
+      searchSrOnly: "Search notes",
+      title: "Search",
+    },
+    tags: {
+      clear: "Clear tag filter",
+      description: "Select a tag to filter the current vault.",
+      empty: "This vault has no tags yet.",
+      filterLabel: (tag: string) => `Filter by tag ${tag}`,
+      title: "Tags",
+    },
+    terminal: {
+      availableDescription:
+        "The desktop terminal bridge is available in the current vault directory.",
+      backends: {
+        pipe: "Local shell",
+        pty: "Local PTY",
+      },
+      clearSession: "Clear",
+      closeSession: "Close",
+      contextMenu: {
+        clear: "Clear",
+        copy: "Copy",
+        label: "Terminal edit actions",
+        paste: "Paste",
+        selectAll: "Select All",
+      },
+      copySelection: "Copy",
+      description: "Run a local shell inside the Notes workbench.",
+      empty: "No desktop commands are available.",
+      lastCommandPrefix: "Last run: ",
+      newSession: "New session",
+      refreshCommands: "Refresh commands",
+      restartSession: "Restart",
+      searchPlaceholder: "Search terminal output",
+      searchSrOnly: "Search terminal output",
+      sessionsLabel: "Terminal sessions",
+      starting: "Starting",
+      title: "Terminal",
+      unavailableDescription:
+        "The desktop bridge is unavailable in this environment.",
+    },
+  },
+  commands: {
+    deleteNote: {
+      keywords: ["delete", "remove", "trash", "note"],
+      subtitle: "Delete the current Markdown note and close its tab",
+      title: "Delete current note",
+    },
+    exportVault: {
+      keywords: ["export", "manifest", "backup", "vault", "zip"],
+      subtitle: "Export Markdown, assets, and the vault manifest",
+      title: "Export vault folder",
+    },
+    formatCjk: {
+      keywords: ["format", "cjk", "spacing", "pangu"],
+      subtitle: "Normalize spacing between CJK, Latin text, and numbers",
+      title: "Format CJK typography",
+    },
+    newNote: {
+      keywords: ["new", "create", "markdown", "note", "vault"],
+      subtitle: "Create a Markdown note in Inbox/",
+      title: "New note",
+    },
+    openRecentPrefix: "Recently opened: ",
+    refreshVault: {
+      keywords: ["refresh", "reload", "sync"],
+      subtitle: "Reload entries and the loaded document index",
+      title: "Refresh vault",
+    },
+    renameNote: {
+      keywords: ["rename", "title", "file", "wiki link"],
+      subtitle: "Rename the current Markdown file and update wiki links",
+      title: "Rename current note",
+    },
+    saveAllNotes: {
+      keywords: ["save all", "autosave", "dirty"],
+      subtitle: "Save every modified note in this workbench",
+      title: "Save all notes",
+    },
+    saveNote: {
+      keywords: ["save", "manual", "dirty"],
+      subtitle: "Save the current note immediately",
+      title: "Save current note",
+    },
+    toggleReading: {
+      keywords: ["read", "preview", "view"],
+      subtitle: "Switch between source and reading views",
+      title: "Toggle reading view",
+    },
+  },
+  dialogs: {
+    externalEditorConflict: {
+      copyDiff: "Copy diff",
+      description:
+        "This file changed in another editor. Reload the remote version, keep your local version, or copy the diff and merge manually.",
+      eyebrow: "Save conflict",
+      keepLocalVersion: "Keep my version",
+      reload: "Reload",
+      title: "External editor conflict",
+    },
+    deleteNoteConfirm: "Delete the current note? This cannot be undone.",
+    renameNote: "Rename note",
+  },
+  errors: {
+    chooseDirectory: "Could not choose the notes directory.",
+    createNote: "Could not create the Markdown note.",
+    deleteNote: "Could not delete the Markdown note.",
+    exportNote: "Could not export the current note.",
+    exportVault: "Could not export the vault manifest.",
+    loadVault: "Could not load the vault.",
+    moveEntry: "Could not move the entry.",
+    moveEntryCollision: "An entry with that name already exists in the target folder.",
+    moveEntryIntoSelf: "A folder cannot be moved inside itself.",
+    renameNote: "Could not rename the Markdown note.",
+    renameNoteCollision: "A note with that name already exists.",
+    recovery: "Hot Exit save or recovery failed. The draft remains in the editor.",
+    runDesktopCommand: "Could not run the desktop command.",
+    saveNote: "Could not save the Markdown note.",
+    vaultExportValidation: "Vault manifest validation failed.",
+  },
+} satisfies NotesUiCopy;

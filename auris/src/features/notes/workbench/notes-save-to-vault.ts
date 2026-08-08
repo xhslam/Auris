@@ -1,4 +1,5 @@
 import { normalizeCjkSpacing } from "@/features/notes/editor/cjk-format-rules";
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import { safeWriteVaultFile } from "@/features/notes/vault/vault-safe-write";
 import type { VaultClient } from "@/features/notes/vault/vault-types";
 import {
@@ -30,7 +31,10 @@ export async function saveNoteToVault(
     saveType: NotesSaveType;
   },
 ): Promise<SaveNoteToVaultResult> {
-  const normalizedSource = normalizeCjkSpacing(input.rawSource);
+  const normalizedSource =
+    getFormatDescriptor(input.path).id === "markdown"
+      ? normalizeCjkSpacing(input.rawSource)
+      : input.rawSource;
   const saveToken = registerPendingNoteSave(input.path, normalizedSource);
 
   try {

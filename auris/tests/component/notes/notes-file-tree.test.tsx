@@ -86,17 +86,19 @@ describe("NotesFileTree", () => {
     expect(screen.getByText("notes")).toBeInTheDocument();
     const markdownButton = screen.getByRole("button", { name: /daily\.md/i });
     const audioButton = screen.getByRole("button", { name: /lesson\.mp3/i });
-    const attachmentButton = screen.getByRole("button", { name: /notes\.csv/i });
+    const textButton = screen.getByRole("button", { name: /notes\.csv/i });
     expect(within(markdownButton).getByText("daily.md")).toBeInTheDocument();
     expect(screen.queryByText("Markdown")).not.toBeInTheDocument();
     expect(screen.queryByText("音频")).not.toBeInTheDocument();
     expect(screen.queryByText("附件")).not.toBeInTheDocument();
     expect(audioButton).toBeDisabled();
-    expect(attachmentButton).toBeDisabled();
+    expect(textButton).toBeEnabled();
 
     await user.click(markdownButton);
+    await user.click(textButton);
 
-    expect(onOpenPath).toHaveBeenCalledWith("notes/daily.md");
+    expect(onOpenPath).toHaveBeenNthCalledWith(1, "notes/daily.md");
+    expect(onOpenPath).toHaveBeenNthCalledWith(2, "assets/notes.csv");
   });
 
   it("reveals the active note even when the tree starts fully collapsed", () => {

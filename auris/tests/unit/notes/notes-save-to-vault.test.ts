@@ -53,6 +53,24 @@ describe("notes save to vault", () => {
     expect(hasPendingNoteSave("Inbox/Daily.md")).toBe(false);
   });
 
+  it.each([
+    ["config.json", '{"label":"中文ABC"}\n'],
+    ["config.yaml", 'label: "中文ABC"\n'],
+    ["config.toml", 'label = "中文ABC"\n'],
+  ])("preserves structured source bytes for %s", async (path, source) => {
+    const client = createClient("");
+
+    const result = await saveNoteToVault(client, {
+      expectedRawSource: "",
+      path,
+      rawSource: source,
+      saveType: "manual",
+    });
+
+    expect(result.normalizedSource).toBe(source);
+    expect(client.writeFile).toHaveBeenCalledWith(path, source);
+  });
+
   it("reports conflicts without overwriting the current disk content", async () => {
     const client = createClient("# External");
 

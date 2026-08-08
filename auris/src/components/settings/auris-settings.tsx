@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { BrowserGrantCenter } from "@/components/browser-window/browser-grant-center";
+import { NotesLocaleSettings } from "@/components/settings/notes-locale-settings";
 import { NotesShortcutSettings } from "@/components/settings/notes-shortcut-settings";
 import type {
   DesktopMcpClient,
@@ -430,6 +431,7 @@ type Row =
   | { kind: "subhead"; text: string }
   | { kind: "shortcutBar" }
   | { kind: "shortcutEditor" }
+  | { kind: "notesLocale" }
   | { kind: "browserGrants" };
 
 type ButtonAction =
@@ -1435,6 +1437,9 @@ function RenderRow(props: RowHandlers) {
     case "shortcutEditor":
       return <NotesShortcutSettings />;
 
+    case "notesLocale":
+      return <NotesLocaleSettings />;
+
     default:
       return null;
   }
@@ -1717,6 +1722,10 @@ function buildPanel(
       return {
         title: "语言",
         sections: [
+          {
+            title: "界面",
+            rows: [{ kind: "notesLocale" }],
+          },
           {
             title: "空格",
             rows: [

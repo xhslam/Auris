@@ -16,6 +16,7 @@ import {
   type EditorContextMenuTarget,
 } from "@/components/notes-v2/notes-editor-context-menu";
 import { NotesRichEditorPane } from "@/components/notes-v2/notes-rich-editor-pane";
+import { StructuredDataPreview } from "@/components/notes-v2/structured-data-preview";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import {
@@ -46,6 +47,8 @@ import {
   DEFAULT_NOTES_VIEW_PREFERENCES,
   type NotesViewPreferences,
 } from "@/features/notes/editor/notes-view-preferences";
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
+import type { StructuredDataFormat } from "@/features/notes/formats/structured-data";
 
 type NotesEditorHostElement = HTMLDivElement & {
   __notesEditorView?: EditorView;
@@ -68,10 +71,26 @@ function isNewNotePlaceholderSource(document: NoteDocument | null) {
   return document?.rawSource.trim() === NEW_NOTE_BODY_PLACEHOLDER;
 }
 
+function parseDocumentEditableSource(document: NoteDocument) {
+  const format = getFormatDescriptor(document.path);
+  if (format.id === "markdown") {
+    return parseEditableNoteSource(document.rawSource, document.path);
+  }
+  return {
+    bodyLineStart: 0,
+    bodySource: document.rawSource,
+    frontmatter: {},
+    hasSpacerAfterTitleHeading: false,
+    path: document.path,
+    title: document.basename,
+    titleStorage: "virtual" as const,
+  };
+}
+
 export function NotesEditorPane({
   document,
   documents,
-  editorMode = "wysiwyg",
+  editorMode: requestedEditorMode = "wysiwyg",
   onActiveLineChange,
   onBridgeReady,
   onDocumentChange,
@@ -80,6 +99,12 @@ export function NotesEditorPane({
   onSelectionStateChange,
   viewPreferences = DEFAULT_NOTES_VIEW_PREFERENCES,
 }: NotesEditorPaneProps) {
+  const format = getFormatDescriptor(document?.path ?? "");
+  const isStructured = format.previewKind === "structured-tree";
+  const editorMode =
+    isStructured && requestedEditorMode === "wysiwyg"
+      ? "split"
+      : requestedEditorMode;
   const hostRef = useRef<HTMLDivElement | null>(null);
   const lastAppliedSourceRef = useRef<string | null>(null);
   const lastEmittedSourceRef = useRef<string | null>(null);
@@ -117,7 +142,7 @@ export function NotesEditorPane({
 
   const editableDocument = useMemo(
     () =>
-      document ? parseEditableNoteSource(document.rawSource, document.path) : null,
+      document ? parseDocumentEditableSource(document) : null,
     [document],
   );
 
@@ -186,10 +211,7 @@ export function NotesEditorPane({
       return;
     }
 
-    const initialEditableDocument = parseEditableNoteSource(
-      document.rawSource,
-      document.path,
-    );
+    const initialEditableDocument = parseDocumentEditableSource(document);
     editableDocumentRef.current = initialEditableDocument;
     sourceTitleDraftRef.current = initialEditableDocument.title;
     setSourceTitleDraft(initialEditableDocument.title);
@@ -200,14 +222,16 @@ export function NotesEditorPane({
         initialEditableDocument.bodySource,
         (nextBodySource) => {
           const currentEditableDocument = editableDocumentRef.current;
-          const nextRawSource = currentEditableDocument
-            ? composeEditableNoteSource(currentEditableDocument, {
-                bodySource: nextBodySource,
-                title:
-                  sourceTitleDraftRef.current.trim() ||
-                  currentEditableDocument.title,
-              })
-            : nextBodySource;
+          const nextRawSource =
+            currentEditableDocument &&
+            getFormatDescriptor(currentEditableDocument.path).id === "markdown"
+              ? composeEditableNoteSource(currentEditableDocument, {
+                  bodySource: nextBodySource,
+                  title:
+                    sourceTitleDraftRef.current.trim() ||
+                    currentEditableDocument.title,
+                })
+              : nextBodySource;
 
           lastAppliedSourceRef.current = nextRawSource;
           lastEmittedSourceRef.current = nextBodySource;
@@ -215,11 +239,15 @@ export function NotesEditorPane({
         },
         {
           getDocuments: () => documentsRef.current,
-          onOpenWikiLink: (target) => onOpenWikiLinkRef.current?.(target),
+          onOpenWikiLink:
+            format.id === "markdown"
+              ? (target) => onOpenWikiLinkRef.current?.(target)
+              : undefined,
           onSelectionChange: (line) => onActiveLineChangeRef.current?.(line),
           onSelectionStateChange: (selection) =>
             onSelectionStateChangeRef.current?.(selection),
           documentPath: document.path,
+          lineSeparator: document.rawSource.includes("\r\n") ? "\r\n" : "\n",
           editableCompartment,
           readOnly: viewPreferencesRef.current.readOnly,
           resolveImageUrl: (source) =>
@@ -238,7 +266,8 @@ export function NotesEditorPane({
 
               return resolved;
             })(),
-          saveAttachment: window.shadowingDesktop?.vault?.saveFile
+          saveAttachment:
+            format.id === "markdown" && window.shadowingDesktop?.vault?.saveFile
             ? async (path, content) =>
                 (window.shadowingDesktop?.vault?.saveFile as unknown as (
                   relativePath: string,
@@ -258,7 +287,7 @@ export function NotesEditorPane({
     lastDocumentPathRef.current = document.path;
     onActiveLineChangeRef.current?.(0);
     onBridgeReadyRef.current?.(bridgeRef.current);
-  }, [document, editableCompartment, editorMode, onActiveLineChange]);
+  }, [document, editableCompartment, editorMode, format.id, onActiveLineChange]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -353,7 +382,7 @@ export function NotesEditorPane({
         return;
       }
 
-      if (view.state.doc.toString().trim() !== NEW_NOTE_BODY_PLACEHOLDER) {
+      if (view.state.sliceDoc().trim() !== NEW_NOTE_BODY_PLACEHOLDER) {
         return;
       }
 
@@ -379,7 +408,8 @@ export function NotesEditorPane({
       if (
         editorMode === "wysiwyg" ||
         !view ||
-        viewPreferencesRef.current.readOnly
+        viewPreferencesRef.current.readOnly ||
+        format.id !== "markdown"
       ) {
         return;
       }
@@ -405,7 +435,7 @@ export function NotesEditorPane({
         y: event.clientY,
       });
     },
-    [editorMode],
+    [editorMode, format.id],
   );
 
   const handleAddWikiLink = useCallback(
@@ -446,7 +476,7 @@ export function NotesEditorPane({
       }
 
       const bodySource =
-        viewRef.current?.state.doc.toString() ?? currentEditableDocument.bodySource;
+        viewRef.current?.state.sliceDoc() ?? currentEditableDocument.bodySource;
       const nextRawSource = composeEditableNoteSource(currentEditableDocument, {
         bodySource,
         title: nextTitle,
@@ -506,15 +536,12 @@ export function NotesEditorPane({
       return;
     }
 
-    const nextEditableDocument = parseEditableNoteSource(
-      document.rawSource,
-      document.path,
-    );
+    const nextEditableDocument = parseDocumentEditableSource(document);
     editableDocumentRef.current = nextEditableDocument;
     sourceTitleDraftRef.current = nextEditableDocument.title;
     setSourceTitleDraft(nextEditableDocument.title);
 
-    const currentSource = view.state.doc.toString();
+    const currentSource = view.state.sliceDoc();
     const nextBodySource = nextEditableDocument.bodySource;
     const hasNewExternalSource =
       lastAppliedSourceRef.current !== document.rawSource;
@@ -645,7 +672,7 @@ export function NotesEditorPane({
       <div className="notes-v2__editor-heading notes-v2__document-meta">
         <div className="notes-v2__editor-heading-stack">
           <p className="notes-v2__document-path">{document.path}</p>
-          {editorMode !== "wysiwyg" ? (
+          {editorMode !== "wysiwyg" && !isStructured ? (
             <input
               aria-label="Note title"
               className="notes-v2__virtual-title-input"
@@ -757,13 +784,21 @@ export function NotesEditorPane({
             />
           </div>
           <div className="notes-v2__markdown-split-preview">
-            <NotesRichEditorPane
-              document={document}
-              documents={documents}
-              onDocumentChange={() => undefined}
-              onOpenWikiLink={onOpenWikiLink}
-              readOnly
-            />
+            {isStructured ? (
+              <StructuredDataPreview
+                format={format.id as StructuredDataFormat}
+                path={document.path}
+                source={document.rawSource}
+              />
+            ) : (
+              <NotesRichEditorPane
+                document={document}
+                documents={documents}
+                onDocumentChange={() => undefined}
+                onOpenWikiLink={onOpenWikiLink}
+                readOnly
+              />
+            )}
           </div>
         </div>
       ) : (

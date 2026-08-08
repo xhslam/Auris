@@ -18,6 +18,7 @@ function createClient(onRead?: (path: string) => void): VaultClient {
       ].join("\n"),
     ],
     ["notes/grammar.md", "# Grammar\n\nCore note"],
+    ["notes/progress.json", '{"lesson":"Grammar","score":92}'],
     ["视频区/analysis/report.md", "# Video Analysis\n\nShould stay out of notes."],
     ["assets/audio.wav", "binary-placeholder"],
   ]);
@@ -92,7 +93,7 @@ describe("vault-store", () => {
     expect(readFile).toHaveBeenLastCalledWith("notes/0999.md");
   });
 
-  it("lists the vault eagerly but reads Markdown only when requested", async () => {
+  it("lists the vault eagerly but reads note content only when requested", async () => {
     const reads: string[] = [];
     const store = createVaultStore(createClient((path) => reads.push(path)));
     const initialSnapshot = await store.refresh();
@@ -111,14 +112,28 @@ describe("vault-store", () => {
       "视频区/analysis/report.md",
     );
 
-    const snapshot = await store.loadDocuments(["notes/grammar.md"]);
+    const snapshot = await store.loadDocuments([
+      "notes/grammar.md",
+      "notes/progress.json",
+    ]);
     const results = store.search("shadowing");
 
-    expect(snapshot.documents).toHaveLength(2);
+    expect(snapshot.documents).toHaveLength(3);
     expect(snapshot.documents[0]?.parsed.title).toBe("Daily Review");
+    expect(
+      snapshot.documents.find((document) => document.path === "notes/progress.json"),
+    ).toMatchObject({
+      formatId: "json",
+      frontmatter: {},
+      parsed: { backlinks: [], headings: [], title: "progress" },
+    });
     expect(snapshot.backlinks["notes/grammar.md"]).toEqual(["notes/daily.md"]);
     expect(results.map((document) => document.path)).toEqual(["notes/daily.md"]);
-    expect(reads).toEqual(["notes/daily.md", "notes/grammar.md"]);
+    expect(reads).toEqual([
+      "notes/daily.md",
+      "notes/grammar.md",
+      "notes/progress.json",
+    ]);
   });
 
   it("rebuilds the derived index from the vault files", async () => {

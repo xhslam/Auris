@@ -40,7 +40,9 @@ export function buildVaultExportManifest(
 ): VaultExportManifest {
   return {
     documents: Object.fromEntries(
-      snapshot.documents.map((document) => [
+      snapshot.documents
+        .filter((document) => document.formatId === "markdown" || document.path.toLowerCase().endsWith(".md"))
+        .map((document) => [
         document.path,
         {
           backlinks: [...(document.parsed.backlinks ?? [])],

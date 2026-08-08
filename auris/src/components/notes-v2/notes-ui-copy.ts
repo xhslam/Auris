@@ -1,6 +1,9 @@
 "use client";
 
-export const NOTES_UI_COPY = {
+import { EN_US_NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy.en";
+import { getActiveNotesLocale } from "@/features/notes/i18n/notes-locale";
+
+export const ZH_CN_NOTES_UI_COPY = {
   workspace: {
     browserFallback: "浏览器笔记库",
     label: "笔记库",
@@ -140,6 +143,8 @@ export const NOTES_UI_COPY = {
       attachment: "附件",
       audio: "音频",
       markdown: "Markdown",
+      "structured-data": "结构化数据",
+      text: "纯文本",
     },
   },
   panels: {
@@ -308,3 +313,25 @@ export const NOTES_UI_COPY = {
     vaultExportValidation: "Vault 清单校验失败。",
   },
 } as const;
+
+type WidenCopy<T> = T extends (...args: infer Args) => unknown
+  ? (...args: Args) => string
+  : T extends readonly (infer Item)[]
+    ? readonly WidenCopy<Item>[]
+    : T extends string
+      ? string
+      : T extends object
+        ? { readonly [Key in keyof T]: WidenCopy<T[Key]> }
+        : T;
+
+export type NotesUiCopy = WidenCopy<typeof ZH_CN_NOTES_UI_COPY>;
+
+export const NOTES_UI_COPY = new Proxy(ZH_CN_NOTES_UI_COPY as NotesUiCopy, {
+  get(_target, property: keyof NotesUiCopy) {
+    const source =
+      getActiveNotesLocale() === "en-US"
+        ? EN_US_NOTES_UI_COPY
+        : ZH_CN_NOTES_UI_COPY;
+    return source[property];
+  },
+});

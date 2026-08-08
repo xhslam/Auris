@@ -2,6 +2,7 @@ import { buildBacklinksIndex } from "@/features/notes/documents/backlinks";
 import { loadNoteDocument } from "@/features/notes/documents/document-repository";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { searchDocuments } from "@/features/notes/documents/document-search";
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import {
   VAULT_READ_CONCURRENCY,
   mapWithConcurrency,
@@ -22,16 +23,23 @@ export type VaultRefreshOptions = {
   loadAll?: boolean;
 };
 
-function isMarkdownPath(path: string) {
-  return path.toLowerCase().endsWith(".md");
-}
-
 function isEditableFile(entry: VaultEntry) {
-  return entry.kind === "file" && isMarkdownPath(entry.path);
+  return entry.kind === "file" && getFormatDescriptor(entry.path).canEdit;
 }
 
 function chooseInitialPath(entries: VaultEntry[]) {
-  return entries.find(isEditableFile)?.path ?? null;
+  const editableEntries = entries.filter(isEditableFile);
+
+  return (
+    editableEntries.find(
+      (entry) => getFormatDescriptor(entry.path).id === "markdown",
+    )?.path ??
+    editableEntries.find(
+      (entry) => getFormatDescriptor(entry.path).id !== "unknown-text",
+    )?.path ??
+    editableEntries[0]?.path ??
+    null
+  );
 }
 
 export function createVaultStore(client: VaultClient) {
@@ -49,7 +57,9 @@ export function createVaultStore(client: VaultClient) {
     const documents = entries
       .map((entry) => documentCache.get(entry.path) ?? null)
       .filter((document): document is NoteDocument => document !== null);
-    const backlinks = buildBacklinksIndex(documents);
+    const backlinks = buildBacklinksIndex(
+      documents.filter((document) => document.formatId === "markdown"),
+    );
 
     snapshot = {
       backlinks,
