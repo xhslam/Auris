@@ -39,8 +39,9 @@
     "db:sync": "node scripts/check-consistency.js sync",
     "db:sync-sqlite": "node scripts/sync-sqlite-schema.js",
     "desktop:runtime-deps": "node scripts/assemble-electron-runtime-deps.cjs",
-    "desktop:assemble": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs",
-    "desktop:assemble:win": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs --target=win32-x64",
+    "desktop:privacy:audit": "node scripts/audit-package-privacy.cjs .next/standalone",
+    "desktop:assemble": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs && npm run desktop:privacy:audit",
+    "desktop:assemble:win": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs --target=win32-x64 && npm run desktop:privacy:audit",
     "desktop:build:verify": "node scripts/verify-desktop-build.cjs",
     "postinstall": "node scripts/copy-pdf-worker.cjs"
   },

@@ -33,6 +33,48 @@ function replaceGeneratedDirectory(source, destination, buildRoot) {
   return true;
 }
 
+function isPrivateArtifactName(name) {
+  return name === ".shadowing-data" || name === ".env" || name.startsWith(".env.");
+}
+
+function findPrivateArtifacts(directory, scanRoot = directory, found = []) {
+  const safeDirectory = assertInside(directory, scanRoot);
+  if (!fs.existsSync(safeDirectory)) return found;
+
+  const entries = fs
+    .readdirSync(safeDirectory, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name));
+  for (const entry of entries) {
+    const candidate = assertInside(path.join(safeDirectory, entry.name), scanRoot);
+    if (isPrivateArtifactName(entry.name)) {
+      found.push(path.relative(scanRoot, candidate));
+      continue;
+    }
+    if (entry.isDirectory() && !entry.isSymbolicLink()) {
+      findPrivateArtifacts(candidate, scanRoot, found);
+    }
+  }
+  return found;
+}
+
+function removePrivateArtifacts(directory, buildRoot, removed = []) {
+  const safeDirectory = assertInside(directory, buildRoot);
+  if (!fs.existsSync(safeDirectory)) return removed;
+
+  for (const entry of fs.readdirSync(safeDirectory, { withFileTypes: true })) {
+    const candidate = assertInside(path.join(safeDirectory, entry.name), buildRoot);
+    if (isPrivateArtifactName(entry.name)) {
+      fs.rmSync(candidate, { force: true, recursive: true });
+      removed.push(path.relative(buildRoot, candidate));
+      continue;
+    }
+    if (entry.isDirectory() && !entry.isSymbolicLink()) {
+      removePrivateArtifacts(candidate, buildRoot, removed);
+    }
+  }
+  return removed;
+}
+
 function assembleStandalone({
   projectRoot = path.resolve(__dirname, ".."),
 } = {}) {
@@ -57,7 +99,12 @@ function assembleStandalone({
     path.join(standaloneRoot, "public"),
     nextRoot,
   );
+  const privateArtifactsRemoved = removePrivateArtifacts(
+    standaloneRoot,
+    nextRoot,
+  );
   const result = Object.freeze({
+    privateArtifactsRemoved,
     publicCopied,
     serverPath,
     standaloneRoot,
@@ -78,4 +125,8 @@ if (require.main === module) {
   }
 }
 
-module.exports = { StandaloneAssemblyError, assembleStandalone };
+module.exports = {
+  StandaloneAssemblyError,
+  assembleStandalone,
+  findPrivateArtifacts,
+};

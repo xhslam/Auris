@@ -53,6 +53,10 @@ if (!appPath) {
   process.exit(1);
 }
 run(process.execPath, [
+  path.join(projectRoot, "scripts", "audit-package-privacy.cjs"),
+  appPath,
+]);
+run(process.execPath, [
   path.join(projectRoot, "tests", "electron", "packaged-mcp-sidecar-smoke.cjs"),
   "--app",
   appPath,

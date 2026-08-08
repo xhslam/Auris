@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname),
+  outputFileTracingExcludes: {
+    "/*": [".shadowing-data/**/*", ".env*"],
+  },
   serverExternalPackages: ["wordpos", "wordnet-db"],
   transpilePackages: [
     // unified pipeline — remark / rehype

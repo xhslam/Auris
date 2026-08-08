@@ -11,6 +11,7 @@ const {
 const {
   StandaloneAssemblyError,
   assembleStandalone,
+  findPrivateArtifacts,
 } = require("../../../scripts/assemble-standalone.cjs");
 
 const temporaryRoots: string[] = [];
@@ -36,6 +37,27 @@ describe("desktop standalone packaging", () => {
     expect(packageJson.main).toBe("electron/main.cjs");
     expect(
       fs.existsSync(path.resolve(__dirname, "../../../", packageJson.main!)),
+    ).toBe(true);
+  });
+
+  it("audits standalone privacy during desktop assembly", () => {
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, "../../../package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+
+    expect(packageJson.scripts?.["desktop:privacy:audit"]).toBe(
+      "node scripts/audit-package-privacy.cjs .next/standalone",
+    );
+    expect(packageJson.scripts?.["desktop:assemble"]).toContain(
+      "npm run desktop:privacy:audit",
+    );
+    expect(packageJson.scripts?.["desktop:assemble:win"]).toContain(
+      "npm run desktop:privacy:audit",
+    );
+    expect(
+      fs.existsSync(
+        path.resolve(__dirname, "../../../scripts/audit-package-privacy.cjs"),
+      ),
     ).toBe(true);
   });
 
@@ -93,6 +115,58 @@ describe("desktop standalone packaging", () => {
         "utf8",
       ),
     ).toBe("asset\n");
+  });
+
+  it("removes private runtime data from the generated standalone tree", () => {
+    const root = temporaryProject();
+    const standaloneRoot = path.join(root, ".next", "standalone");
+    fs.mkdirSync(path.join(standaloneRoot, ".shadowing-data", "sessions"), {
+      recursive: true,
+    });
+    fs.writeFileSync(path.join(standaloneRoot, "server.js"), "server\n");
+    fs.writeFileSync(
+      path.join(standaloneRoot, ".shadowing-data", "sessions", "private.wav"),
+      "private audio\n",
+    );
+    fs.writeFileSync(path.join(standaloneRoot, ".env.local"), "SECRET=value\n");
+
+    assembleStandalone({ projectRoot: root });
+
+    expect(fs.existsSync(path.join(standaloneRoot, ".shadowing-data"))).toBe(
+      false,
+    );
+    expect(fs.existsSync(path.join(standaloneRoot, ".env.local"))).toBe(false);
+  });
+
+  it("detects private artifacts anywhere in a package tree", () => {
+    expect(findPrivateArtifacts).toBeTypeOf("function");
+    if (typeof findPrivateArtifacts !== "function") return;
+
+    const root = temporaryProject();
+    fs.mkdirSync(path.join(root, "Resources", "standalone", ".shadowing-data"), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(root, "Resources", "standalone", "nested"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(root, "Resources", "standalone", ".shadowing-data", "private.wav"),
+      "private audio\n",
+    );
+    fs.writeFileSync(
+      path.join(root, "Resources", "standalone", "nested", ".env.local"),
+      "SECRET=value\n",
+    );
+    fs.writeFileSync(
+      path.join(root, "Resources", "standalone", "nested", ".env.backup"),
+      "SECRET=backup\n",
+    );
+
+    expect(findPrivateArtifacts(root)).toEqual([
+      path.join("Resources", "standalone", ".shadowing-data"),
+      path.join("Resources", "standalone", "nested", ".env.backup"),
+      path.join("Resources", "standalone", "nested", ".env.local"),
+    ]);
   });
 
   it("fails closed without a standalone server", () => {
