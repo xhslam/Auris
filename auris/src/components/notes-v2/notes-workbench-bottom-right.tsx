@@ -16,9 +16,10 @@ import type {
 } from "@/features/notes/editor/editor-types";
 import { getNotesTextMetrics } from "@/features/notes/editor/notes-text-metrics";
 import type { LearningSnippet } from "@/features/notes/integrations/learning-snippets";
+import type { NotesHistoryVersion } from "@/features/notes/persistence/notes-recovery-store";
 import type { NotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
 
-type RightPopover = "backlinks" | "library" | "overflow" | "tags";
+type RightPopover = "backlinks" | "history" | "library" | "overflow" | "tags";
 
 type NotesWorkbenchBottomRightProps = {
   activeDocument: NoteDocument | null;
@@ -32,6 +33,7 @@ type NotesWorkbenchBottomRightProps = {
   learningQuery: string;
   learningSnippets: LearningSnippet[];
   noteOpenStrategy?: NoteOpenStrategy | null;
+  historyVersions?: NotesHistoryVersion[];
   onDeleteActiveNote?: () => void;
   onEditorModeChange?: (mode: NotesEditorMode) => void;
   onExportActiveDocumentHtml?: () => void;
@@ -39,11 +41,13 @@ type NotesWorkbenchBottomRightProps = {
   onExportVault?: () => void;
   onFormatCjk?: () => void;
   onInsertSnippet?: (snippet: string) => void;
+  onRestoreHistoryVersion?: (version: NotesHistoryVersion) => void;
   onLearningQueryChange?: (value: string) => void;
   onOpenSourcePeek?: () => void;
   onOpenPath: (path: string) => void;
   onRebuildIndex?: () => void;
   onRefresh?: () => void;
+  onRestoreLastDeleted?: () => void;
   onRenameActiveNote?: () => void;
   onSearchQueryChange?: (value: string) => void;
   onTerminalSplitToggle: () => void;
@@ -63,16 +67,19 @@ export function NotesWorkbenchBottomRight({
   indexRebuildMessage = null,
   isRebuildingIndex = false,
   isTerminalSplitOpen,
+  historyVersions = [],
   onDeleteActiveNote,
   onEditorModeChange,
   onExportActiveDocumentHtml,
   onExportActiveDocumentPdf,
   onExportVault,
   onFormatCjk,
+  onRestoreHistoryVersion,
   onOpenSourcePeek,
   onOpenPath,
   onRebuildIndex,
   onRefresh,
+  onRestoreLastDeleted,
   onRenameActiveNote,
   onSearchQueryChange,
   onTerminalSplitToggle,
@@ -107,9 +114,25 @@ export function NotesWorkbenchBottomRight({
 
   return (
     <div className="notes-v2__corner-cluster notes-v2__corner-cluster--right">
+      <span
+        className="notes-v2__corner-stat"
+        data-save-state={documentSaveState}
+      >
+        {saveStateLabel}
+      </span>
       <span className="notes-v2__corner-stat">{metrics.words} 词</span>
       <span className="notes-v2__corner-stat">{metrics.characters} 字符</span>
 
+      <button
+        aria-expanded={openPopover === "history"}
+        aria-label="历史版本"
+        className="notes-v2__corner-icon"
+        onClick={() => togglePopover("history")}
+        title="历史版本"
+        type="button"
+      >
+        <span aria-hidden="true">◷</span>
+      </button>
       <button
         aria-expanded={openPopover === "backlinks"}
         aria-label={NOTES_UI_COPY.rightRail.backlinks.open}
@@ -180,6 +203,36 @@ export function NotesWorkbenchBottomRight({
       >
         <span aria-hidden="true">…</span>
       </button>
+
+      <NotesWorkbenchPopover
+        anchor="bottom-right"
+        labelledBy="notes-v2-history-popover-title"
+        onClose={closePopover}
+        open={openPopover === "history"}
+        size="sm"
+      >
+        <p className="notes-v2__popover-title" id="notes-v2-history-popover-title">
+          历史版本
+        </p>
+        <div className="notes-v2__overflow-menu">
+          {historyVersions.length === 0 ? (
+            <p className="notes-v2__empty-copy">保存后会在这里生成版本。</p>
+          ) : (
+            historyVersions.map((version) => (
+              <button
+                key={version.id}
+                onClick={() => {
+                  onRestoreHistoryVersion?.(version);
+                  closePopover();
+                }}
+                type="button"
+              >
+                恢复 {new Date(version.savedAt).toLocaleString()}
+              </button>
+            ))
+          )}
+        </div>
+      </NotesWorkbenchPopover>
 
       <NotesWorkbenchPopover
         anchor="bottom-right"
@@ -273,6 +326,9 @@ export function NotesWorkbenchBottomRight({
           </button>
           <button onClick={() => onRefresh?.()} type="button">
             {NOTES_UI_COPY.headerActions.refresh}
+          </button>
+          <button onClick={() => onRestoreLastDeleted?.()} type="button">
+            恢复最近删除
           </button>
           <button
             disabled={isRebuildingIndex}

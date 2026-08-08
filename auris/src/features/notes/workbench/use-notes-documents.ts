@@ -12,8 +12,15 @@ import {
   type SetStateAction,
 } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
+import { createNoteDocument } from "@/features/notes/documents/document-repository";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { searchDocuments } from "@/features/notes/documents/document-search";
+import {
+  captureNotesRecoveryDraft,
+  clearNotesRecoveryDraft,
+  listNotesRecoveryDrafts,
+  recordNotesHistoryVersion,
+} from "@/features/notes/persistence/notes-recovery-store";
 import type { NotesRuntimeClient } from "@/features/notes/workbench/use-notes-runtime";
 import {
   applyBacklinksToDocuments,
@@ -52,15 +59,20 @@ import {
 const AUTO_SAVE_SETTLE_MS = 2_000;
 const DERIVED_DOCUMENT_DEBOUNCE_MS = 180;
 const DERIVED_INDEX_DEBOUNCE_MS = 180;
+const RECOVERY_CAPTURE_WINDOW_MS = 400;
 const SELF_WRITE_HISTORY_LIMIT = 8;
 
 type UseNotesDocumentsInput = {
   client: NotesRuntimeClient;
+  ensureDocuments?: (paths: readonly string[]) => Promise<VaultSnapshot | null>;
   resumeNoteId?: string | null;
   searchQuery: string;
   setErrorMessage: Dispatch<SetStateAction<string | null>>;
   setWorkspace: Dispatch<SetStateAction<NotesWorkspaceState>>;
-  refreshSnapshot: (options?: { showLoading?: boolean }) => Promise<VaultSnapshot | null>;
+  refreshSnapshot: (options?: {
+    eagerPaths?: readonly string[];
+    showLoading?: boolean;
+  }) => Promise<VaultSnapshot | null>;
   snapshot: VaultSnapshot;
   workspace: NotesWorkspaceState;
 };
@@ -72,6 +84,23 @@ type NoteSaveMeta = {
   lastDiskContent: string | null;
   savedContent: string | null;
 };
+
+export type NotesPersistenceResult =
+  | {
+      persistedSource: string;
+      status: "saved";
+    }
+  | {
+      currentRawSource: string | null;
+      status: "conflict";
+    }
+  | {
+      message: string;
+      status: "failed";
+    }
+  | {
+      status: "missing";
+    };
 
 function findDocumentByPath(documents: NoteDocument[], path: string) {
   return documents.find((document) => document.path === path) ?? null;
@@ -127,6 +156,7 @@ function resolveResumePath(
 export function useNotesDocuments(input: UseNotesDocumentsInput) {
   const {
     client,
+    ensureDocuments,
     refreshSnapshot,
     resumeNoteId,
     searchQuery,
@@ -141,16 +171,25 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
   const dirtyPathsRef = useRef<Record<string, boolean>>({});
   const documentsRef = useRef<NoteDocument[]>([]);
   const selfWriteHistoryRef = useRef<Map<string, string[]>>(new Map());
+  const recoveryCaptureTimerRef = useRef<Map<string, number>>(new Map());
+  const recoveryPendingDraftRef = useRef<
+    Map<
+      string,
+      Parameters<typeof captureNotesRecoveryDraft>[0]
+    >
+  >(new Map());
   // Serializes in-flight writes per path so overlapping autosaves cannot run
   // concurrently. Concurrent writes were reading a stale baseline and falsely
   // reporting an "external editor conflict" while the user was simply typing.
-  const saveChainRef = useRef<Map<string, Promise<boolean>>>(new Map());
+  const saveChainRef =
+    useRef<Map<string, Promise<NotesPersistenceResult>>>(new Map());
   const backlinksTimerRef = useRef<number | null>(null);
   const liveDocumentsRef = useRef<LiveNoteDocuments>({});
   // The resume target (?resumeNoteId=…) must only seed the *initial* active
   // note. Once honored, it must never win again, otherwise every later click /
   // newly created note gets yanked back to the resume note on the next render.
   const resumeConsumedRef = useRef(false);
+  const restoredRecoveryPathsRef = useRef<Set<string>>(new Set());
 
   const [liveDocuments, setLiveDocuments] = useState<LiveNoteDocuments>({});
   const [backlinksIndex, setBacklinksIndex] = useState<
@@ -160,6 +199,52 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
   const [writeConflict, setWriteConflict] = useState<VaultWriteConflict | null>(
     null,
   );
+
+  useEffect(() => {
+    const resumePath =
+      resumeNoteId &&
+      snapshot.entries.find(
+        (entry) =>
+          entry.kind === "file" &&
+          (entry.path === resumeNoteId ||
+            entry.name === resumeNoteId ||
+            entry.path.includes(resumeNoteId)),
+      )?.path;
+    const paths = Array.from(
+      new Set([
+        ...workspace.openTabs,
+        ...(workspace.activePath ? [workspace.activePath] : []),
+        ...workspace.recentFiles.slice(0, 8),
+        ...(resumePath ? [resumePath] : []),
+      ]),
+    );
+
+    if (ensureDocuments && paths.length > 0) {
+      void ensureDocuments(paths);
+    }
+  }, [
+    ensureDocuments,
+    resumeNoteId,
+    snapshot.entries,
+    workspace.activePath,
+    workspace.openTabs,
+    workspace.recentFiles,
+  ]);
+
+  useEffect(() => {
+    if (!ensureDocuments || !searchQuery.trim()) {
+      return;
+    }
+
+    const searchablePaths = snapshot.entries
+      .filter(
+        (entry) =>
+          entry.kind === "file" && entry.path.toLowerCase().endsWith(".md"),
+      )
+      .map((entry) => entry.path);
+
+    void ensureDocuments(searchablePaths);
+  }, [ensureDocuments, searchQuery, snapshot.entries]);
 
   useEffect(() => {
     startTransition(() => {
@@ -242,6 +327,8 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
 
   useEffect(() => {
     const deriveTimers = deriveTimerRef.current;
+    const recoveryCaptureTimers = recoveryCaptureTimerRef.current;
+    const recoveryPendingDrafts = recoveryPendingDraftRef.current;
 
     return () => {
       if (backlinksTimerRef.current) {
@@ -250,6 +337,11 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
 
       deriveTimers.forEach((timerId) => window.clearTimeout(timerId));
       deriveTimers.clear();
+      recoveryCaptureTimers.forEach((timerId) =>
+        window.clearTimeout(timerId),
+      );
+      recoveryCaptureTimers.clear();
+      recoveryPendingDrafts.clear();
     };
   }, []);
 
@@ -360,20 +452,33 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       path: string,
       rawSource: string,
       saveType: NotesSaveType,
-    ): Promise<boolean> => {
+    ): Promise<NotesPersistenceResult> => {
       const meta = saveMetaRef.current.get(path);
 
-      if (meta?.isMissing || meta?.isDivergent) {
-        return false;
+      if (meta?.isMissing && saveType === "auto") {
+        return { status: "missing" };
+      }
+      if (meta?.isDivergent) {
+        return {
+          currentRawSource: meta.lastDiskContent,
+          status: "conflict",
+        };
       }
 
-      const runWrite = async () => {
+      const runWrite = async (): Promise<NotesPersistenceResult> => {
         const latestMeta = saveMetaRef.current.get(path) ?? meta;
         const baselineExpected = saveBaselineRef.current.has(path)
           ? (saveBaselineRef.current.get(path) ?? null)
           : (latestMeta?.lastDiskContent ?? rawSource);
 
         try {
+          if (baselineExpected !== null) {
+            await recordNotesHistoryVersion({
+              path,
+              rawSource: baselineExpected,
+              vaultRoot: client.rootPath,
+            }).catch(() => undefined);
+          }
           let result = await saveNoteToVault(client, {
             expectedRawSource: baselineExpected,
             path,
@@ -418,7 +523,10 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
               void refreshSnapshot({
                 showLoading: false,
               });
-              return false;
+              return {
+                currentRawSource: result.currentRawSource,
+                status: "conflict",
+              };
             }
 
             saveMetaRef.current.set(path, {
@@ -438,10 +546,18 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
               remoteRawSource: result.currentRawSource,
             });
             setErrorMessage(null);
-            return false;
+            return {
+              currentRawSource: result.currentRawSource,
+              status: "conflict",
+            };
           }
 
           saveBaselineRef.current.set(path, result.normalizedSource);
+          await recordNotesHistoryVersion({
+            path,
+            rawSource: result.normalizedSource,
+            vaultRoot: client.rootPath,
+          }).catch(() => undefined);
           rememberSelfWrittenContent(
             selfWriteHistoryRef.current,
             path,
@@ -472,6 +588,9 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
             dirtyPathsRef.current[path] = true;
           } else {
             delete dirtyPathsRef.current[path];
+            await clearNotesRecoveryDraft(path, client.rootPath).catch(
+              () => undefined,
+            );
           }
 
           setDirtyPaths((current) =>
@@ -491,20 +610,28 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
             showLoading: false,
           });
 
-          return true;
+          return {
+            persistedSource: result.normalizedSource,
+            status: "saved",
+          };
         } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : NOTES_UI_COPY.errors.saveNote;
           if (saveType === "manual") {
-            setErrorMessage(
-              error instanceof Error
-                ? error.message
-                : NOTES_UI_COPY.errors.saveNote,
-            );
+            setErrorMessage(message);
           }
-          return false;
+          return { message, status: "failed" };
         }
       };
 
-      const previous = saveChainRef.current.get(path) ?? Promise.resolve(true);
+      const previous =
+        saveChainRef.current.get(path) ??
+        Promise.resolve<NotesPersistenceResult>({
+          persistedSource: rawSource,
+          status: "saved",
+        });
       const next = previous.then(runWrite, runWrite);
       saveChainRef.current.set(path, next);
 
@@ -570,6 +697,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       const pathSet = new Set(paths);
       pathSet.forEach((path) => {
         clearPendingDerivation(path);
+        void clearNotesRecoveryDraft(path, client.rootPath);
         saveBaselineRef.current.delete(path);
         saveMetaRef.current.delete(path);
         delete dirtyPathsRef.current[path];
@@ -593,7 +721,33 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
         return next;
       });
     },
-    [clearPendingDerivation],
+    [clearPendingDerivation, client.rootPath],
+  );
+
+  const scheduleRecoveryCapture = useCallback(
+    (draft: Parameters<typeof captureNotesRecoveryDraft>[0]) => {
+      recoveryPendingDraftRef.current.set(draft.path, draft);
+      if (recoveryCaptureTimerRef.current.has(draft.path)) {
+        return;
+      }
+
+      const capturedSource = draft.rawSource;
+      void captureNotesRecoveryDraft(draft).catch(() => {
+        setErrorMessage(NOTES_UI_COPY.errors.recovery);
+      });
+      const timerId = window.setTimeout(() => {
+        recoveryCaptureTimerRef.current.delete(draft.path);
+        const pendingDraft = recoveryPendingDraftRef.current.get(draft.path);
+        recoveryPendingDraftRef.current.delete(draft.path);
+        if (pendingDraft && pendingDraft.rawSource !== capturedSource) {
+          void captureNotesRecoveryDraft(pendingDraft).catch(() => {
+            setErrorMessage(NOTES_UI_COPY.errors.recovery);
+          });
+        }
+      }, RECOVERY_CAPTURE_WINDOW_MS);
+      recoveryCaptureTimerRef.current.set(draft.path, timerId);
+    },
+    [setErrorMessage],
   );
 
   const handleDocumentChange = useCallback(
@@ -630,6 +784,12 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
         ...dirtyPathsRef.current,
         [path]: true,
       };
+      scheduleRecoveryCapture({
+        baseRawSource: expectedRawSource,
+        path,
+        rawSource,
+        vaultRoot: client.rootPath,
+      });
 
       startTransition(() => {
         setLiveDocuments(nextLiveDocuments);
@@ -642,29 +802,169 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       scheduleLiveDocumentDerivation(path, currentDocument, rawSource);
     },
     [
+      client.rootPath,
       documents,
       scheduleLiveDocumentDerivation,
+      scheduleRecoveryCapture,
       snapshot.documents,
     ],
   );
 
-  const saveDirtyDocument = useCallback(
-    async (path: string, saveType: NotesSaveType) => {
-      if (!dirtyPathsRef.current[path]) {
-        return true;
-      }
+  useEffect(() => {
+    restoredRecoveryPathsRef.current.clear();
+  }, [client.rootPath]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void listNotesRecoveryDrafts(client.rootPath)
+      .then(async (drafts) => {
+        if (cancelled) return;
+        const loadedPaths = new Set(
+          snapshot.documents.map((document) => document.path),
+        );
+        const entryPaths = new Set(
+          snapshot.entries
+            .filter((entry) => entry.kind === "file")
+            .map((entry) => entry.path),
+        );
+        const recoveryPathsToLoad = drafts
+          .map((draft) => draft.path)
+          .filter(
+            (path) => entryPaths.has(path) && !loadedPaths.has(path),
+          );
+        const shouldPreloadRecovery =
+          Boolean(ensureDocuments) && recoveryPathsToLoad.length > 0;
+        const ensuredSnapshot = shouldPreloadRecovery
+          ? await ensureDocuments!(recoveryPathsToLoad)
+          : null;
+        if (cancelled) return;
+        if (shouldPreloadRecovery && !ensuredSnapshot) {
+          return;
+        }
+        const availableDocuments =
+          ensuredSnapshot?.documents ?? snapshot.documents;
+
+        drafts.forEach((draft) => {
+          if (restoredRecoveryPathsRef.current.has(draft.path)) return;
+          const diskDocument = findDocumentByPath(
+            availableDocuments,
+            draft.path,
+          );
+          if (diskDocument?.rawSource === draft.rawSource) {
+            void clearNotesRecoveryDraft(draft.path, client.rootPath);
+            return;
+          }
+
+          restoredRecoveryPathsRef.current.add(draft.path);
+          const baseRawSource =
+            draft.baseRawSource === undefined
+              ? (diskDocument?.rawSource ?? null)
+              : draft.baseRawSource;
+          const isMissing = !diskDocument;
+          const isDivergent =
+            !isMissing &&
+            baseRawSource !== null &&
+            diskDocument.rawSource !== baseRawSource;
+          const recoveredDocument = diskDocument
+            ? createLiveNoteDocument(diskDocument, draft.rawSource)
+            : createNoteDocument({
+                mtime: null,
+                path: draft.path,
+                rawSource: draft.rawSource,
+              });
+          const nextLiveDocuments = {
+            ...liveDocumentsRef.current,
+            [draft.path]: recoveredDocument,
+          };
+          liveDocumentsRef.current = nextLiveDocuments;
+          saveBaselineRef.current.set(
+            draft.path,
+            isMissing ? null : baseRawSource,
+          );
+          saveMetaRef.current.set(draft.path, {
+            isDivergent,
+            isMissing,
+            lastAutoSave: null,
+            lastDiskContent: diskDocument?.rawSource ?? null,
+            savedContent: baseRawSource,
+          });
+          dirtyPathsRef.current = {
+            ...dirtyPathsRef.current,
+            [draft.path]: true,
+          };
+          startTransition(() => {
+            setLiveDocuments(nextLiveDocuments);
+          });
+          setDirtyPaths((current) => ({
+            ...current,
+            [draft.path]: true,
+          }));
+          setWorkspace((current) => openWorkspacePath(current, draft.path));
+          scheduleLiveDocumentDerivation(
+            draft.path,
+            recoveredDocument,
+            draft.rawSource,
+          );
+          if (isDivergent && diskDocument) {
+            setWriteConflict((current) =>
+              current ?? {
+                expectedRawSource: baseRawSource,
+                localRawSource: draft.rawSource,
+                path: draft.path,
+                remoteRawSource: diskDocument.rawSource,
+              },
+            );
+          }
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setErrorMessage(NOTES_UI_COPY.errors.recovery);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    client.rootPath,
+    ensureDocuments,
+    scheduleLiveDocumentDerivation,
+    setErrorMessage,
+    setWorkspace,
+    snapshot.documents,
+    snapshot.entries,
+  ]);
+
+  const persistDirtyDocument = useCallback(
+    async (
+      path: string,
+      saveType: NotesSaveType,
+    ): Promise<NotesPersistenceResult> => {
       const document =
         liveDocumentsRef.current[path] ??
         findDocumentByPath(documentsRef.current, path);
 
       if (!document) {
-        return false;
+        return { message: NOTES_UI_COPY.errors.saveNote, status: "failed" };
+      }
+      if (!dirtyPathsRef.current[path]) {
+        return { persistedSource: document.rawSource, status: "saved" };
       }
 
       return saveDocumentNow(path, document.rawSource, saveType);
     },
     [saveDocumentNow],
+  );
+
+  const saveDirtyDocument = useCallback(
+    async (path: string, saveType: NotesSaveType) =>
+      (await persistDirtyDocument(path, saveType)).status === "saved",
+    [persistDirtyDocument],
+  );
+
+  const handleSaveDocument = useCallback(
+    (path: string) => persistDirtyDocument(path, "manual"),
+    [persistDirtyDocument],
   );
 
   const handleSaveActiveDocument = useCallback(async () => {
@@ -677,7 +977,9 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
 
   const handleSaveAllDocuments = useCallback(async () => {
     const currentDirtyPaths = dirtyPathsRef.current;
-    const dirtyOpenPaths = workspace.openTabs.filter((path) => currentDirtyPaths[path]);
+    const dirtyOpenPaths = workspace.openTabs.filter(
+      (path) => currentDirtyPaths[path],
+    );
     const dirtyPathsSet = new Set([
       ...dirtyOpenPaths,
       ...Object.keys(currentDirtyPaths),
@@ -808,6 +1110,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     handleDocumentChange,
     handleSaveActiveDocument,
     handleSaveAllDocuments,
+    handleSaveDocument,
     handleCopyWriteConflictDiff,
     handleKeepWriteConflict,
     handleReloadWriteConflict,

@@ -15,6 +15,7 @@ type NotesWorkbenchBottomLeftProps = {
   canGoForward?: boolean;
   directoryInfo?: NotesDirectoryInfo;
   entries: VaultEntry[];
+  onCopyPath?: (path: string) => void;
   onCreateNote?: () => void;
   onCreateNoteInPath?: (folderPath: string) => void;
   onCreateFolderInPath?: (parentPath: string) => void;
@@ -22,6 +23,7 @@ type NotesWorkbenchBottomLeftProps = {
   onGoBack?: () => void;
   onGoForward?: () => void;
   onRenamePath?: (path: string, kind: "directory" | "file") => void;
+  onRevealPath?: (path: string) => void;
   onMovePath?: (sourcePath: string, targetFolderPath: string) => void;
   onOpenPath: (path: string) => void;
   onPickDirectory?: () => void;
@@ -40,6 +42,7 @@ export function NotesWorkbenchBottomLeft({
   canGoForward = false,
   directoryInfo,
   entries,
+  onCopyPath,
   onCreateNote,
   onCreateNoteInPath,
   onCreateFolderInPath,
@@ -47,6 +50,7 @@ export function NotesWorkbenchBottomLeft({
   onGoBack,
   onGoForward,
   onRenamePath,
+  onRevealPath,
   onMovePath,
   onOpenPath,
   onPickDirectory,
@@ -125,10 +129,12 @@ export function NotesWorkbenchBottomLeft({
               onOpenPath(path);
               closePopover();
             }}
+            onCopyPath={onCopyPath}
             onCreateNoteInPath={onCreateNoteInPath}
             onCreateFolderInPath={onCreateFolderInPath}
             onDeletePath={onDeletePath}
             onRenamePath={onRenamePath}
+            onRevealPath={onRevealPath}
             onMovePath={onMovePath}
             variant="obsidian"
           />

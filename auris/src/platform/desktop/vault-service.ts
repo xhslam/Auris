@@ -7,6 +7,7 @@ import type {
 import type { NotesDirectoryInfo } from "@/features/notes/note-types";
 
 export type DesktopVaultService = {
+  copyEntry: (fromPath: string, toPath: string) => Promise<void>;
   createDirectory: (relativePath: string) => Promise<void>;
   getDirectoryInfo: () => Promise<NotesDirectoryInfo>;
   listFiles: () => Promise<DesktopVaultFileRecord[]>;
@@ -18,6 +19,8 @@ export type DesktopVaultService = {
   readMarkdownFile: (relativePath: string) => Promise<string | null>;
   renameMarkdownFile: (fromPath: string, toPath: string) => Promise<void>;
   removeMarkdownFile: (relativePath: string) => Promise<void>;
+  restoreLastDeletedEntry: () => Promise<string | null>;
+  revealEntry: (relativePath: string) => Promise<void>;
   saveMarkdownFile: (relativePath: string, content: string) => Promise<void>;
   subscribeToChanges: (listener: () => void) => () => void;
 };
@@ -70,6 +73,12 @@ export function createDesktopVaultService(bridge: DesktopBridge): DesktopVaultSe
     : {};
 
   return {
+    async copyEntry(fromPath: string, toPath: string) {
+      await requireVaultCapability(bridge.vault.copyFile, "copyFile")(
+        fromPath,
+        toPath,
+      );
+    },
     async createDirectory(relativePath: string) {
       await requireVaultCapability(bridge.vault.createDirectory, "createDirectory")(relativePath);
     },
@@ -99,6 +108,17 @@ export function createDesktopVaultService(bridge: DesktopBridge): DesktopVaultSe
     },
     async removeMarkdownFile(relativePath: string) {
       await bridge.vault.removeFile(relativePath);
+    },
+    async restoreLastDeletedEntry() {
+      return requireVaultCapability(
+        bridge.vault.restoreLastDeleted,
+        "restoreLastDeleted",
+      )();
+    },
+    async revealEntry(relativePath: string) {
+      await requireVaultCapability(bridge.vault.revealFile, "revealFile")(
+        relativePath,
+      );
     },
     async saveMarkdownFile(relativePath: string, content: string) {
       await bridge.vault.saveFile(relativePath, content);

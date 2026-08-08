@@ -239,6 +239,74 @@ export type DesktopPluginRecord = {
   manifest: DesktopPluginManifest;
 };
 
+export type DesktopNotesRecoveryDraft = {
+  baseRawSource?: string | null;
+  captureId?: string;
+  capturedAt: string;
+  path: string;
+  rawSource: string;
+  schemaVersion?: number;
+  vaultRoot: string | null;
+};
+
+export type DesktopNotesHotExitWorkspace = {
+  activePath: string | null;
+  commandHistory: string[];
+  editorModesByPath: Record<string, "source" | "wysiwyg">;
+  leftSidebarCollapsed: boolean;
+  leftSidebarMode: "files" | "outline" | "search";
+  openTabs: string[];
+  pinnedTabs: string[];
+  recentFiles: string[];
+  rightSidebarCollapsed: boolean;
+  rightSidebarMode: "backlinks" | "learning" | "properties" | "terminal";
+};
+
+export type DesktopNotesHotExitWorkspaceSession = {
+  capturedAt: string;
+  schemaVersion: number;
+  vaultRoot: string | null;
+  workspace: DesktopNotesHotExitWorkspace;
+};
+
+export type DesktopNotesHistoryVersion = {
+  id: string;
+  path: string;
+  rawSource: string;
+  savedAt: string;
+  vaultRoot: string | null;
+};
+
+export type DesktopNotesRecoveryBridge = {
+  captureDraft: (
+    draft: Omit<DesktopNotesRecoveryDraft, "capturedAt">,
+  ) => Promise<boolean>;
+  clearDraft: (path: string, vaultRoot: string | null) => Promise<void>;
+  captureWorkspace: (
+    vaultRoot: string | null,
+    workspace: DesktopNotesHotExitWorkspace,
+  ) => Promise<boolean>;
+  importLegacy: (payload: {
+    drafts: DesktopNotesRecoveryDraft[];
+    history: DesktopNotesHistoryVersion[];
+  }) => Promise<{
+    draftsImported: number;
+    historyImported: number;
+    imported: boolean;
+  }>;
+  listDrafts: (vaultRoot: string | null) => Promise<DesktopNotesRecoveryDraft[]>;
+  listHistory: (
+    path: string,
+    vaultRoot: string | null,
+  ) => Promise<DesktopNotesHistoryVersion[]>;
+  loadWorkspace: (
+    vaultRoot: string | null,
+  ) => Promise<DesktopNotesHotExitWorkspaceSession | null>;
+  recordHistory: (
+    version: Omit<DesktopNotesHistoryVersion, "id" | "savedAt">,
+  ) => Promise<DesktopNotesHistoryVersion | undefined>;
+};
+
 export type DesktopVoiceEngineRuntimeState =
   | "not_configured"
   | "starting"
@@ -437,6 +505,7 @@ export type DesktopBridge = {
       listener: (request: DesktopNotesMcpRequest) => Promise<unknown> | unknown,
     ) => () => void;
   };
+  notesRecovery?: DesktopNotesRecoveryBridge;
   plugins: {
     list: () => Promise<DesktopPluginRecord[]>;
     openDirectory: () => Promise<void>;
@@ -481,6 +550,7 @@ export type DesktopBridge = {
   };
   terminal?: DesktopTerminalBridge;
   vault: {
+    copyFile?: (fromPath: string, toPath: string) => Promise<void>;
     createDirectory?: (relativePath: string) => Promise<void>;
     getDirectoryInfo: () => Promise<DesktopVaultDirectoryInfo>;
     listFiles: () => Promise<DesktopVaultFileRecord[]>;
@@ -491,6 +561,8 @@ export type DesktopBridge = {
     readFile: (relativePath: string) => Promise<string | null>;
     renameFile?: (fromPath: string, toPath: string) => Promise<void>;
     removeFile: (relativePath: string) => Promise<void>;
+    restoreLastDeleted?: () => Promise<string | null>;
+    revealFile?: (relativePath: string) => Promise<void>;
     revealPluginsDirectory: () => Promise<void>;
     saveFile: (relativePath: string, content: string) => Promise<void>;
   };

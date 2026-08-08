@@ -16,8 +16,8 @@ import {
 import type { NotesEditorMode } from "@/features/notes/editor/editor-types";
 import type { NotesRightSidebarMode } from "@/features/notes/workspace/workspace-types";
 
-export function useNotesSidebarState() {
-  const [workspace, setWorkspace] = useWorkspacePersistence();
+export function useNotesSidebarState(vaultRoot: string | null) {
+  const [workspace, setWorkspace] = useWorkspacePersistence(vaultRoot);
   const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [learningQuery, setLearningQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");

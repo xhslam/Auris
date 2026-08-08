@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createVaultStore } from "@/features/notes/vault/vault-store";
 import type { VaultClient } from "@/features/notes/vault/vault-types";
 
-function createClient(): VaultClient {
+function createClient(onRead?: (path: string) => void): VaultClient {
   const files = new Map<string, string>([
     [".claude/skills/product-complete.md", "# Hidden skill\n\nShould stay out of notes."],
     [
@@ -43,7 +43,10 @@ function createClient(): VaultClient {
         files.set(toPath, content);
       }
     },
-    readFile: async (path) => files.get(path) ?? null,
+    readFile: async (path) => {
+      onRead?.(path);
+      return files.get(path) ?? null;
+    },
     renameEntry: async (fromPath, toPath) => {
       const content = files.get(fromPath);
 
@@ -61,18 +64,61 @@ function createClient(): VaultClient {
 }
 
 describe("vault-store", () => {
-  it("refreshes documents from the vault and exposes searchable metadata", async () => {
-    const store = createVaultStore(createClient());
-    const snapshot = await store.refresh();
+  it("keeps startup reads bounded for a large vault", async () => {
+    const readFile = vi.fn(async (path: string) => `# ${path}`);
+    const client = {
+      ...createClient(),
+      listEntries: async () =>
+        Array.from({ length: 1_000 }, (_value, index) => {
+          const path = `notes/${String(index).padStart(4, "0")}.md`;
+          return {
+            kind: "file" as const,
+            mtime: "2026-07-29T00:00:00.000Z",
+            name: path.split("/").at(-1) ?? path,
+            path,
+            size: 16,
+          };
+        }),
+      readFile,
+    };
+    const store = createVaultStore(client);
+
+    await store.refresh();
+    expect(readFile).toHaveBeenCalledTimes(1);
+    expect(readFile).toHaveBeenLastCalledWith("notes/0000.md");
+
+    await store.loadDocuments(["notes/0999.md"]);
+    expect(readFile).toHaveBeenCalledTimes(2);
+    expect(readFile).toHaveBeenLastCalledWith("notes/0999.md");
+  });
+
+  it("lists the vault eagerly but reads Markdown only when requested", async () => {
+    const reads: string[] = [];
+    const store = createVaultStore(createClient((path) => reads.push(path)));
+    const initialSnapshot = await store.refresh();
+
+    expect(initialSnapshot.documents.map((document) => document.path)).toEqual([
+      "notes/daily.md",
+    ]);
+    expect(reads).toEqual(["notes/daily.md"]);
+    expect(initialSnapshot.entries.map((entry) => entry.path)).toContain(
+      "assets/audio.wav",
+    );
+    expect(initialSnapshot.entries.map((entry) => entry.path)).not.toContain(
+      ".claude/skills/product-complete.md",
+    );
+    expect(initialSnapshot.entries.map((entry) => entry.path)).not.toContain(
+      "视频区/analysis/report.md",
+    );
+
+    const snapshot = await store.loadDocuments(["notes/grammar.md"]);
     const results = store.search("shadowing");
 
     expect(snapshot.documents).toHaveLength(2);
-    expect(snapshot.entries.map((entry) => entry.path)).toContain("assets/audio.wav");
-    expect(snapshot.entries.map((entry) => entry.path)).not.toContain(".claude/skills/product-complete.md");
-    expect(snapshot.entries.map((entry) => entry.path)).not.toContain("视频区/analysis/report.md");
     expect(snapshot.documents[0]?.parsed.title).toBe("Daily Review");
     expect(snapshot.backlinks["notes/grammar.md"]).toEqual(["notes/daily.md"]);
     expect(results.map((document) => document.path)).toEqual(["notes/daily.md"]);
+    expect(reads).toEqual(["notes/daily.md", "notes/grammar.md"]);
   });
 
   it("rebuilds the derived index from the vault files", async () => {

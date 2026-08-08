@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NotesFileTree } from "@/components/notes-v2/notes-file-tree";
@@ -138,6 +138,30 @@ describe("NotesFileTree", () => {
     expect(within(markdownButton).queryByText("daily.md")).not.toBeInTheDocument();
     expect(within(attachmentButton).getByText("notes")).toBeInTheDocument();
     expect(within(attachmentButton).getByText("CSV")).toBeInTheDocument();
+  });
+
+  it("offers copy and reveal actions for a vault file", async () => {
+    const user = userEvent.setup();
+    const onCopyPath = vi.fn();
+    const onRevealPath = vi.fn();
+
+    render(
+      <NotesFileTree
+        activePath="notes/daily.md"
+        entries={ENTRIES}
+        onCopyPath={onCopyPath}
+        onOpenPath={vi.fn()}
+        onRevealPath={onRevealPath}
+      />,
+    );
+
+    fireEvent.contextMenu(screen.getByRole("button", { name: /daily\.md/i }));
+    await user.click(screen.getByRole("menuitem", { name: "Copy" }));
+    expect(onCopyPath).toHaveBeenCalledWith("notes/daily.md");
+
+    fireEvent.contextMenu(screen.getByRole("button", { name: /daily\.md/i }));
+    await user.click(screen.getByRole("menuitem", { name: "Show in Finder" }));
+    expect(onRevealPath).toHaveBeenCalledWith("notes/daily.md");
   });
 
   it("hides the claude and video roots while keeping inbox visible", () => {

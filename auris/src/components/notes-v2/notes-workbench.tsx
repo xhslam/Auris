@@ -75,6 +75,10 @@ import type { NotesDirectoryInfo } from "@/features/notes/note-types";
 import type { VaultEntry } from "@/features/notes/vault/vault-types";
 import type { VaultWriteConflict } from "@/features/notes/vault/vault-write-conflict";
 import type { NotesMcpPendingEdit } from "@/features/notes/workbench/notes-mcp-edit-review";
+import {
+  listNotesHistoryVersions,
+  type NotesHistoryVersion,
+} from "@/features/notes/persistence/notes-recovery-store";
 import type {
   NotesLeftSidebarMode,
   NotesRightSidebarMode,
@@ -111,6 +115,7 @@ export type NotesWorkbenchProps = {
   learningQuery?: string;
   learningSnippets?: LearningSnippet[];
   onClosePath?: (path: string) => void;
+  onCopyPath?: (path: string) => void;
   onCreateNote?: () => void;
   onCreateNoteInPath?: (folderPath: string) => void;
   onCreateFolderInPath?: (parentPath: string) => void;
@@ -118,6 +123,7 @@ export type NotesWorkbenchProps = {
   onDeleteActiveNote?: () => void;
   onDeletePath?: (path: string, kind: "directory" | "file") => void;
   onRenamePath?: (path: string, kind: "directory" | "file") => void;
+  onRevealPath?: (path: string) => void;
   onDocumentChange:
     | ((nextSource: string) => void)
     | ((path: string, nextSource: string) => void);
@@ -157,6 +163,7 @@ export type NotesWorkbenchProps = {
   onGoForward?: () => void;
   onRejectPendingMcpEdit?: () => void;
   onReloadWriteConflict?: () => void;
+  onRestoreLastDeleted?: () => void;
   openTabs: string[];
   recentFiles?: string[];
   rightSidebarCollapsed?: boolean;
@@ -203,6 +210,7 @@ export function NotesWorkbench({
   learningQuery = "",
   learningSnippets = [],
   onClosePath,
+  onCopyPath,
   onCreateNote,
   onCreateNoteInPath,
   onCreateFolderInPath,
@@ -210,6 +218,7 @@ export function NotesWorkbench({
   onDeletePath,
   onMovePath,
   onRenamePath,
+  onRevealPath,
   onDocumentChange,
   onEditorActiveLineChange,
   onEditorBridgeReady,
@@ -243,6 +252,7 @@ export function NotesWorkbench({
   onGoForward,
   onRejectPendingMcpEdit,
   onReloadWriteConflict,
+  onRestoreLastDeleted,
   openTabs,
   recentFiles = [],
   rightSidebarCollapsed = false,
@@ -347,6 +357,56 @@ export function NotesWorkbench({
   const activeOpenStrategy = activeDocument
     ? getNoteOpenStrategy(activeDocument.rawSource.length)
     : null;
+  const activeDocumentSaveState = getNotesDocumentSaveState({
+    activePath,
+    dirtyPaths,
+    writeConflictPath: writeConflict?.path ?? null,
+  });
+  const activeDocumentPath = activeDocument?.path ?? null;
+  const [historyVersions, setHistoryVersions] = useState<NotesHistoryVersion[]>(
+    [],
+  );
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeDocumentPath) {
+      setHistoryVersions([]);
+      return;
+    }
+    void listNotesHistoryVersions(
+      activeDocumentPath,
+      directoryInfo?.vaultPath ?? null,
+    )
+      .then((versions) => {
+        if (!cancelled) setHistoryVersions(versions);
+      })
+      .catch(() => {
+        if (!cancelled) setHistoryVersions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeDocumentPath,
+    activeDocumentSaveState,
+    directoryInfo?.vaultPath,
+  ]);
+
+  const handleRestoreHistoryVersion = useCallback(
+    (version: NotesHistoryVersion) => {
+      if (!activeDocument || version.path !== activeDocument.path) {
+        return;
+      }
+      if (onDocumentChange.length >= 2) {
+        (onDocumentChange as (path: string, nextSource: string) => void)(
+          activeDocument.path,
+          version.rawSource,
+        );
+        return;
+      }
+      (onDocumentChange as (nextSource: string) => void)(version.rawSource);
+    },
+    [activeDocument, onDocumentChange],
+  );
   const resolvedTerminalWidth = useMemo(
     () => clampRightSidebarWidth(terminalWidth, shellWidth, "terminal"),
     [shellWidth, terminalWidth],
@@ -597,6 +657,7 @@ export function NotesWorkbench({
           canGoForward={canGoForward}
           directoryInfo={directoryInfo}
           entries={entries}
+          onCopyPath={onCopyPath}
           onCreateNote={onCreateNote}
           onCreateNoteInPath={onCreateNoteInPath}
           onCreateFolderInPath={onCreateFolderInPath}
@@ -604,6 +665,7 @@ export function NotesWorkbench({
           onGoBack={onGoBack}
           onGoForward={onGoForward}
           onRenamePath={onRenamePath}
+          onRevealPath={onRevealPath}
           onMovePath={onMovePath}
           onOpenPath={onOpenPath}
           onPickDirectory={onPickDirectory}
@@ -614,16 +676,13 @@ export function NotesWorkbench({
         <NotesWorkbenchBottomRight
           activeDocument={activeDocument}
           backlinks={backlinks}
-          documentSaveState={getNotesDocumentSaveState({
-            activePath,
-            dirtyPaths,
-            writeConflictPath: writeConflict?.path ?? null,
-          })}
+          documentSaveState={activeDocumentSaveState}
           documents={documents}
           editorMode={editorMode}
           indexRebuildMessage={indexRebuildMessage}
           isRebuildingIndex={isRebuildingIndex}
           isTerminalSplitOpen={isTerminalSplitOpen}
+          historyVersions={historyVersions}
           learningQuery={learningQuery}
           learningSnippets={learningSnippets}
           noteOpenStrategy={activeOpenStrategy}
@@ -634,11 +693,13 @@ export function NotesWorkbench({
           onExportVault={onExportVault}
           onFormatCjk={onFormatCjk}
           onInsertSnippet={onInsertSnippet}
+          onRestoreHistoryVersion={handleRestoreHistoryVersion}
           onLearningQueryChange={onLearningQueryChange}
           onOpenSourcePeek={handleOpenSourcePeek}
           onOpenPath={onOpenPath}
           onRebuildIndex={onRebuildIndex}
           onRefresh={onRefresh}
+          onRestoreLastDeleted={onRestoreLastDeleted}
           onRenameActiveNote={onRenameActiveNote}
           onSearchQueryChange={onSearchQueryChange}
           onUpdateTags={onUpdateTags}

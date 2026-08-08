@@ -26,11 +26,12 @@ import {
 import type { DesktopBridge, DesktopCommandRecord } from "@/platform/desktop/desktop-bridge";
 
 type RefreshSnapshot = (
-  options?: { showLoading?: boolean },
+  options?: { eagerPaths?: readonly string[]; showLoading?: boolean },
 ) => Promise<VaultSnapshot | null>;
 
 type VaultStoreLike = {
   getSnapshot: () => VaultSnapshot;
+  rebuildIndex: () => Promise<VaultSnapshot>;
 };
 
 type UseNotesActionsInput = {
@@ -71,6 +72,23 @@ function buildNewNoteSource() {
   return `${NEW_NOTE_BODY_PLACEHOLDER}\n`;
 }
 
+function getCopyPath(path: string, existingPaths: string[]) {
+  const dot = path.lastIndexOf(".");
+  const slash = path.lastIndexOf("/");
+  const hasExtension = dot > slash;
+  const stem = hasExtension ? path.slice(0, dot) : path;
+  const extension = hasExtension ? path.slice(dot) : "";
+  let index = 1;
+  let candidate = `${stem} copy${extension}`;
+  const occupied = new Set(existingPaths.map((entry) => entry.toLowerCase()));
+
+  while (occupied.has(candidate.toLowerCase())) {
+    index += 1;
+    candidate = `${stem} copy ${index}${extension}`;
+  }
+  return candidate;
+}
+
 export function useNotesActions(input: UseNotesActionsInput) {
   const {
     activeDocument,
@@ -93,14 +111,18 @@ export function useNotesActions(input: UseNotesActionsInput) {
 
   // ── Create note in a specific folder ──────────────────────────────────────
   const handleCreateNoteInPath = useCallback(async (folderPath: string) => {
-    // Guard against silently overwriting an existing note: `documents.length`
-    // can collide with a file that already exists (e.g. after some notes were
-    // deleted), so probe for a free "Study Note N" name before writing.
-    const existingPaths = new Set(documents.map((d) => d.path.toLowerCase()));
+    // The document collection is intentionally lazy. Collision checks must use
+    // the complete entry listing so unopened notes cannot be overwritten.
+    const existingPaths = new Set(
+      vaultStore
+        .getSnapshot()
+        .entries.filter((entry) => entry.kind === "file")
+        .map((entry) => entry.path.toLowerCase()),
+    );
     const buildPath = (fileName: string) =>
       folderPath ? `${folderPath}/${fileName}.md` : `${fileName}.md`;
 
-    let counter = documents.length + 1;
+    let counter = existingPaths.size + 1;
     let baseTitle = `Study Note ${counter}`;
     let nextPath = buildPath(slugifyFileName(baseTitle));
 
@@ -113,14 +135,14 @@ export function useNotesActions(input: UseNotesActionsInput) {
     try {
       if (folderPath) await client.createDirectory(folderPath);
       await client.writeFile(nextPath, buildNewNoteSource());
-      await refreshSnapshot();
+      await refreshSnapshot({ eagerPaths: [nextPath] });
       setWorkspace((current) => openWorkspacePath(current, nextPath));
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : NOTES_UI_COPY.errors.createNote,
       );
     }
-  }, [client, documents, refreshSnapshot, setErrorMessage, setWorkspace]);
+  }, [client, refreshSnapshot, setErrorMessage, setWorkspace, vaultStore]);
 
   // ── + button: create in active document's folder, Inbox as fallback ──────
   const handleCreateNote = useCallback(async () => {
@@ -143,7 +165,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
         }
 
         await client.writeFile(path, buildWikiLinkNoteSource(title));
-        await refreshSnapshot();
+        await refreshSnapshot({ eagerPaths: [path] });
         return true;
       } catch (error) {
         setErrorMessage(
@@ -160,10 +182,11 @@ export function useNotesActions(input: UseNotesActionsInput) {
   // ── Wiki-link navigation: open the target, creating it when missing ──────
   const handleOpenWikiLink = useCallback(
     async (target: string, sourcePath?: string) => {
+      const allDocuments = (await vaultStore.rebuildIndex()).documents;
       const plan = planWikiLinkNavigation(
         target,
         sourcePath ?? activeDocument?.path ?? "",
-        documents,
+        allDocuments,
       );
 
       if (!plan) {
@@ -176,7 +199,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
 
       setWorkspace((current) => openWorkspacePath(current, plan.path));
     },
-    [activeDocument, createWikiLinkNote, documents, setWorkspace],
+    [activeDocument, createWikiLinkNote, setWorkspace, vaultStore],
   );
 
   // ── Ensure a wiki-link target note exists (create, but do NOT navigate) ──
@@ -185,17 +208,18 @@ export function useNotesActions(input: UseNotesActionsInput) {
   // while keeping the user on the current note.
   const handleEnsureWikiLinkNote = useCallback(
     async (target: string, sourcePath?: string) => {
+      const allDocuments = (await vaultStore.rebuildIndex()).documents;
       const plan = planWikiLinkNavigation(
         target,
         sourcePath ?? activeDocument?.path ?? "",
-        documents,
+        allDocuments,
       );
 
       if (plan?.type === "create") {
         await createWikiLinkNote(plan.path, plan.title);
       }
     },
-    [activeDocument, createWikiLinkNote, documents],
+    [activeDocument, createWikiLinkNote, vaultStore],
   );
 
   // ── Create folder via prompt ──────────────────────────────────────────────
@@ -221,13 +245,14 @@ export function useNotesActions(input: UseNotesActionsInput) {
   // different existing note, and rewrites every wiki link that pointed at it.
   const handleRenameNoteToTitle = useCallback(
     async (path: string, nextTitle: string): Promise<boolean> => {
-      const plan = buildRenameNotePlan(documents, { nextTitle, path });
+      const allDocuments = (await vaultStore.rebuildIndex()).documents;
+      const plan = buildRenameNotePlan(allDocuments, { nextTitle, path });
 
       // Refuse to rename onto an existing different note — fs.rename would
       // silently overwrite (and destroy) that file.
       if (
         plan.nextPath !== path &&
-        documents.some(
+        allDocuments.some(
           (d) => d.path.toLowerCase() === plan.nextPath.toLowerCase(),
         )
       ) {
@@ -250,7 +275,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
         );
 
         clearLocalDocumentState([path, ...plan.writes.map((w) => w.path)]);
-        await refreshSnapshot();
+        await refreshSnapshot({ eagerPaths: [plan.nextPath] });
 
         setWorkspace((current) =>
           openWorkspacePath(
@@ -271,10 +296,10 @@ export function useNotesActions(input: UseNotesActionsInput) {
       clearPendingDerivation,
       clearPendingSave,
       client,
-      documents,
       refreshSnapshot,
       setErrorMessage,
       setWorkspace,
+      vaultStore,
     ],
   );
 
@@ -303,7 +328,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
 
       try {
         await client.renameEntry(path, nextPath);
-        await refreshSnapshot();
+        await refreshSnapshot({ eagerPaths: [nextPath] });
         setWorkspace((current) => renameWorkspacePath(current, path, nextPath));
       } catch (error) {
         setErrorMessage(
@@ -350,7 +375,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
 
       try {
         await client.moveEntry(sourcePath, plan.nextPath);
-        await refreshSnapshot();
+        await refreshSnapshot({ eagerPaths: [plan.nextPath] });
         setWorkspace((current) =>
           renameWorkspacePath(current, sourcePath, plan.nextPath),
         );
@@ -364,13 +389,62 @@ export function useNotesActions(input: UseNotesActionsInput) {
     [client, refreshSnapshot, setErrorMessage, setWorkspace, vaultStore],
   );
 
+  const handleCopyPath = useCallback(async (path: string) => {
+    if (!client.copyEntry) {
+      setErrorMessage("当前运行环境不支持复制文件。");
+      return;
+    }
+    const nextPath = getCopyPath(
+      path,
+      vaultStore.getSnapshot().entries.map((entry) => entry.path),
+    );
+    try {
+      await client.copyEntry(path, nextPath);
+      await refreshSnapshot({
+        eagerPaths: [nextPath],
+        showLoading: false,
+      });
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "复制失败");
+    }
+  }, [client, refreshSnapshot, setErrorMessage, vaultStore]);
+
+  const handleRevealPath = useCallback(async (path: string) => {
+    try {
+      await client.revealEntry?.(path);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "无法在文件管理器中显示",
+      );
+    }
+  }, [client, setErrorMessage]);
+
+  const handleRestoreLastDeleted = useCallback(async () => {
+    try {
+      const restoredPath = await client.restoreLastDeletedEntry?.();
+      if (!restoredPath) {
+        setErrorMessage("回收站中没有可恢复的项目。");
+        return;
+      }
+      await refreshSnapshot({
+        eagerPaths: [restoredPath],
+        showLoading: false,
+      });
+      setWorkspace((current) => openWorkspacePath(current, restoredPath));
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "恢复失败");
+    }
+  }, [client, refreshSnapshot, setErrorMessage, setWorkspace]);
+
   // ── Delete any path ───────────────────────────────────────────────────────
   const handleDeletePath = useCallback(async (
     path: string,
     kind: "directory" | "file",
   ) => {
     const label = kind === "directory" ? `文件夹 "${path}"` : `"${path}"`;
-    const confirmed = await confirmFn(`删除 ${label}？此操作无法撤销。`, "删除");
+    const confirmed = await confirmFn(`将 ${label} 移到 Auris 回收站？`, "删除");
     if (!confirmed) return;
 
     const isMarkdown = kind === "file" && getVaultEntryDisplayKind(path) === "markdown";
@@ -449,7 +523,11 @@ export function useNotesActions(input: UseNotesActionsInput) {
     try {
       const selection = await client.pickFile();
       setDirectoryInfo(selection.directoryInfo);
-      await refreshSnapshot();
+      await refreshSnapshot({
+        eagerPaths: selection.selectedFilePath
+          ? [selection.selectedFilePath]
+          : undefined,
+      });
       if (selection.selectedFilePath) {
         setWorkspace((current) => openWorkspacePath(current, selection.selectedFilePath!));
       }
@@ -485,6 +563,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
   );
 
   return {
+    handleCopyPath,
     handleCreateNote,
     handleCreateNoteInPath,
     handleCreateFolderInPath,
@@ -492,6 +571,8 @@ export function useNotesActions(input: UseNotesActionsInput) {
     handleDeletePath,
     handleEnsureWikiLinkNote,
     handleMovePath,
+    handleRevealPath,
+    handleRestoreLastDeleted,
     handleOpenWikiLink,
     handlePickDirectory,
     handlePickFile,

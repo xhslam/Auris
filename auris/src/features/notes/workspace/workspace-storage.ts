@@ -60,23 +60,31 @@ export function loadWorkspaceState(
 
   try {
     const parsed = JSON.parse(raw) as Partial<NotesWorkspaceState>;
-
-    return {
-      activePath:
-        typeof parsed.activePath === "string" ? parsed.activePath : null,
-      commandHistory: sanitizePaths(parsed.commandHistory),
-      editorModesByPath: sanitizeEditorModesByPath(parsed.editorModesByPath),
-      leftSidebarCollapsed: Boolean(parsed.leftSidebarCollapsed),
-      leftSidebarMode: sanitizeLeftSidebarMode(parsed.leftSidebarMode),
-      openTabs: sanitizePaths(parsed.openTabs),
-      pinnedTabs: sanitizePaths(parsed.pinnedTabs),
-      recentFiles: sanitizePaths(parsed.recentFiles),
-      rightSidebarCollapsed: Boolean(parsed.rightSidebarCollapsed),
-      rightSidebarMode: sanitizeRightSidebarMode(parsed.rightSidebarMode),
-    };
+    return sanitizeWorkspaceState(parsed);
   } catch {
     return fallback;
   }
+}
+
+export function sanitizeWorkspaceState(
+  parsed: Partial<NotesWorkspaceState> | null | undefined,
+): NotesWorkspaceState {
+  if (!parsed || typeof parsed !== "object") {
+    return createWorkspaceState();
+  }
+  return {
+    activePath:
+      typeof parsed.activePath === "string" ? parsed.activePath : null,
+    commandHistory: sanitizePaths(parsed.commandHistory),
+    editorModesByPath: sanitizeEditorModesByPath(parsed.editorModesByPath),
+    leftSidebarCollapsed: Boolean(parsed.leftSidebarCollapsed),
+    leftSidebarMode: sanitizeLeftSidebarMode(parsed.leftSidebarMode),
+    openTabs: sanitizePaths(parsed.openTabs),
+    pinnedTabs: sanitizePaths(parsed.pinnedTabs),
+    recentFiles: sanitizePaths(parsed.recentFiles),
+    rightSidebarCollapsed: Boolean(parsed.rightSidebarCollapsed),
+    rightSidebarMode: sanitizeRightSidebarMode(parsed.rightSidebarMode),
+  };
 }
 
 export function saveWorkspaceState(

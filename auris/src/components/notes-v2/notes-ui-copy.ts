@@ -302,6 +302,7 @@ export const NOTES_UI_COPY = {
     moveEntryIntoSelf: "无法将文件夹移动到它自己内部。",
     renameNote: "重命名 Markdown 笔记失败。",
     renameNoteCollision: "已存在同名笔记，请换一个名称。",
+    recovery: "恢复未保存的笔记失败。",
     runDesktopCommand: "运行桌面命令失败。",
     saveNote: "保存 Markdown 笔记失败。",
     vaultExportValidation: "Vault 清单校验失败。",

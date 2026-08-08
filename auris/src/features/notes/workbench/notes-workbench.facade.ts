@@ -60,6 +60,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     desktopCommands,
     directoryInfo,
     errorMessage,
+    ensureDocuments,
     indexRebuildMessage,
     isLoading,
     isRebuildingIndex,
@@ -98,7 +99,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     setSearchQuery,
     setWorkspace,
     workspace,
-  } = useNotesSidebarState();
+  } = useNotesSidebarState(client.rootPath);
   const {
     activeDocument,
     backlinks,
@@ -117,6 +118,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     searchResults,
   } = useNotesDocuments({
     client,
+    ensureDocuments,
     resumeNoteId: options?.resumeNoteId,
     searchQuery,
     setErrorMessage,
@@ -140,6 +142,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
   );
 
   const {
+    handleCopyPath,
     handleCreateNote,
     handleCreateNoteInPath,
     handleCreateFolderInPath,
@@ -147,6 +150,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     handleDeletePath,
     handleEnsureWikiLinkNote,
     handleMovePath,
+    handleRevealPath,
+    handleRestoreLastDeleted,
     handleOpenWikiLink,
     handlePickDirectory,
     handlePickFile,
@@ -554,6 +559,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     canGoBack,
     canGoForward,
     handleClosePath,
+    handleCopyPath,
     handleCreateNote,
     handleCreateNoteInPath,
     handleCreateFolderInPath,
@@ -574,6 +580,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     handleGoBack,
     handleGoForward,
     handleMovePath,
+    handleRevealPath,
+    handleRestoreLastDeleted,
     handleOpenPath,
     handleOpenWikiLink,
     handleAcceptPendingMcpEdit,

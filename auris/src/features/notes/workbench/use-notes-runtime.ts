@@ -26,6 +26,7 @@ import { createDesktopVaultService } from "@/platform/desktop/vault-service";
 import { detectRuntime } from "@/platform/runtime";
 
 type RefreshSnapshotOptions = {
+  eagerPaths?: readonly string[];
   showLoading?: boolean;
 };
 
@@ -110,7 +111,9 @@ export function useNotesRuntime() {
         const info = client.getDirectoryInfo
           ? await client.getDirectoryInfo()
           : createDirectoryInfo(runtime.platform, client.rootPath);
-        const nextSnapshot = await vaultStore.refresh();
+        const nextSnapshot = await vaultStore.refresh({
+          eagerPaths: options?.eagerPaths,
+        });
 
         startTransition(() => {
           setDirectoryInfo(info);
@@ -133,6 +136,29 @@ export function useNotesRuntime() {
       }
     },
     [client, runtime.platform, vaultStore],
+  );
+
+  const ensureDocuments = useCallback(
+    async (paths: readonly string[]) => {
+      try {
+        const nextSnapshot = await vaultStore.loadDocuments(paths);
+
+        startTransition(() => {
+          setSnapshot(nextSnapshot);
+          setErrorMessage(null);
+        });
+
+        return nextSnapshot;
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : NOTES_UI_COPY.errors.loadVault,
+        );
+        return null;
+      }
+    },
+    [vaultStore],
   );
 
   const rebuildIndex = useCallback(async () => {
@@ -221,9 +247,13 @@ export function useNotesRuntime() {
 
   const handleExportVault = useCallback(async () => {
     try {
-      const manifest = buildVaultExportManifest(snapshot, {
+      const exportSnapshot = await vaultStore.rebuildIndex();
+      const manifest = buildVaultExportManifest(exportSnapshot, {
         sentences,
         words,
+      });
+      startTransition(() => {
+        setSnapshot(exportSnapshot);
       });
       const validation = validateVaultExportManifest(manifest);
 
@@ -246,7 +276,7 @@ export function useNotesRuntime() {
           : NOTES_UI_COPY.errors.exportVault,
       );
     }
-  }, [sentences, setErrorMessage, snapshot, words]);
+  }, [sentences, setErrorMessage, vaultStore, words]);
 
   useEffect(() => {
     void refreshDesktopCommands();
@@ -258,6 +288,7 @@ export function useNotesRuntime() {
     desktopCommands,
     directoryInfo,
     errorMessage,
+    ensureDocuments,
     handleExportVault,
     indexRebuildMessage,
     isLoading,

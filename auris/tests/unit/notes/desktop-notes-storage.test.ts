@@ -25,6 +25,8 @@ function createVaultService(): DesktopVaultService {
   ]);
 
   return {
+    copyEntry: vi.fn(async () => undefined),
+    createDirectory: vi.fn(async () => undefined),
     getDirectoryInfo: vi.fn(async () => ({
       directoryName: "English Vault",
       isConfigured: true,
@@ -33,6 +35,7 @@ function createVaultService(): DesktopVaultService {
       pluginDirectory: "C:/vault/.shadowing/plugins",
       vaultPath: "C:/vault",
     })),
+    listFiles: vi.fn(async () => []),
     listMarkdownFiles: vi.fn(async () =>
       [...files.keys()].map((relativePath) => ({
         absolutePath: `C:/vault/${relativePath}`,
@@ -40,6 +43,7 @@ function createVaultService(): DesktopVaultService {
         relativePath,
       })),
     ),
+    moveMarkdownFile: vi.fn(async () => undefined),
     openPluginsDirectory: vi.fn(async () => undefined),
     pickDirectory: vi.fn(async () => ({
       directoryName: "English Vault",
@@ -53,6 +57,9 @@ function createVaultService(): DesktopVaultService {
     removeMarkdownFile: vi.fn(async (relativePath: string) => {
       files.delete(relativePath);
     }),
+    renameMarkdownFile: vi.fn(async () => undefined),
+    restoreLastDeletedEntry: vi.fn(async () => null),
+    revealEntry: vi.fn(async () => undefined),
     saveMarkdownFile: vi.fn(async (relativePath: string, content: string) => {
       files.set(relativePath, content);
     }),

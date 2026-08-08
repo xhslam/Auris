@@ -118,6 +118,11 @@ const {
 const { createWorkflowFacade } = require("./workflows/workflow-facade.cjs");
 const { createWorkflowIpc } = require("./workflows/workflow-ipc.cjs");
 const { createWorkflowRunRegistry } = require("./workflows/workflow-run-registry.cjs");
+const { createNotesRecoveryStore } = require("./notes/notes-recovery-store.cjs");
+const { createNotesRecoveryIpc } = require("./notes/notes-recovery-ipc.cjs");
+const {
+  createVaultFileOperations,
+} = require("./notes/vault-file-operations.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
@@ -178,7 +183,9 @@ let localHistoryRepository = null;
 let videoLibraryRepository = null;
 let videoLibraryRepositoryPath = null;
 let vaultWatcher = null;
+let vaultMutationChain = Promise.resolve();
 let terminalSessionManager = null;
+let notesRecoveryStore = null;
 let terminalSessionUnsubscribers = [];
 let voiceEngineRuntime = null;
 let aiViewManager = null;
@@ -464,7 +471,7 @@ function requireTrustedMainEvent(event) {
     event?.sender !== mainWindow?.webContents
     || !isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event))
   ) {
-    throw new Error("Browser status requests require the trusted main Auris renderer.");
+    throw new Error("This request requires the trusted main Auris renderer.");
   }
 }
 
@@ -942,6 +949,15 @@ function getNodeCommand() {
 
 function getDesktopConfigPath() {
   return path.join(app.getPath("userData"), DESKTOP_CONFIG_FILE);
+}
+
+function getNotesRecoveryStore() {
+  if (!notesRecoveryStore) {
+    notesRecoveryStore = createNotesRecoveryStore({
+      baseDirectory: path.join(app.getPath("userData"), "notes-recovery"),
+    });
+  }
+  return notesRecoveryStore;
 }
 
 function getNotesMcpDiscoveryPath() {
@@ -2001,29 +2017,42 @@ function assertRelativePath(relativePath) {
     throw new Error("A valid relative vault path is required.");
   }
 
-  return relativePath.replace(/\\/g, "/").replace(/^\/+/, "");
+  const normalized = relativePath.replace(/\\/g, "/");
+  if (normalized.startsWith("/")) {
+    throw new Error("The requested file path escapes the current vault.");
+  }
+  return normalized;
 }
 
-async function resolveVaultTarget(relativePath) {
-  const vaultPath = await getVaultPath();
+function getNotesTrashDirectory() {
+  return path.join(app.getPath("userData"), "notes-trash");
+}
 
+function serializeVaultMutation(operation) {
+  const next = vaultMutationChain.then(operation, operation);
+  vaultMutationChain = next.catch(() => undefined);
+  return next;
+}
+
+async function getVaultFileOperations() {
+  const vaultPath = await getVaultPath();
   if (!vaultPath) {
     throw new Error("Please choose a local vault folder first.");
   }
-
-  const safeRelativePath = assertRelativePath(relativePath);
-  const absoluteTarget = path.resolve(vaultPath, safeRelativePath);
-  const normalizedVaultPath = path.resolve(vaultPath);
-  const insideVault =
-    absoluteTarget === normalizedVaultPath ||
-    absoluteTarget.startsWith(`${normalizedVaultPath}${path.sep}`);
-
-  if (!insideVault) {
-    throw new Error("The requested file path escapes the current vault.");
-  }
-
   return {
-    absoluteTarget,
+    operations: createVaultFileOperations({
+      trashRoot: getNotesTrashDirectory(),
+      vaultRoot: vaultPath,
+    }),
+    vaultPath,
+  };
+}
+
+async function resolveVaultTarget(relativePath) {
+  const safeRelativePath = assertRelativePath(relativePath);
+  const { operations, vaultPath } = await getVaultFileOperations();
+  return {
+    absoluteTarget: await operations.resolve(safeRelativePath),
     safeRelativePath,
     vaultPath,
   };
@@ -2923,6 +2952,12 @@ if (!hasSingleInstanceLock) {
 }
 
 function registerDesktopHandlers() {
+  createNotesRecoveryIpc({
+    ipcMain,
+    requireTrustedSender: requireTrustedMainEvent,
+    store: getNotesRecoveryStore(),
+  });
+
   ipcMain.handle("shadowing:commands:list", async () => {
     await loadPluginRuntime();
     return getDesktopCommands().map((command) => ({
@@ -3345,64 +3380,112 @@ function registerDesktopHandlers() {
     return runtime.plugins;
   });
 
-  ipcMain.handle("shadowing:vault:get-directory-info", async () => getVaultDirectoryInfo());
+  ipcMain.handle("shadowing:vault:get-directory-info", async (event) => {
+    requireTrustedMainEvent(event);
+    return getVaultDirectoryInfo();
+  });
 
-  ipcMain.handle("shadowing:vault:list-files", async () => {
+  ipcMain.handle("shadowing:vault:list-files", async (event) => {
+    requireTrustedMainEvent(event);
     const vaultPath = await getVaultPath();
     return vaultPath ? walkVaultFiles(vaultPath) : [];
   });
 
-  ipcMain.handle("shadowing:vault:pick-directory", async () => pickVaultDirectory());
-  ipcMain.handle("shadowing:vault:pick-file", async () => pickVaultFile());
-
-  ipcMain.handle("shadowing:vault:create-directory", async (_event, relativePath) => {
-    const target = await resolveVaultTarget(relativePath);
-    await fs.mkdir(target.absoluteTarget, { recursive: true });
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:pick-directory", async (event) => {
+    requireTrustedMainEvent(event);
+    return pickVaultDirectory();
+  });
+  ipcMain.handle("shadowing:vault:pick-file", async (event) => {
+    requireTrustedMainEvent(event);
+    return pickVaultFile();
   });
 
-  ipcMain.handle("shadowing:vault:read-file", async (_event, relativePath) => {
+  ipcMain.handle("shadowing:vault:create-directory", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
+    const target = await resolveVaultTarget(relativePath);
+    return serializeVaultMutation(async () => {
+      await fs.mkdir(target.absoluteTarget, { recursive: true });
+      scheduleVaultChanged();
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:read-file", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
     const target = await resolveVaultTarget(relativePath);
     return (await pathExists(target.absoluteTarget))
       ? fs.readFile(target.absoluteTarget, "utf8")
       : null;
   });
 
-  ipcMain.handle("shadowing:vault:remove-file", async (_event, relativePath) => {
-    const target = await resolveVaultTarget(relativePath);
-    await fs.rm(target.absoluteTarget, { force: true, recursive: true });
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:remove-file", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.trash(relativePath);
+      scheduleVaultChanged();
+    });
   });
 
-  ipcMain.handle("shadowing:vault:rename-file", async (_event, fromPath, toPath) => {
-    const source = await resolveVaultTarget(fromPath);
-    const target = await resolveVaultTarget(toPath);
-    await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
-    await fs.rename(source.absoluteTarget, target.absoluteTarget);
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:copy-file", async (event, fromPath, toPath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.copy(fromPath, toPath);
+      scheduleVaultChanged();
+    });
   });
 
-  ipcMain.handle("shadowing:vault:move-file", async (_event, fromPath, toPath) => {
-    const source = await resolveVaultTarget(fromPath);
-    const target = await resolveVaultTarget(toPath);
-    await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
-    await fs.rename(source.absoluteTarget, target.absoluteTarget);
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:reveal-file", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    shell.showItemInFolder(await operations.reveal(relativePath));
   });
 
-  ipcMain.handle("shadowing:vault:reveal-plugins-directory", async () => {
+  ipcMain.handle("shadowing:vault:restore-last-deleted", async (event) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      const restoredPath = await operations.restoreLatest();
+      if (restoredPath) scheduleVaultChanged();
+      return restoredPath;
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:rename-file", async (event, fromPath, toPath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.move(fromPath, toPath);
+      scheduleVaultChanged();
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:move-file", async (event, fromPath, toPath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.move(fromPath, toPath);
+      scheduleVaultChanged();
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:reveal-plugins-directory", async (event) => {
+    requireTrustedMainEvent(event);
     await revealPluginsDirectory();
   });
 
-  ipcMain.handle("shadowing:vault:save-file", async (_event, relativePath, content) => {
+  ipcMain.handle("shadowing:vault:save-file", async (event, relativePath, content) => {
+    requireTrustedMainEvent(event);
     const target = await resolveVaultTarget(relativePath);
-    await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
-    if (typeof content === "string") {
-      await writeFileAtomically(target.absoluteTarget, content, "utf8");
-    } else {
-      await writeFileAtomically(target.absoluteTarget, Buffer.from(content));
-    }
-    scheduleVaultChanged();
+    return serializeVaultMutation(async () => {
+      await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
+      if (typeof content === "string") {
+        await writeFileAtomically(target.absoluteTarget, content, "utf8");
+      } else {
+        await writeFileAtomically(target.absoluteTarget, Buffer.from(content));
+      }
+      scheduleVaultChanged();
+    });
   });
 
   ipcMain.handle("shadowing:video-library:get-snapshot", async () => getVideoLibrarySnapshot());

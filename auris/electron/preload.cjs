@@ -17,6 +17,9 @@ const {
   BROWSER_STATUS_COMMAND_CHANNEL,
   BROWSER_STATUS_EVENT_CHANNEL,
 } = require("./browser/browser-status-ipc.cjs");
+const {
+  NOTES_RECOVERY_COMMAND_CHANNEL,
+} = require("./notes/notes-recovery-ipc.cjs");
 
 const NIA_ALLOWED = new Set(
   NIA_IPC_COMMANDS.filter((command) => command !== "subscribe" && command !== "unsubscribe"),
@@ -263,6 +266,51 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
       };
     },
   },
+  notesRecovery: {
+    captureDraft: (draft) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "capture-draft",
+        draft,
+      }),
+    clearDraft: (path, vaultRoot) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "clear-draft",
+        path,
+        vaultRoot,
+      }),
+    captureWorkspace: (vaultRoot, workspace) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "capture-workspace",
+        vaultRoot,
+        workspace,
+      }),
+    importLegacy: (payload) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "import-legacy",
+        ...payload,
+      }),
+    listDrafts: (vaultRoot) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "list-drafts",
+        vaultRoot,
+      }),
+    listHistory: (path, vaultRoot) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "list-history",
+        path,
+        vaultRoot,
+      }),
+    loadWorkspace: (vaultRoot) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "load-workspace",
+        vaultRoot,
+      }),
+    recordHistory: (version) =>
+      invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
+        action: "record-history",
+        version,
+      }),
+  },
   plugins: {
     list: () => invoke("shadowing:plugins:list"),
     openDirectory: () => invoke("shadowing:plugins:open-directory"),
@@ -331,6 +379,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     write: (sessionId, data) => invoke("shadowing:terminal:write", sessionId, data),
   },
   vault: {
+    copyFile: (fromPath, toPath) =>
+      invoke("shadowing:vault:copy-file", fromPath, toPath),
     createDirectory: (relativePath) => invoke("shadowing:vault:create-directory", relativePath),
     getDirectoryInfo: () => invoke("shadowing:vault:get-directory-info"),
     listFiles: () => invoke("shadowing:vault:list-files"),
@@ -353,6 +403,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     renameFile: (fromPath, toPath) =>
       invoke("shadowing:vault:rename-file", fromPath, toPath),
     removeFile: (relativePath) => invoke("shadowing:vault:remove-file", relativePath),
+    restoreLastDeleted: () => invoke("shadowing:vault:restore-last-deleted"),
+    revealFile: (relativePath) => invoke("shadowing:vault:reveal-file", relativePath),
     revealPluginsDirectory: () => invoke("shadowing:vault:reveal-plugins-directory"),
     saveFile: (relativePath, content) =>
       invoke("shadowing:vault:save-file", relativePath, content),

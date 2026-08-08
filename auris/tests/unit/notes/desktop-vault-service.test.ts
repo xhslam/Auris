@@ -45,6 +45,7 @@ function createBridge(): DesktopBridge {
       openUpgrade: vi.fn(async () => ({ didOpen: false, targetUrl: null })),
     },
     vault: {
+      copyFile: vi.fn(async () => undefined),
       createDirectory: vi.fn(async () => undefined),
       getDirectoryInfo: vi.fn(async () => ({
         directoryName: "English Vault",
@@ -64,6 +65,8 @@ function createBridge(): DesktopBridge {
       readFile: vi.fn(async () => null),
       renameFile: vi.fn(async () => undefined),
       removeFile: vi.fn(async () => undefined),
+      restoreLastDeleted: vi.fn(async () => "notes/restored.md"),
+      revealFile: vi.fn(async () => undefined),
       revealPluginsDirectory: vi.fn(async () => undefined),
       saveFile: vi.fn(async () => undefined),
     },
@@ -80,5 +83,23 @@ describe("desktop vault service", () => {
     expect(typeof service.createDirectory).toBe("function");
     expect(typeof service.moveMarkdownFile).toBe("function");
     expect(typeof service.renameMarkdownFile).toBe("function");
+  });
+
+  it("adapts copy, reveal, and recoverable delete capabilities", async () => {
+    const bridge = createBridge();
+    const service = createDesktopVaultService(bridge);
+
+    await service.copyEntry("notes/daily.md", "notes/daily copy.md");
+    await service.revealEntry("notes/daily.md");
+    await expect(service.restoreLastDeletedEntry()).resolves.toBe(
+      "notes/restored.md",
+    );
+
+    expect(bridge.vault.copyFile).toHaveBeenCalledWith(
+      "notes/daily.md",
+      "notes/daily copy.md",
+    );
+    expect(bridge.vault.revealFile).toHaveBeenCalledWith("notes/daily.md");
+    expect(bridge.vault.restoreLastDeleted).toHaveBeenCalledTimes(1);
   });
 });

@@ -29,9 +29,11 @@ type NotesFileTreeProps = {
   entries: VaultEntry[];
   onOpenPath: (path: string) => void;
   onCreateNoteInPath?: (folderPath: string) => void;
+  onCopyPath?: (path: string) => void;
   onCreateFolderInPath?: (parentPath: string) => void;
   onDeletePath?: (path: string, kind: "directory" | "file") => void;
   onRenamePath?: (path: string, kind: "directory" | "file") => void;
+  onRevealPath?: (path: string) => void;
   /**
    * Move a file/folder into another folder via drag & drop. The target folder
    * is "" for the vault root.
@@ -194,9 +196,11 @@ export function NotesFileTree({
   entries,
   onOpenPath,
   onCreateNoteInPath,
+  onCopyPath,
   onCreateFolderInPath,
   onDeletePath,
   onRenamePath,
+  onRevealPath,
   onMovePath,
   collapseAllByDefault = false,
   variant = "default",
@@ -423,10 +427,12 @@ export function NotesFileTree({
         <NotesFileTreeContextMenu
           target={contextMenu}
           onClose={() => setContextMenu(null)}
+          onCopy={(path) => onCopyPath?.(path)}
           onCreateNote={(path) => onCreateNoteInPath?.(path)}
           onCreateFolder={(path) => onCreateFolderInPath?.(path)}
           onRename={(path, kind) => onRenamePath?.(path, kind)}
           onDelete={(path, kind) => onDeletePath?.(path, kind)}
+          onReveal={(path) => onRevealPath?.(path)}
         />
       )}
     </>

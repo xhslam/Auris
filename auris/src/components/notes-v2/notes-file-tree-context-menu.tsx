@@ -16,18 +16,22 @@ type NotesFileTreeContextMenuProps = {
   target: ContextMenuTarget;
   onClose: () => void;
   onCreateNote: (folderPath: string) => void;
+  onCopy: (path: string) => void;
   onCreateFolder: (parentPath: string) => void;
   onRename: (path: string, kind: "directory" | "file") => void;
   onDelete: (path: string, kind: "directory" | "file") => void;
+  onReveal: (path: string) => void;
 };
 
 export function NotesFileTreeContextMenu({
   target,
   onClose,
+  onCopy,
   onCreateNote,
   onCreateFolder,
   onRename,
   onDelete,
+  onReveal,
 }: NotesFileTreeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -113,6 +117,27 @@ export function NotesFileTreeContextMenu({
             New Folder
           </button>
           <div className="notes-v2__context-menu-separator" role="separator" />
+        </>
+      )}
+
+      {!isRoot && (
+        <>
+          <button
+            className="notes-v2__context-menu-item"
+            onClick={handle(() => onCopy(target.path))}
+            role="menuitem"
+            type="button"
+          >
+            Copy
+          </button>
+          <button
+            className="notes-v2__context-menu-item"
+            onClick={handle(() => onReveal(target.path))}
+            role="menuitem"
+            type="button"
+          >
+            Show in Finder
+          </button>
         </>
       )}
 

@@ -4,6 +4,7 @@ import type { DesktopVaultService } from "@/platform/desktop/vault-service";
 
 function createService(): DesktopVaultService {
   return {
+    copyEntry: vi.fn(async () => undefined),
     createDirectory: vi.fn(async () => undefined),
     getDirectoryInfo: vi.fn(async () => ({
       directoryName: "English Vault",
@@ -45,6 +46,8 @@ function createService(): DesktopVaultService {
     readMarkdownFile: vi.fn(async () => null),
     removeMarkdownFile: vi.fn(async () => undefined),
     renameMarkdownFile: vi.fn(async () => undefined),
+    restoreLastDeletedEntry: vi.fn(async () => null),
+    revealEntry: vi.fn(async () => undefined),
     saveMarkdownFile: vi.fn(async () => undefined),
     subscribeToChanges: vi.fn(() => () => undefined),
   };

@@ -61,6 +61,23 @@ describe("desktop standalone packaging", () => {
     ).toBe(true);
   });
 
+  it("binds sensitive Notes and Vault IPC to the main renderer", () => {
+    const mainSource = fs.readFileSync(
+      path.resolve(__dirname, "../../../electron/main.cjs"),
+      "utf8",
+    );
+
+    expect(mainSource).toContain(
+      "requireTrustedSender: requireTrustedMainEvent",
+    );
+    const vaultHandlers = mainSource.slice(
+      mainSource.indexOf('ipcMain.handle("shadowing:vault:get-directory-info"'),
+      mainSource.indexOf('ipcMain.handle("shadowing:video-library:get-snapshot"'),
+    );
+    expect(vaultHandlers).toContain("requireTrustedMainEvent(event)");
+    expect(vaultHandlers).not.toContain("requireTrustedDesktopEvent(event)");
+  });
+
   it("keeps packaged diagnostics outside the read-only ASAR", () => {
     const mainSource = fs.readFileSync(
       path.resolve(__dirname, "../../../electron/main.cjs"),

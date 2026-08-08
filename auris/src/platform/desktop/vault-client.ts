@@ -23,6 +23,9 @@ function toVaultEntry(
 
 export function createDesktopVaultClient(service: DesktopVaultService): DesktopVaultClient {
   const client: DesktopVaultClient = {
+    async copyEntry(fromPath: string, toPath: string) {
+      await service.copyEntry(fromPath, toPath);
+    },
     async createDirectory(path: string) {
       await service.createDirectory(path);
     },
@@ -63,6 +66,12 @@ export function createDesktopVaultClient(service: DesktopVaultService): DesktopV
     },
     async renameEntry(fromPath: string, toPath: string) {
       await service.renameMarkdownFile(fromPath, toPath);
+    },
+    async restoreLastDeletedEntry() {
+      return service.restoreLastDeletedEntry();
+    },
+    async revealEntry(path: string) {
+      await service.revealEntry(path);
     },
     rootPath: null,
     subscribeToChanges(listener: () => void) {

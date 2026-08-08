@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NotesWorkbenchBottomRight } from "@/components/notes-v2/notes-workbench-bottom-right";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
@@ -33,5 +34,41 @@ describe("NotesWorkbenchBottomRight", () => {
     expect(screen.getByText("保存中…")).toBeInTheDocument();
     expect(screen.getByText("2 词")).toBeInTheDocument();
     expect(screen.getByText("12 字符")).toBeInTheDocument();
+  });
+
+  it("lists saved history and restores the selected version", async () => {
+    const user = userEvent.setup();
+    const onRestoreHistoryVersion = vi.fn();
+    const version = {
+      id: "version-1",
+      path: "daily.md",
+      rawSource: "# Daily\n\nEarlier",
+      savedAt: "2026-07-29T06:00:00.000Z",
+      vaultRoot: "/vault",
+    };
+
+    render(
+      <NotesWorkbenchBottomRight
+        activeDocument={activeDocument}
+        backlinks={[]}
+        documents={[activeDocument]}
+        editorMode="source"
+        historyVersions={[version]}
+        isTerminalSplitOpen={false}
+        learningQuery=""
+        learningSnippets={[]}
+        onOpenPath={vi.fn()}
+        onRestoreHistoryVersion={onRestoreHistoryVersion}
+        onTerminalSplitToggle={vi.fn()}
+        recentDocuments={[]}
+        searchQuery=""
+        searchResults={[]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "历史版本" }));
+    await user.click(screen.getByRole("button", { name: /恢复/ }));
+
+    expect(onRestoreHistoryVersion).toHaveBeenCalledWith(version);
   });
 });
