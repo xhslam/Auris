@@ -170,3 +170,68 @@ describe("Nia YAML workflow runner", () => {
     expect(hanging.error?.code).toBe("RUNTIME_EXCEEDED");
   });
 });
+
+/**
+ * 这一组守的是一个真实缺陷：`executeBuiltinStep` 解析出定义后，只把用户原文
+ * 交给 `executePrompt`，`definition.body` 被整条丢掉——于是
+ * `uses: nia/improve-clarity` 发给模型的只有用户的原始文本，那句
+ * "You are an expert editor…" 从未送达。
+ *
+ * 它能长期存活，是因为这个文件里所有既有用例都把 `executePrompt` 换成
+ * `({ input }) => …`，正好替换掉了本该做合成的那道缝，然后只断言 `model` 与
+ * `grantsBrowserAuthority`。所以下面的断言必须落在**发给 provider 的那一份
+ * 文本**上，而不是落在 `input` 上。
+ */
+describe("Nia workflow definition prompt composition", () => {
+  it("sends the definition body to the provider, not just the user's text", async () => {
+    const executePrompt = vi.fn(async () => ({ text: "ok" }));
+
+    await runNiaWorkflow({
+      source: canonical,
+      inputs: { notes: "rough notes" },
+      adapters: {
+        resolveDefinition: vi.fn(async () => ({
+          body: "You are an expert editor.\n\n{{content}}",
+          model: "allowed-model",
+        })),
+        executePrompt,
+        executeAction: vi.fn(async ({ params }: { params: Record<string, string> }) => ({
+          text: params.content,
+        })),
+        requestApproval: vi.fn(async () => true),
+      },
+      runId: "run-composition",
+    });
+
+    const call = executePrompt.mock.calls[0]?.[0] as { input: string; prompt: string };
+    expect(call.prompt).toBe("You are an expert editor.\n\nrough notes");
+    // `input` 仍是用户原文，供需要区分二者的适配器使用。
+    expect(call.input).toBe("rough notes");
+  });
+
+  it("appends the content when the body declares no insertion point", async () => {
+    const executePrompt = vi.fn(async () => ({ text: "ok" }));
+
+    await runNiaWorkflow({
+      source: canonical,
+      inputs: { notes: "rough notes" },
+      adapters: {
+        resolveDefinition: vi.fn(async () => ({
+          // 没有 {{content}}：把指令单独发出去，模型会收到「改进下面这段」而
+          // 下面什么都没有。
+          body: "Improve the following text.",
+          model: "allowed-model",
+        })),
+        executePrompt,
+        executeAction: vi.fn(async ({ params }: { params: Record<string, string> }) => ({
+          text: params.content,
+        })),
+        requestApproval: vi.fn(async () => true),
+      },
+      runId: "run-composition-append",
+    });
+
+    const call = executePrompt.mock.calls[0]?.[0] as { prompt: string };
+    expect(call.prompt).toBe("Improve the following text.\n\n---\n\nrough notes");
+  });
+});

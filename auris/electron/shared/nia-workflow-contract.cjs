@@ -13,6 +13,7 @@
 const YAML = require("yaml");
 const { z } = require("zod");
 const { normalizeUsesRef } = require("./nia-definition-contract.cjs");
+const { composeNiaPrompt } = require("./nia-prompt-composition.cjs");
 
 const NIA_WORKFLOW_FAMILY = "nia_yaml";
 
@@ -918,9 +919,22 @@ async function executeBuiltinStep(step, params, adapters) {
     }
     const model = step.model || params.model || definition.model || adapters.defaultModel;
     const promptInput = params.input || params.content || params.prompt || "";
+    // 合成 definition.body（模板）与用户内容。在这里做而不是留给每个
+    // `executePrompt` 实现，是因为之前正是这样丢掉的：适配器只收到 `input`，
+    // body 从未参与，于是 `uses: nia/improve-clarity` 发给模型的只有用户原文，
+    // 那条 "You are an expert editor…" 指令从未送达。合成规则属于合约层，
+    // 不属于某一个执行器。
+    const prompt = composeNiaPrompt({
+      body: definition.body,
+      content: promptInput,
+      context: typeof params.context === "string" ? params.context : "",
+    });
     const result = await adapters.executePrompt({
       definition,
+      // `input` 保留为用户原文，供需要区分二者的适配器使用；`prompt` 才是要
+      // 发给 provider 的那一份。
       input: promptInput,
+      prompt,
       model,
       step,
       grantsBrowserAuthority: false,
