@@ -67,13 +67,67 @@ function createFixture() {
     setActiveDefault: vi.fn(async (id: string) => id),
     rememberOnThisMac: vi.fn(async () => ({ id: "p1" })),
   };
+  // 定义存储的假实现。`list()` 返回带 body 的完整描述符，因为被测行为正是
+   // 「列表投影必须丢掉 body」——如果 fixture 先把 body 去掉，这条断言就永远
+   // 通过而什么也没验证。
+  const definitionStore = {
+    list: vi.fn(async () => [
+      {
+        body: "a".repeat(5_000),
+        canonicalId: "improve-clarity",
+        category: "editing",
+        description: "Improve clarity.",
+        diagnostics: ["internal-only"],
+        label: "Nia",
+        provenance: "built-in",
+        scope: "selection",
+        sourceCompatibility: "canonical_v1",
+      },
+    ]),
+    get: vi.fn(async (canonicalId: string) =>
+      canonicalId === "improve-clarity"
+        ? {
+            body: "full prompt body",
+            canonicalId,
+            description: "Improve clarity.",
+            label: "Nia",
+            provenance: "built-in",
+            scope: "selection",
+            sourceCompatibility: "canonical_v1",
+          }
+        : null,
+    ),
+  };
   const niaIpc = createNiaIpc({
     ipcMain,
     runtime,
     providerStore,
+    definitionStore,
     resolveCallerKind: (event: { callerKind?: string }) => event.callerKind,
   });
-  return { handlers, ipcMain, niaIpc, providerStore, runtime, subscriptions };
+  return {
+    definitionStore,
+    handlers,
+    ipcMain,
+    niaIpc,
+    providerStore,
+    runtime,
+    subscriptions,
+  };
+}
+
+/** 无定义存储的变体：非 Notes 宿主可以不带它构造 IPC。 */
+function createFixtureWithoutDefinitions() {
+  const ipcMain = {
+    handle: vi.fn(),
+    removeHandler: vi.fn(),
+  };
+  const niaIpc = createNiaIpc({
+    ipcMain,
+    runtime: { startRun: vi.fn(), cancelAllForOwner: vi.fn(), subscribe: vi.fn(() => () => undefined) },
+    resolveCallerKind: (event: { callerKind?: string }) => event.callerKind,
+  });
+  return { niaIpc };
 }
 
 describe("Nia provider IPC", () => {
@@ -220,5 +274,106 @@ describe("Nia provider IPC", () => {
       payload: { providerId: "anthropic-default", remember: true },
     });
     expect(fixture.providerStore.rememberOnThisMac).toHaveBeenCalledWith("anthropic-default", true);
+  });
+});
+
+/**
+ * 定义读取命令。
+ *
+ * 这两条命令是选择器（picker）能存在的前提：在它们之前，定义存储只被
+ * workflow 子系统当作 step 仓库使用，渲染层根本没有「列出可用动作」的通道。
+ */
+describe("Nia definition IPC", () => {
+  const event = { callerKind: "notes", sender: createWebContents(11) };
+
+  it("lists definitions without shipping prompt bodies over IPC", async () => {
+    const fixture = createFixture();
+
+    const result = (await fixture.niaIpc.handleCommand(event, {
+      command: "listDefinitions",
+      payload: {},
+    })) as { definitions: Array<Record<string, unknown>> };
+
+    expect(result.definitions).toHaveLength(1);
+    const [summary] = result.definitions;
+    // body 上限 200KB/条，列表一次性带上会把打开选择器变成几 MB 的结构化克隆。
+    expect(summary.body).toBeUndefined();
+    // diagnostics 是内部解析诊断，不该出现在 UI 列表里。
+    expect(summary.diagnostics).toBeUndefined();
+    expect(summary).toMatchObject({
+      canonicalId: "improve-clarity",
+      category: "editing",
+      description: "Improve clarity.",
+      label: "Nia",
+      provenance: "built-in",
+      scope: "selection",
+    });
+  });
+
+  it("returns the full record, body included, for a single definition", async () => {
+    const fixture = createFixture();
+
+    const record = (await fixture.niaIpc.handleCommand(event, {
+      command: "getDefinition",
+      payload: { canonicalId: "improve-clarity" },
+    })) as Record<string, unknown>;
+
+    expect(record.body).toBe("full prompt body");
+    expect(fixture.definitionStore.get).toHaveBeenCalledWith("improve-clarity");
+  });
+
+  it("returns null for an unknown definition instead of throwing", async () => {
+    const fixture = createFixture();
+
+    await expect(
+      fixture.niaIpc.handleCommand(event, {
+        command: "getDefinition",
+        payload: { canonicalId: "does-not-exist" },
+      }),
+    ).resolves.toBeNull();
+  });
+
+  it("rejects a definition request with unknown keys", async () => {
+    const fixture = createFixture();
+
+    await expect(
+      fixture.niaIpc.handleCommand(event, {
+        command: "getDefinition",
+        payload: { canonicalId: "improve-clarity", baseDir: "/etc" },
+      }),
+    ).rejects.toThrow(/Unknown/u);
+  });
+
+  it("requires a non-empty canonicalId", async () => {
+    const fixture = createFixture();
+
+    await expect(
+      fixture.niaIpc.handleCommand(event, {
+        command: "getDefinition",
+        payload: { canonicalId: "" },
+      }),
+    ).rejects.toThrow(/canonicalId is required/u);
+  });
+
+  it("reports an empty list when no definition store is wired", async () => {
+    const { niaIpc } = createFixtureWithoutDefinitions();
+
+    // 空列表而不是抛错：选择器据此显示「没有可用动作」，而不是弹一个用户
+    // 无法处理的错误。
+    await expect(
+      niaIpc.handleCommand(event, { command: "listDefinitions", payload: {} }),
+    ).resolves.toEqual({ definitions: [] });
+  });
+
+  it("refuses definition reads from an untrusted caller", async () => {
+    const fixture = createFixture();
+
+    await expect(
+      fixture.niaIpc.handleCommand(
+        { callerKind: "unknown-window", sender: createWebContents(12) },
+        { command: "listDefinitions", payload: {} },
+      ),
+    ).rejects.toThrow(NiaIpcError);
+    expect(fixture.definitionStore.list).not.toHaveBeenCalled();
   });
 });

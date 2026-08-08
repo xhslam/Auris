@@ -19,6 +19,7 @@ const CUSTOMIZABLE_BINDINGS = NOTES_SHORTCUT_BINDINGS.filter(
   (binding) =>
     binding.surface === "global" &&
     [
+      "notes.niaPicker",
       "notes.palette",
       "notes.save",
       "notes.saveAll",
@@ -28,6 +29,7 @@ const CUSTOMIZABLE_BINDINGS = NOTES_SHORTCUT_BINDINGS.filter(
 );
 
 const LABELS: Record<string, string> = {
+  "notes.niaPicker": "打开 Nia 动作选择器",
   "notes.palette": "打开命令面板",
   "notes.save": "保存当前笔记",
   "notes.saveAll": "保存全部笔记",

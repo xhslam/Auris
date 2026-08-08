@@ -4,6 +4,16 @@ copyright: Copyright © Auris
 directories:
   output: release
   buildResources: build
+# 自动更新发布源。electron-builder 用它生成 app-update.yml（打进包里），
+# electron-updater 在运行时读同一份配置去查 latest-mac.yml / latest.yml。
+# 不配 publish 时 electron-updater 会抛 "provider is not configured"，
+# 主进程的 app-updater 会把它归类成 UPDATE_FEED_NOT_CONFIGURED 并在 UI 里
+# 明说"未配置更新源"，而不是伪装成网络错误。
+publish:
+  - provider: github
+    owner: xhslam
+    repo: auris
+    releaseType: release
 files:
   - electron/**/*
   # Assembled MCP/runtime closure (scripts/assemble-electron-runtime-deps.cjs).
@@ -50,9 +60,14 @@ asarUnpack:
 mac:
   icon: assets/app-icon.icns
   category: public.app-category.education
+  # zip 是 macOS 自动更新的必需产物：electron-updater 在 mac 上只能从 zip
+  # 做增量/就地替换，dmg 仅供人工下载。两个一起出，dmg 继续当手动分发口。
   target:
     - dmg
-  identity: null
+    - zip
+  # Local ARM64 builds still require a valid code signature. Use ad-hoc
+  # signing when no Developer ID certificate is available.
+  identity: "-"
   hardenedRuntime: false
   gatekeeperAssess: false
 dmg:

@@ -13,6 +13,8 @@ import {
 import { BrowserGrantCenter } from "@/components/browser-window/browser-grant-center";
 import { NotesLocaleSettings } from "@/components/settings/notes-locale-settings";
 import { NotesShortcutSettings } from "@/components/settings/notes-shortcut-settings";
+import { AppUpdatePanel } from "@/components/updates/app-update-panel";
+import { useAppUpdateStore } from "@/features/updates/update-store";
 import type {
   DesktopMcpClient,
   DesktopBrowserSecuritySnapshot,
@@ -422,6 +424,7 @@ type Row =
   | { kind: "shortcutBar" }
   | { kind: "shortcutEditor" }
   | { kind: "notesLocale" }
+  | { kind: "appUpdates" }
   | { kind: "browserGrants" };
 
 type ButtonAction =
@@ -967,6 +970,13 @@ export function AurisSettings({ accent = DEFAULT_ACCENT }: { accent?: string }) 
     [activeCat, pandocStatus, mcp, cliBusy, cliStatus, browserSecurity],
   );
 
+  /* --- 关于页版本号 ---
+     以前这里硬编码「版本 1.4.0」，与 package.json(1.0.0) 不符。真实版本只有主
+     进程知道（app.getVersion），所以从 updater 快照里取；桌面壳不可用时不编一个
+     版本号出来，显示「开发模式」。 */
+  const currentVersion = useAppUpdateStore((state) => state.currentVersion);
+  const aboutVersionLabel = currentVersion ? `版本 ${currentVersion}` : "开发模式";
+
   /* --- filtered categories --- */
   const query = search.trim().toLowerCase();
   const filteredCats = CATEGORIES.filter((c) => !query || c.label.toLowerCase().includes(query));
@@ -1019,7 +1029,9 @@ export function AurisSettings({ accent = DEFAULT_ACCENT }: { accent?: string }) 
                 <div className="auris-settings__about-logo">A</div>
                 <div>
                   <div className="auris-settings__about-name">Auris</div>
-                  <div className="auris-settings__about-version">版本 1.4.0</div>
+                  <div className="auris-settings__about-version">
+                    {aboutVersionLabel}
+                  </div>
                 </div>
               </div>
               <div className="auris-settings__about-links">
@@ -1425,6 +1437,9 @@ function RenderRow(props: RowHandlers) {
 
     case "notesLocale":
       return <NotesLocaleSettings />;
+
+    case "appUpdates":
+      return <AppUpdatePanel />;
 
     default:
       return null;
@@ -1840,9 +1855,7 @@ function buildPanel(
         sections: [
           {
             title: "更新",
-            rows: [
-              { kind: "note", text: "计划中：桌面端自动检查、下载和安装更新尚未接入，因此这里不显示会产生误导的更新开关或“立即检查”按钮。" },
-            ],
+            rows: [{ kind: "appUpdates" }],
           },
           {
             title: "重置",

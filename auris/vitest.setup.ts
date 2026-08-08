@@ -64,6 +64,34 @@ if (!Range.prototype.getBoundingClientRect) {
   });
 }
 
+// jsdom implements neither ResizeObserver nor IntersectionObserver. xyflow's
+// pane measures itself through ResizeObserver on mount, so any component that
+// renders a graph throws "ResizeObserver is not defined" before its first
+// paint. The stub records callbacks but never fires them: under jsdom every
+// element is 0x0 anyway, so a synthetic resize event would only feed the
+// component a size that is just as fake as no event at all.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  class ResizeObserverStub {
+    observe() {
+      return undefined;
+    }
+
+    unobserve() {
+      return undefined;
+    }
+
+    disconnect() {
+      return undefined;
+    }
+  }
+
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    configurable: true,
+    value: ResizeObserverStub,
+    writable: true,
+  });
+}
+
 Object.defineProperty(HTMLMediaElement.prototype, "pause", {
   configurable: true,
   value() {

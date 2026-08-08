@@ -1,12 +1,19 @@
 /**
  * Immutable built-in Nia definitions shipped with Auris.
  *
- * Each entry stores only raw canonical `nia: v1` Markdown+frontmatter
- * source text. Both the renderer-side registry and the main-process
- * `nia-definition-store.cjs` independently reparse this source through the
- * packaged `nia-definition-contract.cjs` — a pre-built AST is never trusted
- * as authoritative, even for code-shipped built-ins.
+ * The raw sources now live in `electron/shared/nia-builtin-definitions.cjs`
+ * so the main process (CommonJS, cannot `require` a TS module) can pass them
+ * into the definition store. Before that move the sources existed only on the
+ * TS side, so main created the store with `builtins: []` and the two built-ins
+ * were never actually installed — only tests read them.
+ *
+ * Each entry stores only raw canonical `nia: v1` Markdown+frontmatter source
+ * text. Both this module and the main-process `nia-definition-store.cjs`
+ * independently reparse that source through the packaged
+ * `nia-definition-contract.cjs` — a pre-built AST is never trusted as
+ * authoritative, even for code-shipped built-ins.
  */
+import niaBuiltinDefinitions from "../../../electron/shared/nia-builtin-definitions.cjs";
 import niaDefinitionContract from "../../../electron/shared/nia-definition-contract.cjs";
 import type { NiaDefinitionAst } from "../../../electron/shared/nia-definition-contract.cjs";
 
@@ -17,61 +24,8 @@ export interface BuiltInNiaDefinitionSource {
   readonly source: string;
 }
 
-const IMPROVE_CLARITY_SOURCE = `---
-nia: v1
-id: improve-clarity
-description: Improve clarity and flow while preserving voice and intent.
-scope: selection
-category: editing
-action: replace
-approval: ask
-input:
-  type: text
-  description: Selected text to improve
-output:
-  type: text
-  description: Improved text
-tags:
-  - editing
-  - clarity
----
-
-You are an expert editor. Improve the clarity, flow, and conciseness of the
-following text while preserving the author's voice and intent.
-
-Return only the improved text — no explanations.
-
-{{content}}
-`;
-
-const SUMMARIZE_SOURCE = `---
-nia: v1
-id: summarize
-description: Summarize the selection or document into a short digest.
-scope: document
-category: summarizing
-action: insert
-approval: ask
-input:
-  type: text
-  description: Text to summarize
-output:
-  type: text
-  description: Summary
-tags:
-  - summarizing
----
-
-Summarize the following text into a concise digest that captures the key
-points. Preserve important names, numbers, and decisions.
-
-{{content}}
-`;
-
-export const BUILT_IN_NIA_DEFINITIONS: readonly BuiltInNiaDefinitionSource[] = Object.freeze([
-  Object.freeze({ name: "improve-clarity", source: IMPROVE_CLARITY_SOURCE }),
-  Object.freeze({ name: "summarize", source: SUMMARIZE_SOURCE }),
-]);
+export const BUILT_IN_NIA_DEFINITIONS: readonly BuiltInNiaDefinitionSource[] =
+  niaBuiltinDefinitions.BUILT_IN_NIA_DEFINITIONS;
 
 /**
  * Reparse a built-in source through the packaged contract. Callers should

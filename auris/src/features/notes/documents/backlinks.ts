@@ -102,6 +102,33 @@ export function resolveBacklinkTargetPath(
   return resolveBacklinkTargetPathFromLookup(target, sourcePath, lookup);
 }
 
+/**
+ * Builds a resolver that maps a link target to the note path it points at,
+ * sharing one target lookup across every call.
+ *
+ * `resolveBacklinkTargetPath` rebuilds the lookup on each call, which is fine
+ * for a one-off resolution but quadratic when a caller resolves every link in
+ * the vault (the relationship graph does exactly that). `createWikiLinkResolver`
+ * already shares a lookup but answers only yes/no, so it cannot be used to
+ * build edges. This is the shared-lookup, path-returning form both of them are
+ * expressed in terms of.
+ */
+export function createBacklinkTargetResolver(documents: NoteDocument[]) {
+  const lookup = buildTargetLookup(documents);
+
+  return (rawTarget: string, sourcePath = ""): string | null => {
+    const target = parseWikiLinkTarget(rawTarget);
+
+    if (!target) {
+      return null;
+    }
+
+    return resolveBacklinkTargetPathFromLookup(target, sourcePath, lookup);
+  };
+}
+
+export type BacklinkTargetResolver = ReturnType<typeof createBacklinkTargetResolver>;
+
 function resolveBacklinkTargetPathFromLookup(
   target: string,
   sourcePath: string,
@@ -124,19 +151,10 @@ function resolveBacklinkTargetPathFromLookup(
  * so rendering layers can cheaply colour links as resolved vs unresolved.
  */
 export function createWikiLinkResolver(documents: NoteDocument[]) {
-  const lookup = buildTargetLookup(documents);
+  const resolve = createBacklinkTargetResolver(documents);
 
-  return (rawTarget: string, sourcePath = ""): boolean => {
-    const target = parseWikiLinkTarget(rawTarget);
-
-    if (!target) {
-      return false;
-    }
-
-    return (
-      resolveBacklinkTargetPathFromLookup(target, sourcePath, lookup) !== null
-    );
-  };
+  return (rawTarget: string, sourcePath = ""): boolean =>
+    resolve(rawTarget, sourcePath) !== null;
 }
 
 export type WikiLinkResolver = ReturnType<typeof createWikiLinkResolver>;

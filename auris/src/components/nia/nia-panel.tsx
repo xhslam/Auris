@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NiaApplyReview } from "@/components/nia/nia-apply-review";
 import { NiaComposer } from "@/components/nia/nia-composer";
 import { NiaProviderSettings } from "@/components/nia/nia-provider-settings";
@@ -28,6 +28,8 @@ export function NiaPanel({
   onAcceptHeal,
   onRejectHeal,
   browserTarget = null,
+  externalPrompt = null,
+  onExternalPromptConsumed,
 }: {
   host?: unknown;
   onApplyProposal?: (proposal: NiaApplyProposal) => { ok: boolean; reason?: string } | void;
@@ -37,6 +39,19 @@ export function NiaPanel({
   onAcceptHeal?: (candidateIndex: number) => void;
   onRejectHeal?: () => void;
   browserTarget?: Readonly<{ windowId: string; tabId: string }> | null;
+  /**
+   * 由面板外部（当前是 Nia 动作选择器）投进来的、已经合成好的提示词。
+   *
+   * 为什么必须是一个「入口」而不是让调用方自己起一个 session：
+   * `useNiaSession` 认领 provider 事件的方式是「订阅回调里看到第一个 `started`
+   * 事件、自己的 start 还在飞、且自己还没有 runId，就认作自己的 run」。
+   * `started` 事件不带任何能对上具体 `start()` 调用的关联标识，所以两个并存的
+   * session 同时有 start 在飞时会认领同一个 runId——选择器的回复会同时流进面板的
+   * 消息列表。因此整个窗口只能有一个 session，外部提交必须走它。
+   */
+  externalPrompt?: string | null;
+  /** 提交后回调，让调用方清空 `externalPrompt`，避免重复提交。 */
+  onExternalPromptConsumed?: () => void;
 }) {
   const session = useNiaSession(host);
   const [context, setContext] = useState<NiaContext | null>(null);
@@ -50,6 +65,36 @@ export function NiaPanel({
     ? context as NiaSelectionContext | NiaDocumentContext
     : null;
   const browserToolsAvailable = supportedContexts.includes("browser");
+
+  // 外部提示词只提交一次。用 ref 记住已消费的那一份而不是只看值变化：父组件的
+  // 任何重渲染都会重跑这个 effect，仅靠依赖比较会让同一条提示词被重复提交。
+  const consumedExternalPromptRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!externalPrompt) {
+      consumedExternalPromptRef.current = null;
+      return;
+    }
+    if (consumedExternalPromptRef.current === externalPrompt) return;
+    // 正在流式输出时不打断已有的那一次。调用方保留 externalPrompt，
+    // 流结束后这个 effect 会再跑一次并提交。
+    if (!session.available || session.status === "streaming") return;
+
+    consumedExternalPromptRef.current = externalPrompt;
+    setSelectedHistoryId(null);
+    void session.submit(externalPrompt, context, {
+      enableBrowserTools: browserToolsAvailable && enableBrowserTools,
+      browserTarget: browserToolsAvailable && enableBrowserTools ? browserTarget : null,
+    });
+    onExternalPromptConsumed?.();
+  }, [
+    browserTarget,
+    browserToolsAvailable,
+    context,
+    enableBrowserTools,
+    externalPrompt,
+    onExternalPromptConsumed,
+    session,
+  ]);
 
   const contextLabels: Record<NiaContextRequest, string> = {
     selection: "Attach selection · 选区",

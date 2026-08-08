@@ -6,6 +6,16 @@ export const EN_US_NOTES_UI_COPY = {
     label: "Vault",
     sourceFirstFallback: "Source-first notes vault",
   },
+  workspaceRail: {
+    activate: (name: string) => `Switch to ${name}`,
+    add: "Add a vault",
+    label: "Vault switcher",
+    menuRemove: "Remove from list",
+    menuRemoveActive: "The current vault cannot be removed",
+    menuReveal: "Switch to this vault",
+    removeHint: "Only hides it from this list; the folder is not deleted",
+    unavailable: (name: string) => `${name} (currently unavailable)`,
+  },
   headerActions: {
     command: "Commands",
     delete: "Delete",
@@ -45,6 +55,10 @@ export const EN_US_NOTES_UI_COPY = {
     backlinks: {
       open: "Open backlinks panel",
       short: "B",
+    },
+    graph: {
+      open: "Open relationship graph",
+      short: "G",
     },
     learning: {
       open: "Open learning panel",
@@ -130,6 +144,31 @@ export const EN_US_NOTES_UI_COPY = {
     dialogLabel: "Notes command palette",
     placeholder: "Run a command or open a note",
   },
+  niaPicker: {
+    dialogLabel: "Nia action picker",
+    emptyCatalog: "No Nia actions are available yet.",
+    emptyMatch: "No matching actions.",
+    favorite: (name: string) => `Favorite “${name}”`,
+    favorites: "Favorites",
+    loadFailed: "Could not load Nia actions.",
+    loading: "Loading actions…",
+    missing: (name: string) => `“${name}” no longer exists — it may have just been uninstalled.`,
+    placeholder: "Search actions, or type an instruction",
+    recents: "Recent",
+    scope: "Scope",
+    scopeAll: "All",
+    // Per-scope display names. Separate from `scope` above (the label for the
+    // control group): one says what the group filters, the other says which
+    // one this button filters to.
+    scopeLabels: {
+      document: "Document",
+      selection: "Selection",
+    } as Record<"document" | "selection", string>,
+    searchLabel: "Search Nia actions",
+    unavailable: "Nia is not available yet: configure a model provider in Settings first.",
+    uncategorized: "Uncategorized",
+    unfavorite: (name: string) => `Unfavorite “${name}”`,
+  },
   tabs: {
     closePrefix: "Close",
     openTabs: "Open note tabs",
@@ -149,6 +188,21 @@ export const EN_US_NOTES_UI_COPY = {
       description: "Notes that reference the current file.",
       empty: "No backlinks yet.",
       title: "Backlinks",
+    },
+    graph: {
+      depthLabel: "Depth",
+      emptyIsolated:
+        "This note has no links, tags, or relations yet, so there is nothing to draw. Add a [[wiki link]] or a tag and it will appear here.",
+      emptyNoActive: "Open a note to see its neighbourhood, or switch to the whole vault.",
+      emptyVault: "No notes in this vault yet.",
+      scopeLabel: "Graph scope",
+      scopeLocal: "Current note",
+      scopeVault: "Whole vault",
+      summary: (docs: number, tags: number, edges: number) =>
+        `${docs} notes · ${tags} tags · ${edges} links`,
+      tagsToggle: "Tags",
+      title: "Relationship graph",
+      unresolved: (count: number) => `${count} unresolved`,
     },
     learning: {
       description: "Insert saved words and sentences as Markdown snippets.",

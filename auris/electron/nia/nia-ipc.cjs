@@ -27,6 +27,28 @@ const NIA_IPC_COMMANDS = Object.freeze([
   "clearSessionApiKey",
   "setActiveDefault",
   "rememberOnThisMac",
+  // 定义读取。拆成 list/get 两条而不是一条「全量带 body」，是因为单个定义的
+  // body 上限就有 200KB（NIA_DEFINITION_LIMITS.bodyBytes），列表一次性带上
+  // 所有 body 会让打开选择器变成一次几 MB 的结构化克隆。vmark 的
+  // `list_genies` / `read_genie` 也是这个分工。
+  "listDefinitions",
+  "getDefinition",
+]);
+
+/** 列表投影保留的字段：足够渲染与筛选，但不含 body。 */
+const DEFINITION_SUMMARY_KEYS = Object.freeze([
+  "action",
+  "approval",
+  "canonicalId",
+  "category",
+  "context",
+  "description",
+  "label",
+  "model",
+  "provenance",
+  "scope",
+  "sourceCompatibility",
+  "tags",
 ]);
 
 const NIA_CALLER_KINDS = Object.freeze(["browser-chrome", "notes"]);
@@ -94,6 +116,7 @@ function createNiaIpc({
   ipcMain,
   runtime,
   providerStore,
+  definitionStore,
   resolveCallerKind,
 }) {
   if (!ipcMain || typeof ipcMain.handle !== "function") {
@@ -309,9 +332,32 @@ function createNiaIpc({
         }
         return payload;
       }
+      case "listDefinitions":
+        return strictObject(value, []);
+      case "getDefinition": {
+        const payload = strictObject(value, ["canonicalId"]);
+        if (typeof payload.canonicalId !== "string" || payload.canonicalId.length === 0) {
+          throw new TypeError("canonicalId is required.");
+        }
+        return payload;
+      }
       default:
         throw new TypeError(`Unsupported Nia command: ${command}`);
     }
+  }
+
+  /**
+   * 把一条定义投影成列表条目：白名单取字段，丢掉 body 与 diagnostics。
+   *
+   * 白名单而不是 `delete record.body`：定义描述符将来加字段时，默认应该是
+   * 「不经过 IPC」而不是「自动泄漏到渲染层」。
+   */
+  function projectDefinitionSummary(definition) {
+    const summary = {};
+    for (const key of DEFINITION_SUMMARY_KEYS) {
+      if (definition[key] !== undefined) summary[key] = definition[key];
+    }
+    return summary;
   }
 
   function projectProvidersSnapshot(snapshot) {
@@ -395,6 +441,21 @@ function createNiaIpc({
         if (!providerStore) return deepFreeze({ activeProviderId: null, providers: [] });
         const snapshot = await providerStore.readPersistedConfig();
         return projectProvidersSnapshot(snapshot);
+      }
+      case "listDefinitions": {
+        // 没有定义存储时返回空列表而不是抛错：调用方（选择器）据此显示「没有
+        // 可用动作」，而不是弹一个用户无法处理的错误。
+        if (!definitionStore) return deepFreeze({ definitions: [] });
+        const definitions = await definitionStore.list();
+        return deepFreeze({ definitions: definitions.map(projectDefinitionSummary) });
+      }
+      case "getDefinition": {
+        if (!definitionStore) return null;
+        // 存储的 `get()` 对「不存在」返回 null（不抛），所以这里不需要 catch：
+        // 列表过期后取一条已被卸载的定义是调用方要处理的正常结果。它只在名字本身
+        // 非法时抛（NAME_REQUIRED / INVALID_FILENAME_HINT），那是调用方 bug，
+        // 应该原样冒泡而不是被静默成 null。
+        return deepFreeze(await definitionStore.get(payload.canonicalId));
       }
       case "upsertRestProvider": {
         if (!providerStore) throw new TypeError("Nia provider store is unavailable.");

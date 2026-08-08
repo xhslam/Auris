@@ -112,6 +112,7 @@ const { createNiaProviderStore } = require("./nia/nia-provider-store.cjs");
 const { createNiaProviderRuntime } = require("./nia/nia-provider-runtime.cjs");
 const { createNiaIpc } = require("./nia/nia-ipc.cjs");
 const { createNiaDefinitionStore } = require("./nia/nia-definition-store.cjs");
+const { BUILT_IN_NIA_DEFINITIONS } = require("./shared/nia-builtin-definitions.cjs");
 const { createNiaWorkflowRuntime } = require("./workflows/nia-workflow-runtime.cjs");
 const { createBrowserWorkflowApiService } = require("./workflows/browser-workflow-api-service.cjs");
 const { createBrowserWorkflowRuntime } = require("./workflows/browser-workflow-runtime.cjs");
@@ -127,6 +128,15 @@ const { createNotesRecoveryIpc } = require("./notes/notes-recovery-ipc.cjs");
 const {
   createVaultFileOperations,
 } = require("./notes/vault-file-operations.cjs");
+// 换根的授权判定。别名导入：本文件里已有一个读 desktopConfig 的同名薄封装
+// `rememberVaultRoot`，模块导出的是它的纯函数内核。
+const {
+  AUTHORIZATION_ERRORS: VAULT_ROOT_ERRORS,
+  authorizeVaultRoot,
+  normalizeKnownVaultRoots,
+  rememberVaultRoot: rememberKnownVaultRoot,
+} = require("./vault/vault-roots.cjs");
+const { createAppUpdater } = require("./updates/app-updater.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
@@ -228,12 +238,33 @@ let browserGrantsIpc = null;
 let browserStateRepository = null;
 let niaIpc = null;
 let niaProviderRuntime = null;
+let niaDefinitions = null;
 let browserOperationGuard = null;
 let workflowIpc = null;
 let browserWorkflowRuntime = null;
 let workflowFacade = null;
 let workflowCapabilities = null;
 let browserWorkflowRunRegistry = null;
+
+/**
+ * 唯一的 Nia 定义存储。
+ *
+ * 两处需要它：nia IPC（列出/读取定义，供 Nia Picker 用）与 workflow 子系统
+ * （把定义当作 step 仓库）。它们的初始化顺序不固定，所以这里做成惰性单例，
+ * 而不是在任一个子系统内部创建——后者会让先初始化的那个持有一份、另一个再建
+ * 一份，同一批定义出现两个实例。
+ *
+ * `builtins` 传入真实内置定义。此前 workflow 子系统用 `builtins: []` 创建它，
+ * 于是 `BUILT_IN_NIA_DEFINITIONS` 里的两个定义从未真正装载过——只有测试读到它们。
+ */
+function getNiaDefinitionStore() {
+  if (niaDefinitions) return niaDefinitions;
+  niaDefinitions = createNiaDefinitionStore({
+    baseDir: path.join(app.getPath("userData"), "nia", "definitions"),
+    builtins: BUILT_IN_NIA_DEFINITIONS,
+  });
+  return niaDefinitions;
+}
 
 function createNiaSecretPersistence(baseDir) {
   const secretsDir = path.join(baseDir, "secrets");
@@ -303,6 +334,7 @@ function initializeNiaSubsystem() {
     },
   });
   niaIpc = createNiaIpc({
+    definitionStore: getNiaDefinitionStore(),
     ipcMain,
     providerStore,
     runtime: niaProviderRuntime,
@@ -360,11 +392,11 @@ async function reviewImportedBrowserWorkflow(summary) {
 
 function initializeWorkflowSubsystem() {
   if (workflowIpc) return workflowIpc;
-  const niaDefinitions = createNiaDefinitionStore({
-    baseDir: path.join(app.getPath("userData"), "nia", "definitions"),
-    builtins: [],
-  });
-  const executePrompt = ({ input, model, ownerId, signal }) => new Promise((resolve, reject) => {
+  const niaDefinitionStore = getNiaDefinitionStore();
+  // `prompt` 是合约层用 definition.body 合成好的最终提示词；`input` 只是用户原文。
+  // 必须优先用前者——只发 input 等于把定义的指令整条丢掉（见
+  // `electron/shared/nia-prompt-composition.cjs` 的模块注释）。
+  const executePrompt = ({ input, prompt, model, ownerId, signal }) => new Promise((resolve, reject) => {
     const ownerWebContentsId = 0x80000000 + (crypto.createHash("sha256")
       .update(String(ownerId))
       .digest()
@@ -386,13 +418,13 @@ function initializeWorkflowSubsystem() {
     void niaProviderRuntime.startRun({
       ownerWebContentsId,
       modelOverride: model || null,
-      prompt: String(input || ""),
+      prompt: String(prompt || input || ""),
     }).then((started) => { providerRunId = started.runId; }).catch((error) => {
       unsubscribe(); reject(error);
     });
   });
   const niaWorkflowRuntime = createNiaWorkflowRuntime({
-    definitionRepository: niaDefinitions,
+    definitionRepository: niaDefinitionStore,
     executePrompt,
   });
   const apiService = createBrowserWorkflowApiService({
@@ -455,7 +487,7 @@ function initializeWorkflowSubsystem() {
     capabilities: workflowCapabilities,
     definitions: {
       async list() {
-        return (await niaDefinitions.list()).map((definition) => ({
+        return (await niaDefinitionStore.list()).map((definition) => ({
           definitionId: definition.canonicalId,
           family: "nia_yaml",
           label: definition.name,
@@ -463,7 +495,7 @@ function initializeWorkflowSubsystem() {
         }));
       },
       inspect(family, definitionId) {
-        return family === "nia_yaml" ? niaDefinitions.get(definitionId) : null;
+        return family === "nia_yaml" ? niaDefinitionStore.get(definitionId) : null;
       },
     },
     niaRuntime: niaWorkflowRuntime,
@@ -778,6 +810,9 @@ process.on("unhandledRejection", (error) => {
 function createDefaultDesktopConfig() {
   return {
     browserAutomationEnabled: false,
+    // 用户历史上通过目录选择器授权过的 vault 根，供 Workspace Rail 免对话框切换。
+    // 它同时是 `vault:set-root` 的白名单——见 setVaultRoot() 的安全说明。
+    knownVaultRoots: [],
     mcp: createDefaultMcpPolicy(),
     pluginsEnabled: {},
     videoLibraryPath: null,
@@ -1646,6 +1681,113 @@ function getUpgradeUrl() {
   return typeof targetUrl === "string" && targetUrl.trim() ? targetUrl.trim() : null;
 }
 
+/* ------------------------------------------------------------------ */
+/* 自动更新（对齐 vmark updater；底座换成 electron-updater）            */
+/* ------------------------------------------------------------------ */
+
+let appUpdater = null;
+let cachedInstallCapability = null;
+
+/**
+ * macOS 上 `electron-updater` 就地安装要求 app 带有效代码签名。Auris 当前
+ * `electron-builder.yml` 用 ad-hoc identity("-")，就地安装必然在 apply 阶段
+ * 失败。这里用 `codesign` 真实探测一次（结果缓存），而不是假设成功——否则 UI
+ * 会给出一个永远失败的"重启安装"按钮，正是上一轮审计要求删掉的那类假控件。
+ */
+function detectMacInstallCapability() {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    let child;
+    try {
+      child = spawn("/usr/bin/codesign", ["-dv", "--verbose=2", app.getAppPath().replace(/\/Contents\/Resources\/app(\.asar)?$/, "")], {
+        stdio: ["ignore", "ignore", "pipe"],
+      });
+    } catch {
+      finish(false);
+      return;
+    }
+
+    let stderr = "";
+    child.stderr?.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+    child.on("error", () => finish(false));
+    child.on("close", () => {
+      // ad-hoc 签名的 Authority 行是 "Signature=adhoc"；真实证书会出现
+      // "Authority=Developer ID Application: ..."。
+      const adhoc = /Signature\s*=\s*adhoc/i.test(stderr);
+      const developerId = /Authority=Developer ID Application/i.test(stderr);
+      finish(developerId && !adhoc);
+    });
+
+    setTimeout(() => finish(false), 4000);
+  });
+}
+
+async function canInstallUpdateInPlace() {
+  if (cachedInstallCapability !== null) {
+    return cachedInstallCapability;
+  }
+
+  if (!app.isPackaged) {
+    cachedInstallCapability = false;
+    return cachedInstallCapability;
+  }
+
+  if (process.platform !== "darwin") {
+    cachedInstallCapability = true;
+    return cachedInstallCapability;
+  }
+
+  cachedInstallCapability = await detectMacInstallCapability();
+  writeStartupLog(`updater:can-install-in-place=${cachedInstallCapability}`);
+  return cachedInstallCapability;
+}
+
+function pushUpdateState(snapshot) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+
+  mainWindow.webContents.send("shadowing:updates:state", snapshot);
+}
+
+async function getAppUpdater() {
+  if (appUpdater) {
+    return appUpdater;
+  }
+
+  // electron-updater 只在需要时加载：开发环境下它会立刻抱怨没有 app-update.yml，
+  // 没必要在冷启动路径上付这个代价。
+  const { autoUpdater } = require("electron-updater");
+
+  autoUpdater.logger = {
+    debug: () => {},
+    error: (message) => writeStartupLog(`updater:error ${message}`),
+    info: (message) => writeStartupLog(`updater:info ${message}`),
+    warn: (message) => writeStartupLog(`updater:warn ${message}`),
+  };
+
+  appUpdater = createAppUpdater({
+    autoUpdater,
+    canInstallInPlace: await canInstallUpdateInPlace(),
+    getCurrentVersion: () => app.getVersion(),
+    log: (message, detail) =>
+      writeStartupLog(`${message}${detail === undefined ? "" : ` ${String(detail)}`}`),
+    openExternal: (targetUrl) => shell.openExternal(targetUrl),
+    releasesUrl: getUpgradeUrl() ?? "https://github.com/xhslam/auris/releases",
+  });
+
+  appUpdater.onStateChange(pushUpdateState);
+  return appUpdater;
+}
+
 async function openUpgradeEntry() {
   const targetUrl = getUpgradeUrl();
 
@@ -1753,6 +1895,7 @@ async function readDesktopConfig() {
 
     desktopConfig = {
       browserAutomationEnabled: parsed?.browserAutomationEnabled === true,
+      knownVaultRoots: normalizeKnownVaultRoots(parsed?.knownVaultRoots),
       mcp: normalizeMcpPolicy(parsed?.mcp),
       pluginsEnabled:
         parsed && typeof parsed.pluginsEnabled === "object" && parsed.pluginsEnabled
@@ -1777,6 +1920,7 @@ async function readDesktopConfig() {
 async function writeDesktopConfig(nextConfig) {
   desktopConfig = {
     browserAutomationEnabled: nextConfig.browserAutomationEnabled === true,
+    knownVaultRoots: normalizeKnownVaultRoots(nextConfig.knownVaultRoots),
     mcp: normalizeMcpPolicy(nextConfig.mcp),
     pluginsEnabled: nextConfig.pluginsEnabled ?? {},
     videoLibraryPath: nextConfig.videoLibraryPath ?? null,
@@ -2289,6 +2433,16 @@ async function revealPluginsDirectory() {
   await shell.openPath(pluginsDirectory);
 }
 
+/**
+ * 把一个用户已经通过原生选择器授权过的根记进「已知根」列表（最近使用优先）。
+ *
+ * 这个列表既是 Workspace Rail 的数据源，也是 `vault:set-root` 的白名单。
+ * 判定逻辑在 `electron/vault/vault-roots.cjs`，那里可以直接单测。
+ */
+function rememberVaultRoot(rootPath) {
+  return rememberKnownVaultRoot(desktopConfig.knownVaultRoots ?? [], rootPath);
+}
+
 async function pickVaultDirectory() {
   const result = await dialog.showOpenDialog({
     defaultPath: desktopConfig.vaultPath ?? undefined,
@@ -2304,6 +2458,7 @@ async function pickVaultDirectory() {
   await ensurePluginsDirectory(vaultPath);
   await writeDesktopConfig({
     ...desktopConfig,
+    knownVaultRoots: rememberVaultRoot(vaultPath),
     vaultPath,
   });
   await refreshVaultWatcher();
@@ -2340,6 +2495,79 @@ async function pickVaultFile() {
     ...(await getVaultDirectoryInfo()),
     selectedFilePath: path.relative(vaultPath, selectedFilePath).split(path.sep).join("/"),
   };
+}
+
+/**
+ * 列出已知 vault 根，供 Workspace Rail 渲染。
+ *
+ * 同时报告每个根当前是否可达：外置盘拔了、目录被删、或者仓库被移动过，rail
+ * 需要把它显示成「不可用」而不是假装能切过去。
+ */
+async function listVaultRoots() {
+  const roots = desktopConfig.knownVaultRoots ?? [];
+  const activePath = desktopConfig.vaultPath
+    ? path.resolve(desktopConfig.vaultPath)
+    : null;
+
+  return Promise.all(
+    roots.map(async (rootPath) => ({
+      available: await pathExists(rootPath),
+      isActive: activePath === rootPath,
+      name: path.basename(rootPath),
+      path: rootPath,
+    })),
+  );
+}
+
+/**
+ * 切换当前 vault 根，不弹对话框。
+ *
+ * **安全边界（这是这个 handler 存在的全部难点）**：只接受已经在
+ * `knownVaultRoots` 里的路径，也就是用户此前通过原生目录选择器亲自授权过的
+ * 目录。绝不接受 renderer 传来的任意绝对路径。
+ *
+ * 原因不是洁癖：vault 根一旦可以被 renderer 任意指定，`vault:read-file` /
+ * `list-files` 就成了「读任意目录」的通道——把根指到 `~/.ssh` 或
+ * `~/Library/Application Support`，然后逐个文件读出来。那等于把一个受限的
+ * 笔记读写接口升级成任意文件读取。所以新根必须走 `pick-directory`（用户在
+ * 系统对话框里做出选择），rail 只负责在已授权的根之间切换。
+ */
+async function setVaultRoot(requestedPath) {
+  const decision = authorizeVaultRoot(
+    desktopConfig.knownVaultRoots ?? [],
+    requestedPath,
+  );
+
+  if (!decision.ok) {
+    if (decision.code === VAULT_ROOT_ERRORS.EMPTY) {
+      throw new Error("A vault root path is required.");
+    }
+    // 未授权与「传了个相对路径」都归到同一条用户可行动的提示：调用方（rail）
+    // 据此引导用户走选择器，而不是显示一个会让人以为目录丢了的错误。
+    throw new Error(
+      "This vault root has not been authorized. Choose it with the folder picker first.",
+    );
+  }
+
+  const normalized = decision.rootPath;
+
+  if (!(await pathExists(normalized))) {
+    // 授权过但当前不可达（盘拔了 / 目录被删）。不改当前根，让 rail 把这一项
+    // 标成不可用——静默切到一个空 vault 会看起来像笔记全丢了。
+    throw new Error("This vault root is currently unavailable.");
+  }
+
+  await ensurePluginsDirectory(normalized);
+  await writeDesktopConfig({
+    ...desktopConfig,
+    knownVaultRoots: rememberVaultRoot(normalized),
+    vaultPath: normalized,
+  });
+  await refreshVaultWatcher();
+  await loadPluginRuntime();
+  scheduleVaultChanged();
+
+  return getVaultDirectoryInfo();
 }
 
 async function getVaultDirectoryInfo() {
@@ -3433,6 +3661,18 @@ function registerDesktopHandlers() {
     return pickVaultFile();
   });
 
+  ipcMain.handle("shadowing:vault:list-roots", async (event) => {
+    requireTrustedMainEvent(event);
+    return listVaultRoots();
+  });
+
+  // 换根不弹对话框，但只接受已授权的根——白名单校验在 setVaultRoot 里，理由见
+  // 那里的注释（否则这个 handler 会把受限的笔记读写升级成任意文件读取）。
+  ipcMain.handle("shadowing:vault:set-root", async (event, rootPath) => {
+    requireTrustedMainEvent(event);
+    return setVaultRoot(rootPath);
+  });
+
   ipcMain.handle("shadowing:vault:create-directory", async (event, relativePath) => {
     requireTrustedMainEvent(event);
     const target = await resolveVaultTarget(relativePath);
@@ -3560,6 +3800,52 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:system:pick-file", async (_event, options) =>
     pickSystemFile(options),
   );
+
+  /* ---------------------------------------------------------------- */
+  /* 自动更新                                                        */
+  /* ---------------------------------------------------------------- */
+
+  ipcMain.handle("shadowing:updates:get-state", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    return {
+      ...updater.getSnapshot(),
+      currentVersion: app.getVersion(),
+    };
+  });
+
+  ipcMain.handle("shadowing:updates:check", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    await updater.check();
+    return updater.getSnapshot();
+  });
+
+  ipcMain.handle("shadowing:updates:download", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    await updater.download();
+    return updater.getSnapshot();
+  });
+
+  ipcMain.handle("shadowing:updates:quit-and-install", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    return updater.quitAndInstall();
+  });
+
+  ipcMain.handle("shadowing:updates:open-releases", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    return updater.openReleasesPage();
+  });
+
+  ipcMain.handle("shadowing:updates:reset", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    updater.reset();
+    return updater.getSnapshot();
+  });
 }
 
 // Only these tools may be probed from the renderer — never run an arbitrary
