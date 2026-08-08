@@ -483,7 +483,7 @@ export function NotesWorkbench({
     (nextWidth: number) => {
       setTerminalWidth(clampRightSidebarWidth(nextWidth, shellWidth, "terminal"));
     },
-    [shellWidth],
+    [setTerminalWidth, shellWidth],
   );
 
   useEffect(() => {
@@ -575,7 +575,7 @@ export function NotesWorkbench({
       onEditorBridgeReady?.(bridge);
       setSelectionState(bridge?.getSelection() ?? null);
     },
-    [onEditorBridgeReady],
+    [onEditorBridgeReady, setSelectionState],
   );
 
   const handleOpenSourcePeek = useCallback(() => {
@@ -592,7 +592,7 @@ export function NotesWorkbench({
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
     },
-    [resolvedTerminalWidth],
+    [resolvedTerminalWidth, setIsTerminalResizing],
   );
 
   const handleTerminalSplitterKeyDown = useCallback(
