@@ -1,0 +1,26 @@
+# Legacy Genie YAML pipeline (uses: genie/* + needs:).
+# Normalizes onto the same Nia runner with compatibility diagnostics.
+name: Legacy Triage and Translate
+description: Rewrite rough notes into clean English, then translate the result.
+
+defaults:
+  approval: auto
+
+steps:
+  - id: rewrite
+    uses: genie/rewrite-in-english
+    with:
+      input: "Replace this seed text with the notes you want rewritten before running."
+
+  - id: translate
+    uses: genie/translate
+    needs: rewrite
+    with:
+      input: "{rewrite.text}"
+
+  - id: save
+    uses: action/save-file
+    needs: translate
+    with:
+      path: triage-and-translate.out.md
+      content: "{translate.text}"

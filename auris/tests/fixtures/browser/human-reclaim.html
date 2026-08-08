@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Human reclaim fixture</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 16px/1.4 system-ui, sans-serif; }
+      main { min-height: 100%; display: grid; place-items: center; }
+      button { font-size: 20px; padding: 16px 24px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <button id="reclaim-target" type="button">Click or type here</button>
+    </main>
+    <script>
+      window.__aurisReclaimProbe = { clicks: 0, keys: 0 };
+      const target = document.getElementById("reclaim-target");
+      target.addEventListener("click", () => { window.__aurisReclaimProbe.clicks += 1; });
+      window.addEventListener("keydown", () => { window.__aurisReclaimProbe.keys += 1; });
+    </script>
+  </body>
+</html>

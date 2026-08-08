@@ -1,0 +1,1317 @@
+{
+  "schemaVersion": 1,
+  "roots": [
+    "@modelcontextprotocol/sdk",
+    "jsdom",
+    "ws",
+    "yaml",
+    "zod"
+  ],
+  "packages": [
+    {
+      "name": "@asamuzakjp/css-color",
+      "version": "5.0.1",
+      "path": "node_modules/@asamuzakjp/css-color",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "lru-cache",
+      "version": "11.2.7",
+      "path": "node_modules/@asamuzakjp/css-color/node_modules/lru-cache",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/css-color"
+      ]
+    },
+    {
+      "name": "@asamuzakjp/dom-selector",
+      "version": "7.0.3",
+      "path": "node_modules/@asamuzakjp/dom-selector",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "lru-cache",
+      "version": "11.2.7",
+      "path": "node_modules/@asamuzakjp/dom-selector/node_modules/lru-cache",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/dom-selector"
+      ]
+    },
+    {
+      "name": "@asamuzakjp/nwsapi",
+      "version": "2.3.9",
+      "path": "node_modules/@asamuzakjp/nwsapi",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/dom-selector"
+      ]
+    },
+    {
+      "name": "@bramus/specificity",
+      "version": "2.4.2",
+      "path": "node_modules/@bramus/specificity",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "@csstools/color-helpers",
+      "version": "6.0.2",
+      "path": "node_modules/@csstools/color-helpers",
+      "kind": "dependency",
+      "requiredBy": [
+        "@csstools/css-color-parser"
+      ]
+    },
+    {
+      "name": "@csstools/css-calc",
+      "version": "3.1.1",
+      "path": "node_modules/@csstools/css-calc",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/css-color",
+        "@csstools/css-color-parser"
+      ]
+    },
+    {
+      "name": "@csstools/css-color-parser",
+      "version": "4.0.2",
+      "path": "node_modules/@csstools/css-color-parser",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/css-color"
+      ]
+    },
+    {
+      "name": "@csstools/css-parser-algorithms",
+      "version": "4.0.0",
+      "path": "node_modules/@csstools/css-parser-algorithms",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/css-color"
+      ]
+    },
+    {
+      "name": "@csstools/css-syntax-patches-for-csstree",
+      "version": "1.1.1",
+      "path": "node_modules/@csstools/css-syntax-patches-for-csstree",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "@csstools/css-tokenizer",
+      "version": "4.0.0",
+      "path": "node_modules/@csstools/css-tokenizer",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/css-color"
+      ]
+    },
+    {
+      "name": "@exodus/bytes",
+      "version": "1.15.0",
+      "path": "node_modules/@exodus/bytes",
+      "kind": "dependency",
+      "requiredBy": [
+        "html-encoding-sniffer",
+        "jsdom",
+        "whatwg-url"
+      ]
+    },
+    {
+      "name": "@hono/node-server",
+      "version": "1.19.14",
+      "path": "node_modules/@hono/node-server",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "@modelcontextprotocol/sdk",
+      "version": "1.29.0",
+      "path": "node_modules/@modelcontextprotocol/sdk",
+      "kind": "root",
+      "requiredBy": [
+        "electron/*"
+      ]
+    },
+    {
+      "name": "ajv",
+      "version": "8.20.0",
+      "path": "node_modules/@modelcontextprotocol/sdk/node_modules/ajv",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "json-schema-traverse",
+      "version": "1.0.0",
+      "path": "node_modules/@modelcontextprotocol/sdk/node_modules/json-schema-traverse",
+      "kind": "dependency",
+      "requiredBy": [
+        "ajv"
+      ]
+    },
+    {
+      "name": "accepts",
+      "version": "2.0.0",
+      "path": "node_modules/accepts",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "ajv-formats",
+      "version": "3.0.1",
+      "path": "node_modules/ajv-formats",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "ajv",
+      "version": "8.20.0",
+      "path": "node_modules/ajv-formats/node_modules/ajv",
+      "kind": "dependency",
+      "requiredBy": [
+        "ajv-formats"
+      ]
+    },
+    {
+      "name": "json-schema-traverse",
+      "version": "1.0.0",
+      "path": "node_modules/ajv-formats/node_modules/json-schema-traverse",
+      "kind": "dependency",
+      "requiredBy": [
+        "ajv"
+      ]
+    },
+    {
+      "name": "bidi-js",
+      "version": "1.0.3",
+      "path": "node_modules/bidi-js",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/dom-selector"
+      ]
+    },
+    {
+      "name": "body-parser",
+      "version": "2.3.0",
+      "path": "node_modules/body-parser",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "content-type",
+      "version": "2.0.0",
+      "path": "node_modules/body-parser/node_modules/content-type",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser"
+      ]
+    },
+    {
+      "name": "iconv-lite",
+      "version": "0.7.2",
+      "path": "node_modules/body-parser/node_modules/iconv-lite",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser"
+      ]
+    },
+    {
+      "name": "bytes",
+      "version": "3.1.2",
+      "path": "node_modules/bytes",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser",
+        "raw-body"
+      ]
+    },
+    {
+      "name": "call-bind-apply-helpers",
+      "version": "1.0.2",
+      "path": "node_modules/call-bind-apply-helpers",
+      "kind": "dependency",
+      "requiredBy": [
+        "call-bound",
+        "dunder-proto",
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "call-bound",
+      "version": "1.0.4",
+      "path": "node_modules/call-bound",
+      "kind": "dependency",
+      "requiredBy": [
+        "side-channel-map",
+        "side-channel-weakmap"
+      ]
+    },
+    {
+      "name": "content-disposition",
+      "version": "1.1.0",
+      "path": "node_modules/content-disposition",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "content-type",
+      "version": "1.0.5",
+      "path": "node_modules/content-type",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk",
+        "express"
+      ]
+    },
+    {
+      "name": "cookie-signature",
+      "version": "1.2.2",
+      "path": "node_modules/cookie-signature",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "cors",
+      "version": "2.8.6",
+      "path": "node_modules/cors",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "path": "node_modules/cross-spawn",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "css-tree",
+      "version": "3.2.1",
+      "path": "node_modules/css-tree",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/dom-selector",
+        "@bramus/specificity",
+        "jsdom"
+      ]
+    },
+    {
+      "name": "data-urls",
+      "version": "7.0.0",
+      "path": "node_modules/data-urls",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "debug",
+      "version": "4.4.3",
+      "path": "node_modules/debug",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser",
+        "express",
+        "finalhandler",
+        "router",
+        "send"
+      ]
+    },
+    {
+      "name": "decimal.js",
+      "version": "10.6.0",
+      "path": "node_modules/decimal.js",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "depd",
+      "version": "2.0.0",
+      "path": "node_modules/depd",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "http-errors",
+        "router"
+      ]
+    },
+    {
+      "name": "dunder-proto",
+      "version": "1.0.1",
+      "path": "node_modules/dunder-proto",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-proto"
+      ]
+    },
+    {
+      "name": "ee-first",
+      "version": "1.1.1",
+      "path": "node_modules/ee-first",
+      "kind": "dependency",
+      "requiredBy": [
+        "on-finished"
+      ]
+    },
+    {
+      "name": "encodeurl",
+      "version": "2.0.0",
+      "path": "node_modules/encodeurl",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "finalhandler",
+        "send",
+        "serve-static"
+      ]
+    },
+    {
+      "name": "entities",
+      "version": "6.0.1",
+      "path": "node_modules/entities",
+      "kind": "dependency",
+      "requiredBy": [
+        "parse5"
+      ]
+    },
+    {
+      "name": "es-define-property",
+      "version": "1.0.1",
+      "path": "node_modules/es-define-property",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "es-errors",
+      "version": "1.3.0",
+      "path": "node_modules/es-errors",
+      "kind": "dependency",
+      "requiredBy": [
+        "call-bind-apply-helpers",
+        "dunder-proto",
+        "es-object-atoms",
+        "get-intrinsic",
+        "side-channel",
+        "side-channel-list",
+        "side-channel-map",
+        "side-channel-weakmap"
+      ]
+    },
+    {
+      "name": "es-object-atoms",
+      "version": "1.1.1",
+      "path": "node_modules/es-object-atoms",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-intrinsic",
+        "get-proto"
+      ]
+    },
+    {
+      "name": "escape-html",
+      "version": "1.0.3",
+      "path": "node_modules/escape-html",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "finalhandler",
+        "send",
+        "serve-static"
+      ]
+    },
+    {
+      "name": "etag",
+      "version": "1.8.1",
+      "path": "node_modules/etag",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "send"
+      ]
+    },
+    {
+      "name": "eventsource",
+      "version": "3.0.7",
+      "path": "node_modules/eventsource",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "eventsource-parser",
+      "version": "3.1.0",
+      "path": "node_modules/eventsource-parser",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk",
+        "eventsource"
+      ]
+    },
+    {
+      "name": "express",
+      "version": "5.2.1",
+      "path": "node_modules/express",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "express-rate-limit",
+      "version": "8.5.2",
+      "path": "node_modules/express-rate-limit",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "cookie",
+      "version": "0.7.2",
+      "path": "node_modules/express/node_modules/cookie",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "fast-deep-equal",
+      "version": "3.1.3",
+      "path": "node_modules/fast-deep-equal",
+      "kind": "dependency",
+      "requiredBy": [
+        "ajv"
+      ]
+    },
+    {
+      "name": "fast-uri",
+      "version": "3.1.2",
+      "path": "node_modules/fast-uri",
+      "kind": "dependency",
+      "requiredBy": [
+        "ajv"
+      ]
+    },
+    {
+      "name": "finalhandler",
+      "version": "2.1.1",
+      "path": "node_modules/finalhandler",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "forwarded",
+      "version": "0.2.0",
+      "path": "node_modules/forwarded",
+      "kind": "dependency",
+      "requiredBy": [
+        "proxy-addr"
+      ]
+    },
+    {
+      "name": "fresh",
+      "version": "2.0.0",
+      "path": "node_modules/fresh",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "send"
+      ]
+    },
+    {
+      "name": "function-bind",
+      "version": "1.1.2",
+      "path": "node_modules/function-bind",
+      "kind": "dependency",
+      "requiredBy": [
+        "call-bind-apply-helpers",
+        "get-intrinsic",
+        "hasown"
+      ]
+    },
+    {
+      "name": "get-intrinsic",
+      "version": "1.3.0",
+      "path": "node_modules/get-intrinsic",
+      "kind": "dependency",
+      "requiredBy": [
+        "call-bound",
+        "side-channel-map",
+        "side-channel-weakmap"
+      ]
+    },
+    {
+      "name": "get-proto",
+      "version": "1.0.1",
+      "path": "node_modules/get-proto",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "gopd",
+      "version": "1.2.0",
+      "path": "node_modules/gopd",
+      "kind": "dependency",
+      "requiredBy": [
+        "dunder-proto",
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "has-symbols",
+      "version": "1.1.0",
+      "path": "node_modules/has-symbols",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "hasown",
+      "version": "2.0.4",
+      "path": "node_modules/hasown",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "hono",
+      "version": "4.12.26",
+      "path": "node_modules/hono",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "html-encoding-sniffer",
+      "version": "6.0.0",
+      "path": "node_modules/html-encoding-sniffer",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "http-errors",
+      "version": "2.0.1",
+      "path": "node_modules/http-errors",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser",
+        "express",
+        "raw-body",
+        "send"
+      ]
+    },
+    {
+      "name": "inherits",
+      "version": "2.0.4",
+      "path": "node_modules/inherits",
+      "kind": "dependency",
+      "requiredBy": [
+        "http-errors"
+      ]
+    },
+    {
+      "name": "ip-address",
+      "version": "10.2.0",
+      "path": "node_modules/ip-address",
+      "kind": "dependency",
+      "requiredBy": [
+        "express-rate-limit"
+      ]
+    },
+    {
+      "name": "ipaddr.js",
+      "version": "1.9.1",
+      "path": "node_modules/ipaddr.js",
+      "kind": "dependency",
+      "requiredBy": [
+        "proxy-addr"
+      ]
+    },
+    {
+      "name": "is-potential-custom-element-name",
+      "version": "1.0.1",
+      "path": "node_modules/is-potential-custom-element-name",
+      "kind": "dependency",
+      "requiredBy": [
+        "@asamuzakjp/dom-selector",
+        "jsdom"
+      ]
+    },
+    {
+      "name": "is-promise",
+      "version": "4.0.0",
+      "path": "node_modules/is-promise",
+      "kind": "dependency",
+      "requiredBy": [
+        "router"
+      ]
+    },
+    {
+      "name": "isexe",
+      "version": "2.0.0",
+      "path": "node_modules/isexe",
+      "kind": "dependency",
+      "requiredBy": [
+        "which"
+      ]
+    },
+    {
+      "name": "jose",
+      "version": "6.2.3",
+      "path": "node_modules/jose",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "jsdom",
+      "version": "29.0.0",
+      "path": "node_modules/jsdom",
+      "kind": "root",
+      "requiredBy": [
+        "electron/*"
+      ]
+    },
+    {
+      "name": "lru-cache",
+      "version": "11.2.7",
+      "path": "node_modules/jsdom/node_modules/lru-cache",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "json-schema-typed",
+      "version": "8.0.2",
+      "path": "node_modules/json-schema-typed",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "math-intrinsics",
+      "version": "1.1.0",
+      "path": "node_modules/math-intrinsics",
+      "kind": "dependency",
+      "requiredBy": [
+        "get-intrinsic"
+      ]
+    },
+    {
+      "name": "mdn-data",
+      "version": "2.27.1",
+      "path": "node_modules/mdn-data",
+      "kind": "dependency",
+      "requiredBy": [
+        "css-tree"
+      ]
+    },
+    {
+      "name": "media-typer",
+      "version": "1.1.0",
+      "path": "node_modules/media-typer",
+      "kind": "dependency",
+      "requiredBy": [
+        "type-is"
+      ]
+    },
+    {
+      "name": "merge-descriptors",
+      "version": "2.0.0",
+      "path": "node_modules/merge-descriptors",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "mime-db",
+      "version": "1.54.0",
+      "path": "node_modules/mime-db",
+      "kind": "dependency",
+      "requiredBy": [
+        "mime-types"
+      ]
+    },
+    {
+      "name": "mime-types",
+      "version": "3.0.2",
+      "path": "node_modules/mime-types",
+      "kind": "dependency",
+      "requiredBy": [
+        "accepts",
+        "express",
+        "send",
+        "type-is"
+      ]
+    },
+    {
+      "name": "ms",
+      "version": "2.1.3",
+      "path": "node_modules/ms",
+      "kind": "dependency",
+      "requiredBy": [
+        "debug",
+        "send"
+      ]
+    },
+    {
+      "name": "negotiator",
+      "version": "1.0.0",
+      "path": "node_modules/negotiator",
+      "kind": "dependency",
+      "requiredBy": [
+        "accepts"
+      ]
+    },
+    {
+      "name": "object-assign",
+      "version": "4.1.1",
+      "path": "node_modules/object-assign",
+      "kind": "dependency",
+      "requiredBy": [
+        "cors"
+      ]
+    },
+    {
+      "name": "object-inspect",
+      "version": "1.13.4",
+      "path": "node_modules/object-inspect",
+      "kind": "dependency",
+      "requiredBy": [
+        "side-channel",
+        "side-channel-list",
+        "side-channel-map",
+        "side-channel-weakmap"
+      ]
+    },
+    {
+      "name": "on-finished",
+      "version": "2.4.1",
+      "path": "node_modules/on-finished",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser",
+        "express",
+        "finalhandler",
+        "send"
+      ]
+    },
+    {
+      "name": "once",
+      "version": "1.4.0",
+      "path": "node_modules/once",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "parse5",
+      "version": "8.0.0",
+      "path": "node_modules/parse5",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "parseurl",
+      "version": "1.3.3",
+      "path": "node_modules/parseurl",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "finalhandler",
+        "router",
+        "serve-static"
+      ]
+    },
+    {
+      "name": "path-key",
+      "version": "3.1.1",
+      "path": "node_modules/path-key",
+      "kind": "dependency",
+      "requiredBy": [
+        "cross-spawn"
+      ]
+    },
+    {
+      "name": "path-to-regexp",
+      "version": "8.4.2",
+      "path": "node_modules/path-to-regexp",
+      "kind": "dependency",
+      "requiredBy": [
+        "router"
+      ]
+    },
+    {
+      "name": "pkce-challenge",
+      "version": "5.0.1",
+      "path": "node_modules/pkce-challenge",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "proxy-addr",
+      "version": "2.0.7",
+      "path": "node_modules/proxy-addr",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "punycode",
+      "version": "2.3.1",
+      "path": "node_modules/punycode",
+      "kind": "dependency",
+      "requiredBy": [
+        "tr46"
+      ]
+    },
+    {
+      "name": "qs",
+      "version": "6.15.2",
+      "path": "node_modules/qs",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser",
+        "express"
+      ]
+    },
+    {
+      "name": "range-parser",
+      "version": "1.2.1",
+      "path": "node_modules/range-parser",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "send"
+      ]
+    },
+    {
+      "name": "raw-body",
+      "version": "3.0.2",
+      "path": "node_modules/raw-body",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk",
+        "body-parser"
+      ]
+    },
+    {
+      "name": "iconv-lite",
+      "version": "0.7.2",
+      "path": "node_modules/raw-body/node_modules/iconv-lite",
+      "kind": "dependency",
+      "requiredBy": [
+        "raw-body"
+      ]
+    },
+    {
+      "name": "require-from-string",
+      "version": "2.0.2",
+      "path": "node_modules/require-from-string",
+      "kind": "dependency",
+      "requiredBy": [
+        "ajv",
+        "bidi-js"
+      ]
+    },
+    {
+      "name": "router",
+      "version": "2.2.0",
+      "path": "node_modules/router",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "safer-buffer",
+      "version": "2.1.2",
+      "path": "node_modules/safer-buffer",
+      "kind": "dependency",
+      "requiredBy": [
+        "iconv-lite"
+      ]
+    },
+    {
+      "name": "saxes",
+      "version": "6.0.0",
+      "path": "node_modules/saxes",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "send",
+      "version": "1.2.1",
+      "path": "node_modules/send",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "serve-static"
+      ]
+    },
+    {
+      "name": "serve-static",
+      "version": "2.2.1",
+      "path": "node_modules/serve-static",
+      "kind": "dependency",
+      "requiredBy": [
+        "express"
+      ]
+    },
+    {
+      "name": "setprototypeof",
+      "version": "1.2.0",
+      "path": "node_modules/setprototypeof",
+      "kind": "dependency",
+      "requiredBy": [
+        "http-errors"
+      ]
+    },
+    {
+      "name": "shebang-command",
+      "version": "2.0.0",
+      "path": "node_modules/shebang-command",
+      "kind": "dependency",
+      "requiredBy": [
+        "cross-spawn"
+      ]
+    },
+    {
+      "name": "shebang-regex",
+      "version": "3.0.0",
+      "path": "node_modules/shebang-regex",
+      "kind": "dependency",
+      "requiredBy": [
+        "shebang-command"
+      ]
+    },
+    {
+      "name": "side-channel",
+      "version": "1.1.0",
+      "path": "node_modules/side-channel",
+      "kind": "dependency",
+      "requiredBy": [
+        "qs"
+      ]
+    },
+    {
+      "name": "side-channel-list",
+      "version": "1.0.0",
+      "path": "node_modules/side-channel-list",
+      "kind": "dependency",
+      "requiredBy": [
+        "side-channel"
+      ]
+    },
+    {
+      "name": "side-channel-map",
+      "version": "1.0.1",
+      "path": "node_modules/side-channel-map",
+      "kind": "dependency",
+      "requiredBy": [
+        "side-channel",
+        "side-channel-weakmap"
+      ]
+    },
+    {
+      "name": "side-channel-weakmap",
+      "version": "1.0.2",
+      "path": "node_modules/side-channel-weakmap",
+      "kind": "dependency",
+      "requiredBy": [
+        "side-channel"
+      ]
+    },
+    {
+      "name": "source-map-js",
+      "version": "1.2.1",
+      "path": "node_modules/source-map-js",
+      "kind": "dependency",
+      "requiredBy": [
+        "css-tree"
+      ]
+    },
+    {
+      "name": "statuses",
+      "version": "2.0.2",
+      "path": "node_modules/statuses",
+      "kind": "dependency",
+      "requiredBy": [
+        "express",
+        "finalhandler",
+        "http-errors",
+        "send"
+      ]
+    },
+    {
+      "name": "symbol-tree",
+      "version": "3.2.4",
+      "path": "node_modules/symbol-tree",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "tldts",
+      "version": "7.0.26",
+      "path": "node_modules/tldts",
+      "kind": "dependency",
+      "requiredBy": [
+        "tough-cookie"
+      ]
+    },
+    {
+      "name": "tldts-core",
+      "version": "7.0.26",
+      "path": "node_modules/tldts-core",
+      "kind": "dependency",
+      "requiredBy": [
+        "tldts"
+      ]
+    },
+    {
+      "name": "toidentifier",
+      "version": "1.0.1",
+      "path": "node_modules/toidentifier",
+      "kind": "dependency",
+      "requiredBy": [
+        "http-errors"
+      ]
+    },
+    {
+      "name": "tough-cookie",
+      "version": "6.0.1",
+      "path": "node_modules/tough-cookie",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "tr46",
+      "version": "6.0.0",
+      "path": "node_modules/tr46",
+      "kind": "dependency",
+      "requiredBy": [
+        "whatwg-url"
+      ]
+    },
+    {
+      "name": "type-is",
+      "version": "2.1.0",
+      "path": "node_modules/type-is",
+      "kind": "dependency",
+      "requiredBy": [
+        "body-parser",
+        "express"
+      ]
+    },
+    {
+      "name": "content-type",
+      "version": "2.0.0",
+      "path": "node_modules/type-is/node_modules/content-type",
+      "kind": "dependency",
+      "requiredBy": [
+        "type-is"
+      ]
+    },
+    {
+      "name": "undici",
+      "version": "7.24.4",
+      "path": "node_modules/undici",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "unpipe",
+      "version": "1.0.0",
+      "path": "node_modules/unpipe",
+      "kind": "dependency",
+      "requiredBy": [
+        "raw-body"
+      ]
+    },
+    {
+      "name": "vary",
+      "version": "1.1.2",
+      "path": "node_modules/vary",
+      "kind": "dependency",
+      "requiredBy": [
+        "cors",
+        "express"
+      ]
+    },
+    {
+      "name": "w3c-xmlserializer",
+      "version": "5.0.0",
+      "path": "node_modules/w3c-xmlserializer",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom"
+      ]
+    },
+    {
+      "name": "webidl-conversions",
+      "version": "8.0.1",
+      "path": "node_modules/webidl-conversions",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom",
+        "whatwg-url"
+      ]
+    },
+    {
+      "name": "whatwg-mimetype",
+      "version": "5.0.0",
+      "path": "node_modules/whatwg-mimetype",
+      "kind": "dependency",
+      "requiredBy": [
+        "data-urls",
+        "jsdom"
+      ]
+    },
+    {
+      "name": "whatwg-url",
+      "version": "16.0.1",
+      "path": "node_modules/whatwg-url",
+      "kind": "dependency",
+      "requiredBy": [
+        "data-urls",
+        "jsdom"
+      ]
+    },
+    {
+      "name": "which",
+      "version": "2.0.2",
+      "path": "node_modules/which",
+      "kind": "dependency",
+      "requiredBy": [
+        "cross-spawn"
+      ]
+    },
+    {
+      "name": "wrappy",
+      "version": "1.0.2",
+      "path": "node_modules/wrappy",
+      "kind": "dependency",
+      "requiredBy": [
+        "once"
+      ]
+    },
+    {
+      "name": "ws",
+      "version": "8.20.1",
+      "path": "node_modules/ws",
+      "kind": "root",
+      "requiredBy": [
+        "electron/*"
+      ]
+    },
+    {
+      "name": "xml-name-validator",
+      "version": "5.0.0",
+      "path": "node_modules/xml-name-validator",
+      "kind": "dependency",
+      "requiredBy": [
+        "jsdom",
+        "w3c-xmlserializer"
+      ]
+    },
+    {
+      "name": "xmlchars",
+      "version": "2.2.0",
+      "path": "node_modules/xmlchars",
+      "kind": "dependency",
+      "requiredBy": [
+        "saxes"
+      ]
+    },
+    {
+      "name": "yaml",
+      "version": "2.8.3",
+      "path": "node_modules/yaml",
+      "kind": "root",
+      "requiredBy": [
+        "electron/*"
+      ]
+    },
+    {
+      "name": "zod",
+      "version": "4.3.6",
+      "path": "node_modules/zod",
+      "kind": "root",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk",
+        "electron/*"
+      ]
+    },
+    {
+      "name": "zod-to-json-schema",
+      "version": "3.25.2",
+      "path": "node_modules/zod-to-json-schema",
+      "kind": "dependency",
+      "requiredBy": [
+        "@modelcontextprotocol/sdk"
+      ]
+    }
+  ],
+  "unresolvedOptionalDependencies": []
+}

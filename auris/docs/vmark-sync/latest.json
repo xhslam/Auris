@@ -1,0 +1,5799 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/xiaolai/vmark",
+  "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
+  "comparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+  "summary": {
+    "changed": 316,
+    "added": 341,
+    "deleted": 3,
+    "renamed": 0,
+    "missingAurisTargets": 0,
+    "staleMappings": 0,
+    "unmappedUpstreamChanges": 639
+  },
+  "upstreamChanges": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/claude-audit.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/claude.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/deploy-website.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/mutation.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/rust-coverage.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".size-limit.cjs",
+      "status": "changed"
+    },
+    {
+      "path": ".vmark/.gitattributes",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/.gitignore",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/contexts/coherence-layer.json",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/contexts/default.json",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/ledger/019f7465-a2a5-7062-93e7-5e4c7db8c5f6.jsonl",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/05/88903de97232badd3d2dd000db2de0cbbdc955efbe8ef061ea02c6326361c3",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/13/44a52d7157c09d1bac210ad08aa0797612fb20f64a81791574a478f720f36b",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/1b/edf3df45113a286904785e674691d7c2dda60c919832d8cd32f323da67413f",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/20/6c2a6e6e74b51c115bd0d66760ad7735478a53bd56f920d3bda633ddfbafe9",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/21/5bc13f6fd66d456386ffadffcbd64359148b5c02a33e7045098f5491c96586",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/36/8cb79250fafd9476e3bd60e5128f56157b862a8ff1853070b71f07c2dcfbf0",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/3e/74f62046462978e8a8591cc6e83da5b2d15d8abaeb0df4e7104078c7208fe9",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/3f/a75c0dbc4d7155da156cb594dfaf6e8310c36343fb64c7edb624033e0e7296",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/4a/e74e091a72ed930486a6519588e465d318ca6c519ec2829f1efcb6e24acfd6",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/4e/36dc99ead7bd5476bc01e37826a582dfec4189ef870e82da9b6c68ddc63bd4",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/4e/fb37b124931dc0226cf31d518c896caf7e77c8b2ef2549a10b80550ae42a47",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/59/fc6d4a8e34adee334012af2238c894b93865965854c31cf701cab562e9b6aa",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/5d/2c00799889cd01103c4e87b43af65682bcebbb800b43932274c2432d4bfcfa",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/60/41990495b3cbab14f87a90dcefe23be7ca04c380cdcda54da8d42151ddecde",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/62/9973b7506168dd04102ce6e8d174c70f47f9a5fba5e4ff21be1bc07f732f23",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/65/3b6a8f10e42de461681232be1b4823fe30e0a2fb14bd105bc3da6afef62baa",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/67/70c23b975c6528cc26087f2c0975525d9420348cc66c46be5d0f060d2c926f",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/6f/dfaff4b585fe937557f7b6975000bb29ed0842fc886e22da4a3dc4747117c6",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/72/6f55ca711b808ee1bba57533077f4a51a5bef4a88d6eda0d172087d5474884",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/7a/d34fdcb890e5f887fec52cdd6d5a52ebfa311547e9e405bd52a0c695373327",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/8b/453038090bcb9a689da7ea56d8eb28ae76cf7ef23b500cb8de5904f8207d74",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/8f/d576e0018f9a159809bb2c2f573b7b6ddb1e07222be209eeaa4efe6aa2470a",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/a5/9ae61d064fc1a83b22d6cd14918ed545c6db5eee0cdd19a16a475cd327524f",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/ac/0a1d5bf2b0aadf9a6b4c3c2790767fad7c104beda4214acb1f8cb9a6081c30",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/b5/233867166e9b1a90d6782315a5f581c3fafbf7b76ef60780a68b79ac490db0",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/bb/c66065ff48c7fc3fafb12aa1f33e13b299e605218e1a9d8b2b8b3282517587",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/c9/5ef243981c48c9c95a0bdff0d2b71d338324bc0729d28e0e2036d3ff2c371b",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/cd/8a98eb50d795b1fc68dd6296f8477f07f6fc4816dc5e824146d26a49b213a8",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/d1/11f2f5be3cb394dcc28f7c5207385b43506d29a8bf72f867ae14f999c06a8b",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/d4/82878baf458b784feafe6a5af292f2fcc5b3975b5775ecd05f88497b49c95d",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/d4/cdd898b24fdadf71ee05ec33fe639099120ae9f441c8b73184fff3dbf8edd5",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/da/ee92c11a367a9da9bfce27776a901e180c230ac7f419865009db4eb91b6be8",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/e2/77b4739b78c4891b77bef47803361c82e24f740b3fde31ad68bb7438e8a4c1",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/eb/0c38581acd8abeec95d18c0473eb40226bdb33d7652f71cacbbf22035e4a6a",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/f1/67d02a3c03c0c277fe860dd4f027b26544df1fb8b39628384511e534750913",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/f5/323c1ed09fd9a87df5067e85fc3dbddb15995f9ba1a75f9ac2cb210954de03",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/fb/1c92196b0691295e601fde2d978b7ee80ef069fc3b37a0db81906aaa593726",
+      "status": "added"
+    },
+    {
+      "path": "AGENTS.md",
+      "status": "changed"
+    },
+    {
+      "path": "dev-docs/README.md",
+      "status": "changed"
+    },
+    {
+      "path": "dev-docs/coherence-layer-architecture.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/coherence-layer-paper.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-canon-provenance-staleness-landscape.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-coherence-layer-conclusion.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-graphiti-agent-memory-academic-priorart.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-versioned-edges-staleness-prior-art.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/dependency-review.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/design-2a.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/design-3.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/dogfood-log.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/gate-g1.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/gate-g2.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/phase1-e2e.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g1-capture.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g1-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g2-gitops.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g2-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s1-ledger-merge.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s1-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/.gitignore",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/Cargo.lock",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/Cargo.toml",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/gen_support.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/generate.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/ledger_types.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/main.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/model.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/query.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/rebuild.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/rng.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/README.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/elena.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/ground-truth.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/guild-law.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/marcus.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-01.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-02.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-03.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-04.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-05.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-06.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-07.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-08.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-09.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-10.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/style.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/timeline.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/world-rules.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-edge-inference.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-corpus/README.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-corpus/cases.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-semantic-check.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s1.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s2.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s3.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s4.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/plans/20260718-coherence-layer.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/plans/20260721-blank-line-preservation.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/plans/20260721-mcp-open-workspace.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/specs/coherence-format-v0.md",
+      "status": "added"
+    },
+    {
+      "path": "package.json",
+      "status": "changed"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-coherence-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/file-size-baseline.json",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/Cargo.toml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/de.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/en.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/es.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/fr.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/it.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/ja.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/ko.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/pt-BR.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/zh-CN.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/zh-TW.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/ai_provider/dispatch.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/ai_provider/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/app_paths.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/app_setup.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/atomic_replace.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/atomic_replace.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/adopt.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/canonical.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/canonical.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/cas.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/cas.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/check_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/check_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/checker.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/checker.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claim_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claim_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claims.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claims.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/context_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/context_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/contexts.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/contexts.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/dag.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/dag.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/envelope.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/frontmatter.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/frontmatter.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/gitops.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/gitops.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_checks.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_query.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_row.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_state.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/ledger.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/ledger.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/merge_surface.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/merge_surface.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/mod.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/paths.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/paths.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/project.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/project.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/provenance.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/provenance.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/provenance_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan_diagnostics.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan_walk.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/state.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/state.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/types.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/types.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/command_registry.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/content_server/commands.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/content_server/manager.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/content_server/manager.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/content_server/manager_tests.rs",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/src/content_server/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/external_editor.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/external_editor.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/file_write.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/file_write.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/macos_menu_icons.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/coherence_answers.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/commands.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/delivery.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/delivery.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/routing.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/routing.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/server.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/server.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/state.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/state.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/window_routing.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/window_routing.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/menu/localized/window_help_menu.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pandoc/commands.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pandoc/commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pandoc/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pandoc/run.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pandoc/run.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pty.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pty/session.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pty/session.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/quit.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/quit.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/shell_env.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/watcher.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/watcher.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/actions.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/coherence_capture.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/coherence_capture.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/workflow/runner.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/workspace.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/workspace_validation.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/App.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownOverlay.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownPanel.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownPanel.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownRow.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/DelegationsSection.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/MergeBanner.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/MergeBanner.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/ProvenanceGroup.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/breakdown-overlay.css",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/breakdown-panel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/ClaimOverlay.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/ClaimPanel.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/ClaimPanel.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/claim-panel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/components/CoherenceOverlays.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/StepForm.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/__tests__/StepForm.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/__tests__/withRowPlans.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/withRowPlans.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/workflow-editor.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/useTiptapFlush.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useExplorerOperations.duplicateFile.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useExplorerOperations.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useFileTree.focus.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useFileTree.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/HistoryView.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/fitAndResizePty.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/fitAndResizePty.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/setupImeComposition.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/setupImeComposition.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalKeyHandler.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalKeyHandler.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionInputWiring.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionInputWiring.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionRegistry.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionStoreSync.theme.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionStoreSync.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionTypes.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalSessions.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/TitleBar/useTitleBarRename.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/TitleBar/useTitleBarRename.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/WindowStatusPanel/WindowStatusPanel.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/WindowStatusPanel/WindowStatusPanel.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/WindowStatusPanel/window-status-panel.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Workspace/WorkspaceApprovalDialog.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Workspace/WorkspaceApprovalDialog.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Workspace/workspace-approval-dialog.css",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/genieInvocation/streamRunner.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/lifecycle/__tests__/useWorkspaceLifecycle.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/lifecycle/useWorkspaceLifecycle.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/__tests__/document.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/__tests__/workspace.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/dispatch.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/document.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/documentTransform.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspace.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspaceOpenFolder.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspaceOpenFolder.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspaceSave.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/openWorkspaceByPath.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/openWorkspaceByPath.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useAiProviderSync.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useAiProviderSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useEffectiveTheme.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useEffectiveTheme.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useGenieShortcuts.invokeGenie.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useGenieShortcuts.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useGenieShortcuts.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useIsDarkTheme.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useIsDarkTheme.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSettingsSync.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSettingsSync.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useShortcutsSync.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useShortcutsSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useSourceEditorSearch.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSourceEditorSearch.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSystemAppearanceWatcher.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useSystemAppearanceWatcher.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useTheme.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useViewShortcuts.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useViewShortcuts.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWindowFileWatcher.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWindowStatus.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWindowStatus.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWorkspaceEventBus.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useWorkspaceEventBus.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/i18n.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/formatter.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/formatter.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/index.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/markdownParser.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/markdownParser.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/dashesQuotes.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/fullwidth.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/spacing.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/universal.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/segments.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/cjkFormatter/segments.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/lintEngine/rules/__tests__/noSpaceInEmphasis.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/lintEngine/rules/noSpaceInEmphasis.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/markdownLinkCheck/check.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/markdownLinkCheck/check.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/de/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/de/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/en/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/en/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/es/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/es/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/fr/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/fr/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/it/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/it/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ja/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ja/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ko/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ko/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/pt-BR/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/pt-BR/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-CN/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-CN/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-TW/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-TW/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/Settings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/AppearanceSettings.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/AppearanceSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/EditorSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/FilesImagesSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/WhitespaceSettings.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/aiSuggestion/applySuggestion.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/aiSuggestion/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/alertBlock/__tests__/alertBlock.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/alertBlock/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/autoPair/handlers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/autoPair/handlers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/blankLinesGuard/blankLinesGuard.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/blankLinesGuard/blankLinesGuard.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/blankLinesGuard/tiptap.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/markdownAutoPair.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/markdownAutoPair.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/markdownPairBackspace.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/smartPaste.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/smartPaste.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/structuralCharDetection.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/structuralCharProtection.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/structuralCharProtection.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/detailsBlock/__tests__/detailsBlock.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/detailsBlock/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptapCleanup.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptapCleanup.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/lint/docEpoch.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/docEpoch.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/lineMap.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/lineMap.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/lint/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/search/__tests__/replaceStale.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/__tests__/search.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/search/findMatches.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/findMatches.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/replaceActions.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/search/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/blockInsertPos.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/blockInsertPos.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/sourceLineAttr.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/sourceLineNodes.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourceContextDetection/__tests__/codeFenceDetection.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourceContextDetection/codeFenceDetection.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/toolbarActions/wysiwygAdapterUtils.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/assembly/tiptapExtensions.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/breakdown/breakdownService.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/breakdownService.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/refreshGuards.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/semanticActs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/semanticActs.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserOcclusion.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/browser/overlayPolicies.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/browser/overlayPolicies.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/claims/claimService.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/claims/claimService.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/captureFunnel.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/captureFunnel.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/scanOnChange.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/scanOnChange.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/claimCommands.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/claimCommands.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/paneCommands.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/useCommandBootstrap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/commands/viewCommands.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/commands/viewCommands.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/commands/workspaceCommands.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/formats/formatSettingsBridge.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/lint/runActiveLint.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/lint/runActiveLint.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/mcpBridge/windowWorkspaceSync.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/windowWorkspaceSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/navigation/linkOpen.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/renameFile.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/renameFile.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/saveToPath.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/saveToPath.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/windowStatusStorage.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/windowStatusStorage.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/workspaceEvents/contentHashCache.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/contentHashCache.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/index.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/normalizeFsEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/normalizeFsEvents.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/suppressUnchanged.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/suppressUnchanged.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/types.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/workspaceEventBus.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/workspaceEventBus.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/shared/menu-ids.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/shared/menuIdExtraction.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/__tests__/geniesStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/__tests__/promptHistoryStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/genies.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/promptHistory.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/provider.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/providerSanitize.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/breakdownStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/breakdownStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/claimStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/createRecentsStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedListMerge.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedListMerge.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedSectionMerge.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedSectionMerge.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/recentsStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/recentsStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/settingsStore.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsStore/defaults.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsStore/reconcile.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/settingsStore/shortcuts.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsTypes/appearance.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsTypes/content.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsTypes/workspace.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/systemAppearanceStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/systemAppearanceStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/windowStatusStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/windowStatusStore.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/workspaceApprovalStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workspaceApprovalStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workspaceStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/workspaceStore.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/workspaceStoreHelpers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/test/i18nNamespaces.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/setup.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/buildXtermTheme.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/legacyModeColors.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/caseTransformations.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/caseTransformations.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/cleanPastedMarkdown.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/cleanPastedMarkdown.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/debug/log.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/debug/warn.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/fsEventFilter.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/utils/fsEventFilter.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/utils/headingSlug.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/headingSlug.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/htmlToMarkdown.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/htmlToMarkdown.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownCodeMask.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownCodeMask.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/blankLinePreservation.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/adapter.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/blankLineCapture.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/blankLineCapture.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/inlineParser.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/inlineParser.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/mdastToProseMirror.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/proseMirrorToMdast.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializer.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializerHandlers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializerHandlers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/testSchema.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/pendingSaves.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/stringWidth.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/stringWidth.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/textTransformations.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/textTransformations.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/watchRoot.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/watchRoot.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-content-server/package.json",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/README.md",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/bridge/websocket.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/server.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/tools/coherence.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/tools/workspace.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/jsonSchemaToZod.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/mcpAdapters.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/parentProcess.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/portFile.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/shutdown.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/package.json",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/bridge/core-types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/bridge/websocket.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/cli.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/index.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/server.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/tools/coherence.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/src/tools/workspace.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/jsonSchemaToZod.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/mcpAdapters.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/parentProcess.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/portFile.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/shutdown.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/config/de.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/en.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/es.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/fr.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/it.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/ja.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/ko.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/pt-BR.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/zh-CN.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/zh-TW.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/de/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/es/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/fr/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/workspace-management.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/it/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/ja/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/ko/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/package.json",
+      "status": "changed"
+    },
+    {
+      "path": "website/pnpm-lock.yaml",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/pt-BR/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/zh-CN/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/zh-TW/guide/mcp-tools.md",
+      "status": "changed"
+    }
+  ],
+  "mappings": [
+    {
+      "mappingId": "browser-authority-grants-lease",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src-tauri/src/browser/authorize.rs",
+        "src-tauri/src/browser/one_shot.rs",
+        "src-tauri/src/browser/operation.rs",
+        "src-tauri/src/browser/origin_guard.rs",
+        "src/lib/browser/approval/grants.ts",
+        "src/services/browser/lease.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-approvals.cjs",
+        "electron/browser/browser-grants.cjs",
+        "electron/browser/browser-lease.cjs",
+        "electron/browser/browser-partitions.cjs",
+        "src/components/browser-window/browser-approval-dialog.tsx"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 3 lands connection-scoped leases, opaque one-shot approvals, and AiSandbox partition selection in Electron main.",
+        "Phase 4 completes standing grants, attachment/mode authority, human reclaim, operation guard, and user-gated production enablement without an env bypass."
+      ],
+      "tests": [
+        "tests/component/browser-window/browser-approval-dialog.test.tsx",
+        "tests/component/settings/auris-settings-browser-grants.test.tsx",
+        "tests/component/settings/auris-settings-browser-security.test.tsx",
+        "tests/unit/electron/browser/browser-approvals.test.ts",
+        "tests/unit/electron/browser/browser-capabilities.test.ts",
+        "tests/unit/electron/browser/browser-grants.test.ts",
+        "tests/unit/electron/browser/browser-lease.test.ts",
+        "tests/unit/electron/browser/browser-mode-authority.test.ts",
+        "tests/unit/electron/browser/browser-operation-guard.test.ts",
+        "tests/unit/electron/browser/browser-partitions.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-chrome-ui",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src/components/Browser/browserWorkspace.ts",
+        "src/stores/browserHistoryStore.ts",
+        "src/stores/browserStore.ts",
+        "src/stores/browserUiStore.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-state-db.cjs",
+        "electron/browser/browser-state-repository.cjs",
+        "src/app/browser/page.tsx",
+        "src/components/browser-window/browser-omnibox.tsx",
+        "src/components/browser-window/browser-status-pill.tsx",
+        "src/components/browser-window/browser-tab-strip.tsx",
+        "src/components/browser-window/browser-toolbar.tsx",
+        "src/components/browser-window/browser-window-shell.tsx",
+        "src/features/browser/browser-bridge.ts",
+        "src/features/browser/use-browser-window.ts"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 2 rebuilds browser chrome in Auris's React conventions and warm mint visual system while retaining VMark-equivalent tab, omnibox, history, bookmark, approval, and crash behavior."
+      ],
+      "tests": [
+        "tests/component/browser-window/browser-omnibox.test.tsx",
+        "tests/component/browser-window/browser-window-shell.test.tsx",
+        "tests/unit/electron/browser/browser-state-db.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-markdown-workflows",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src/lib/browser/workflow/classify.ts",
+        "src/lib/browser/workflow/engine.ts",
+        "src/lib/browser/workflow/parser.ts",
+        "src/lib/browser/workflow/recorder.ts",
+        "src/lib/browser/workflow/runner.ts",
+        "src/lib/browser/workflow/safety.ts",
+        "src/lib/browser/workflow/selfHeal.ts",
+        "src/lib/browser/workflow/types.ts"
+      ],
+      "aurisPaths": [
+        "electron/shared/browser-workflow-contract.cjs",
+        "electron/shared/browser-workflow-contract.d.cts",
+        "electron/workflows/browser-workflow-api-service.cjs",
+        "electron/workflows/browser-workflow-recorder.cjs",
+        "electron/workflows/browser-workflow-runtime.cjs",
+        "electron/workflows/workflow-ipc.cjs",
+        "electron/workflows/workflow-run-registry.cjs",
+        "src/components/nia/workflow-heal-review.tsx",
+        "src/components/nia/workflow-recorder-panel.tsx",
+        "src/features/workflows/browser-workflow-compiler.ts",
+        "src/features/workflows/browser-workflow-parser.ts",
+        "src/features/workflows/browser-workflow-schema.ts",
+        "src/features/workflows/browser-workflow-step-policy.ts",
+        "src/features/workflows/workflow-bridge.ts",
+        "src/features/workflows/workflow-redaction.ts",
+        "src/features/workflows/workflow-self-heal.ts"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Canonical strict parser/schema/compiler/step vocabulary lives in packaged electron/shared/browser-workflow-contract.cjs; TypeScript modules are thin adapters. Compilation emits typed intents and approval points but grants no authority.",
+        "Phase 5 intentionally wires VMark's separately defined browser Markdown parser, runner, recorder, and self-heal cores into a runtime, with per-attempt reauthorization and review instead of treating the upstream experimental core as complete.",
+        "Task 8 runs only main-reparsed Markdown against an explicit window/tab, reacquires and releases dispatcher control for every step/approval retry, binds imported-source review separately from execution authority, and confines API steps to freshly authorized bounded HTTPS requests without ambient cookies.",
+        "Task 9 records only trusted main/browser outcomes, converts every typed value to an opaque declared input before capture, and makes target repair a bounded propose/review/recompile/fresh-authorize flow with no silent rewrite."
+      ],
+      "tests": [
+        "tests/component/nia/workflow-heal-review.test.tsx",
+        "tests/integration/browser-workflow-runtime.test.ts",
+        "tests/unit/electron/workflows/browser-workflow-api-service.test.ts",
+        "tests/unit/electron/workflows/browser-workflow-recorder.test.ts",
+        "tests/unit/electron/workflows/browser-workflow-runtime.test.ts",
+        "tests/unit/electron/workflows/workflow-ipc.test.ts",
+        "tests/unit/electron/workflows/workflow-run-registry.test.ts",
+        "tests/unit/workflows/browser-workflow-compiler.test.ts",
+        "tests/unit/workflows/browser-workflow-cross-runtime.test.ts",
+        "tests/unit/workflows/browser-workflow-parser.test.ts",
+        "tests/unit/workflows/workflow-bridge.test.ts",
+        "tests/unit/workflows/workflow-self-heal.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-mcp",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src/hooks/mcpBridge/v2/browser.ts",
+        "src/hooks/mcpBridge/v2/browserAct.ts",
+        "src/hooks/mcpBridge/v2/browserNavigation.ts",
+        "src/hooks/mcpBridge/v2/browserReadClass.ts",
+        "src/hooks/mcpBridge/v2/browserScreenshot.ts",
+        "vmark-mcp-server/src/tools/browser.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-command-dispatcher.cjs",
+        "electron/browser/browser-mcp-router.cjs",
+        "electron/browser/browser-page-executor.cjs",
+        "electron/mcp/browser-tool-contract.mjs",
+        "src/features/browser/evidence.ts"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 1 freezes shared command/error fixtures and a Node integration harness for later MCP/main-process tests.",
+        "Phase 3 exposes the closed VMark-equivalent browser action union through Auris's authenticated stdio sidecar, with authority terminating in Electron main rather than a renderer bridge.",
+        "Phase 3 proves the research loop with an explicit Electron test-app composition and real stdio MCP client.",
+        "Phase 4 composes production browserMcpDispatcher only after compiled security gates verify and the user enables MCP browser automation; named profiles/cookie replay stay independently gated."
+      ],
+      "tests": [
+        "tests/contracts/browser-command-cases.ts",
+        "tests/contracts/browser-error-cases.ts",
+        "tests/electron/browser-security-macos-smoke.cjs",
+        "tests/integration/browser-authority-adversarial.test.ts",
+        "tests/integration/integration-harness.test.ts",
+        "tests/integration/mcp-browser-failure-paths.test.ts",
+        "tests/integration/mcp-browser-research-loop.test.ts",
+        "tests/unit/browser/compatibility-fixtures.test.ts",
+        "tests/unit/browser/evidence.test.ts",
+        "tests/unit/electron/auris-notes-mcp-server.test.ts",
+        "tests/unit/electron/browser/browser-command-dispatcher.test.ts",
+        "tests/unit/electron/browser/browser-page-executor.test.ts",
+        "tests/unit/electron/browser/browser-tool-contract.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-pure-core",
+      "disposition": "adapted",
+      "upstreamPaths": [
+        "src-tauri/src/browser/ai_policy.rs",
+        "src/lib/browser/agent/aria.ts",
+        "src/lib/browser/agent/refs.ts",
+        "src/lib/browser/origin/originGuard.ts",
+        "src/lib/browser/reader/reader.ts",
+        "src/lib/browser/url.ts"
+      ],
+      "aurisPaths": [
+        "src/features/browser/clean-reader.ts",
+        "src/features/browser/page-observation.ts",
+        "src/features/browser/stable-refs.ts",
+        "src/features/browser/target-descriptor.ts",
+        "src/features/browser/url-policy.ts"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "ARIA projection, stable refs, and clean-reader live in page-observation.ts / stable-refs.ts / clean-reader.ts with explicit budgets, generation-stamped refs, and no iframe/shadow piercing.",
+        "Phase 1 ports architecture-independent TypeScript algorithms into Auris feature namespaces and keeps page observations explicitly untrusted.",
+        "URL/origin/AI-navigation policy lives in url-policy.ts; structured target canonicalization and SHA-256 payload binding live in target-descriptor.ts; Electron main still performs final authorization."
+      ],
+      "tests": [
+        "tests/unit/browser/clean-reader.test.ts",
+        "tests/unit/browser/stable-refs.test.ts",
+        "tests/unit/browser/target-descriptor.test.ts",
+        "tests/unit/browser/url-policy.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-registry-window-view",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src-tauri/src/browser/registry.rs",
+        "src-tauri/src/browser/registry_navigation.rs",
+        "src-tauri/src/browser/registry_state.rs",
+        "src-tauri/src/browser/surface.rs",
+        "src-tauri/src/browser/surface_create_macos.rs",
+        "src-tauri/src/browser/surface_lifecycle_macos.rs",
+        "src-tauri/src/browser/surface_view_macos.rs"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-ids.cjs",
+        "electron/browser/browser-registry.cjs",
+        "electron/browser/browser-surface-manager.cjs",
+        "electron/browser/browser-window-manager.cjs"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 2 replaces VMark's Rust/Tauri/WKWebView surface with Electron BrowserWindow and WebContentsView while preserving stable window/tab identities and lifecycle semantics."
+      ],
+      "tests": [
+        "tests/electron/browser-isolation-smoke.cjs",
+        "tests/electron/browser-window-smoke.cjs",
+        "tests/unit/electron/browser/browser-registry.test.ts",
+        "tests/unit/electron/browser/browser-surface-manager.test.ts",
+        "tests/unit/electron/browser/browser-window-manager.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-sessions-security-recovery",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src-tauri/src/browser/ai_policy.rs",
+        "src-tauri/src/browser/recovery.rs",
+        "src-tauri/src/browser/redact.rs",
+        "src-tauri/src/browser/session_commands.rs",
+        "src-tauri/src/browser/session_state.rs",
+        "src-tauri/src/browser/teardown.rs",
+        "src/lib/browser/uxPolicy.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-audit.cjs",
+        "electron/browser/browser-hibernation.cjs",
+        "electron/browser/browser-recovery.cjs",
+        "electron/browser/browser-security-gates.cjs",
+        "electron/browser/browser-session-capabilities.cjs",
+        "electron/browser/browser-session-service.cjs",
+        "electron/browser/browser-ux-policy.cjs",
+        "electron/security/keychain-secret-store.cjs"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Named profiles and cookie/localStorage replay remain independently false in production capability defaults even after Phase 4 security gates verify.",
+        "Phase 4 maps sessions to Electron partitions and macOS Keychain-backed ciphertext refs, adds crash budgets/hibernation without authority restore, redacted diagnostics audit, and fail-closed UX policy."
+      ],
+      "tests": [
+        "tests/electron/browser-crash-recovery-smoke.cjs",
+        "tests/electron/browser-security-macos-smoke.cjs",
+        "tests/electron/browser-session-macos-smoke.cjs",
+        "tests/electron/browser-ux-policy-smoke.cjs",
+        "tests/unit/electron/browser/browser-audit.test.ts",
+        "tests/unit/electron/browser/browser-hibernation.test.ts",
+        "tests/unit/electron/browser/browser-recovery.test.ts",
+        "tests/unit/electron/security/keychain-secret-store.test.ts"
+      ]
+    },
+    {
+      "mappingId": "multi-window-status",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src-tauri/src/mcp_bridge/window_routing.rs",
+        "src-tauri/src/mcp_bridge/window_routing.test.rs",
+        "src-tauri/src/window_manager",
+        "src-tauri/src/window_status/mod.rs",
+        "src/components/WindowStatusPanel",
+        "src/services/browser/browserOcclusion.ts",
+        "src/services/browser/overlayPolicies.test.ts",
+        "src/services/browser/overlayPolicies.ts",
+        "src/services/persistence/windowStatusStorage.test.ts",
+        "src/services/persistence/windowStatusStorage.ts",
+        "src/stores/windowStatusStore.test.ts",
+        "src/stores/windowStatusStore.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-registry.cjs",
+        "electron/browser/browser-status-ipc.cjs",
+        "electron/browser/browser-status-service.cjs",
+        "electron/browser/browser-window-manager.cjs",
+        "src/components/browser-window/browser-window-menu.tsx",
+        "src/components/desktop/browser-status-center.tsx",
+        "src/components/desktop/browser-status-item.tsx",
+        "src/features/browser/window-status.ts"
+      ],
+      "matchedUpstreamChanges": [
+        {
+          "path": "src-tauri/src/mcp_bridge/window_routing.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/mcp_bridge/window_routing.test.rs",
+          "status": "added"
+        },
+        {
+          "path": "src/components/WindowStatusPanel/WindowStatusPanel.test.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/WindowStatusPanel/WindowStatusPanel.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/WindowStatusPanel/window-status-panel.css",
+          "status": "changed"
+        },
+        {
+          "path": "src/services/browser/browserOcclusion.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/services/browser/overlayPolicies.test.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/services/browser/overlayPolicies.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/services/persistence/windowStatusStorage.test.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/services/persistence/windowStatusStorage.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/stores/windowStatusStore.test.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/stores/windowStatusStore.ts",
+          "status": "changed"
+        }
+      ],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Electron BrowserWindow/WebContentsView ownership replaces Tauri window routing, overlay, occlusion, and persistence shells; Auris projects a redacted main-owned status DTO and never derives authority from renderer focus or stored status.",
+        "Phase 6 adapts VMark's window status concepts to multiple independently targetable Electron browser windows plus the existing Auris main window, with explicit identity for ambiguous targets."
+      ],
+      "tests": [
+        "tests/component/browser-window/browser-window-menu.test.tsx",
+        "tests/component/desktop/browser-status-center.test.tsx",
+        "tests/electron/browser-multiwindow-smoke.cjs",
+        "tests/integration/browser-control-races.test.ts",
+        "tests/integration/browser-multiwindow-concurrency.test.ts",
+        "tests/unit/electron/browser/browser-multiwindow.test.ts",
+        "tests/unit/electron/browser/browser-status-ipc.test.ts",
+        "tests/unit/electron/browser/browser-status-service.test.ts"
+      ]
+    },
+    {
+      "mappingId": "nia-legacy-genie",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src-tauri/resources/genies",
+        "src-tauri/src/ai_provider",
+        "src-tauri/src/genies",
+        "src/components/GeniePicker",
+        "src/hooks/genieInvocation"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-preload.cjs",
+        "electron/nia",
+        "electron/nia/nia-cli-provider.cjs",
+        "electron/nia/nia-cli-registry.cjs",
+        "electron/nia/nia-definition-store.cjs",
+        "electron/nia/nia-ipc.cjs",
+        "electron/nia/nia-model-discovery.cjs",
+        "electron/nia/nia-provider-runtime.cjs",
+        "electron/nia/nia-provider-store.cjs",
+        "electron/nia/nia-rest-protocols.cjs",
+        "electron/nia/nia-rest-provider.cjs",
+        "electron/preload.cjs",
+        "electron/security/keychain-secret-store.cjs",
+        "electron/shared/nia-definition-contract.cjs",
+        "electron/shared/nia-definition-contract.d.cts",
+        "src/components/nia",
+        "src/features/nia",
+        "src/features/nia/built-in-definitions.ts",
+        "src/features/nia/nia-bridge.ts",
+        "src/features/nia/nia-definition-registry.ts",
+        "src/features/nia/nia-parser.ts",
+        "src/features/nia/nia-schema.ts",
+        "src/features/nia/provider-contract.ts",
+        "src/features/nia/provider-schema.ts",
+        "src/features/workflows/nia-workflow-schema.ts",
+        "src/platform/desktop/desktop-bridge.ts"
+      ],
+      "matchedUpstreamChanges": [
+        {
+          "path": "src-tauri/src/ai_provider/dispatch.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/ai_provider/mod.rs",
+          "status": "changed"
+        },
+        {
+          "path": "src/hooks/genieInvocation/streamRunner.ts",
+          "status": "changed"
+        }
+      ],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 5 renames VMark Genie to Auris Nia, exports only canonical nia: v1 data, and retains explicit legacy v0, genie: v1, and uses: genie/* import migration.",
+        "Phase 5 replaces Rust provider execution with bounded Electron main-process CLI and REST adapters; keys remain memory-only unless the user explicitly chooses Keychain storage.",
+        "Task 1 defines the canonical/legacy Markdown+frontmatter contract in a packaged CJS module with strict YAML (core schema, zero aliases, depth/size bounds) so main always reparses raw source instead of trusting a renderer-supplied AST.",
+        "Task 2 adds a canonical/legacy-aware definition repository: immutable built-ins plus an injected-baseDir filesystem store that reparses raw source through the packaged contract, writes via temp-file-plus-rename, and always displays provenance/labels as Nia while resolving both nia/<name> and legacy genie/<name> references to the same canonical identity.",
+        "Task 3 adds secure provider configuration: REST/CLI metadata persisted separately from secrets, process-memory REST keys by default, explicit rememberOnThisMac writing opaque nia-provider Keychain references, exactly one active default, and rejection of user executable/flags/shell/env/cwd plus non-HTTPS remote endpoints.",
+        "Task 4 executes providers only through fixed, bounded main-process adapters: HTTPS/loopback-only REST transports and shell:false audited Claude, Codex, and Gemini CLI registrations with prompt-on-stdin, isolated temporary cwd, minimal environment, cancellation, output caps, and sender-bound narrow IPC.",
+        "Task 5 mounts one sanitized warm-mint Nia surface in browser chrome and Notes, attaches browser/note/workflow context only after explicit user action, and applies Notes proposals only after revision and selection review; local conversation history remains opt-in."
+      ],
+      "tests": [
+        "tests/component/nia/nia-panel.test.tsx",
+        "tests/component/nia/nia-provider-settings.test.tsx",
+        "tests/component/notes/notes-nia-apply.test.tsx",
+        "tests/integration/nia-provider-runtime.test.ts",
+        "tests/unit/electron/nia/nia-cli-provider.test.ts",
+        "tests/unit/electron/nia/nia-cli-registry.test.ts",
+        "tests/unit/electron/nia/nia-definition-store.test.ts",
+        "tests/unit/electron/nia/nia-ipc.test.ts",
+        "tests/unit/electron/nia/nia-model-discovery.test.ts",
+        "tests/unit/electron/nia/nia-preload.test.ts",
+        "tests/unit/electron/nia/nia-provider-store.test.ts",
+        "tests/unit/electron/nia/nia-rest-protocols.test.ts",
+        "tests/unit/electron/nia/nia-rest-provider.test.ts",
+        "tests/unit/nia/legacy-genie-migration.test.ts",
+        "tests/unit/nia/nia-bridge.test.ts",
+        "tests/unit/nia/nia-context.test.ts",
+        "tests/unit/nia/nia-definition-cross-runtime.test.ts",
+        "tests/unit/nia/nia-definition-registry.test.ts",
+        "tests/unit/nia/nia-history.test.ts",
+        "tests/unit/nia/nia-parser.test.ts",
+        "tests/unit/nia/provider-schema.test.ts"
+      ]
+    },
+    {
+      "mappingId": "nia-yaml-workflows",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "src-tauri/resources/workflows/examples/triage-and-translate.yml",
+        "src-tauri/src/workflow",
+        "src/lib/workflow"
+      ],
+      "aurisPaths": [
+        "electron/mcp/workflow-tool-contract.mjs",
+        "electron/shared/nia-workflow-contract.cjs",
+        "electron/shared/nia-workflow-contract.d.cts",
+        "electron/workflows/nia-workflow-runtime.cjs",
+        "electron/workflows/workflow-capabilities.cjs",
+        "electron/workflows/workflow-facade.cjs",
+        "electron/workflows/workflow-ipc.cjs",
+        "src/components/nia/workflow-library.tsx",
+        "src/components/nia/workflow-run-view.tsx",
+        "src/features/workflows/nia-action-registry.ts",
+        "src/features/workflows/nia-workflow-events.ts",
+        "src/features/workflows/nia-workflow-runner.ts",
+        "src/features/workflows/workflow-bridge.ts",
+        "src/features/workflows/workflow-file-router.ts"
+      ],
+      "matchedUpstreamChanges": [
+        {
+          "path": "src-tauri/src/workflow/actions.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/coherence_capture.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/coherence_capture.test.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/mod.rs",
+          "status": "changed"
+        },
+        {
+          "path": "src-tauri/src/workflow/runner.rs",
+          "status": "changed"
+        }
+      ],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 5 ports the wired VMark YAML pipeline engine as the distinct Nia workflow family, canonicalizing uses: nia/* while accepting the legacy Genie alias.",
+        "Task 10 exposes both workflow families through one owner-bound main facade and additive auris_workflow MCP/UI surfaces; list/inspect/validate remain pure while each family's start capability stays independently smoke-gated.",
+        "The packaged CJS contract is the only parser, schema, registry, dependency scheduler, and runner; TypeScript files are thin adapters. Main reparses raw YAML, owns run identity/cancellation, rejects renderer AST/action/token claims, and routes allowlisted action/* effects through an injected approval/review service."
+      ],
+      "tests": [
+        "tests/component/nia/workflow-run-view.test.tsx",
+        "tests/unit/electron/workflows/nia-workflow-runtime.test.ts",
+        "tests/unit/electron/workflows/workflow-capabilities.test.ts",
+        "tests/unit/electron/workflows/workflow-facade.test.ts",
+        "tests/unit/electron/workflows/workflow-tool-contract.test.ts",
+        "tests/unit/workflows/nia-action-registry.test.ts",
+        "tests/unit/workflows/nia-workflow-cross-runtime.test.ts",
+        "tests/unit/workflows/nia-workflow-runner.test.ts",
+        "tests/unit/workflows/workflow-file-router.test.ts"
+      ]
+    },
+    {
+      "mappingId": "source-license-attribution",
+      "disposition": "copied",
+      "upstreamPaths": [
+        "LICENSE"
+      ],
+      "aurisPaths": [
+        "docs/vmark-port/UPSTREAM-LICENSE.txt"
+      ],
+      "matchedUpstreamChanges": [],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 1 stores the upstream ISC notice verbatim in UPSTREAM-LICENSE.txt; README.md adds Auris provenance context and a non-endorsement disclaimer."
+      ],
+      "tests": [
+        "tests/unit/vmark/vmark-manifest.test.ts"
+      ]
+    },
+    {
+      "mappingId": "upstream-comparison-tooling",
+      "disposition": "rewritten",
+      "upstreamPaths": [
+        "package.json",
+        "scripts/check-browser-automation-phase.sh",
+        "scripts/check-browser-phase.sh",
+        "scripts/check-browser-shell-phase.sh"
+      ],
+      "aurisPaths": [
+        "docs/vmark-port/manifest.json",
+        "docs/vmark-port/manifest.schema.json",
+        "scripts/vmark-sync-report.cjs"
+      ],
+      "matchedUpstreamChanges": [
+        {
+          "path": "package.json",
+          "status": "changed"
+        }
+      ],
+      "missingAurisTargets": [],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "staleLastComparedCommit": false,
+      "intentionalDifferences": [
+        "Phase 6 retains manual upstream review: the report never rewrites Auris source or silently changes the pinned provenance baseline.",
+        "The deterministic read-only comparison report is generated from the pinned baseline and records the separately reviewed current comparison commit."
+      ],
+      "tests": [
+        "tests/unit/vmark/vmark-manifest.test.ts",
+        "tests/unit/vmark/vmark-sync-report.test.ts"
+      ]
+    }
+  ],
+  "unmappedUpstreamChanges": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/claude-audit.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/claude.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/deploy-website.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/mutation.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".github/workflows/rust-coverage.yml",
+      "status": "changed"
+    },
+    {
+      "path": ".size-limit.cjs",
+      "status": "changed"
+    },
+    {
+      "path": ".vmark/.gitattributes",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/.gitignore",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/contexts/coherence-layer.json",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/contexts/default.json",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/ledger/019f7465-a2a5-7062-93e7-5e4c7db8c5f6.jsonl",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/05/88903de97232badd3d2dd000db2de0cbbdc955efbe8ef061ea02c6326361c3",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/13/44a52d7157c09d1bac210ad08aa0797612fb20f64a81791574a478f720f36b",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/1b/edf3df45113a286904785e674691d7c2dda60c919832d8cd32f323da67413f",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/20/6c2a6e6e74b51c115bd0d66760ad7735478a53bd56f920d3bda633ddfbafe9",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/21/5bc13f6fd66d456386ffadffcbd64359148b5c02a33e7045098f5491c96586",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/36/8cb79250fafd9476e3bd60e5128f56157b862a8ff1853070b71f07c2dcfbf0",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/3e/74f62046462978e8a8591cc6e83da5b2d15d8abaeb0df4e7104078c7208fe9",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/3f/a75c0dbc4d7155da156cb594dfaf6e8310c36343fb64c7edb624033e0e7296",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/4a/e74e091a72ed930486a6519588e465d318ca6c519ec2829f1efcb6e24acfd6",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/4e/36dc99ead7bd5476bc01e37826a582dfec4189ef870e82da9b6c68ddc63bd4",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/4e/fb37b124931dc0226cf31d518c896caf7e77c8b2ef2549a10b80550ae42a47",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/59/fc6d4a8e34adee334012af2238c894b93865965854c31cf701cab562e9b6aa",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/5d/2c00799889cd01103c4e87b43af65682bcebbb800b43932274c2432d4bfcfa",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/60/41990495b3cbab14f87a90dcefe23be7ca04c380cdcda54da8d42151ddecde",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/62/9973b7506168dd04102ce6e8d174c70f47f9a5fba5e4ff21be1bc07f732f23",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/65/3b6a8f10e42de461681232be1b4823fe30e0a2fb14bd105bc3da6afef62baa",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/67/70c23b975c6528cc26087f2c0975525d9420348cc66c46be5d0f060d2c926f",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/6f/dfaff4b585fe937557f7b6975000bb29ed0842fc886e22da4a3dc4747117c6",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/72/6f55ca711b808ee1bba57533077f4a51a5bef4a88d6eda0d172087d5474884",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/7a/d34fdcb890e5f887fec52cdd6d5a52ebfa311547e9e405bd52a0c695373327",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/8b/453038090bcb9a689da7ea56d8eb28ae76cf7ef23b500cb8de5904f8207d74",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/8f/d576e0018f9a159809bb2c2f573b7b6ddb1e07222be209eeaa4efe6aa2470a",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/a5/9ae61d064fc1a83b22d6cd14918ed545c6db5eee0cdd19a16a475cd327524f",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/ac/0a1d5bf2b0aadf9a6b4c3c2790767fad7c104beda4214acb1f8cb9a6081c30",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/b5/233867166e9b1a90d6782315a5f581c3fafbf7b76ef60780a68b79ac490db0",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/bb/c66065ff48c7fc3fafb12aa1f33e13b299e605218e1a9d8b2b8b3282517587",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/c9/5ef243981c48c9c95a0bdff0d2b71d338324bc0729d28e0e2036d3ff2c371b",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/cd/8a98eb50d795b1fc68dd6296f8477f07f6fc4816dc5e824146d26a49b213a8",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/d1/11f2f5be3cb394dcc28f7c5207385b43506d29a8bf72f867ae14f999c06a8b",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/d4/82878baf458b784feafe6a5af292f2fcc5b3975b5775ecd05f88497b49c95d",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/d4/cdd898b24fdadf71ee05ec33fe639099120ae9f441c8b73184fff3dbf8edd5",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/da/ee92c11a367a9da9bfce27776a901e180c230ac7f419865009db4eb91b6be8",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/e2/77b4739b78c4891b77bef47803361c82e24f740b3fde31ad68bb7438e8a4c1",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/eb/0c38581acd8abeec95d18c0473eb40226bdb33d7652f71cacbbf22035e4a6a",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/f1/67d02a3c03c0c277fe860dd4f027b26544df1fb8b39628384511e534750913",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/f5/323c1ed09fd9a87df5067e85fc3dbddb15995f9ba1a75f9ac2cb210954de03",
+      "status": "added"
+    },
+    {
+      "path": ".vmark/snapshots/sha256/fb/1c92196b0691295e601fde2d978b7ee80ef069fc3b37a0db81906aaa593726",
+      "status": "added"
+    },
+    {
+      "path": "AGENTS.md",
+      "status": "changed"
+    },
+    {
+      "path": "dev-docs/README.md",
+      "status": "changed"
+    },
+    {
+      "path": "dev-docs/coherence-layer-architecture.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/coherence-layer-paper.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-canon-provenance-staleness-landscape.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-coherence-layer-conclusion.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-graphiti-agent-memory-academic-priorart.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/deep-researches/20260718-versioned-edges-staleness-prior-art.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/dependency-review.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/design-2a.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/design-3.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/dogfood-log.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/gate-g1.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/gate-g2.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/phase1-e2e.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g1-capture.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g1-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g2-gitops.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/g2-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s1-ledger-merge.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s1-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/.gitignore",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/Cargo.lock",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/Cargo.toml",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/gen_support.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/generate.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/ledger_types.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/main.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/model.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/query.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/rebuild.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s2-rusqlite/src/rng.rs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/README.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/elena.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/ground-truth.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/guild-law.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/marcus.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-01.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-02.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-03.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-04.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-05.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-06.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-07.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-08.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-09.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/scene-10.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/style.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/timeline.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-corpus/world-rules.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-edge-inference.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s3-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-corpus/README.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-corpus/cases.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-results.json",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/probes/s4-semantic-check.mjs",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s1.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s2.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s3.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/grills/coherence/spike-s4.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/plans/20260718-coherence-layer.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/plans/20260721-blank-line-preservation.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/plans/20260721-mcp-open-workspace.md",
+      "status": "added"
+    },
+    {
+      "path": "dev-docs/specs/coherence-format-v0.md",
+      "status": "added"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-coherence-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/file-size-baseline.json",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/Cargo.toml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/de.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/en.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/es.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/fr.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/it.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/ja.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/ko.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/pt-BR.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/zh-CN.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/locales/zh-TW.yml",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/app_paths.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/app_setup.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/atomic_replace.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/atomic_replace.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/adopt.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/canonical.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/canonical.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/cas.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/cas.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/check_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/check_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/checker.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/checker.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claim_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claim_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claims.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/claims.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/context_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/context_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/contexts.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/contexts.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/dag.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/dag.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/delegation_commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/envelope.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/frontmatter.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/frontmatter.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/gitops.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/gitops.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_checks.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_query.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_row.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/index_state.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/ledger.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/ledger.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/merge_surface.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/merge_surface.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/mod.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/paths.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/paths.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/project.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/project.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/provenance.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/provenance.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/provenance_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan_diagnostics.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/scan_walk.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/state.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/state.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/types.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/types.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/command_registry.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/content_server/commands.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/content_server/manager.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/content_server/manager.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/content_server/manager_tests.rs",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/src/content_server/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/external_editor.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/external_editor.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/file_write.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/file_write.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/macos_menu_icons.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/coherence_answers.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/commands.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/delivery.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/delivery.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/routing.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/routing.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/server.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/server.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/state.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/mcp_bridge/state.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/menu/localized/window_help_menu.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pandoc/commands.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pandoc/commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pandoc/mod.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pandoc/run.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pandoc/run.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pty.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/pty/session.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pty/session.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/quit.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/quit.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/shell_env.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/watcher.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/watcher.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/workspace_validation.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/App.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownOverlay.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownPanel.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownPanel.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/BreakdownRow.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/DelegationsSection.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/MergeBanner.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/MergeBanner.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/ProvenanceGroup.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/breakdown-overlay.css",
+      "status": "added"
+    },
+    {
+      "path": "src/components/BreakdownPanel/breakdown-panel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/ClaimOverlay.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/ClaimPanel.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/ClaimPanel.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ClaimPanel/claim-panel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/components/CoherenceOverlays.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/StepForm.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/__tests__/StepForm.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/__tests__/withRowPlans.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/withRowPlans.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/workflow-editor.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/useTiptapFlush.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useExplorerOperations.duplicateFile.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useExplorerOperations.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useFileTree.focus.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useFileTree.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/HistoryView.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/fitAndResizePty.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/fitAndResizePty.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/setupImeComposition.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/setupImeComposition.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalKeyHandler.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalKeyHandler.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionInputWiring.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionInputWiring.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionRegistry.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionStoreSync.theme.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionStoreSync.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionTypes.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalSessions.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/TitleBar/useTitleBarRename.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/TitleBar/useTitleBarRename.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Workspace/WorkspaceApprovalDialog.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Workspace/WorkspaceApprovalDialog.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Workspace/workspace-approval-dialog.css",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/lifecycle/__tests__/useWorkspaceLifecycle.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/lifecycle/useWorkspaceLifecycle.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/__tests__/document.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/__tests__/workspace.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/dispatch.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/document.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/documentTransform.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspace.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspaceOpenFolder.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspaceOpenFolder.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/workspaceSave.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/openWorkspaceByPath.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/openWorkspaceByPath.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useAiProviderSync.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useAiProviderSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useEffectiveTheme.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useEffectiveTheme.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useGenieShortcuts.invokeGenie.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useGenieShortcuts.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useGenieShortcuts.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useIsDarkTheme.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useIsDarkTheme.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSettingsSync.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSettingsSync.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useShortcutsSync.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useShortcutsSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useSourceEditorSearch.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSourceEditorSearch.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSystemAppearanceWatcher.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useSystemAppearanceWatcher.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useTheme.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useViewShortcuts.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useViewShortcuts.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWindowFileWatcher.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWindowStatus.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWindowStatus.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useWorkspaceEventBus.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useWorkspaceEventBus.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/i18n.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/formatter.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/formatter.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/index.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/markdownParser.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/markdownParser.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/dashesQuotes.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/fullwidth.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/spacing.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/rules/universal.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/cjkFormatter/segments.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/cjkFormatter/segments.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/lintEngine/rules/__tests__/noSpaceInEmphasis.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/lintEngine/rules/noSpaceInEmphasis.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/markdownLinkCheck/check.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/markdownLinkCheck/check.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/de/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/de/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/de/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/en/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/en/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/en/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/es/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/es/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/fr/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/fr/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/fr/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/it/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/it/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/it/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ja/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ja/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ja/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ko/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/ko/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/pt-BR/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/pt-BR/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/pt-BR/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-CN/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-CN/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-CN/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/breakdown.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-TW/claims.json",
+      "status": "added"
+    },
+    {
+      "path": "src/locales/zh-TW/commands.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/common.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/dialog.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/editor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/settings.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/Settings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/AppearanceSettings.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/AppearanceSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/EditorSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/FilesImagesSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/WhitespaceSettings.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/aiSuggestion/applySuggestion.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/aiSuggestion/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/alertBlock/__tests__/alertBlock.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/alertBlock/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/autoPair/handlers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/autoPair/handlers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/blankLinesGuard/blankLinesGuard.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/blankLinesGuard/blankLinesGuard.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/blankLinesGuard/tiptap.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/markdownAutoPair.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/markdownAutoPair.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/markdownPairBackspace.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/smartPaste.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/smartPaste.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/structuralCharDetection.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/structuralCharProtection.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/structuralCharProtection.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/detailsBlock/__tests__/detailsBlock.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/detailsBlock/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptapCleanup.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/tiptapCleanup.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/lint/docEpoch.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/docEpoch.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/lineMap.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/lineMap.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/lint/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/search/__tests__/replaceStale.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/__tests__/search.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/search/findMatches.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/findMatches.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/replaceActions.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/search/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/search/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/blockInsertPos.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/blockInsertPos.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/sourceLineAttr.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/sourceLineNodes.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourceContextDetection/__tests__/codeFenceDetection.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourceContextDetection/codeFenceDetection.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/toolbarActions/wysiwygAdapterUtils.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/assembly/tiptapExtensions.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/breakdown/breakdownService.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/breakdownService.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/refreshGuards.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/semanticActs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/breakdown/semanticActs.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/claims/claimService.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/claims/claimService.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/captureFunnel.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/captureFunnel.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/scanOnChange.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/scanOnChange.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/claimCommands.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/claimCommands.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/paneCommands.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/useCommandBootstrap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/commands/viewCommands.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/commands/viewCommands.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/commands/workspaceCommands.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/formats/formatSettingsBridge.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/lint/runActiveLint.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/lint/runActiveLint.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/mcpBridge/windowWorkspaceSync.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/windowWorkspaceSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/navigation/linkOpen.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/renameFile.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/renameFile.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/saveToPath.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/persistence/saveToPath.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/workspaceEvents/contentHashCache.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/contentHashCache.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/index.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/normalizeFsEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/normalizeFsEvents.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/suppressUnchanged.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/suppressUnchanged.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/types.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/workspaceEventBus.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaceEvents/workspaceEventBus.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/shared/menu-ids.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/shared/menuIdExtraction.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/__tests__/geniesStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/__tests__/promptHistoryStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/genies.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/promptHistory.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/provider.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/aiStore/providerSanitize.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/breakdownStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/breakdownStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/claimStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/createRecentsStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedListMerge.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedListMerge.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedSectionMerge.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/persistedSectionMerge.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/recentsStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/recentsStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/settingsStore.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsStore/defaults.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsStore/reconcile.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/settingsStore/shortcuts.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsTypes/appearance.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsTypes/content.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/settingsTypes/workspace.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/systemAppearanceStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/systemAppearanceStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workspaceApprovalStore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workspaceApprovalStore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workspaceStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/workspaceStore.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/workspaceStoreHelpers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/test/i18nNamespaces.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/setup.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/buildXtermTheme.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/legacyModeColors.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/caseTransformations.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/caseTransformations.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/cleanPastedMarkdown.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/cleanPastedMarkdown.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/debug/log.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/debug/warn.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/fsEventFilter.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/utils/fsEventFilter.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/utils/headingSlug.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/headingSlug.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/htmlToMarkdown.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/htmlToMarkdown.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownCodeMask.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownCodeMask.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/blankLinePreservation.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/adapter.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/blankLineCapture.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/blankLineCapture.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/inlineParser.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/inlineParser.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/mdastToProseMirror.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/proseMirrorToMdast.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializer.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializerHandlers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializerHandlers.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/testSchema.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/markdownPipeline/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/pendingSaves.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/stringWidth.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/stringWidth.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/textTransformations.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/textTransformations.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/watchRoot.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/watchRoot.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-content-server/package.json",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/README.md",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/bridge/websocket.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/server.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/tools/coherence.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/tools/workspace.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/jsonSchemaToZod.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/mcpAdapters.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/parentProcess.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/portFile.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/__tests__/unit/utils/shutdown.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/package.json",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/bridge/core-types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/bridge/websocket.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/cli.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/index.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/server.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/tools/coherence.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/src/tools/workspace.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/types.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/jsonSchemaToZod.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/mcpAdapters.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/parentProcess.ts",
+      "status": "changed"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/portFile.ts",
+      "status": "added"
+    },
+    {
+      "path": "vmark-mcp-server/src/utils/shutdown.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/config/de.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/en.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/es.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/fr.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/it.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/ja.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/ko.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/pt-BR.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/zh-CN.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/zh-TW.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/de/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/es/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/fr/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/workspace-management.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/it/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/ja/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/ko/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/package.json",
+      "status": "changed"
+    },
+    {
+      "path": "website/pnpm-lock.yaml",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/pt-BR/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/zh-CN/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/coherence.md",
+      "status": "added"
+    },
+    {
+      "path": "website/zh-TW/guide/mcp-tools.md",
+      "status": "changed"
+    }
+  ]
+}

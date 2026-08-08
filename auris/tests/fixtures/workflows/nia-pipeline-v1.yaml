@@ -1,0 +1,55 @@
+# Canonical Nia YAML pipeline (nia: v1 / uses: nia/*).
+name: Triage and Translate
+description: Rewrite rough notes, choose a path, then save the result.
+nia: v1
+
+inputs:
+  notes:
+    type: text
+    description: Rough notes to rewrite
+
+defaults:
+  approval: auto
+
+limits:
+  max_steps: 20
+  max_runtime_ms: 60000
+  max_output_bytes: 65536
+
+steps:
+  - id: rewrite
+    uses: nia/prompt
+    with:
+      definition: rewrite-in-english
+      input: "{notes}"
+
+  - id: polish
+    uses: nia/template
+    depends_on: rewrite
+    with:
+      template: "Polished:\n{{input}}"
+      input: "{rewrite.text}"
+
+  - id: decide
+    uses: nia/choose
+    depends_on: polish
+    with:
+      when: "{polish.text}"
+      contains: "Polished"
+      then: "translate"
+      else: "skip"
+
+  - id: normalize
+    uses: nia/transform
+    depends_on: decide
+    with:
+      op: trim
+      input: "{polish.text}"
+
+  - id: save
+    uses: action/save-file
+    depends_on: normalize
+    approval: ask
+    with:
+      path: triage-and-translate.out.md
+      content: "{normalize.text}"

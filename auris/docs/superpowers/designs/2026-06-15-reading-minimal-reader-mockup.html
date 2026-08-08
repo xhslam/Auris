@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Auris Reading - minimal reader mockup</title>
+    <style>
+      :root {
+        --background: #fbfaf7;
+        --foreground: #26231f;
+        --muted-foreground: #8a877f;
+        --border: #e4e0d8;
+        --panel: #fffefa;
+        --panel-foreground: #312e29;
+        --accent: #c66f4d;
+        --accent-soft: #f7e6de;
+        --accent-line: #b96545;
+        --active: #312e29;
+        --shadow: 0 20px 70px rgba(45, 40, 32, 0.12);
+        --toolbar: rgba(251, 250, 247, 0.92);
+        --mark: #eed8ce;
+        --mark-text: #26231f;
+      }
+
+      [data-theme="dark"] {
+        --background: #171615;
+        --foreground: #eee9df;
+        --muted-foreground: #8f8980;
+        --border: #34312d;
+        --panel: #211f1c;
+        --panel-foreground: #eee9df;
+        --accent: #d88a68;
+        --accent-soft: #3a2a23;
+        --accent-line: #d88a68;
+        --active: #eee9df;
+        --shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
+        --toolbar: rgba(23, 22, 21, 0.9);
+        --mark: #3a2a23;
+        --mark-text: #f1e9df;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--foreground);
+        background: var(--background);
+        font-family:
+          ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      .reading-app {
+        min-height: 100vh;
+        background: var(--background);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        height: 60px;
+        border-bottom: 1px solid var(--border);
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        align-items: center;
+        background: var(--toolbar);
+        backdrop-filter: blur(18px);
+      }
+
+      .topbar button {
+        border: 0;
+        background: transparent;
+      }
+
+      .back-button,
+      .tool-button,
+      .import-tabs button,
+      .sheet-close {
+        color: var(--muted-foreground);
+      }
+
+      .back-button,
+      .tool-button {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .back-button:hover,
+      .tool-button:hover,
+      .tool-button.active {
+        color: var(--active);
+        background: rgba(130, 124, 114, 0.1);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .progress-chip {
+        min-width: 62px;
+        color: var(--muted-foreground);
+        font-size: 14px;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .separator {
+        width: 1px;
+        height: 22px;
+        margin: 0 4px;
+        background: var(--border);
+      }
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        display: block;
+      }
+
+      .reader-shell {
+        min-height: calc(100vh - 60px);
+        display: grid;
+        justify-items: center;
+        padding: 70px 32px 120px;
+      }
+
+      .reader-page {
+        width: min(1000px, 100%);
+      }
+
+      .reader-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+      }
+
+      .title {
+        margin: 0 0 8px;
+        color: var(--foreground);
+        font-size: clamp(64px, 7.5vw, 94px);
+        font-weight: 950;
+        letter-spacing: -0.045em;
+        line-height: 0.92;
+        text-transform: uppercase;
+      }
+
+      .meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        color: var(--muted-foreground);
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .reader-content {
+        padding-top: 36px;
+      }
+
+      .paragraph-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
+        gap: 78px;
+        margin-bottom: 32px;
+      }
+
+      .paragraph-row.english-only {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 760px;
+      }
+
+      .spark {
+        position: absolute;
+        left: -34px;
+        top: 4px;
+        color: #e6c1b0;
+        font-size: 22px;
+      }
+
+      .english,
+      .translation {
+        margin: 0;
+        color: var(--foreground);
+        font-size: 26px;
+        line-height: 1.62;
+      }
+
+      .translation {
+        color: var(--panel-foreground);
+        font-size: 24px;
+        line-height: 1.7;
+      }
+
+      .word-mark {
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        border-bottom: 3px solid var(--accent-line);
+        padding: 0 2px 1px;
+        background: var(--mark);
+        color: var(--mark-text);
+      }
+
+      .dimmed {
+        opacity: 0.34;
+      }
+
+      .floating-actions {
+        position: absolute;
+        top: -66px;
+        right: 140px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .floating-actions .tool-button:first-child {
+        color: white;
+        background: var(--accent);
+      }
+
+      .word-popover {
+        position: absolute;
+        top: 140px;
+        left: 50%;
+        width: 360px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--panel-foreground);
+        box-shadow: var(--shadow);
+        transform: translateX(-28%);
+        overflow: hidden;
+      }
+
+      .word-popover__head,
+      .word-popover__body {
+        padding: 18px;
+      }
+
+      .word-popover__head {
+        border-bottom: 1px solid var(--border);
+      }
+
+      .word-popover h2 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        letter-spacing: -0.04em;
+      }
+
+      .word-popover p {
+        margin: 0;
+        color: var(--panel-foreground);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .word-popover strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .analysis-rail {
+        position: fixed;
+        inset: 60px 0 0 auto;
+        width: 360px;
+        border-left: 1px solid var(--border);
+        background: var(--panel);
+        transform: translateX(100%);
+      }
+
+      .analysis-open .analysis-rail {
+        transform: translateX(0);
+      }
+
+      .analysis-open .reader-page {
+        margin-right: 360px;
+      }
+
+      .analysis-rail__top {
+        border-bottom: 1px solid var(--border);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .segmented {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 3px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+        background: rgba(130, 124, 114, 0.1);
+      }
+
+      .segmented button {
+        border: 0;
+        border-radius: 9px;
+        padding: 7px 20px;
+        color: var(--muted-foreground);
+        background: transparent;
+        font-weight: 800;
+      }
+
+      .segmented button.active {
+        color: var(--foreground);
+        background: var(--background);
+      }
+
+      .analysis-body {
+        padding: 18px 22px;
+      }
+
+      .analysis-body h3,
+      .import-sheet h2 {
+        margin: 0;
+        color: var(--foreground);
+      }
+
+      .analysis-body p,
+      .hint,
+      .sheet-copy,
+      .import-card p {
+        color: var(--muted-foreground);
+        line-height: 1.65;
+      }
+
+      .analysis-selection {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 18px;
+        font-size: 21px;
+        line-height: 1.52;
+      }
+
+      .import-sheet {
+        position: fixed;
+        inset: 60px 0 0 auto;
+        width: 430px;
+        border-left: 1px solid var(--border);
+        padding: 18px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .import-sheet__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .sheet-close {
+        border: 0;
+        background: transparent;
+        font-size: 26px;
+      }
+
+      .import-tabs {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 4px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        background: rgba(130, 124, 114, 0.1);
+      }
+
+      .import-tabs button {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 8px;
+        background: transparent;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .import-tabs button.active {
+        color: var(--foreground);
+        background: var(--background);
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .field span {
+        color: var(--muted-foreground);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .field input,
+      .field textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: var(--foreground);
+        background: var(--background);
+        outline: 0;
+      }
+
+      .field textarea {
+        min-height: 150px;
+        resize: none;
+      }
+
+      .import-card {
+        border: 1px dashed var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        margin-top: 16px;
+        background: rgba(130, 124, 114, 0.08);
+      }
+
+      .primary {
+        width: 100%;
+        min-height: 42px;
+        border: 0;
+        border-radius: 14px;
+        margin-top: 16px;
+        color: white;
+        background: var(--foreground);
+        font-weight: 850;
+      }
+
+      .ghost {
+        min-height: 40px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 0 14px;
+        color: var(--foreground);
+        background: var(--background);
+        font-weight: 800;
+      }
+
+      .mock-import .reader-page {
+        margin-right: 430px;
+      }
+
+      .mock-import .import-sheet {
+        display: block;
+      }
+
+      body:not(.mock-import) .import-sheet {
+        display: none;
+      }
+
+      body:not(.mock-word) .word-popover,
+      body:not(.mock-analysis) .floating-actions,
+      body:not(.mock-analysis) .analysis-rail {
+        display: none;
+      }
+
+      @media (max-width: 980px) {
+        .paragraph-row {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .translation {
+          color: var(--muted-foreground);
+          font-size: 20px;
+        }
+
+        .mock-import .reader-page,
+        .analysis-open .reader-page {
+          margin-right: 0;
+        }
+
+        .import-sheet,
+        .analysis-rail {
+          width: min(430px, 100vw);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="reading-app" data-theme="light">
+      <header class="topbar" aria-label="Reading toolbar">
+        <button class="back-button" aria-label="Back">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M15 6 9 12l6 6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div></div>
+        <nav class="toolbar" aria-label="Reader actions">
+          <span class="progress-chip">100%</span>
+          <button class="tool-button" aria-label="中英文 / 纯英文">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M4 5h9M9 3v2m3 0c-.8 4.2-3.5 7.2-7.5 9" stroke-linecap="round" />
+              <path d="M6.5 9.5c1.2 2 3 3.6 5.5 4.8" stroke-linecap="round" />
+              <path d="m14 20 3.2-8h1.1l3.2 8M15.3 17h4.9" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <button class="tool-button active" aria-label="笔记 / 书籍导入">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M6 4.5h9a3 3 0 0 1 3 3v12H8a2 2 0 0 1-2-2v-13Z" stroke-linejoin="round" />
+              <path d="M8 17.5h10M9 8h5M9 11h6" stroke-linecap="round" />
+              <path d="M18 5v5l-1.8-1-1.8 1V5" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <button class="tool-button" aria-label="字号">
+            <span style="font-size: 17px; font-weight: 700">Aa</span>
+          </button>
+          <div class="separator" aria-hidden="true"></div>
+          <button class="tool-button" aria-label="光明 / 黑暗模式">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M12 4V2m0 20v-2m8-8h2M2 12h2m14.4-6.4 1.4-1.4M4.2 19.8l1.4-1.4m12.8 0 1.4 1.4M4.2 4.2l1.4 1.4" stroke-linecap="round" />
+              <circle cx="12" cy="12" r="4.2" />
+            </svg>
+          </button>
+        </nav>
+      </header>
+
+      <section class="reader-shell" aria-label="Minimal reading surface">
+        <article class="reader-page">
+          <header class="reader-header">
+            <h1 class="title">Judgment</h1>
+            <div class="meta-row">
+              <span>Eric Jorgenson</span>
+              <span>1 min read&nbsp;&nbsp; · &nbsp;&nbsp;214 words total</span>
+            </div>
+          </header>
+
+          <section class="reader-content">
+            <div class="paragraph-row">
+              <span class="spark">✦</span>
+              <p class="english">
+                <span class="word-mark">If you want to make the maximum amount of money possible, if you want to get rich over your life in a deterministically predictable way, stay on the bleeding edge of trends and study technology, design, and art—become really good at something.</span>
+                [1]
+              </p>
+              <p class="translation">
+                若想尽可能多地赚钱，若想一生都能确定性地、可预测地致富，那就紧跟趋势的最前沿，钻研技术、设计与艺术——直至真正精通某件事。
+              </p>
+            </div>
+
+            <div class="paragraph-row">
+              <p class="english">You don’t get rich by spending your time to save money.</p>
+              <p class="translation">想致富，就别拿时间去换小钱。</p>
+            </div>
+
+            <div class="paragraph-row">
+              <p class="english">You get rich by saving your time to make money.</p>
+              <p class="translation">靠省时间赚钱，你才能致富。</p>
+            </div>
+
+            <div class="paragraph-row">
+              <p class="english">Hard work is really overrated. How hard you work matters a lot less in the modern economy.</p>
+              <p class="translation">努力真的被高估了。在现代经济中，你工作的努力程度远没有那么重要。</p>
+            </div>
+
+            <div class="paragraph-row">
+              <p class="english">What is underrated?</p>
+              <p class="translation">什么被低估了？</p>
+            </div>
+
+            <div class="paragraph-row">
+              <p class="english">Judgment. Judgment is underrated. [1]</p>
+              <p class="translation">判断力。判断力被低估了。</p>
+            </div>
+          </section>
+        </article>
+
+        <div class="word-popover" role="dialog" aria-label="Word definition">
+          <div class="word-popover__head">
+            <h2>rich <span style="font-size: 15px; color: var(--muted-foreground)">/rɪtʃ/</span></h2>
+            <p>adj. 富的，有钱的；富裕的；丰富的</p>
+          </div>
+          <div class="word-popover__body">
+            <strong>带你背</strong>
+            <p>把 rich 和「堆起来的财富」连在一起记：大量现金叠放，表示富有、充裕、丰富。</p>
+          </div>
+        </div>
+
+        <div class="floating-actions" aria-label="Selection actions">
+          <button class="tool-button" aria-label="Close">×</button>
+          <button class="tool-button" aria-label="Annotate">◌</button>
+          <button class="tool-button" aria-label="Copy">□</button>
+          <button class="tool-button" aria-label="Analyze">◍</button>
+        </div>
+      </section>
+
+      <aside class="analysis-rail" aria-label="Analysis panel">
+        <div class="analysis-rail__top">
+          <div class="segmented">
+            <button>批注 3</button>
+            <button class="active">解析</button>
+          </div>
+          <button class="sheet-close" aria-label="Close">×</button>
+        </div>
+        <div class="analysis-body">
+          <h3>第 1 段</h3>
+          <p class="analysis-selection">
+            If you want to make the maximum amount of money possible...
+          </p>
+          <p>
+            右侧解析只在选择段落或点击解析时出现。主阅读区会变淡，但不重排成拥挤工作台。
+          </p>
+        </div>
+      </aside>
+
+      <aside class="import-sheet" aria-label="Import reading material">
+        <div class="import-sheet__head">
+          <div>
+            <h2>导入阅读材料</h2>
+            <p class="sheet-copy">沿用 rehearsal 的逻辑：粘贴、文件、URL 三种来源，导入后清洗正文并生成阅读条目。</p>
+          </div>
+          <button class="sheet-close" aria-label="Close">×</button>
+        </div>
+
+        <div class="import-tabs" role="tablist" aria-label="Import source">
+          <button class="active">粘贴文本</button>
+          <button>上传文件</button>
+          <button>导入链接</button>
+        </div>
+
+        <label class="field">
+          <span>标题</span>
+          <input value="Judgment" />
+        </label>
+
+        <label class="field">
+          <span>正文</span>
+          <textarea>If you want to make the maximum amount of money possible...</textarea>
+        </label>
+
+        <section class="import-card">
+          <strong>rehearsal 同款处理</strong>
+          <p>文件支持 txt / md / html；URL 走 /api/import-url 清洗；正文为空时显示错误，不创建条目。</p>
+          <button class="ghost">选择本地笔记</button>
+        </section>
+
+        <button class="primary">创建阅读</button>
+        <p class="hint">创建后 Sheet 关闭，正文居中显示；阅读进度从 0% 开始。</p>
+      </aside>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const state = params.get("state");
+      if (state === "import") document.body.classList.add("mock-import");
+      if (state === "word") document.body.classList.add("mock-word");
+      if (state === "analysis") document.body.classList.add("mock-analysis", "analysis-open");
+      if (state === "dark") document.querySelector(".reading-app").dataset.theme = "dark";
+    </script>
+  </body>
+</html>

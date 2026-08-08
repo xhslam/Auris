@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hostile browser surfaces</title>
+  </head>
+  <body>
+    <main>
+      <h1>Hostile surfaces</h1>
+      <button id="alert-btn" type="button">alert</button>
+      <button id="confirm-btn" type="button">confirm</button>
+      <button id="prompt-btn" type="button">prompt</button>
+      <button id="popup-btn" type="button">popup</button>
+      <a id="download-link" download="secret.bin" href="/secret.bin">download</a>
+      <input id="upload" type="file" />
+      <a id="mailto" href="mailto:leak@example.com">mailto</a>
+      <button id="geo-btn" type="button">geolocation</button>
+      <button id="notify-btn" type="button">notify</button>
+      <button id="print-btn" type="button">print</button>
+      <p id="status">ready</p>
+    </main>
+    <script>
+      const status = document.getElementById("status");
+      document.getElementById("alert-btn").onclick = () => {
+        window.alert("hostile-alert");
+        status.textContent = "alert-done";
+      };
+      document.getElementById("confirm-btn").onclick = () => {
+        const ok = window.confirm("hostile-confirm");
+        status.textContent = ok ? "confirm-true" : "confirm-false";
+      };
+      document.getElementById("prompt-btn").onclick = () => {
+        const value = window.prompt("hostile-prompt", "secret");
+        status.textContent = value == null ? "prompt-cancelled" : "prompt-leaked";
+      };
+      document.getElementById("popup-btn").onclick = () => {
+        const opened = window.open("about:blank", "_blank");
+        status.textContent = opened ? "popup-opened" : "popup-blocked";
+      };
+      document.getElementById("geo-btn").onclick = () => {
+        if (!navigator.geolocation) {
+          status.textContent = "geo-unavailable";
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          () => { status.textContent = "geo-allowed"; },
+          () => { status.textContent = "geo-denied"; },
+        );
+      };
+      document.getElementById("notify-btn").onclick = async () => {
+        try {
+          const permission = await Notification.requestPermission();
+          status.textContent = "notify-" + permission;
+        } catch {
+          status.textContent = "notify-denied";
+        }
+      };
+      document.getElementById("print-btn").onclick = () => {
+        window.print();
+        status.textContent = "print-called";
+      };
+    </script>
+  </body>
+</html>

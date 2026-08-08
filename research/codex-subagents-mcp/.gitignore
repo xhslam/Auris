@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+coverage/
+
+.vscode/
+MARKETING.md
+RELEASE_CHECKLIST.md
+
+orchestration/

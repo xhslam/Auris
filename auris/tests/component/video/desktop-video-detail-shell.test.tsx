@@ -1,0 +1,353 @@
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { DesktopVideoDetailShell } from "@/components/desktop/desktop-video-detail-shell";
+import { READING_SOURCES } from "@/features/reading/reading-fixtures";
+import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
+
+const SCRIPT_SOURCE = READING_SOURCES[0]!;
+
+function createDesktopBridge() {
+  const runtimeState = {
+    lastRoute: "/video/video-lesson-one",
+    lastVisitedAt: "2026-04-03T00:00:00.000Z",
+    lastWorkspace: "workspace" as const,
+    legacyRuntimeMigratedAt: null,
+    primaryResumeId: null,
+    primaryResumeType: null,
+    updatedAt: "2026-04-03T00:00:00.000Z",
+    windowBounds: null,
+  };
+
+  return {
+    commands: {
+      list: vi.fn(async () => []),
+      run: vi.fn(async () => ({ executed: false })),
+    },
+    downloads: {
+      exportJson: vi.fn(async () => ({ path: "C:/Users/test/Downloads/export.json" })),
+      getDirectoryInfo: vi.fn(async () => ({ directoryPath: "C:/Users/test/Downloads" })),
+      revealDirectory: vi.fn(async () => undefined),
+    },
+    plugins: {
+      list: vi.fn(async () => []),
+      openDirectory: vi.fn(async () => undefined),
+      setEnabled: vi.fn(async () => []),
+    },
+    runtimeState: {
+      get: vi.fn(async () => runtimeState),
+      importLegacy: vi.fn(async () => runtimeState),
+      setLastWorkspace: vi.fn(async () => runtimeState),
+    },
+    system: {
+      openUpgrade: vi.fn(async () => ({
+        didOpen: true,
+        targetUrl: "https://updates.example.com",
+      })),
+    },
+    vault: {
+      getDirectoryInfo: vi.fn(async () => ({
+        directoryName: null,
+        hasVault: false,
+        pluginDirectory: null,
+        vaultPath: null,
+      })),
+      listFiles: vi.fn(async () => []),
+      onDidChange: vi.fn(() => () => undefined),
+      pickDirectory: vi.fn(async () => ({
+        directoryName: "English Vault",
+        hasVault: true,
+        pluginDirectory: "C:/vault/.shadowing/plugins",
+        vaultPath: "C:/vault",
+      })),
+      readFile: vi.fn(async () => null),
+      removeFile: vi.fn(async () => undefined),
+      revealPluginsDirectory: vi.fn(async () => undefined),
+      saveFile: vi.fn(async () => undefined),
+    },
+    videoLibrary: {
+      getSnapshot: vi.fn(async () => ({
+        directory: {
+          analysisDirectory: "C:/Video Library/analysis",
+          directoryName: "Video Library",
+          hasLibrary: true,
+          libraryPath: "C:/Video Library",
+          storageMode: "reference" as const,
+          thumbnailsDirectory: "C:/Video Library/thumbnails",
+          transcodesDirectory: "C:/Video Library/transcodes",
+        },
+        items: [],
+      })),
+      getVideoDetails: vi.fn(async () => ({
+        analysisJobs: [],
+        variants: [
+          {
+            durationMs: 14_400_000,
+            height: 1080,
+            id: "variant-source",
+            kind: "source" as const,
+            label: "原始",
+            mimeType: "video/mp4",
+            playbackUrl: "shadowing-media://video/video-lesson-one/variant-source",
+            status: "ready" as const,
+            storagePath: "C:/Videos/lesson-one.mp4",
+            width: 1920,
+          },
+        ],
+        video: {
+          analysisStatus: "idle" as const,
+          durationMs: null,
+          extension: ".mp4",
+          fileSizeBytes: 128_000_000,
+          height: null,
+          id: "video-lesson-one",
+          importState: "ready" as const,
+          importedAt: "2026-04-03T00:00:00.000Z",
+          mimeType: "video/mp4",
+          playbackStrategy: "source-preferred" as const,
+          posterUrl: null,
+          sourceFileName: "lesson-one.mp4",
+          sourcePath: "C:/Videos/lesson-one.mp4",
+          sourceUrl: "file:///C:/Videos/lesson-one.mp4",
+          title: "Lesson One",
+          updatedAt: "2026-04-03T00:00:00.000Z",
+          variantCount: 1,
+          width: null,
+        },
+      })),
+      importFiles: vi.fn(),
+      pickDirectory: vi.fn(),
+      refresh: vi.fn(),
+      revealDirectory: vi.fn(async () => undefined),
+      saveThumbnail: vi.fn(async () => null),
+      updateSourceMetadata: vi.fn(async () => null),
+    },
+    window: {
+      showInFolder: vi.fn(async () => undefined),
+    },
+  } as unknown as DesktopBridge;
+}
+
+function mountWithBridge() {
+  Object.assign(window, { shadowingDesktop: createDesktopBridge() });
+  return render(<DesktopVideoDetailShell videoId="video-lesson-one" />);
+}
+
+function getRenderedVideo() {
+  const video = document.querySelector("video");
+  expect(video).not.toBeNull();
+  return video as HTMLVideoElement;
+}
+
+function setVideoDuration(video: HTMLVideoElement, duration: number) {
+  Object.defineProperty(video, "duration", {
+    configurable: true,
+    value: duration,
+  });
+  fireEvent.loadedMetadata(video);
+}
+
+describe("DesktopVideoDetailShell", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(window, "shadowingDesktop");
+    vi.unstubAllGlobals();
+  });
+
+  it("renders the video title in the breadcrumb and the bilingual script", async () => {
+    mountWithBridge();
+
+    await waitFor(() => {
+      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+    });
+
+    // 英文原文与中文译文（来自 reading 区素材）都应渲染。
+    const firstParagraph = SCRIPT_SOURCE.paragraphs[0]!;
+    expect(screen.getByText(firstParagraph.translation)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "切换双语翻译" })).toBeInTheDocument();
+  });
+
+  it("hides the Chinese translation when 中译 is toggled off", async () => {
+    const user = userEvent.setup();
+    mountWithBridge();
+
+    const firstTranslation = SCRIPT_SOURCE.paragraphs[0]!.translation;
+    await waitFor(() => {
+      expect(screen.getByText(firstTranslation)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "切换双语翻译" }));
+    expect(screen.queryByText(firstTranslation)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "切换双语翻译" }));
+    expect(screen.getByText(firstTranslation)).toBeInTheDocument();
+  });
+
+  it("toggles between dark and light theme", async () => {
+    const user = userEvent.setup();
+    const { container } = mountWithBridge();
+
+    await waitFor(() => {
+      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+    });
+
+    // 默认跟随全局主题，初始为 light；右上角按钮可手动切到夜读深色。
+    const root = container.querySelector(".video-study");
+    expect(root).toHaveAttribute("data-theme", "light");
+
+    await user.click(screen.getByRole("button", { name: "切换到黑夜模式" }));
+    expect(root).toHaveAttribute("data-theme", "dark");
+
+    await user.click(screen.getByRole("button", { name: "切换到白天模式" }));
+    expect(root).toHaveAttribute("data-theme", "light");
+  });
+
+  it("opens the font-size slider from the Aa button", async () => {
+    const user = userEvent.setup();
+    mountWithBridge();
+
+    const aaButton = await screen.findByRole("button", { name: "调节字号" });
+    expect(screen.queryByRole("slider", { name: "调节字号" })).not.toBeInTheDocument();
+
+    await user.click(aaButton);
+    expect(screen.getByRole("slider", { name: "调节字号" })).toBeInTheDocument();
+  });
+
+  it("hides playback controls while a video is playing and reveals them on movement", async () => {
+    mountWithBridge();
+
+    await waitFor(() => {
+      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+    });
+
+    const player = document.querySelector(".video-study__player-frame") as HTMLElement;
+    const video = getRenderedVideo();
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.play(video);
+      expect(player).toHaveAttribute("data-controls-visible", "true");
+
+      act(() => {
+        vi.advanceTimersByTime(2300);
+      });
+      expect(player).toHaveAttribute("data-controls-visible", "false");
+
+      fireEvent.mouseMove(player);
+      expect(player).toHaveAttribute("data-controls-visible", "true");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("supports play/pause, seeking, volume, mute, and fullscreen controls", async () => {
+    const playSpy = vi
+      .spyOn(HTMLMediaElement.prototype, "play")
+      .mockImplementation(function playMock(this: HTMLMediaElement) {
+        Object.defineProperty(this, "paused", { configurable: true, value: false });
+        fireEvent.play(this);
+        return Promise.resolve();
+      });
+    const pauseSpy = vi
+      .spyOn(HTMLMediaElement.prototype, "pause")
+      .mockImplementation(function pauseMock(this: HTMLMediaElement) {
+        Object.defineProperty(this, "paused", { configurable: true, value: true });
+        fireEvent.pause(this);
+      });
+
+    mountWithBridge();
+
+    await waitFor(() => {
+      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+    });
+
+    const player = document.querySelector(".video-study__player-frame") as HTMLElement & {
+      requestFullscreen?: () => Promise<void>;
+    };
+    const requestFullscreen = vi.fn(async () => undefined);
+    player.requestFullscreen = requestFullscreen;
+
+    const video = getRenderedVideo();
+    setVideoDuration(video, 120);
+
+    await userEvent.click(screen.getAllByRole("button", { name: "播放视频" })[0]!);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "暂停视频" }));
+    expect(pauseSpy).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByRole("slider", { name: "播放进度" }), {
+      target: { value: "30" },
+    });
+    expect(video.currentTime).toBe(30);
+
+    fireEvent.change(screen.getByRole("slider", { name: "音量" }), {
+      target: { value: "0.35" },
+    });
+    expect(video.volume).toBe(0.35);
+
+    await userEvent.click(screen.getByRole("button", { name: "静音" }));
+    expect(video.muted).toBe(true);
+    expect(screen.getByRole("button", { name: "取消静音" })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "进入全屏" }));
+    expect(requestFullscreen).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens a word card with the definition when a vocab word is right-clicked", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        json: async () => ({
+          entry: {
+            meanings: [
+              {
+                definitions: ["the force that keeps progress moving once it has started"],
+                lexicalCategory: "名词",
+              },
+            ],
+            personal: {
+              definition: "the force that keeps progress moving once it has started",
+              fileName: "momentum.md",
+              sections: [
+                {
+                  lines: ["核心意象: 已经动起来的东西继续向前。"],
+                  title: "核心语义",
+                },
+              ],
+              source: {},
+            },
+            pronunciations: ["/məˈmentəm/"],
+            sourceLabel: "个人词库",
+            synonyms: [],
+            word: "Momentum",
+          },
+        }),
+        ok: true,
+      })),
+    );
+    mountWithBridge();
+
+    await waitFor(() => {
+      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+    });
+
+    // 取第一个被标为生词的 token（reading 素材里是 "momentum"）。
+    const vocabWord = document
+      .querySelector('.video-study__word[data-vocab="true"]') as HTMLElement | null;
+    expect(vocabWord).not.toBeNull();
+
+    fireEvent.contextMenu(vocabWord!);
+
+    await waitFor(() => {
+      expect(screen.getByRole("complementary", { name: "词条释义" })).toBeInTheDocument();
+    });
+    expect(await screen.findByText("选择左侧分区查看内容。")).toBeInTheDocument();
+    expect(
+      screen.queryByText("核心意象: 已经动起来的东西继续向前。"),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "词源构词" }));
+
+    expect(screen.getByLabelText("词源构词")).toBeInTheDocument();
+    expect(screen.getByText("核心意象: 已经动起来的东西继续向前。")).toBeInTheDocument();
+  });
+});

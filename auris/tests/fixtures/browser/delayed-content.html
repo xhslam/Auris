@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Delayed research content</title>
+  </head>
+  <body>
+    <main>
+      <h1>Waiting for evidence</h1>
+      <div id="delayed" hidden>Evidence is ready</div>
+    </main>
+    <script>
+      setTimeout(() => {
+        document.querySelector("#delayed").hidden = false;
+      }, 50);
+    </script>
+  </body>
+</html>

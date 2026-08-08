@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Auris Research Form</title>
+  </head>
+  <body>
+    <main>
+      <h1>Research intake</h1>
+      <p id="intro">Collect a bounded source-backed answer.</p>
+      <label for="topic">Topic</label>
+      <input id="topic" name="topic" type="text" aria-label="Topic">
+      <button id="submit" type="button">Run research</button>
+      <p id="result" hidden>Research complete</p>
+    </main>
+    <script>
+      document.querySelector("#submit").addEventListener("click", () => {
+        const topic = String(document.querySelector("#topic")?.value || "").trim();
+        const result = document.querySelector("#result");
+        result.hidden = false;
+        result.textContent = topic
+          ? `Research complete: ${topic}`
+          : "Research complete";
+      });
+    </script>
+  </body>
+</html>

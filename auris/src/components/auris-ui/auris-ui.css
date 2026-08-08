@@ -1,0 +1,255 @@
+/* Auris UI kit — shared styles for reminds-inspired surfaces. */
+
+.auris-page {
+  min-height: 100%;
+  background: var(--auris-bg);
+  color: var(--auris-text);
+  padding: 28px 36px 96px;
+  position: relative;
+  font-feature-settings: "tnum" 0;
+}
+
+.auris-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.auris-page__title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--auris-text);
+  margin: 0;
+}
+
+.auris-page__subtitle {
+  font-size: 13px;
+  color: var(--auris-text-muted);
+  margin: 2px 0 0;
+}
+
+.auris-page__progress {
+  height: 2px;
+  width: 100%;
+  background: var(--auris-line);
+  border-radius: 2px;
+  margin: 18px 0 24px;
+  overflow: hidden;
+}
+
+.auris-page__progress::before {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 28%;
+  background: var(--auris-gradient);
+  border-radius: 2px;
+}
+
+/* Section heading */
+.auris-section__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--auris-text-secondary);
+  margin: 28px 0 12px;
+  letter-spacing: 0.01em;
+}
+
+/* Card */
+.auris-card {
+  background: var(--auris-surface);
+  border: 1px solid var(--auris-line);
+  border-radius: var(--auris-radius-card);
+  box-shadow: var(--auris-shadow-card);
+  padding: 16px 18px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+a.auris-card:hover,
+.auris-card--interactive:hover {
+  border-color: var(--auris-line-strong);
+  transform: translateY(-1px);
+}
+
+/* Note card */
+.auris-note-card__time {
+  font-size: 11px;
+  color: var(--auris-text-muted);
+  margin: 0 0 6px;
+}
+
+.auris-note-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--auris-text);
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.auris-note-card__excerpt {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--auris-text-secondary);
+  margin: 0 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.auris-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--auris-on-soft);
+  background: var(--auris-primary-soft);
+  border-radius: var(--auris-radius-md);
+  padding: 2px 8px;
+  margin-right: 6px;
+}
+
+.auris-note-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+/* Empty state */
+.auris-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 56px 24px;
+  border: 1px solid var(--auris-line);
+  border-radius: var(--auris-radius-card);
+  background: var(--auris-surface);
+  min-height: 280px;
+}
+
+.auris-empty__art {
+  color: var(--auris-primary);
+  margin-bottom: 18px;
+  opacity: 0.9;
+}
+
+.auris-empty__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--auris-text);
+  margin: 0 0 6px;
+}
+
+.auris-empty__desc {
+  font-size: 13px;
+  color: var(--auris-text-muted);
+  margin: 0 0 18px;
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.auris-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--auris-radius-pill);
+  padding: 8px 16px;
+  border: 1px solid var(--auris-line-strong);
+  background: var(--auris-surface);
+  color: var(--auris-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+}
+
+.auris-btn:hover {
+  background: var(--auris-surface-soft);
+}
+
+.auris-btn--primary {
+  background: var(--auris-gradient);
+  color: #fff;
+  border: none;
+}
+
+.auris-btn--primary:hover {
+  filter: brightness(1.03);
+}
+
+/* Floating action button */
+.auris-fab {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--auris-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--auris-shadow-float);
+  transition: transform 0.15s ease;
+  z-index: 5;
+}
+
+.auris-fab:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.auris-fab svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Activity heatmap */
+.auris-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auris-heatmap__grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.auris-heatmap__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--auris-heat-0);
+}
+
+.auris-heatmap__dot[data-level="1"] { background: var(--auris-heat-1); }
+.auris-heatmap__dot[data-level="2"] { background: var(--auris-heat-2); }
+.auris-heatmap__dot[data-level="3"] { background: var(--auris-heat-3); }
+.auris-heatmap__dot[data-level="4"] { background: var(--auris-heat-4); }
+.auris-heatmap__dot[data-today="true"] { box-shadow: 0 0 0 1.5px var(--auris-primary); }
+
+.auris-heatmap__months {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--auris-text-muted);
+}

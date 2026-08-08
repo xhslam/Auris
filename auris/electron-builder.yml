@@ -1,0 +1,79 @@
+appId: com.auris.desktop
+productName: Auris
+copyright: Copyright © Auris
+directories:
+  output: release
+  buildResources: build
+files:
+  - electron/**/*
+  # Assembled MCP/runtime closure (scripts/assemble-electron-runtime-deps.cjs).
+  # Explicit so electron-builder does not skip nested node_modules.
+  - electron/node_modules/**/*
+  - assets/**/*
+  - package.json
+  - "!node_modules/**/*"
+  - node_modules/ws/**/*
+  - node_modules/@homebridge/node-pty-prebuilt-multiarch/**/*
+  - node_modules/node-pty/**/*
+  # node-pty resolves natives as build/Release -> build/Debug -> prebuilds/<os>-<arch>.
+  # build/ here is whatever the install host compiled (a Mach-O pty.node when the
+  # tree came from macOS), which is dead weight in a Windows package and makes the
+  # loader try a doomed require before falling through. prebuilds/ already ships
+  # darwin-arm64, darwin-x64 and win32-x64, so dropping build/ costs us nothing.
+  - "!node_modules/node-pty/build/**"
+  # Debug symbols: ~6 MB per .pdb, several dozen MB total, never loaded at runtime.
+  - "!node_modules/**/*.pdb"
+  # AppleDouble sidecars from copying the tree off macOS.
+  - "!node_modules/**/._*"
+# electron-builder skips nested directories named node_modules inside a
+# generic extraResources copy; name them explicitly so Next standalone works.
+extraResources:
+  - from: .next/standalone
+    to: standalone
+    filter:
+      - "**/*"
+      - "!node_modules"
+      - "!node_modules/**"
+      - "!.next"
+      - "!.next/**"
+  - from: .next/standalone/node_modules
+    to: standalone/node_modules
+  - from: .next/standalone/.next
+    to: standalone/.next
+asarUnpack:
+  - "**/node_modules/node-pty/**"
+  - "**/node_modules/@homebridge/node-pty-prebuilt-multiarch/**"
+  - "**/*.node"
+mac:
+  icon: assets/app-icon.icns
+  category: public.app-category.education
+  target:
+    - dmg
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
+dmg:
+  title: Auris
+win:
+  icon: assets/app-icon.png
+  target:
+    # NSIS is the native Windows installer; zip remains useful for portable smoke tests.
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+  # Cross-build from macOS: do not rebuild native modules on the host.
+  # node-pty / sharp ship platform prebuilds instead.
+  signAndEditExecutable: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Auris
+# Default true is fine for same-platform Mac builds; Windows cross-builds
+# pass --config.npmRebuild=false from the desktop:build:win script.
+npmRebuild: true

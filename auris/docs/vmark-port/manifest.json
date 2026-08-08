@@ -1,0 +1,469 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "upstream": {
+    "repository": "https://github.com/xiaolai/vmark",
+    "commit": "7c409688dc510d87183bdc46308e1ee645c2579f",
+    "license": "ISC"
+  },
+  "entries": [
+    {
+      "mappingId": "source-license-attribution",
+      "upstreamPaths": [
+        "LICENSE"
+      ],
+      "aurisPaths": [
+        "docs/vmark-port/UPSTREAM-LICENSE.txt"
+      ],
+      "disposition": "copied",
+      "intentionalDifferences": [
+        "Phase 1 stores the upstream ISC notice verbatim in UPSTREAM-LICENSE.txt; README.md adds Auris provenance context and a non-endorsement disclaimer."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/vmark/vmark-manifest.test.ts"
+      ]
+    },
+    {
+      "mappingId": "upstream-comparison-tooling",
+      "upstreamPaths": [
+        "package.json",
+        "scripts/check-browser-automation-phase.sh",
+        "scripts/check-browser-phase.sh",
+        "scripts/check-browser-shell-phase.sh"
+      ],
+      "aurisPaths": [
+        "docs/vmark-port/manifest.json",
+        "docs/vmark-port/manifest.schema.json",
+        "scripts/vmark-sync-report.cjs"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "The deterministic read-only comparison report is generated from the pinned baseline and records the separately reviewed current comparison commit.",
+        "Phase 6 retains manual upstream review: the report never rewrites Auris source or silently changes the pinned provenance baseline."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/vmark/vmark-manifest.test.ts",
+        "tests/unit/vmark/vmark-sync-report.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-pure-core",
+      "upstreamPaths": [
+        "src/lib/browser/agent/aria.ts",
+        "src/lib/browser/agent/refs.ts",
+        "src/lib/browser/origin/originGuard.ts",
+        "src/lib/browser/reader/reader.ts",
+        "src/lib/browser/url.ts",
+        "src-tauri/src/browser/ai_policy.rs"
+      ],
+      "aurisPaths": [
+        "src/features/browser/clean-reader.ts",
+        "src/features/browser/page-observation.ts",
+        "src/features/browser/stable-refs.ts",
+        "src/features/browser/target-descriptor.ts",
+        "src/features/browser/url-policy.ts"
+      ],
+      "disposition": "adapted",
+      "intentionalDifferences": [
+        "Phase 1 ports architecture-independent TypeScript algorithms into Auris feature namespaces and keeps page observations explicitly untrusted.",
+        "URL/origin/AI-navigation policy lives in url-policy.ts; structured target canonicalization and SHA-256 payload binding live in target-descriptor.ts; Electron main still performs final authorization.",
+        "ARIA projection, stable refs, and clean-reader live in page-observation.ts / stable-refs.ts / clean-reader.ts with explicit budgets, generation-stamped refs, and no iframe/shadow piercing."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/browser/clean-reader.test.ts",
+        "tests/unit/browser/stable-refs.test.ts",
+        "tests/unit/browser/target-descriptor.test.ts",
+        "tests/unit/browser/url-policy.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-registry-window-view",
+      "upstreamPaths": [
+        "src-tauri/src/browser/registry.rs",
+        "src-tauri/src/browser/registry_navigation.rs",
+        "src-tauri/src/browser/registry_state.rs",
+        "src-tauri/src/browser/surface.rs",
+        "src-tauri/src/browser/surface_create_macos.rs",
+        "src-tauri/src/browser/surface_lifecycle_macos.rs",
+        "src-tauri/src/browser/surface_view_macos.rs"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-ids.cjs",
+        "electron/browser/browser-window-manager.cjs",
+        "electron/browser/browser-registry.cjs",
+        "electron/browser/browser-surface-manager.cjs"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 2 replaces VMark's Rust/Tauri/WKWebView surface with Electron BrowserWindow and WebContentsView while preserving stable window/tab identities and lifecycle semantics."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/electron/browser/browser-registry.test.ts",
+        "tests/unit/electron/browser/browser-surface-manager.test.ts",
+        "tests/unit/electron/browser/browser-window-manager.test.ts",
+        "tests/electron/browser-isolation-smoke.cjs",
+        "tests/electron/browser-window-smoke.cjs"
+      ]
+    },
+    {
+      "mappingId": "browser-chrome-ui",
+      "upstreamPaths": [
+        "src/components/Browser/browserWorkspace.ts",
+        "src/stores/browserHistoryStore.ts",
+        "src/stores/browserStore.ts",
+        "src/stores/browserUiStore.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-state-db.cjs",
+        "electron/browser/browser-state-repository.cjs",
+        "src/app/browser/page.tsx",
+        "src/components/browser-window/browser-omnibox.tsx",
+        "src/components/browser-window/browser-status-pill.tsx",
+        "src/components/browser-window/browser-tab-strip.tsx",
+        "src/components/browser-window/browser-toolbar.tsx",
+        "src/components/browser-window/browser-window-shell.tsx",
+        "src/features/browser/browser-bridge.ts",
+        "src/features/browser/use-browser-window.ts"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 2 rebuilds browser chrome in Auris's React conventions and warm mint visual system while retaining VMark-equivalent tab, omnibox, history, bookmark, approval, and crash behavior."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/component/browser-window/browser-omnibox.test.tsx",
+        "tests/component/browser-window/browser-window-shell.test.tsx",
+        "tests/unit/electron/browser/browser-state-db.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-mcp",
+      "upstreamPaths": [
+        "src/hooks/mcpBridge/v2/browser.ts",
+        "src/hooks/mcpBridge/v2/browserAct.ts",
+        "src/hooks/mcpBridge/v2/browserNavigation.ts",
+        "src/hooks/mcpBridge/v2/browserReadClass.ts",
+        "src/hooks/mcpBridge/v2/browserScreenshot.ts",
+        "vmark-mcp-server/src/tools/browser.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-command-dispatcher.cjs",
+        "electron/browser/browser-mcp-router.cjs",
+        "electron/browser/browser-page-executor.cjs",
+        "electron/mcp/browser-tool-contract.mjs",
+        "src/features/browser/evidence.ts"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 3 exposes the closed VMark-equivalent browser action union through Auris's authenticated stdio sidecar, with authority terminating in Electron main rather than a renderer bridge.",
+        "Phase 3 proves the research loop with an explicit Electron test-app composition and real stdio MCP client.",
+        "Phase 4 composes production browserMcpDispatcher only after compiled security gates verify and the user enables MCP browser automation; named profiles/cookie replay stay independently gated.",
+        "Phase 1 freezes shared command/error fixtures and a Node integration harness for later MCP/main-process tests."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/contracts/browser-command-cases.ts",
+        "tests/contracts/browser-error-cases.ts",
+        "tests/integration/browser-authority-adversarial.test.ts",
+        "tests/integration/integration-harness.test.ts",
+        "tests/integration/mcp-browser-failure-paths.test.ts",
+        "tests/integration/mcp-browser-research-loop.test.ts",
+        "tests/unit/browser/compatibility-fixtures.test.ts",
+        "tests/unit/browser/evidence.test.ts",
+        "tests/unit/electron/auris-notes-mcp-server.test.ts",
+        "tests/unit/electron/browser/browser-command-dispatcher.test.ts",
+        "tests/unit/electron/browser/browser-page-executor.test.ts",
+        "tests/unit/electron/browser/browser-tool-contract.test.ts",
+        "tests/electron/browser-security-macos-smoke.cjs"
+      ]
+    },
+    {
+      "mappingId": "browser-authority-grants-lease",
+      "upstreamPaths": [
+        "src-tauri/src/browser/authorize.rs",
+        "src-tauri/src/browser/one_shot.rs",
+        "src-tauri/src/browser/operation.rs",
+        "src-tauri/src/browser/origin_guard.rs",
+        "src/lib/browser/approval/grants.ts",
+        "src/services/browser/lease.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-approvals.cjs",
+        "electron/browser/browser-grants.cjs",
+        "electron/browser/browser-lease.cjs",
+        "electron/browser/browser-partitions.cjs",
+        "src/components/browser-window/browser-approval-dialog.tsx"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 3 lands connection-scoped leases, opaque one-shot approvals, and AiSandbox partition selection in Electron main.",
+        "Phase 4 completes standing grants, attachment/mode authority, human reclaim, operation guard, and user-gated production enablement without an env bypass."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/component/browser-window/browser-approval-dialog.test.tsx",
+        "tests/component/settings/auris-settings-browser-grants.test.tsx",
+        "tests/component/settings/auris-settings-browser-security.test.tsx",
+        "tests/unit/electron/browser/browser-approvals.test.ts",
+        "tests/unit/electron/browser/browser-capabilities.test.ts",
+        "tests/unit/electron/browser/browser-grants.test.ts",
+        "tests/unit/electron/browser/browser-lease.test.ts",
+        "tests/unit/electron/browser/browser-mode-authority.test.ts",
+        "tests/unit/electron/browser/browser-operation-guard.test.ts",
+        "tests/unit/electron/browser/browser-partitions.test.ts"
+      ]
+    },
+    {
+      "mappingId": "browser-sessions-security-recovery",
+      "upstreamPaths": [
+        "src-tauri/src/browser/ai_policy.rs",
+        "src-tauri/src/browser/recovery.rs",
+        "src-tauri/src/browser/redact.rs",
+        "src-tauri/src/browser/session_commands.rs",
+        "src-tauri/src/browser/session_state.rs",
+        "src-tauri/src/browser/teardown.rs",
+        "src/lib/browser/uxPolicy.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-audit.cjs",
+        "electron/browser/browser-hibernation.cjs",
+        "electron/browser/browser-recovery.cjs",
+        "electron/browser/browser-security-gates.cjs",
+        "electron/browser/browser-session-capabilities.cjs",
+        "electron/browser/browser-session-service.cjs",
+        "electron/browser/browser-ux-policy.cjs",
+        "electron/security/keychain-secret-store.cjs"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 4 maps sessions to Electron partitions and macOS Keychain-backed ciphertext refs, adds crash budgets/hibernation without authority restore, redacted diagnostics audit, and fail-closed UX policy.",
+        "Named profiles and cookie/localStorage replay remain independently false in production capability defaults even after Phase 4 security gates verify."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/electron/browser-crash-recovery-smoke.cjs",
+        "tests/electron/browser-security-macos-smoke.cjs",
+        "tests/electron/browser-session-macos-smoke.cjs",
+        "tests/electron/browser-ux-policy-smoke.cjs",
+        "tests/unit/electron/browser/browser-audit.test.ts",
+        "tests/unit/electron/browser/browser-hibernation.test.ts",
+        "tests/unit/electron/browser/browser-recovery.test.ts",
+        "tests/unit/electron/security/keychain-secret-store.test.ts"
+      ]
+    },
+    {
+      "mappingId": "nia-legacy-genie",
+      "upstreamPaths": [
+        "src-tauri/resources/genies",
+        "src-tauri/src/ai_provider",
+        "src-tauri/src/genies",
+        "src/components/GeniePicker",
+        "src/hooks/genieInvocation"
+      ],
+      "aurisPaths": [
+        "electron/nia",
+        "electron/nia/nia-definition-store.cjs",
+        "electron/nia/nia-cli-provider.cjs",
+        "electron/nia/nia-cli-registry.cjs",
+        "electron/nia/nia-ipc.cjs",
+        "electron/nia/nia-model-discovery.cjs",
+        "electron/nia/nia-provider-runtime.cjs",
+        "electron/nia/nia-provider-store.cjs",
+        "electron/nia/nia-rest-protocols.cjs",
+        "electron/nia/nia-rest-provider.cjs",
+        "electron/browser/browser-preload.cjs",
+        "electron/preload.cjs",
+        "electron/security/keychain-secret-store.cjs",
+        "electron/shared/nia-definition-contract.cjs",
+        "electron/shared/nia-definition-contract.d.cts",
+        "src/components/nia",
+        "src/features/nia",
+        "src/features/nia/nia-schema.ts",
+        "src/features/nia/nia-parser.ts",
+        "src/features/nia/built-in-definitions.ts",
+        "src/features/nia/nia-definition-registry.ts",
+        "src/features/nia/provider-contract.ts",
+        "src/features/nia/provider-schema.ts",
+        "src/features/nia/nia-bridge.ts",
+        "src/platform/desktop/desktop-bridge.ts",
+        "src/features/workflows/nia-workflow-schema.ts"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 5 renames VMark Genie to Auris Nia, exports only canonical nia: v1 data, and retains explicit legacy v0, genie: v1, and uses: genie/* import migration.",
+        "Phase 5 replaces Rust provider execution with bounded Electron main-process CLI and REST adapters; keys remain memory-only unless the user explicitly chooses Keychain storage.",
+        "Task 1 defines the canonical/legacy Markdown+frontmatter contract in a packaged CJS module with strict YAML (core schema, zero aliases, depth/size bounds) so main always reparses raw source instead of trusting a renderer-supplied AST.",
+        "Task 2 adds a canonical/legacy-aware definition repository: immutable built-ins plus an injected-baseDir filesystem store that reparses raw source through the packaged contract, writes via temp-file-plus-rename, and always displays provenance/labels as Nia while resolving both nia/<name> and legacy genie/<name> references to the same canonical identity.",
+        "Task 3 adds secure provider configuration: REST/CLI metadata persisted separately from secrets, process-memory REST keys by default, explicit rememberOnThisMac writing opaque nia-provider Keychain references, exactly one active default, and rejection of user executable/flags/shell/env/cwd plus non-HTTPS remote endpoints.",
+        "Task 4 executes providers only through fixed, bounded main-process adapters: HTTPS/loopback-only REST transports and shell:false audited Claude, Codex, and Gemini CLI registrations with prompt-on-stdin, isolated temporary cwd, minimal environment, cancellation, output caps, and sender-bound narrow IPC.",
+        "Task 5 mounts one sanitized warm-mint Nia surface in browser chrome and Notes, attaches browser/note/workflow context only after explicit user action, and applies Notes proposals only after revision and selection review; local conversation history remains opt-in."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/nia/legacy-genie-migration.test.ts",
+        "tests/unit/nia/nia-parser.test.ts",
+        "tests/unit/nia/nia-definition-cross-runtime.test.ts",
+        "tests/unit/nia/nia-definition-registry.test.ts",
+        "tests/unit/electron/nia/nia-definition-store.test.ts",
+        "tests/unit/nia/provider-schema.test.ts",
+        "tests/unit/electron/nia/nia-provider-store.test.ts",
+        "tests/unit/electron/nia/nia-rest-protocols.test.ts",
+        "tests/unit/electron/nia/nia-rest-provider.test.ts",
+        "tests/unit/electron/nia/nia-cli-registry.test.ts",
+        "tests/unit/electron/nia/nia-cli-provider.test.ts",
+        "tests/unit/electron/nia/nia-model-discovery.test.ts",
+        "tests/unit/electron/nia/nia-ipc.test.ts",
+        "tests/unit/electron/nia/nia-preload.test.ts",
+        "tests/unit/nia/nia-bridge.test.ts",
+        "tests/unit/nia/nia-context.test.ts",
+        "tests/unit/nia/nia-history.test.ts",
+        "tests/component/nia/nia-panel.test.tsx",
+        "tests/component/nia/nia-provider-settings.test.tsx",
+        "tests/component/notes/notes-nia-apply.test.tsx",
+        "tests/integration/nia-provider-runtime.test.ts"
+      ]
+    },
+    {
+      "mappingId": "nia-yaml-workflows",
+      "upstreamPaths": [
+        "src-tauri/resources/workflows/examples/triage-and-translate.yml",
+        "src-tauri/src/workflow",
+        "src/lib/workflow"
+      ],
+      "aurisPaths": [
+        "electron/shared/nia-workflow-contract.cjs",
+        "electron/shared/nia-workflow-contract.d.cts",
+        "electron/workflows/nia-workflow-runtime.cjs",
+        "electron/workflows/workflow-capabilities.cjs",
+        "electron/workflows/workflow-facade.cjs",
+        "electron/workflows/workflow-ipc.cjs",
+        "electron/mcp/workflow-tool-contract.mjs",
+        "src/features/workflows/nia-action-registry.ts",
+        "src/features/workflows/nia-workflow-events.ts",
+        "src/features/workflows/nia-workflow-runner.ts",
+        "src/features/workflows/workflow-file-router.ts",
+        "src/features/workflows/workflow-bridge.ts",
+        "src/components/nia/workflow-library.tsx",
+        "src/components/nia/workflow-run-view.tsx"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 5 ports the wired VMark YAML pipeline engine as the distinct Nia workflow family, canonicalizing uses: nia/* while accepting the legacy Genie alias.",
+        "The packaged CJS contract is the only parser, schema, registry, dependency scheduler, and runner; TypeScript files are thin adapters. Main reparses raw YAML, owns run identity/cancellation, rejects renderer AST/action/token claims, and routes allowlisted action/* effects through an injected approval/review service.",
+        "Task 10 exposes both workflow families through one owner-bound main facade and additive auris_workflow MCP/UI surfaces; list/inspect/validate remain pure while each family's start capability stays independently smoke-gated."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/workflows/nia-action-registry.test.ts",
+        "tests/unit/workflows/nia-workflow-runner.test.ts",
+        "tests/unit/workflows/nia-workflow-cross-runtime.test.ts",
+        "tests/unit/workflows/workflow-file-router.test.ts",
+        "tests/unit/electron/workflows/nia-workflow-runtime.test.ts",
+        "tests/unit/electron/workflows/workflow-capabilities.test.ts",
+        "tests/unit/electron/workflows/workflow-facade.test.ts",
+        "tests/unit/electron/workflows/workflow-tool-contract.test.ts",
+        "tests/component/nia/workflow-run-view.test.tsx"
+      ]
+    },
+    {
+      "mappingId": "browser-markdown-workflows",
+      "upstreamPaths": [
+        "src/lib/browser/workflow/classify.ts",
+        "src/lib/browser/workflow/engine.ts",
+        "src/lib/browser/workflow/parser.ts",
+        "src/lib/browser/workflow/recorder.ts",
+        "src/lib/browser/workflow/runner.ts",
+        "src/lib/browser/workflow/safety.ts",
+        "src/lib/browser/workflow/selfHeal.ts",
+        "src/lib/browser/workflow/types.ts"
+      ],
+      "aurisPaths": [
+        "electron/shared/browser-workflow-contract.cjs",
+        "electron/shared/browser-workflow-contract.d.cts",
+        "electron/workflows/browser-workflow-api-service.cjs",
+        "electron/workflows/browser-workflow-recorder.cjs",
+        "electron/workflows/browser-workflow-runtime.cjs",
+        "electron/workflows/workflow-ipc.cjs",
+        "electron/workflows/workflow-run-registry.cjs",
+        "src/features/workflows/browser-workflow-schema.ts",
+        "src/features/workflows/browser-workflow-parser.ts",
+        "src/features/workflows/browser-workflow-compiler.ts",
+        "src/features/workflows/browser-workflow-step-policy.ts",
+        "src/features/workflows/workflow-bridge.ts",
+        "src/features/workflows/workflow-redaction.ts",
+        "src/features/workflows/workflow-self-heal.ts",
+        "src/components/nia/workflow-recorder-panel.tsx",
+        "src/components/nia/workflow-heal-review.tsx"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 5 intentionally wires VMark's separately defined browser Markdown parser, runner, recorder, and self-heal cores into a runtime, with per-attempt reauthorization and review instead of treating the upstream experimental core as complete.",
+        "Canonical strict parser/schema/compiler/step vocabulary lives in packaged electron/shared/browser-workflow-contract.cjs; TypeScript modules are thin adapters. Compilation emits typed intents and approval points but grants no authority.",
+        "Task 8 runs only main-reparsed Markdown against an explicit window/tab, reacquires and releases dispatcher control for every step/approval retry, binds imported-source review separately from execution authority, and confines API steps to freshly authorized bounded HTTPS requests without ambient cookies.",
+        "Task 9 records only trusted main/browser outcomes, converts every typed value to an opaque declared input before capture, and makes target repair a bounded propose/review/recompile/fresh-authorize flow with no silent rewrite."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/unit/workflows/browser-workflow-parser.test.ts",
+        "tests/unit/workflows/browser-workflow-compiler.test.ts",
+        "tests/unit/workflows/browser-workflow-cross-runtime.test.ts",
+        "tests/unit/workflows/workflow-bridge.test.ts",
+        "tests/unit/electron/workflows/browser-workflow-api-service.test.ts",
+        "tests/unit/electron/workflows/browser-workflow-runtime.test.ts",
+        "tests/unit/electron/workflows/browser-workflow-recorder.test.ts",
+        "tests/unit/electron/workflows/workflow-ipc.test.ts",
+        "tests/unit/electron/workflows/workflow-run-registry.test.ts",
+        "tests/unit/workflows/workflow-self-heal.test.ts",
+        "tests/component/nia/workflow-heal-review.test.tsx",
+        "tests/integration/browser-workflow-runtime.test.ts"
+      ]
+    },
+    {
+      "mappingId": "multi-window-status",
+      "upstreamPaths": [
+        "src-tauri/src/window_manager",
+        "src-tauri/src/window_status/mod.rs",
+        "src-tauri/src/mcp_bridge/window_routing.rs",
+        "src-tauri/src/mcp_bridge/window_routing.test.rs",
+        "src/components/WindowStatusPanel",
+        "src/services/browser/browserOcclusion.ts",
+        "src/services/browser/overlayPolicies.test.ts",
+        "src/services/browser/overlayPolicies.ts",
+        "src/services/persistence/windowStatusStorage.test.ts",
+        "src/services/persistence/windowStatusStorage.ts",
+        "src/stores/windowStatusStore.test.ts",
+        "src/stores/windowStatusStore.ts"
+      ],
+      "aurisPaths": [
+        "electron/browser/browser-registry.cjs",
+        "electron/browser/browser-status-ipc.cjs",
+        "electron/browser/browser-status-service.cjs",
+        "electron/browser/browser-window-manager.cjs",
+        "src/components/browser-window/browser-window-menu.tsx",
+        "src/components/desktop/browser-status-center.tsx",
+        "src/components/desktop/browser-status-item.tsx",
+        "src/features/browser/window-status.ts"
+      ],
+      "disposition": "rewritten",
+      "intentionalDifferences": [
+        "Phase 6 adapts VMark's window status concepts to multiple independently targetable Electron browser windows plus the existing Auris main window, with explicit identity for ambiguous targets.",
+        "Electron BrowserWindow/WebContentsView ownership replaces Tauri window routing, overlay, occlusion, and persistence shells; Auris projects a redacted main-owned status DTO and never derives authority from renderer focus or stored status."
+      ],
+      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "tests": [
+        "tests/component/browser-window/browser-window-menu.test.tsx",
+        "tests/component/desktop/browser-status-center.test.tsx",
+        "tests/electron/browser-multiwindow-smoke.cjs",
+        "tests/integration/browser-control-races.test.ts",
+        "tests/integration/browser-multiwindow-concurrency.test.ts",
+        "tests/unit/electron/browser/browser-multiwindow.test.ts",
+        "tests/unit/electron/browser/browser-status-ipc.test.ts",
+        "tests/unit/electron/browser/browser-status-service.test.ts"
+      ]
+    }
+  ]
+}

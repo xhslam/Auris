@@ -1,0 +1,84 @@
+import { describe, expect, it, vi } from "vitest";
+import { createDesktopVaultService } from "@/platform/desktop/vault-service";
+import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
+
+function createBridge(): DesktopBridge {
+  return {
+    commands: {
+      list: vi.fn(async () => []),
+      run: vi.fn(async () => ({ executed: true })),
+    },
+    downloads: {
+      exportJson: vi.fn(async () => ({ path: "C:/Downloads/export.json" })),
+      getDirectoryInfo: vi.fn(async () => ({ directoryPath: "C:/Downloads" })),
+      revealDirectory: vi.fn(async () => undefined),
+    },
+    plugins: {
+      list: vi.fn(async () => []),
+      openDirectory: vi.fn(async () => undefined),
+      setEnabled: vi.fn(async () => []),
+    },
+    runtimeState: {
+      get: vi.fn(async () => ({
+        lastWorkspace: "workspace",
+        lastVisitedAt: "2026-04-03T00:00:00.000Z",
+        primaryResumeId: null,
+        primaryResumeType: null,
+        updatedAt: "2026-04-03T00:00:00.000Z",
+      })),
+      importLegacy: vi.fn(async () => ({
+        lastWorkspace: "workspace",
+        lastVisitedAt: "2026-04-03T00:00:00.000Z",
+        primaryResumeId: null,
+        primaryResumeType: null,
+        updatedAt: "2026-04-03T00:00:00.000Z",
+      })),
+      setLastWorkspace: vi.fn(async () => ({
+        lastWorkspace: "workspace",
+        lastVisitedAt: "2026-04-03T00:00:00.000Z",
+        primaryResumeId: null,
+        primaryResumeType: null,
+        updatedAt: "2026-04-03T00:00:00.000Z",
+      })),
+    },
+    system: {
+      openUpgrade: vi.fn(async () => ({ didOpen: false, targetUrl: null })),
+    },
+    vault: {
+      createDirectory: vi.fn(async () => undefined),
+      getDirectoryInfo: vi.fn(async () => ({
+        directoryName: "English Vault",
+        hasVault: true,
+        pluginDirectory: "C:/vault/.shadowing/plugins",
+        vaultPath: "C:/vault",
+      })),
+      listFiles: vi.fn(async () => []),
+      moveFile: vi.fn(async () => undefined),
+      onDidChange: vi.fn(() => () => undefined),
+      pickDirectory: vi.fn(async () => ({
+        directoryName: "English Vault",
+        hasVault: true,
+        pluginDirectory: "C:/vault/.shadowing/plugins",
+        vaultPath: "C:/vault",
+      })),
+      readFile: vi.fn(async () => null),
+      renameFile: vi.fn(async () => undefined),
+      removeFile: vi.fn(async () => undefined),
+      revealPluginsDirectory: vi.fn(async () => undefined),
+      saveFile: vi.fn(async () => undefined),
+    },
+    window: {
+      showInFolder: vi.fn(async () => undefined),
+    },
+  };
+}
+
+describe("desktop vault service", () => {
+  it("exposes rename, move, and directory creation operations for the workbench layer", () => {
+    const service = createDesktopVaultService(createBridge());
+
+    expect(typeof service.createDirectory).toBe("function");
+    expect(typeof service.moveMarkdownFile).toBe("function");
+    expect(typeof service.renameMarkdownFile).toBe("function");
+  });
+});

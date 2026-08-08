@@ -1,0 +1,75 @@
+const path = require("node:path");
+
+const DEFAULT_COLS = 80;
+const DEFAULT_ROWS = 24;
+
+function normalizeTerminalString(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizeTerminalSize(value, fallback) {
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+function getPathAdapter(...values) {
+  return values.some(
+    (value) =>
+      typeof value === "string" &&
+      (/^[a-zA-Z]:[\\/]/.test(value) || value.includes("\\")),
+  )
+    ? path.win32
+    : path;
+}
+
+function resolveInsideRoot(pathAdapter, rootPath, candidatePath) {
+  const resolvedRoot = pathAdapter.resolve(rootPath);
+  const resolvedCandidate = pathAdapter.resolve(candidatePath);
+  const relativePath = pathAdapter.relative(resolvedRoot, resolvedCandidate);
+
+  if (
+    relativePath === "" ||
+    (!relativePath.startsWith("..") && !pathAdapter.isAbsolute(relativePath))
+  ) {
+    return resolvedCandidate;
+  }
+
+  return resolvedRoot;
+}
+
+function resolveTerminalCwd({ homePath, requestedCwd, vaultPath }) {
+  const normalizedHome = normalizeTerminalString(homePath);
+  const normalizedVault = normalizeTerminalString(vaultPath);
+  const normalizedRequested = normalizeTerminalString(requestedCwd);
+  const fallback = normalizedVault ?? normalizedHome;
+
+  if (!fallback) {
+    throw new Error("Terminal cwd requires either a vault path or a home path.");
+  }
+
+  if (!normalizedRequested || !normalizedVault) {
+    return fallback;
+  }
+
+  const pathAdapter = getPathAdapter(normalizedVault, normalizedRequested);
+  return resolveInsideRoot(pathAdapter, normalizedVault, normalizedRequested);
+}
+
+function createTerminalSessionInput(input, context) {
+  return {
+    cols: normalizeTerminalSize(input?.cols, DEFAULT_COLS),
+    cwd: resolveTerminalCwd({
+      homePath: context.homePath,
+      requestedCwd: input?.cwd,
+      vaultPath: context.vaultPath,
+    }),
+    rows: normalizeTerminalSize(input?.rows, DEFAULT_ROWS),
+    sessionId: normalizeTerminalString(input?.sessionId) ?? undefined,
+  };
+}
+
+module.exports = {
+  createTerminalSessionInput,
+  normalizeTerminalString,
+  normalizeTerminalSize,
+  resolveTerminalCwd,
+};

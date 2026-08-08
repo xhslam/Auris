@@ -1,0 +1,710 @@
+"use client";
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
+import { EditorSelection } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
+import {
+  NotesEditorContextMenu,
+  type EditorContextMenuTarget,
+} from "@/components/notes-v2/notes-editor-context-menu";
+import { NotesRichEditorPane } from "@/components/notes-v2/notes-rich-editor-pane";
+import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
+import type { NoteDocument } from "@/features/notes/documents/document-types";
+import {
+  NEW_NOTE_BODY_PLACEHOLDER,
+  composeEditableNoteSource,
+  parseEditableNoteSource,
+} from "@/features/notes/documents/note-editing-source";
+import { resolveMarkdownImageSource } from "@/features/notes/editor/code-block-preview";
+import { notesEditorSyncAnnotation } from "@/features/notes/editor/editor-annotations";
+import {
+  findNextNotesEditorSearchMatch,
+  findPreviousNotesEditorSearchMatch,
+  replaceAllNotesEditorSearchMatches,
+  replaceNextNotesEditorSearchMatch,
+  setNotesEditorSearchQuery,
+} from "@/features/notes/editor/editor-find-replace";
+import { clampSelectionToDocument } from "@/features/notes/editor/editor-selection";
+import {
+  createNotesEditorBridge,
+  createNotesEditorState,
+} from "@/features/notes/editor/editor-state-bridge";
+import type {
+  NotesEditorBridge,
+  NotesEditorMode,
+  NotesEditorSelectionState,
+} from "@/features/notes/editor/editor-types";
+
+type NotesEditorHostElement = HTMLDivElement & {
+  __notesEditorView?: EditorView;
+};
+
+type NotesEditorPaneProps = {
+  document: NoteDocument | null;
+  documents: NoteDocument[];
+  editorMode?: NotesEditorMode;
+  onActiveLineChange?: (line: number) => void;
+  onBridgeReady?: (bridge: NotesEditorBridge | null) => void;
+  onDocumentChange: (nextSource: string) => void;
+  onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
+  onOpenWikiLink?: (target: string) => void;
+  onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
+};
+
+function isNewNotePlaceholderSource(document: NoteDocument | null) {
+  return document?.rawSource.trim() === NEW_NOTE_BODY_PLACEHOLDER;
+}
+
+export function NotesEditorPane({
+  document,
+  documents,
+  editorMode = "wysiwyg",
+  onActiveLineChange,
+  onBridgeReady,
+  onDocumentChange,
+  onEnsureWikiLinkNote,
+  onOpenWikiLink,
+  onSelectionStateChange,
+}: NotesEditorPaneProps) {
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const lastAppliedSourceRef = useRef<string | null>(null);
+  const lastEmittedSourceRef = useRef<string | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const bridgeRef = useRef<NotesEditorBridge | null>(null);
+  const lastDocumentPathRef = useRef<string | null>(null);
+  const editableDocumentRef =
+    useRef<ReturnType<typeof parseEditableNoteSource> | null>(null);
+  const documentsRef = useRef(documents);
+  const onActiveLineChangeRef = useRef(onActiveLineChange);
+  const onBridgeReadyRef = useRef(onBridgeReady);
+  const onDocumentChangeRef = useRef(onDocumentChange);
+  const onOpenWikiLinkRef = useRef(onOpenWikiLink);
+  const onSelectionStateChangeRef = useRef(onSelectionStateChange);
+  const [contextMenuTarget, setContextMenuTarget] =
+    useState<EditorContextMenuTarget | null>(null);
+  const [findQuery, setFindQuery] = useState("");
+  const [replaceText, setReplaceText] = useState("");
+  const [isFindOpen, setIsFindOpen] = useState(false);
+  const [sourceTitleDraft, setSourceTitleDraft] = useState("");
+  const findQueryRef = useRef("");
+  const replaceTextRef = useRef("");
+  const findInputRef = useRef<HTMLInputElement | null>(null);
+  const sourceTitleDraftRef = useRef("");
+
+  useEffect(() => {
+    documentsRef.current = documents;
+  }, [documents]);
+
+  const editableDocument = useMemo(
+    () =>
+      document ? parseEditableNoteSource(document.rawSource, document.path) : null,
+    [document],
+  );
+
+  useEffect(() => {
+    editableDocumentRef.current = editableDocument;
+    const nextTitle = editableDocument?.title ?? "";
+    sourceTitleDraftRef.current = nextTitle;
+    setSourceTitleDraft(nextTitle);
+  }, [editableDocument]);
+
+  useEffect(() => {
+    onActiveLineChangeRef.current = onActiveLineChange;
+  }, [onActiveLineChange]);
+
+  useEffect(() => {
+    onBridgeReadyRef.current = onBridgeReady;
+
+    if (bridgeRef.current) {
+      onBridgeReady?.(bridgeRef.current);
+    }
+  }, [onBridgeReady]);
+
+  useEffect(() => {
+    onDocumentChangeRef.current = onDocumentChange;
+  }, [onDocumentChange]);
+
+  useEffect(() => {
+    onOpenWikiLinkRef.current = onOpenWikiLink;
+  }, [onOpenWikiLink]);
+
+  useEffect(() => {
+    onSelectionStateChangeRef.current = onSelectionStateChange;
+  }, [onSelectionStateChange]);
+
+  // Close any open context menu when switching to a different note so stale
+  // document position data from the previous note doesn't persist.
+  useEffect(() => {
+    setContextMenuTarget(null);
+  }, [document?.path]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+
+    if (!view || editorMode !== "source") {
+      return;
+    }
+
+    setNotesEditorSearchQuery(view, findQuery);
+  }, [editorMode, findQuery]);
+
+  useEffect(() => {
+    if (!isFindOpen || editorMode !== "source") {
+      return;
+    }
+
+    findInputRef.current?.focus();
+    findInputRef.current?.select();
+  }, [editorMode, isFindOpen]);
+
+  useEffect(() => {
+    if (editorMode !== "source") {
+      return;
+    }
+
+    if (!hostRef.current || !document || viewRef.current) {
+      return;
+    }
+
+    const initialEditableDocument = parseEditableNoteSource(
+      document.rawSource,
+      document.path,
+    );
+    editableDocumentRef.current = initialEditableDocument;
+    sourceTitleDraftRef.current = initialEditableDocument.title;
+    setSourceTitleDraft(initialEditableDocument.title);
+
+    const view = new EditorView({
+      parent: hostRef.current,
+      state: createNotesEditorState(
+        initialEditableDocument.bodySource,
+        (nextBodySource) => {
+          const currentEditableDocument = editableDocumentRef.current;
+          const nextRawSource = currentEditableDocument
+            ? composeEditableNoteSource(currentEditableDocument, {
+                bodySource: nextBodySource,
+                title:
+                  sourceTitleDraftRef.current.trim() ||
+                  currentEditableDocument.title,
+              })
+            : nextBodySource;
+
+          lastAppliedSourceRef.current = nextRawSource;
+          lastEmittedSourceRef.current = nextBodySource;
+          onDocumentChangeRef.current(nextRawSource);
+        },
+        {
+          getDocuments: () => documentsRef.current,
+          onOpenWikiLink: (target) => onOpenWikiLinkRef.current?.(target),
+          onSelectionChange: (line) => onActiveLineChangeRef.current?.(line),
+          onSelectionStateChange: (selection) =>
+            onSelectionStateChangeRef.current?.(selection),
+          documentPath: document.path,
+          resolveImageUrl: (source) =>
+            (() => {
+              const resolved = resolveMarkdownImageSource(
+                source,
+                document.path,
+              );
+
+              if (
+                resolved?.startsWith("shadowing-media://vault/") &&
+                !window.shadowingDesktop?.vault
+              ) {
+                return null;
+              }
+
+              return resolved;
+            })(),
+          saveAttachment: window.shadowingDesktop?.vault?.saveFile
+            ? async (path, content) =>
+                (window.shadowingDesktop?.vault?.saveFile as unknown as (
+                  relativePath: string,
+                  binaryContent: Uint8Array,
+                ) => Promise<void>)(path, content)
+            : undefined,
+        },
+      ),
+    });
+
+    (hostRef.current as NotesEditorHostElement).__notesEditorView = view;
+    viewRef.current = view;
+    const editorBridge = createNotesEditorBridge(view);
+    setNotesEditorSearchQuery(view, findQueryRef.current);
+    bridgeRef.current = editorBridge;
+    lastAppliedSourceRef.current = document.rawSource;
+    lastDocumentPathRef.current = document.path;
+    onActiveLineChangeRef.current?.(0);
+    onBridgeReadyRef.current?.(bridgeRef.current);
+  }, [document, editorMode, onActiveLineChange]);
+
+  const handleRichBridgeReady = useCallback(
+    (bridge: NotesEditorBridge | null) => {
+      bridgeRef.current = bridge;
+      onBridgeReadyRef.current?.(bridge);
+    },
+    [],
+  );
+
+  const handleFindQueryChange = useCallback((value: string) => {
+    findQueryRef.current = value;
+    setFindQuery(value);
+  }, []);
+
+  const handleReplaceTextChange = useCallback((value: string) => {
+    replaceTextRef.current = value;
+    setReplaceText(value);
+  }, []);
+
+  const focusFindInput = useCallback(() => {
+    findInputRef.current?.focus();
+    findInputRef.current?.select();
+  }, []);
+
+  const handleSourceEditorKeyDownCapture = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (editorMode !== "source" || !viewRef.current) {
+        return;
+      }
+
+      const isMod = event.metaKey || event.ctrlKey;
+
+      if (isMod && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsFindOpen(true);
+        focusFindInput();
+        return;
+      }
+
+      if (event.key === "Escape" && isFindOpen) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsFindOpen(false);
+        return;
+      }
+
+      if (event.key === "F3" || (isMod && event.key.toLowerCase() === "g")) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (event.shiftKey) {
+          findPreviousNotesEditorSearchMatch(viewRef.current);
+          return;
+        }
+
+        findNextNotesEditorSearchMatch(viewRef.current);
+      }
+    },
+    [editorMode, focusFindInput, isFindOpen],
+  );
+
+  const handleSourceEditorMouseDownCapture = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const view = viewRef.current;
+
+      if (editorMode !== "source" || !view || !isNewNotePlaceholderSource(document)) {
+        return;
+      }
+
+      if (view.state.doc.toString().trim() !== NEW_NOTE_BODY_PLACEHOLDER) {
+        return;
+      }
+
+      event.preventDefault();
+      view.dispatch({
+        changes: {
+          from: 0,
+          insert: "",
+          to: view.state.doc.length,
+        },
+        selection: EditorSelection.cursor(0),
+        userEvent: "delete.selection",
+      });
+      view.focus();
+    },
+    [document, editorMode],
+  );
+
+  const handleSourceContextMenu = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const view = viewRef.current;
+
+      if (editorMode !== "source" || !view) {
+        return;
+      }
+
+      const selection = view.state.selection.main;
+
+      if (selection.empty) {
+        return;
+      }
+
+      const text = view.state.sliceDoc(selection.from, selection.to);
+
+      if (!text.trim() || text.includes("\n")) {
+        return;
+      }
+
+      event.preventDefault();
+      setContextMenuTarget({
+        from: selection.from,
+        text,
+        to: selection.to,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    [editorMode],
+  );
+
+  const handleAddWikiLink = useCallback(
+    (target: EditorContextMenuTarget) => {
+      const view = viewRef.current;
+
+      if (!view) {
+        return;
+      }
+
+      const insert = `[[${target.text}]]`;
+
+      view.dispatch({
+        changes: { from: target.from, insert, to: target.to },
+        selection: EditorSelection.cursor(target.from + insert.length),
+      });
+      view.focus();
+
+      // Materialise the target note when missing, so the new link is "live"
+      // (resolves and turns the rendered link from missing → existing).
+      onEnsureWikiLinkNote?.(target.text, document?.path);
+    },
+    [document?.path, onEnsureWikiLinkNote],
+  );
+
+  const handleSourceTitleChange = useCallback(
+    (nextTitle: string) => {
+      sourceTitleDraftRef.current = nextTitle;
+      setSourceTitleDraft(nextTitle);
+
+      const currentEditableDocument = editableDocumentRef.current;
+
+      if (!currentEditableDocument) {
+        return;
+      }
+
+      const bodySource =
+        viewRef.current?.state.doc.toString() ?? currentEditableDocument.bodySource;
+      const nextRawSource = composeEditableNoteSource(currentEditableDocument, {
+        bodySource,
+        title: nextTitle,
+      });
+
+      lastAppliedSourceRef.current = nextRawSource;
+      lastEmittedSourceRef.current = bodySource;
+      onDocumentChangeRef.current(nextRawSource);
+    },
+    [],
+  );
+
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenuTarget(null);
+  }, []);
+
+  const handleFindNext = useCallback(() => {
+    if (!viewRef.current) {
+      return;
+    }
+
+    findNextNotesEditorSearchMatch(viewRef.current);
+  }, []);
+
+  const handleFindPrevious = useCallback(() => {
+    if (!viewRef.current) {
+      return;
+    }
+
+    findPreviousNotesEditorSearchMatch(viewRef.current);
+  }, []);
+
+  const handleReplaceNext = useCallback(() => {
+    if (!viewRef.current) {
+      return;
+    }
+
+    replaceNextNotesEditorSearchMatch(viewRef.current, replaceTextRef.current);
+  }, []);
+
+  const handleReplaceAll = useCallback(() => {
+    if (!viewRef.current) {
+      return;
+    }
+
+    replaceAllNotesEditorSearchMatches(viewRef.current, replaceTextRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (editorMode !== "source") {
+      return;
+    }
+
+    const view = viewRef.current;
+
+    if (!view || !document) {
+      return;
+    }
+
+    const nextEditableDocument = parseEditableNoteSource(
+      document.rawSource,
+      document.path,
+    );
+    editableDocumentRef.current = nextEditableDocument;
+    sourceTitleDraftRef.current = nextEditableDocument.title;
+    setSourceTitleDraft(nextEditableDocument.title);
+
+    const currentSource = view.state.doc.toString();
+    const nextBodySource = nextEditableDocument.bodySource;
+    const hasNewExternalSource =
+      lastAppliedSourceRef.current !== document.rawSource;
+    const isSameDocument = lastDocumentPathRef.current === document.path;
+
+    if (isSameDocument && !hasNewExternalSource) {
+      return;
+    }
+
+    if (isSameDocument && currentSource === nextBodySource) {
+      lastAppliedSourceRef.current = document.rawSource;
+      lastEmittedSourceRef.current = null;
+      return;
+    }
+
+    if (
+      isSameDocument &&
+      lastEmittedSourceRef.current === currentSource
+    ) {
+      return;
+    }
+
+    if (!isSameDocument) {
+      lastEmittedSourceRef.current = null;
+    }
+
+    view.dispatch({
+      annotations: notesEditorSyncAnnotation.of(true),
+      changes: {
+        from: 0,
+        insert: nextBodySource,
+        to: view.state.doc.length,
+      },
+      selection: isSameDocument
+        ? clampSelectionToDocument(
+            view.state.selection,
+            nextBodySource.length,
+          )
+        : EditorSelection.create([EditorSelection.cursor(0)]),
+      // When switching to a different note, scroll back to the top so the
+      // viewport doesn't remain at the scroll position of the previous note.
+      scrollIntoView: !isSameDocument,
+    });
+
+    lastAppliedSourceRef.current = document.rawSource;
+    lastDocumentPathRef.current = document.path;
+    lastEmittedSourceRef.current = null;
+  }, [document, editorMode]);
+
+  useEffect(() => {
+    if (editorMode === "source") {
+      return;
+    }
+
+    if (!viewRef.current) {
+      return;
+    }
+
+    const host = hostRef.current as NotesEditorHostElement | null;
+
+    onBridgeReadyRef.current?.(null);
+    bridgeRef.current = null;
+    lastAppliedSourceRef.current = null;
+    lastEmittedSourceRef.current = null;
+    lastDocumentPathRef.current = null;
+    onSelectionStateChangeRef.current?.(null);
+    if (host) {
+      host.__notesEditorView = undefined;
+    }
+    viewRef.current.destroy();
+    viewRef.current = null;
+  }, [editorMode]);
+
+  useEffect(() => {
+    if (document || !viewRef.current) {
+      return;
+    }
+
+    const host = hostRef.current as NotesEditorHostElement | null;
+
+    onBridgeReadyRef.current?.(null);
+    bridgeRef.current = null;
+    lastAppliedSourceRef.current = null;
+    lastEmittedSourceRef.current = null;
+    lastDocumentPathRef.current = null;
+    onSelectionStateChangeRef.current?.(null);
+    if (host) {
+      host.__notesEditorView = undefined;
+    }
+    viewRef.current.destroy();
+    viewRef.current = null;
+  }, [document, editorMode]);
+
+  useEffect(() => {
+    const host = hostRef.current as NotesEditorHostElement | null;
+
+    return () => {
+      onBridgeReadyRef.current?.(null);
+      bridgeRef.current = null;
+      lastAppliedSourceRef.current = null;
+      lastEmittedSourceRef.current = null;
+      lastDocumentPathRef.current = null;
+      onSelectionStateChangeRef.current?.(null);
+      if (host) {
+        host.__notesEditorView = undefined;
+      }
+      viewRef.current?.destroy();
+      viewRef.current = null;
+    };
+  }, []);
+
+  if (!document) {
+    return (
+      <section className="notes-v2__editor-pane">
+        <p className="notes-v2__empty-copy">{NOTES_UI_COPY.emptyEditor}</p>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className="notes-v2__editor-pane"
+      data-mode={editorMode}
+    >
+      <div className="notes-v2__editor-heading notes-v2__document-meta">
+        <div className="notes-v2__editor-heading-stack">
+          <p className="notes-v2__document-path">{document.path}</p>
+          {editorMode === "source" ? (
+            <input
+              aria-label="Note title"
+              className="notes-v2__virtual-title-input"
+              onChange={(event) => handleSourceTitleChange(event.target.value)}
+              placeholder=""
+              type="text"
+              value={sourceTitleDraft}
+            />
+          ) : null}
+        </div>
+      </div>
+      {editorMode === "source" && (isFindOpen || findQuery || replaceText) ? (
+        <div
+          className="notes-v2__find-replace"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              setIsFindOpen(false);
+              viewRef.current?.focus();
+            }
+          }}
+        >
+          <label className="notes-v2__find-replace-field">
+            <span>查找</span>
+            <input
+              aria-label="查找"
+              onChange={(event) => handleFindQueryChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  if (event.shiftKey) {
+                    handleFindPrevious();
+                  } else {
+                    handleFindNext();
+                  }
+                }
+              }}
+              placeholder="输入要查找的文本"
+              ref={findInputRef}
+              type="search"
+              value={findQuery}
+            />
+          </label>
+          <label className="notes-v2__find-replace-field">
+            <span>替换</span>
+            <input
+              aria-label="替换"
+              onChange={(event) => handleReplaceTextChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleReplaceNext();
+                }
+              }}
+              placeholder="输入替换文本"
+              type="text"
+              value={replaceText}
+            />
+          </label>
+          <div className="notes-v2__find-replace-actions">
+            <button onClick={handleFindPrevious} type="button">
+              上一个
+            </button>
+            <button onClick={handleFindNext} type="button">
+              下一个
+            </button>
+            <button onClick={handleReplaceNext} type="button">
+              替换当前
+            </button>
+            <button onClick={handleReplaceAll} type="button">
+              全部替换
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {editorMode === "wysiwyg" ? (
+        <NotesRichEditorPane
+          document={document}
+          documents={documents}
+          onActiveLineChange={onActiveLineChange}
+          onBridgeReady={handleRichBridgeReady}
+          onDocumentChange={onDocumentChange}
+          onEnsureWikiLinkNote={onEnsureWikiLinkNote}
+          onOpenWikiLink={onOpenWikiLink}
+          onSelectionStateChange={onSelectionStateChange}
+        />
+      ) : (
+        <div
+          className="notes-v2__editor-surface"
+          onContextMenu={handleSourceContextMenu}
+          onKeyDownCapture={handleSourceEditorKeyDownCapture}
+          onMouseDownCapture={handleSourceEditorMouseDownCapture}
+        >
+          <div
+            className="notes-v2__editor-host"
+            data-testid="notes-codemirror-host"
+            ref={hostRef}
+          />
+        </div>
+      )}
+      {contextMenuTarget ? (
+        <NotesEditorContextMenu
+          onAddWikiLink={handleAddWikiLink}
+          onClose={handleCloseContextMenu}
+          target={contextMenuTarget}
+        />
+      ) : null}
+    </section>
+  );
+}

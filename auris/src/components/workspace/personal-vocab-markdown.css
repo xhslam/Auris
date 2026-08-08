@@ -1,0 +1,213 @@
+.personal-vocab-markdown {
+  color: inherit;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.personal-vocab-markdown__group + .personal-vocab-markdown__group {
+  margin-top: 0.9rem;
+}
+
+.personal-vocab-markdown :where(p) {
+  margin: 0.65rem 0;
+}
+
+.personal-vocab-markdown :where(ul) {
+  margin: 0.65rem 0;
+}
+
+.personal-vocab-markdown :where(ol) {
+  margin: 0.65rem 0;
+}
+
+.personal-vocab-markdown :where(blockquote) {
+  margin: 0.65rem 0;
+}
+
+.personal-vocab-markdown :where(pre) {
+  margin: 0.65rem 0;
+}
+
+.personal-vocab-markdown :where(table) {
+  margin: 0.65rem 0;
+}
+
+.personal-vocab-markdown :first-child {
+  margin-top: 0;
+}
+
+.personal-vocab-markdown :last-child {
+  margin-bottom: 0;
+}
+
+.personal-vocab-markdown :where(h1) {
+  color: inherit;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1rem 0 0.45rem;
+}
+
+.personal-vocab-markdown :where(h2) {
+  color: inherit;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1rem 0 0.45rem;
+}
+
+.personal-vocab-markdown :where(h3) {
+  color: inherit;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1rem 0 0.45rem;
+}
+
+.personal-vocab-markdown :where(h4) {
+  color: inherit;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1rem 0 0.45rem;
+}
+
+.personal-vocab-markdown :where(h5) {
+  color: inherit;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1rem 0 0.45rem;
+}
+
+.personal-vocab-markdown :where(h6) {
+  color: inherit;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1rem 0 0.45rem;
+}
+
+.personal-vocab-markdown h1 {
+  font-size: 1.05rem;
+}
+
+.personal-vocab-markdown h2 {
+  font-size: 1.05rem;
+}
+
+.personal-vocab-markdown :where(h3) {
+  font-size: 0.95rem;
+}
+
+.personal-vocab-markdown :where(h4) {
+  font-size: 0.95rem;
+}
+
+.personal-vocab-markdown :where(h5) {
+  font-size: 0.95rem;
+}
+
+.personal-vocab-markdown :where(h6) {
+  font-size: 0.95rem;
+}
+
+.personal-vocab-markdown ul {
+  padding-left: 1.4rem;
+}
+
+.personal-vocab-markdown ol {
+  padding-left: 1.4rem;
+}
+
+.personal-vocab-markdown li + li {
+  margin-top: 0.2rem;
+}
+
+.personal-vocab-markdown blockquote {
+  border-left: 3px solid rgb(148 163 184 / 45%);
+  color: rgb(203 213 225 / 85%);
+  padding-left: 0.8rem;
+}
+
+.personal-vocab-markdown strong {
+  color: inherit;
+  font-weight: 700;
+}
+
+.personal-vocab-markdown b {
+  color: inherit;
+  font-weight: 700;
+}
+
+.personal-vocab-markdown em {
+  font-style: italic;
+}
+
+.personal-vocab-markdown i {
+  font-style: italic;
+}
+
+.personal-vocab-markdown a {
+  color: #7dd3fc;
+  text-decoration: underline;
+  text-decoration-color: rgb(125 211 252 / 50%);
+  text-underline-offset: 0.16em;
+}
+
+.personal-vocab-markdown a:hover {
+  text-decoration-color: currentcolor;
+}
+
+.personal-vocab-markdown code {
+  background: rgb(15 23 42 / 70%);
+  border: 1px solid rgb(148 163 184 / 18%);
+  border-radius: 0.3rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.84em;
+  padding: 0.08em 0.32em;
+}
+
+.personal-vocab-markdown pre {
+  background: rgb(15 23 42 / 72%);
+  border: 1px solid rgb(148 163 184 / 18%);
+  border-radius: 0.55rem;
+  overflow-x: auto;
+  padding: 0.75rem;
+}
+
+.personal-vocab-markdown pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.personal-vocab-markdown table {
+  border-collapse: collapse;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  width: max-content;
+}
+
+.personal-vocab-markdown th {
+  background: rgb(30 41 59 / 65%);
+  border: 1px solid rgb(148 163 184 / 25%);
+  font-weight: 650;
+  padding: 0.35rem 0.55rem;
+  text-align: left;
+}
+
+.personal-vocab-markdown td {
+  border: 1px solid rgb(148 163 184 / 25%);
+  padding: 0.35rem 0.55rem;
+  text-align: left;
+}
+
+.personal-vocab-markdown hr {
+  border: 0;
+  border-top: 1px solid rgb(148 163 184 / 22%);
+  margin: 1rem 0;
+}
+
+.personal-vocab-markdown input[type="checkbox"]:disabled {
+  accent-color: #38bdf8;
+  cursor: default;
+  margin: 0 0.4rem 0 0;
+  opacity: 0.8;
+}

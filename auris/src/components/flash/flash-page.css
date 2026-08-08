@@ -1,0 +1,510 @@
+.flash-workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 286px) minmax(0, 820px);
+  justify-content: center;
+  min-height: 100%;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--auris-font-sans);
+}
+
+.flash-workspace button,
+.flash-workspace input,
+.flash-workspace textarea {
+  font: inherit;
+}
+
+.flash-workspace button:focus-visible,
+.flash-workspace input:focus-visible,
+.flash-workspace textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 62%, transparent);
+  outline-offset: 2px;
+}
+
+.flash-workspace__insights {
+  min-width: 0;
+  padding: 38px 30px 56px 24px;
+  border-right: 1px solid var(--app-line-soft);
+  background: color-mix(in srgb, var(--app-surface) 42%, var(--app-bg));
+}
+
+.flash-workspace__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 30px;
+  color: var(--app-ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.flash-workspace__brand-mark {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--app-bg);
+}
+
+.flash-workspace__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.flash-workspace__stats div {
+  display: grid;
+  gap: 3px;
+}
+
+.flash-workspace__stats strong {
+  color: var(--app-ink);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.flash-workspace__stats span {
+  color: var(--app-muted);
+  font-size: 11px;
+}
+
+.flash-workspace__activity {
+  margin-top: 22px;
+}
+
+.flash-workspace__heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(7px, 1fr);
+  grid-template-rows: repeat(7, 9px);
+  gap: 4px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.flash-workspace__heatmap > span {
+  width: 100%;
+  min-width: 7px;
+  border-radius: 2px;
+  background: var(--app-fill-strong);
+}
+
+.flash-workspace__heatmap > span[data-level="1"] { background: color-mix(in srgb, var(--accent) 28%, var(--app-fill-strong)); }
+.flash-workspace__heatmap > span[data-level="2"] { background: color-mix(in srgb, var(--accent) 48%, var(--app-fill-strong)); }
+.flash-workspace__heatmap > span[data-level="3"] { background: color-mix(in srgb, var(--accent) 68%, var(--app-fill-strong)); }
+.flash-workspace__heatmap > span[data-level="4"] { background: var(--accent); }
+
+.flash-workspace__months {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  color: var(--app-muted);
+  font-size: 10px;
+}
+
+.flash-workspace__nav,
+.flash-workspace__related {
+  display: grid;
+  gap: 4px;
+}
+
+.flash-workspace__nav {
+  margin-top: 26px;
+}
+
+.flash-workspace__nav button,
+.flash-workspace__related button {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--app-text-soft);
+  text-align: left;
+  cursor: pointer;
+}
+
+.flash-workspace__nav button:hover,
+.flash-workspace__related button:hover {
+  background: var(--app-fill-strong);
+  color: var(--app-ink);
+}
+
+.flash-workspace__nav button[data-active="true"] {
+  background: color-mix(in srgb, var(--accent) 72%, var(--app-surface));
+  color: var(--app-ink);
+  font-weight: 650;
+}
+
+.flash-workspace__nav small {
+  color: currentColor;
+  font-size: 11px;
+  opacity: 0.68;
+}
+
+.flash-workspace__related {
+  margin-top: 31px;
+  padding-top: 20px;
+  border-top: 1px solid var(--app-line-soft);
+}
+
+.flash-workspace__related p {
+  margin: 0 0 5px 11px;
+  color: var(--app-muted);
+  font-size: 11px;
+}
+
+.flash-workspace__main {
+  min-width: 0;
+  padding: 38px 34px 80px;
+}
+
+.flash-workspace__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.flash-workspace__filter-control {
+  position: relative;
+}
+
+.flash-workspace__filter-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 1px;
+  border: 0;
+  background: transparent;
+  color: var(--app-ink);
+  cursor: pointer;
+}
+
+.flash-workspace__filter-control h1 {
+  margin: 0;
+}
+
+.flash-workspace__filter-trigger span {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.flash-workspace__filter-menu,
+.flash-card__menu {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  min-width: 142px;
+  padding: 5px;
+  border: 1px solid var(--app-line);
+  border-radius: 7px;
+  background: var(--app-surface);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--app-ink) 14%, transparent);
+}
+
+.flash-workspace__filter-menu {
+  top: calc(100% + 5px);
+  left: 0;
+}
+
+.flash-workspace__filter-menu button,
+.flash-card__menu button {
+  min-height: 34px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--app-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.flash-workspace__filter-menu button:hover,
+.flash-card__menu button:hover {
+  background: var(--app-fill-strong);
+}
+
+.flash-workspace__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(300px, 42%);
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: var(--app-fill-strong);
+  color: var(--app-muted);
+}
+
+.flash-workspace__search:focus-within {
+  border-color: var(--app-line);
+  background: var(--app-surface);
+}
+
+.flash-workspace__search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--app-text);
+  font-size: 13px;
+}
+
+.flash-workspace__search input::placeholder {
+  color: var(--app-muted);
+}
+
+.flash-workspace__search kbd {
+  color: var(--app-muted);
+  font-family: var(--auris-font-mono);
+  font-size: 10px;
+}
+
+.flash-composer {
+  margin-top: 17px;
+  overflow: hidden;
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  background: var(--app-surface);
+}
+
+.flash-composer:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--app-line));
+}
+
+.flash-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 132px;
+  padding: 19px 20px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--app-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.flash-composer textarea::placeholder {
+  color: var(--app-muted);
+}
+
+.flash-composer__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid var(--app-line-soft);
+}
+
+.flash-composer__toolbar > div {
+  display: flex;
+  gap: 2px;
+}
+
+.flash-composer__toolbar button,
+.flash-card__actions > button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--app-muted);
+  cursor: pointer;
+}
+
+.flash-composer__toolbar button:hover,
+.flash-card__actions > button:hover {
+  background: var(--app-fill-strong);
+  color: var(--app-ink);
+}
+
+.flash-composer__toolbar .flash-composer__submit {
+  background: var(--app-fill-strong);
+  color: var(--app-muted);
+}
+
+.flash-composer__toolbar .flash-composer__submit:not(:disabled) {
+  background: var(--accent);
+  color: var(--app-bg);
+}
+
+.flash-composer__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.flash-workspace__notice {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--app-line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--app-bg));
+  color: var(--app-text-soft);
+  font-size: 12px;
+}
+
+.flash-timeline {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.flash-card {
+  position: relative;
+  min-width: 0;
+  padding: 18px 19px 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--app-surface);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--app-ink) 4%, transparent);
+}
+
+.flash-card:hover {
+  border-color: var(--app-line);
+}
+
+.flash-card > header {
+  display: flex;
+  min-height: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.flash-card time {
+  color: var(--app-muted);
+  font-size: 11px;
+}
+
+.flash-card__actions {
+  position: relative;
+  display: flex;
+  gap: 1px;
+  margin: -8px -8px 0 0;
+}
+
+.flash-card__actions > button[data-active="true"] {
+  color: var(--accent);
+}
+
+.flash-card__menu {
+  top: 34px;
+  right: 0;
+}
+
+.flash-card__menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flash-card__body {
+  padding-top: 7px;
+  color: var(--app-text);
+  font-size: 15px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.flash-timeline__empty {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  align-content: center;
+  padding: 36px;
+  border: 1px dashed var(--app-line);
+  border-radius: 8px;
+  color: var(--app-muted);
+  text-align: center;
+}
+
+.flash-timeline__empty h2 {
+  margin: 13px 0 0;
+  color: var(--app-text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.flash-timeline__empty p {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+@media (max-width: 980px) {
+  .flash-workspace {
+    grid-template-columns: minmax(210px, 240px) minmax(0, 1fr);
+  }
+
+  .flash-workspace__insights {
+    padding-inline: 20px;
+  }
+
+  .flash-workspace__main {
+    padding-inline: 24px;
+  }
+}
+
+@media (max-width: 760px) {
+  .flash-workspace {
+    display: block;
+  }
+
+  .flash-workspace__insights {
+    padding: 24px 20px 18px;
+    border-right: 0;
+    border-bottom: 1px solid var(--app-line-soft);
+  }
+
+  .flash-workspace__stats {
+    margin-top: 18px;
+  }
+
+  .flash-workspace__activity,
+  .flash-workspace__related {
+    display: none;
+  }
+
+  .flash-workspace__nav {
+    display: flex;
+    margin-top: 18px;
+    overflow-x: auto;
+  }
+
+  .flash-workspace__nav button {
+    grid-template-columns: 20px auto auto;
+    flex: 0 0 auto;
+  }
+
+  .flash-workspace__main {
+    padding: 22px 18px 56px;
+  }
+
+  .flash-workspace__topbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .flash-workspace__search {
+    width: 100%;
+  }
+}

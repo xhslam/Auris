@@ -1,0 +1,677 @@
+.reading-minimal {
+  --reading-background: #fbfaf7;
+  --reading-foreground: #26231f;
+  --reading-muted: #858178;
+  --reading-border: #e4e0d8;
+  --reading-panel: #fffefa;
+  --reading-panel-foreground: #312e29;
+  --reading-accent: #c66f4d;
+  --reading-accent-soft: #f7e6de;
+  --reading-accent-line: #b96545;
+  --reading-toolbar: rgba(251, 250, 247, 0.92);
+  --reading-shadow: 0 20px 70px rgba(45, 40, 32, 0.12);
+  min-height: 100vh;
+  color: var(--reading-foreground);
+  background: var(--reading-background);
+  font-family: var(--auris-font-sans);
+}
+
+.reading-minimal[data-theme="dark"] {
+  --reading-background: #171615;
+  --reading-foreground: #eee9df;
+  --reading-muted: #918b82;
+  --reading-border: #34312d;
+  --reading-panel: #211f1c;
+  --reading-panel-foreground: #eee9df;
+  --reading-accent: #d88a68;
+  --reading-accent-soft: #3a2a23;
+  --reading-accent-line: #d88a68;
+  --reading-toolbar: rgba(23, 22, 21, 0.9);
+  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   阅读页随「设置 → 外观」全局主题换肤：只重定义 --reading-* 令牌。
+   仅作用于默认（light）态，保留阅读器自带的日/夜切换按钮——按下后切到上面的
+   data-theme="dark" 配色。选择器带 [data-theme="light"]，特异性高于全局覆盖，
+   故手动切夜间时仍以阅读器自身的夜间为准。
+   ────────────────────────────────────────────────────────────────────────── */
+.desktop-app-shell[data-app-theme="white"] .reading-minimal[data-theme="light"] {
+  --reading-background: #f6f4ee;
+  --reading-foreground: #2b2a26;
+  --reading-muted: #7a7568;
+  --reading-border: rgba(40, 35, 25, 0.12);
+  --reading-panel: #fbfaf4;
+  --reading-panel-foreground: #2b2a26;
+  --reading-accent: #c66f4d;
+  --reading-accent-soft: #f3e3da;
+  --reading-accent-line: #b96545;
+  --reading-toolbar: rgba(246, 244, 238, 0.92);
+  --reading-shadow: 0 20px 70px rgba(45, 40, 32, 0.12);
+}
+
+.desktop-app-shell[data-app-theme="paper"] .reading-minimal[data-theme="light"] {
+  --reading-background: #efe9d8;
+  --reading-foreground: #3a3324;
+  --reading-muted: #7d7259;
+  --reading-border: rgba(90, 70, 35, 0.16);
+  --reading-panel: #f5efe0;
+  --reading-panel-foreground: #3a3324;
+  --reading-accent: #b5742f;
+  --reading-accent-soft: #ecdcbf;
+  --reading-accent-line: #a5853f;
+  --reading-toolbar: rgba(239, 233, 216, 0.92);
+  --reading-shadow: 0 20px 70px rgba(90, 70, 35, 0.16);
+}
+
+.desktop-app-shell[data-app-theme="mint"] .reading-minimal[data-theme="light"] {
+  --reading-background: #edf3e8;
+  --reading-foreground: #233229;
+  --reading-muted: #64746c;
+  --reading-border: rgba(91, 111, 99, 0.18);
+  --reading-panel: #f2f6ee;
+  --reading-panel-foreground: #233229;
+  --reading-accent: #5f8a6a;
+  --reading-accent-soft: #dbe7dc;
+  --reading-accent-line: #4f7a5a;
+  --reading-toolbar: rgba(237, 243, 232, 0.92);
+  --reading-shadow: 0 20px 70px rgba(60, 90, 70, 0.16);
+}
+
+.desktop-app-shell[data-app-theme="sepia"] .reading-minimal[data-theme="light"] {
+  --reading-background: #f1e7d0;
+  --reading-foreground: #4a3b28;
+  --reading-muted: #8a7654;
+  --reading-border: rgba(120, 95, 60, 0.2);
+  --reading-panel: #f6eeda;
+  --reading-panel-foreground: #4a3b28;
+  --reading-accent: #a06a35;
+  --reading-accent-soft: #ecdcbb;
+  --reading-accent-line: #8a6d2e;
+  --reading-toolbar: rgba(241, 231, 208, 0.92);
+  --reading-shadow: 0 20px 70px rgba(120, 95, 60, 0.18);
+}
+
+.desktop-app-shell[data-app-theme="night"] .reading-minimal[data-theme="light"] {
+  --reading-background: #1b1c1f;
+  --reading-foreground: #d9d8dd;
+  --reading-muted: #8a8992;
+  --reading-border: rgba(255, 255, 255, 0.1);
+  --reading-panel: #232428;
+  --reading-panel-foreground: #d9d8dd;
+  --reading-accent: #d88a68;
+  --reading-accent-soft: #3a2a23;
+  --reading-accent-line: #d88a68;
+  --reading-toolbar: rgba(27, 28, 31, 0.9);
+  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
+}
+
+.desktop-app-shell[data-app-theme="solarized"] .reading-minimal[data-theme="light"] {
+  --reading-background: #002b36;
+  --reading-foreground: #eee8d5;
+  --reading-muted: #839496;
+  --reading-border: rgba(131, 148, 150, 0.18);
+  --reading-panel: #073642;
+  --reading-panel-foreground: #eee8d5;
+  --reading-accent: #cb9b1a;
+  --reading-accent-soft: rgba(181, 137, 0, 0.18);
+  --reading-accent-line: #b58900;
+  --reading-toolbar: rgba(0, 43, 54, 0.9);
+  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
+}
+
+.reading-minimal button,
+.reading-minimal input,
+.reading-minimal textarea {
+  font: inherit;
+}
+
+.reading-minimal__topbar {
+  position: sticky;
+  top: 0;
+  min-height: 36px;
+  border-bottom: 1px solid var(--reading-border);
+  padding: 0 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  background: var(--reading-toolbar);
+  backdrop-filter: blur(18px);
+}
+
+.reading-minimal__toolbar {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.reading-minimal__icon-button,
+.reading-minimal__progress-button,
+.reading-minimal__text-size-button {
+  border: 0;
+  border-radius: 8px;
+  color: var(--reading-muted);
+  background: transparent;
+}
+
+.reading-minimal__icon-button {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.reading-minimal__progress-button,
+.reading-minimal__text-size-button {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.reading-minimal__icon-button:hover,
+.reading-minimal__icon-button[data-active="true"],
+.reading-minimal__progress-button:hover,
+.reading-minimal__text-size-button:hover,
+.reading-minimal__text-size-button[data-active="true"] {
+  color: var(--reading-foreground);
+  background: rgba(130, 124, 114, 0.1);
+}
+
+.reading-minimal__font-control {
+  position: relative;
+  display: inline-flex;
+}
+
+.reading-minimal__font-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--reading-border);
+  border-radius: 14px;
+  background: var(--reading-background);
+  box-shadow: 0 16px 40px rgba(40, 34, 28, 0.18);
+}
+
+.reading-minimal__font-hint {
+  color: var(--reading-muted);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.reading-minimal__font-hint--small {
+  font-size: 13px;
+}
+
+.reading-minimal__font-hint--large {
+  font-size: 22px;
+}
+
+.reading-minimal__font-slider {
+  width: 150px;
+  accent-color: var(--reading-foreground);
+  cursor: pointer;
+}
+
+.reading-minimal__separator {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--reading-border);
+}
+
+.reading-minimal__icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.reading-minimal__shell {
+  min-height: calc(100vh - 36px);
+  display: grid;
+  justify-items: center;
+  padding: 70px 32px 120px;
+}
+
+.reading-minimal__page {
+  width: min(var(--reading-content-width, 1000px), 100%);
+}
+
+.reading-minimal__heading {
+  border-bottom: 1px solid var(--reading-border);
+  padding-bottom: 16px;
+}
+
+.reading-minimal__heading h1 {
+  margin: 0 0 8px;
+  color: var(--reading-foreground);
+  font-size: calc(clamp(64px, 7.5vw, 94px) * var(--reading-font-scale, 1));
+  font-weight: 950;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.reading-minimal__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  color: var(--reading-muted);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.reading-minimal__content {
+  padding-top: 36px;
+}
+
+.reading-minimal__paragraph {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
+  gap: 78px;
+  margin-bottom: 32px;
+}
+
+.reading-minimal__paragraph[data-mode="chinese"],
+.reading-minimal__paragraph[data-mode="english"] {
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+}
+
+.reading-minimal__spark {
+  position: absolute;
+  left: -34px;
+  top: 4px;
+  color: #e6c1b0;
+  font-size: 22px;
+}
+
+.reading-minimal__english,
+.reading-minimal__translation {
+  margin: 0;
+  color: var(--reading-foreground);
+  font-size: calc(26px * var(--reading-font-scale, 1));
+  line-height: 1.62;
+}
+
+.reading-minimal__translation {
+  color: var(--reading-panel-foreground);
+  font-size: calc(24px * var(--reading-font-scale, 1));
+  line-height: 1.7;
+}
+
+/* 所有单词外观与正文一致（不区分是否收录）；右键唤出词卡。 */
+.reading-minimal-word {
+  border: 0;
+  border-radius: 3px;
+  padding: 0 1px;
+  color: inherit;
+  background: transparent;
+  cursor: context-menu;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* 仅当词卡为该词打开时，做一个轻微高亮，提示当前查的是哪个词。 */
+.reading-minimal-word[data-active="true"] {
+  background: var(--reading-accent-soft);
+}
+
+/*
+ * 词卡视觉面（Portal 挂到 body 后不再继承 .reading-minimal 变量）。
+ * 这里自带不透明回退色；运行时再从页面根复制当前主题 token。
+ */
+.reading-minimal__word-popover {
+  --reading-panel: #211f1c;
+  --reading-panel-foreground: #eee9df;
+  --reading-border: #34312d;
+  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.48);
+  --reading-accent: #d88a68;
+  --reading-accent-soft: #3a2a23;
+  --reading-muted: #918b82;
+
+  width: min(700px, calc(100vw - 24px));
+  height: 100%;
+  font-family: var(--auris-font-sans);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--reading-border, #34312d);
+  border-radius: 14px;
+  color: var(--reading-panel-foreground, #eee9df);
+  background-color: var(--reading-panel, #211f1c);
+  box-shadow: var(--reading-shadow, 0 20px 70px rgba(0, 0, 0, 0.48));
+  pointer-events: auto;
+}
+
+.reading-minimal__word-head,
+.reading-minimal__word-body {
+  padding: 14px 16px;
+}
+
+.reading-minimal__word-head {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--reading-border);
+}
+
+.reading-minimal__word-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reading-minimal__word-head h2 {
+  margin: 0;
+  color: var(--reading-panel-foreground);
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+/* 右上角一排工具：收藏 · 声音 · 叉号 */
+.reading-minimal__word-tools {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.reading-minimal__word-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: var(--reading-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.reading-minimal__word-tool:hover {
+  color: var(--reading-panel-foreground);
+  background: var(--reading-accent-soft);
+}
+
+/* 收藏 / 待整理后书签点亮 */
+.reading-minimal__word-tool[data-on="true"] {
+  color: var(--reading-accent);
+}
+
+.reading-minimal__icon--filled {
+  fill: currentColor;
+}
+
+.reading-minimal__word-phonetic {
+  color: var(--reading-muted);
+  font-size: 13px;
+}
+
+.reading-minimal__word-head p,
+.reading-minimal__word-body p {
+  margin: 0;
+  color: var(--reading-panel-foreground);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.reading-minimal__word-def {
+  margin-top: 8px;
+}
+
+.reading-minimal__word-def em {
+  margin-right: 6px;
+  color: var(--reading-accent);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.reading-minimal__word-def--empty,
+.reading-minimal__word-hint {
+  color: var(--reading-muted);
+}
+
+.reading-minimal__word-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding-top: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.reading-minimal__word-section strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--reading-accent);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+
+.reading-minimal__word-section p + p {
+  margin-top: 6px;
+}
+
+.reading-minimal__word-morphemes {
+  font-weight: 700;
+}
+
+.reading-minimal__word-toast {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 16px 14px;
+  color: var(--reading-accent);
+  font-size: 12.5px;
+}
+
+@media (max-width: 900px) {
+  .reading-minimal__shell {
+    padding: 48px 22px 96px;
+  }
+
+  .reading-minimal__paragraph,
+  .reading-minimal__paragraph[data-mode="chinese"],
+  .reading-minimal__paragraph[data-mode="english"] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .reading-minimal__translation {
+    color: var(--reading-muted);
+    font-size: 20px;
+  }
+
+  .reading-minimal__heading h1 {
+    font-size: 54px;
+  }
+}
+
+@media (max-width: 640px) {
+  .reading-minimal__topbar {
+    padding: 0 10px;
+  }
+
+  .reading-minimal__toolbar {
+    gap: 2px;
+  }
+
+  .reading-minimal__meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .reading-minimal__english {
+    font-size: 22px;
+  }
+}
+
+/* Exam-type markdown layout */
+.reading-exam {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.reading-exam__section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--reading-border);
+}
+
+.reading-exam__section:last-child {
+  border-bottom: 0;
+}
+
+.reading-exam__section-title {
+  margin: 0;
+  color: var(--reading-accent-line);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.reading-exam__block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--reading-border);
+  border-radius: 14px;
+  background: var(--reading-panel);
+}
+
+.reading-exam__block-title {
+  color: var(--reading-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.reading-exam__block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  color: var(--reading-panel-foreground);
+  font-size: calc(18px * var(--reading-font-scale, 1));
+  line-height: 1.75;
+}
+
+.reading-exam__translation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  margin: 0;
+  color: var(--reading-muted);
+  font-size: calc(16px * var(--reading-font-scale, 1));
+  line-height: 1.7;
+}
+
+.reading-exam__paragraph {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.reading-exam__heading {
+  margin: 0;
+  color: var(--reading-panel-foreground);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.reading-exam__heading:is(h1) {
+  font-size: 1.25em;
+}
+
+.reading-exam__heading:is(h2) {
+  font-size: 1.15em;
+}
+
+.reading-exam__heading:is(h3),
+.reading-exam__heading:is(h4) {
+  font-size: 1.05em;
+}
+
+.reading-exam__list {
+  margin: 0;
+  padding-left: 1.35em;
+}
+
+.reading-exam__list li + li {
+  margin-top: 0.35em;
+}
+
+.reading-exam__hr {
+  width: 100%;
+  margin: 0.35em 0;
+  border: 0;
+  border-top: 1px solid var(--reading-border);
+}
+
+.reading-exam__table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.reading-exam__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.reading-exam__table th,
+.reading-exam__table td {
+  padding: 0.55em 0.75em;
+  border: 1px solid var(--reading-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.reading-exam__table th {
+  color: var(--reading-muted);
+  font-size: 0.9em;
+  font-weight: 650;
+  background: color-mix(in srgb, var(--reading-border) 35%, transparent);
+}
+
+.reading-exam__table td:first-child {
+  min-width: 10em;
+}
+
+.reading-exam__code {
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--reading-border) 65%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+.reading-exam__blank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6em;
+  margin: 0 0.15em;
+  padding: 0 0.35em;
+  border-bottom: 2px solid var(--reading-accent-line);
+  color: var(--reading-accent);
+  font-weight: 700;
+}

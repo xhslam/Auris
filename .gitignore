@@ -1,0 +1,90 @@
+# ============================================
+# Auris 工作区 .gitignore
+# 目标:只追踪源码与配置,排除依赖、构建产物和大文件
+# ============================================
+
+# ---- 依赖 ----
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# ---- 构建产物 / 发布包 ----
+# Electron / electron-builder 输出
+release/
+release-*/
+dist/
+out/
+build/
+**/win-unpacked/
+**/mac-arm64/
+**/mac/
+**/linux-unpacked/
+*.asar
+
+# Next.js
+.next/
+**/.next/
+next-env.d.ts
+
+# ---- 安装包 / 大二进制 ----
+*.exe
+*.dmg
+*.blockmap
+*.apk
+*.aab
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.msi
+*.pkg
+*.deb
+*.rpm
+*.AppImage
+
+# ---- 备份 / 临时文件 ----
+*.bak
+*.bak-*
+*.old
+*.tmp
+*~
+._tmp_*/
+.tmp-*/
+.tmp/
+tmp/
+
+# ---- 日志 ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+# ---- 环境变量 / 密钥 ----
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ---- 编辑器 / 系统 ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ---- Agent 本地配置(不随代码同步) ----
+.claude/
+.git-backup-old/
+
+# ---- 缓存 / 覆盖率 ----
+.cache/
+coverage/
+.turbo/
+*.tsbuildinfo
