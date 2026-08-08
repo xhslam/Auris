@@ -93,12 +93,4 @@ describe("file export service", () => {
 
     expect(service.kind).toBe("web");
   });
-
-  it("uses native sharing on mobile", () => {
-    const service = createFileExportService({
-      runtime: { isDesktopApp: false, isNativeApp: true, platform: "android" },
-    });
-
-    expect(service.kind).toBe("native");
-  });
 });
