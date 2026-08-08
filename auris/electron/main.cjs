@@ -163,6 +163,12 @@ const DEV_SERVER_TIMEOUT_MS = 90_000;
 const DEFAULT_WINDOW_HEIGHT = 900;
 const DEFAULT_WINDOW_WIDTH = 1400;
 const isDevMode = process.argv.includes("--dev");
+const packagedSmokeUserData = process.env.AURIS_PACKAGED_SMOKE_USER_DATA;
+if (process.env.AURIS_PACKAGED_SMOKE === "1" && packagedSmokeUserData) {
+  const resolvedSmokeUserData = path.resolve(packagedSmokeUserData);
+  fsSync.mkdirSync(resolvedSmokeUserData, { recursive: true });
+  app.setPath("userData", resolvedSmokeUserData);
+}
 // app.asar is read-only. Keep packaged diagnostics beside the user's other
 // desktop state so renderer launch failures remain observable after release.
 const DESKTOP_LOG_ROOT = app.isPackaged ? app.getPath("userData") : PROJECT_ROOT;
@@ -2970,7 +2976,8 @@ function installApplicationMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-const hasSingleInstanceLock = app.requestSingleInstanceLock();
+const hasSingleInstanceLock =
+  process.env.AURIS_PACKAGED_SMOKE === "1" || app.requestSingleInstanceLock();
 
 if (!hasSingleInstanceLock) {
   writeStartupLog("app:single-instance-lock-denied");

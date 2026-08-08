@@ -6,6 +6,9 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawn, spawnSync } = require("node:child_process");
+const {
+  createMcpClientCredentialStore,
+} = require("../../electron/mcp/client-credential-store.cjs");
 
 const BROWSER_WORKFLOW = `---\nsite: example.com\ninputs: {}\ntrigger: manual\n---\n\n1. confirm: Packaged smoke pause\n`;
 const NIA_WORKFLOW = `name: Packaged template\nnia: v1\nsteps:\n  - id: render\n    uses: nia/template\n    with:\n      template: packaged-ok\n`;
@@ -128,6 +131,7 @@ function runPackagedModuleProbes(binary, appRoot, temporaryRoot) {
   const healthPayload = JSON.parse(health.stdout.trim());
   assert(
     healthPayload.tools.includes("auris_browser") &&
+      healthPayload.tools.includes("auris_browser_read") &&
       healthPayload.tools.includes("auris_workflow"),
     "Packaged sidecar tools are incomplete.",
   );
@@ -203,11 +207,20 @@ async function main() {
   const discoveryPath = path.join(temporaryRoot, "auris-notes-mcp-port");
   const userData = path.join(temporaryRoot, "user-data");
   writeIsolatedConfig(userData);
+  const credentialRegistryPath = path.join(temporaryRoot, "auris-mcp-clients.json");
+  const credential = await createMcpClientCredentialStore({
+    registryPath: credentialRegistryPath,
+  }).issue("auris-packaged-smoke");
   const probes = runPackagedModuleProbes(binary, appRoot, temporaryRoot);
 
   const appEnvironment = {
     ...process.env,
     AURIS_NOTES_MCP_PORT_FILE: discoveryPath,
+    AURIS_MCP_CLIENT_CREDENTIALS_FILE: credentialRegistryPath,
+    AURIS_MCP_CLIENT_ID: credential.clientId,
+    AURIS_MCP_CLIENT_TOKEN: credential.token,
+    AURIS_PACKAGED_SMOKE: "1",
+    AURIS_PACKAGED_SMOKE_USER_DATA: userData,
     NODE_OPTIONS: "",
     NODE_PATH: "",
   };
@@ -254,8 +267,9 @@ async function main() {
     };
     const tools = await client.listTools();
     assert(
-      tools.tools.some((tool) => tool.name === "auris_browser"),
-      "Packaged MCP browser tool missing.",
+      tools.tools.some((tool) => tool.name === "auris_browser") &&
+        tools.tools.some((tool) => tool.name === "auris_browser_read"),
+      "Packaged MCP browser tools missing.",
     );
     assert(
       tools.tools.some((tool) => tool.name === "auris_workflow"),
@@ -268,7 +282,7 @@ async function main() {
       "packaged Notes state",
     );
     const browser = await waitFor(
-      () => call("auris_browser", { action: "get_state" }),
+      () => call("auris_browser_read", { action: "get_state" }),
       (value) => !value.isError,
       "packaged Browser state",
     );
@@ -373,7 +387,7 @@ async function main() {
       !browserResumed.isError,
       `Packaged browser workflow resume failed: ${JSON.stringify(browserResumed.payload)}`,
     );
-    await waitFor(
+    const browserDone = await waitFor(
       () =>
         call("auris_workflow", {
           action: "get_state",
@@ -392,7 +406,7 @@ async function main() {
         notesState: session.payload,
         ok: true,
         tools: tools.tools.map((tool) => tool.name).sort(),
-        workflowCancellation: browserCancelled.payload.status,
+        workflowStatus: browserDone.payload.status,
       })}\n`,
     );
   } catch (error) {

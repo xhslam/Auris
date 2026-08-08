@@ -17,6 +17,8 @@ const path = require("node:path");
 const AUDITED_ROOTS = Object.freeze([
   "@modelcontextprotocol/sdk",
   "jsdom",
+  "proper-lockfile",
+  "smol-toml",
   "ws",
   "yaml",
   "zod",

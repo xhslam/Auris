@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const niaIpc = require("../../../../electron/nia/nia-ipc.cjs");
 const workflowIpc = require("../../../../electron/workflows/workflow-ipc.cjs");
 const browserStatusIpc = require("../../../../electron/browser/browser-status-ipc.cjs");
+const notesRecoveryIpc = require("../../../../electron/notes/notes-recovery-ipc.cjs");
 
 type NiaPreload = {
   invoke(command: string, payload?: Record<string, unknown>): Promise<unknown>;
@@ -52,6 +53,7 @@ function loadMainPreload() {
       if (String(id).includes("nia-ipc")) return niaIpc;
       if (String(id).includes("workflow-ipc")) return workflowIpc;
       if (String(id).includes("browser-status-ipc")) return browserStatusIpc;
+      if (String(id).includes("notes-recovery-ipc")) return notesRecoveryIpc;
       throw new Error(`Unexpected require: ${id}`);
     },
     setTimeout,
