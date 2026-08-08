@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { pathToFileURL } = require("node:url");
 
 const FULL_COMMIT_PATTERN = /^[0-9a-f]{40}$/;
 const MAPPING_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -14,8 +15,23 @@ const DISPOSITIONS = new Set([
   "rewritten",
   "not-applicable",
 ]);
-const ROOT_KEYS = ["$schema", "schemaVersion", "upstream", "entries"];
+const REVIEW_DECISIONS = new Set(["port", "adapt", "defer", "reject"]);
+const ROOT_KEYS = [
+  "$schema",
+  "schemaVersion",
+  "upstream",
+  "reviewDomains",
+  "entries",
+];
 const UPSTREAM_KEYS = ["repository", "commit", "license"];
+const REVIEW_DOMAIN_KEYS = [
+  "domainId",
+  "upstreamPrefixes",
+  "aurisPaths",
+  "decision",
+  "rationale",
+  "lastComparedCommit",
+];
 const ENTRY_KEYS = [
   "mappingId",
   "upstreamPaths",
@@ -62,14 +78,21 @@ class SyncReportError extends Error {
     super(message, options);
     this.name = "SyncReportError";
     this.code = code;
+    this.diagnostic =
+      typeof options.diagnostic === "string" && options.diagnostic
+        ? options.diagnostic
+        : undefined;
     this.exitCode = EXIT_CODES[code] || EXIT_CODES.INTERNAL_ERROR;
     this.publicMessage =
       PUBLIC_FAILURE_MESSAGES[code] || PUBLIC_FAILURE_MESSAGES.INTERNAL_ERROR;
   }
 }
 
-function failure(code, detail, cause) {
-  return new SyncReportError(code, detail, cause ? { cause } : undefined);
+function failure(code, detail, cause, diagnostic) {
+  return new SyncReportError(code, detail, {
+    ...(cause ? { cause } : {}),
+    ...(diagnostic ? { diagnostic } : {}),
+  });
 }
 
 function parseArgs(argv) {
@@ -78,9 +101,43 @@ function parseArgs(argv) {
   }
 
   let upstream = "origin/main";
+  let repositoryPath;
+  let diagnostics = false;
   let seenUpstream = false;
+  let seenRepositoryPath = false;
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
+    if (argument === "--diagnostics") {
+      if (diagnostics) {
+        throw failure("ARGUMENT_INVALID", "--diagnostics may be supplied only once.");
+      }
+      diagnostics = true;
+      continue;
+    }
+    if (argument === "--repository-path") {
+      if (seenRepositoryPath) {
+        throw failure(
+          "ARGUMENT_INVALID",
+          "--repository-path may be supplied only once.",
+        );
+      }
+      if (index + 1 >= argv.length) {
+        throw failure(
+          "ARGUMENT_INVALID",
+          "--repository-path requires a value.",
+        );
+      }
+      repositoryPath = argv[index + 1];
+      if (!path.isAbsolute(repositoryPath)) {
+        throw failure(
+          "ARGUMENT_INVALID",
+          "--repository-path must be an absolute path.",
+        );
+      }
+      seenRepositoryPath = true;
+      index += 1;
+      continue;
+    }
     if (argument !== "--upstream") {
       throw failure("ARGUMENT_INVALID", `Unknown argument: ${argument}`);
     }
@@ -102,7 +159,7 @@ function parseArgs(argv) {
     );
   }
 
-  return { upstream };
+  return { diagnostics, repositoryPath, upstream };
 }
 
 function validateManifest(manifest) {
@@ -111,8 +168,8 @@ function validateManifest(manifest) {
   if (manifest.$schema !== "./manifest.schema.json") {
     throw manifestFailure('manifest.$schema must equal "./manifest.schema.json".');
   }
-  if (manifest.schemaVersion !== 1) {
-    throw manifestFailure("manifest.schemaVersion must equal 1.");
+  if (manifest.schemaVersion !== 2) {
+    throw manifestFailure("manifest.schemaVersion must equal 2.");
   }
 
   assertPlainObject(manifest.upstream, "manifest.upstream");
@@ -126,6 +183,38 @@ function validateManifest(manifest) {
   if (manifest.upstream.license !== "ISC") {
     throw manifestFailure('manifest.upstream.license must equal "ISC".');
   }
+  if (!Array.isArray(manifest.reviewDomains) || manifest.reviewDomains.length === 0) {
+    throw manifestFailure("manifest.reviewDomains must be a non-empty array.");
+  }
+  const domainIds = new Set();
+  manifest.reviewDomains.forEach((domain, index) => {
+    const label = `manifest.reviewDomains[${index}]`;
+    assertPlainObject(domain, label);
+    assertExactKeys(domain, REVIEW_DOMAIN_KEYS, label);
+    if (
+      typeof domain.domainId !== "string" ||
+      !MAPPING_ID_PATTERN.test(domain.domainId)
+    ) {
+      throw manifestFailure(`${label}.domainId is invalid.`);
+    }
+    if (domainIds.has(domain.domainId)) {
+      throw manifestFailure(`duplicate domainId: ${domain.domainId}`);
+    }
+    domainIds.add(domain.domainId);
+    validatePathArray(domain.upstreamPrefixes, `${label}.upstreamPrefixes`);
+    validatePathArray(domain.aurisPaths, `${label}.aurisPaths`);
+    if (!REVIEW_DECISIONS.has(domain.decision)) {
+      throw manifestFailure(`${label}.decision is invalid.`);
+    }
+    if (typeof domain.rationale !== "string" || domain.rationale.length === 0) {
+      throw manifestFailure(`${label}.rationale must be non-empty.`);
+    }
+    assertFullCommit(
+      domain.lastComparedCommit,
+      `${label}.lastComparedCommit`,
+      "MANIFEST_INVALID",
+    );
+  });
   if (!Array.isArray(manifest.entries) || manifest.entries.length === 0) {
     throw manifestFailure("manifest.entries must be a non-empty array.");
   }
@@ -166,6 +255,38 @@ function validateManifest(manifest) {
   return manifest;
 }
 
+function createGitFailureDiagnostic(argv, result) {
+  const operation =
+    typeof argv?.[0] === "string" && /^[a-z-]+$/.test(argv[0])
+      ? argv[0]
+      : "unknown";
+  const status = Number.isInteger(result?.status) ? result.status : "unknown";
+  const stderr =
+    typeof result?.stderr === "string"
+      ? result.stderr
+      : Buffer.from(result?.stderr || "").toString("utf8");
+  const parts = [`git=${operation}`, `status=${status}`];
+
+  if (stderr) {
+    parts.push(`stderr_bytes=${Buffer.byteLength(stderr, "utf8")}`);
+    parts.push(
+      `stderr_sha256=${crypto
+        .createHash("sha256")
+        .update(stderr)
+        .digest("hex")
+        .slice(0, 12)}`,
+    );
+  }
+  if (
+    typeof result?.error?.code === "string" &&
+    /^[A-Z0-9_]+$/.test(result.error.code)
+  ) {
+    parts.push(`error=${result.error.code}`);
+  }
+
+  return parts.join(" ");
+}
+
 function createGitRunner({
   spawn = spawnSync,
   timeoutMs = DEFAULT_GIT_TIMEOUT_MS,
@@ -194,10 +315,20 @@ function createGitRunner({
       if (result.error.code === "ENOENT") {
         throw failure("GIT_MISSING", "Git executable was not found.", result.error);
       }
-      throw failure(failureCode, publicDetail, result.error);
+      throw failure(
+        failureCode,
+        publicDetail,
+        result.error,
+        createGitFailureDiagnostic(argv, result),
+      );
     }
     if (result.status !== 0) {
-      throw failure(failureCode, publicDetail);
+      throw failure(
+        failureCode,
+        publicDetail,
+        undefined,
+        createGitFailureDiagnostic(argv, result),
+      );
     }
     return typeof result.stdout === "string"
       ? result.stdout
@@ -373,7 +504,11 @@ function parseGitDiff(rawDiff) {
 function normalizeRepositoryUrl(repositoryUrl) {
   let normalized;
   try {
-    normalized = new URL(repositoryUrl);
+    normalized = new URL(
+      path.isAbsolute(repositoryUrl)
+        ? pathToFileURL(repositoryUrl).href
+        : repositoryUrl,
+    );
   } catch (error) {
     throw failure("CACHE_IDENTITY", "The repository URL is invalid.", error);
   }
@@ -385,6 +520,66 @@ function normalizeRepositoryUrl(repositoryUrl) {
     .replace(/\/+$/, "")
     .replace(/\.git$/, "");
   return normalized.href.replace(/\/$/, "");
+}
+
+function validateLocalRepository(
+  repositoryPath,
+  repositoryUrl,
+  gitRunner = defaultGitRunner,
+) {
+  const resolvedPath = path.resolve(repositoryPath);
+  let stat;
+  try {
+    stat = fs.lstatSync(resolvedPath);
+  } catch (error) {
+    throw failure(
+      "CACHE_INVALID",
+      "The local upstream repository does not exist.",
+      error,
+    );
+  }
+  if (!stat.isDirectory() || stat.isSymbolicLink()) {
+    throw failure(
+      "CACHE_INVALID",
+      "The local upstream repository must be a real directory.",
+    );
+  }
+
+  const insideWorkTree = runGitStep(
+    gitRunner,
+    ["rev-parse", "--is-inside-work-tree"],
+    {
+      cwd: resolvedPath,
+      failureCode: "CACHE_INVALID",
+      publicDetail: PUBLIC_FAILURE_MESSAGES.CACHE_INVALID,
+    },
+  ).trim();
+  if (insideWorkTree !== "true") {
+    throw failure(
+      "CACHE_INVALID",
+      "The local upstream path is not a Git working tree.",
+    );
+  }
+
+  const remoteUrl = runGitStep(
+    gitRunner,
+    ["remote", "get-url", "origin"],
+    {
+      cwd: resolvedPath,
+      failureCode: "CACHE_IDENTITY",
+      publicDetail: PUBLIC_FAILURE_MESSAGES.CACHE_IDENTITY,
+    },
+  ).trim();
+  if (
+    normalizeRepositoryUrl(remoteUrl) !== normalizeRepositoryUrl(repositoryUrl)
+  ) {
+    throw failure(
+      "CACHE_IDENTITY",
+      "The local upstream repository does not match the manifest repository.",
+    );
+  }
+
+  return resolvedPath;
 }
 
 function defaultCacheRoot() {
@@ -478,7 +673,12 @@ function prepareUpstreamCache(
     });
     return paths.cacheDirectory;
   } catch (error) {
-    throw normalizeFailure(error, "CACHE_INVALID");
+    const normalized = normalizeFailure(error, "CACHE_INVALID");
+    normalized.diagnostic = [
+      normalized.diagnostic,
+      `cache=${paths.cacheName}`,
+    ].filter(Boolean).join(" ");
+    throw normalized;
   } finally {
     if (temporaryDirectory) {
       removeValidatedTemporaryDirectory(temporaryDirectory, paths);
@@ -887,14 +1087,7 @@ function renderReports({ manifest, resolvedCommit, changes, aurisRoot }) {
     .sort((left, right) => compareText(left.mappingId, right.mappingId))
     .map((entry) => {
       const matchedUpstreamChanges = sortedChanges.filter((change) => {
-        const matched =
-          entry.upstreamPaths.some((mappedPath) =>
-            mappedPathMatches(mappedPath, change.path),
-          ) ||
-          (change.status === "renamed" &&
-            entry.upstreamPaths.some((mappedPath) =>
-              mappedPathMatches(mappedPath, change.fromPath),
-            ));
+        const matched = changeMatchesPaths(change, entry.upstreamPaths);
         if (matched) mappedChangeKeys.add(changeKey(change));
         return matched;
       });
@@ -916,13 +1109,69 @@ function renderReports({ manifest, resolvedCommit, changes, aurisRoot }) {
       };
     });
 
-  const unmappedUpstreamChanges = sortedChanges.filter(
+  const mappedUpstreamChanges = sortedChanges.filter((change) =>
+    mappedChangeKeys.has(changeKey(change)),
+  );
+  const mappingUnmatchedChanges = sortedChanges.filter(
     (change) => !mappedChangeKeys.has(changeKey(change)),
+  );
+  const sortedReviewDomains = [...manifest.reviewDomains].sort((left, right) =>
+    compareText(left.domainId, right.domainId),
+  );
+  const domainCandidates = [];
+  const domainCandidateKeys = new Set();
+
+  for (const change of mappingUnmatchedChanges) {
+    const matchingDomains = sortedReviewDomains
+      .map((domain) => ({
+        domain,
+        specificity: Math.max(
+          ...domain.upstreamPrefixes
+            .filter(
+              (prefix) =>
+                mappedPathMatches(prefix, change.path) ||
+                (change.status === "renamed" &&
+                  mappedPathMatches(prefix, change.fromPath)),
+            )
+            .map((prefix) => prefix.length),
+          -1,
+        ),
+      }))
+      .filter((match) => match.specificity >= 0)
+      .sort(
+        (left, right) =>
+          right.specificity - left.specificity ||
+          compareText(left.domain.domainId, right.domain.domainId),
+      );
+    const selected = matchingDomains[0]?.domain;
+    if (!selected) continue;
+    domainCandidateKeys.add(changeKey(change));
+    domainCandidates.push({
+      change,
+      decision: selected.decision,
+      domainId: selected.domainId,
+    });
+  }
+
+  const reviewDomains = sortedReviewDomains.map((domain) => ({
+    domainId: domain.domainId,
+    decision: domain.decision,
+    upstreamPrefixes: [...domain.upstreamPrefixes].sort(compareText),
+    aurisPaths: [...domain.aurisPaths].sort(compareText),
+    rationale: domain.rationale,
+    lastComparedCommit: domain.lastComparedCommit,
+    staleLastComparedCommit: domain.lastComparedCommit !== resolvedCommit,
+    matchedCandidateChanges: domainCandidates
+      .filter((candidate) => candidate.domainId === domain.domainId)
+      .map((candidate) => candidate.change),
+  }));
+  const unmappedUpstreamChanges = mappingUnmatchedChanges.filter(
+    (change) => !domainCandidateKeys.has(changeKey(change)),
   );
   const count = (status) =>
     sortedChanges.filter((change) => change.status === status).length;
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     repository: manifest.upstream.repository,
     baselineCommit: manifest.upstream.commit,
     comparedCommit: resolvedCommit,
@@ -937,10 +1186,15 @@ function renderReports({ manifest, resolvedCommit, changes, aurisRoot }) {
       ),
       staleMappings: mappings.filter((mapping) => mapping.staleLastComparedCommit)
         .length,
+      mappedUpstreamChanges: mappedUpstreamChanges.length,
+      domainCandidates: domainCandidates.length,
       unmappedUpstreamChanges: unmappedUpstreamChanges.length,
     },
     upstreamChanges: sortedChanges,
+    mappedUpstreamChanges,
     mappings,
+    reviewDomains,
+    domainCandidates,
     unmappedUpstreamChanges,
   };
 
@@ -949,6 +1203,16 @@ function renderReports({ manifest, resolvedCommit, changes, aurisRoot }) {
     markdown: renderMarkdown(report),
     report,
   };
+}
+
+function changeMatchesPaths(change, paths) {
+  return (
+    paths.some((mappedPath) => mappedPathMatches(mappedPath, change.path)) ||
+    (change.status === "renamed" &&
+      paths.some((mappedPath) =>
+        mappedPathMatches(mappedPath, change.fromPath),
+      ))
+  );
 }
 
 function renderMarkdown(report) {
@@ -964,6 +1228,8 @@ function renderMarkdown(report) {
     `- Renamed: **${report.summary.renamed}**`,
     `- Missing Auris targets: **${report.summary.missingAurisTargets}**`,
     `- Stale mappings: **${report.summary.staleMappings}**`,
+    `- Mapped upstream changes: **${report.summary.mappedUpstreamChanges}**`,
+    `- Capability-domain candidates: **${report.summary.domainCandidates}**`,
     `- Unmapped upstream changes: **${report.summary.unmappedUpstreamChanges}**`,
     "",
     "## Upstream changes",
@@ -993,6 +1259,18 @@ function renderMarkdown(report) {
     );
     for (const target of mapping.missingAurisTargets) {
       lines.push(`  - \`${target}\``);
+    }
+    lines.push("");
+  }
+
+  lines.push("## Capability-domain candidates", "");
+  if (report.domainCandidates.length === 0) {
+    lines.push("None.", "");
+  } else {
+    for (const candidate of report.domainCandidates) {
+      lines.push(
+        `- \`${candidate.domainId}\` (\`${candidate.decision}\`): **${candidate.change.status}** ${formatChangeMarkdown(candidate.change)}`,
+      );
     }
     lines.push("");
   }
@@ -1345,7 +1623,7 @@ function main(argv = process.argv.slice(2), options = {}) {
   const stdout = options.stdout || process.stdout;
   const gitRunner = options.gitRunner || defaultGitRunner;
   const reportWriter = options.reportWriter || publishReportsWithRecovery;
-  const { upstream } = parseArgs(argv);
+  const { repositoryPath, upstream } = parseArgs(argv);
   const manifestPath = path.join(
     projectRoot,
     "docs",
@@ -1368,10 +1646,16 @@ function main(argv = process.argv.slice(2), options = {}) {
     lockOptions: options.reportLockOptions,
   });
 
-  const cacheDirectory = prepareUpstreamCache(manifest.upstream.repository, {
-    cacheRoot: options.cacheRoot,
-    gitRunner,
-  });
+  const cacheDirectory = repositoryPath
+    ? validateLocalRepository(
+        repositoryPath,
+        manifest.upstream.repository,
+        gitRunner,
+      )
+    : prepareUpstreamCache(manifest.upstream.repository, {
+        cacheRoot: options.cacheRoot,
+        gitRunner,
+      });
   const { resolvedCommit, changes } = collectGitDiff({
     repository: cacheDirectory,
     baselineCommit: manifest.upstream.commit,
@@ -1401,6 +1685,8 @@ function main(argv = process.argv.slice(2), options = {}) {
 
 function runCli(argv = process.argv.slice(2), options = {}) {
   const stderr = options.stderr || process.stderr;
+  const diagnosticsRequested =
+    Array.isArray(argv) && argv.includes("--diagnostics");
   try {
     main(argv, options);
     return EXIT_CODES.SUCCESS;
@@ -1410,6 +1696,9 @@ function runCli(argv = process.argv.slice(2), options = {}) {
       stderr.write(
         `VMark sync report failed [${normalized.code}]: ${normalized.publicMessage}\n`,
       );
+      if (diagnosticsRequested && normalized.diagnostic) {
+        stderr.write(`Diagnostic: ${normalized.diagnostic}\n`);
+      }
     } catch {
       // There is no safe secondary output channel if stderr itself fails.
     }

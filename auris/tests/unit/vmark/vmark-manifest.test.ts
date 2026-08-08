@@ -7,7 +7,7 @@ import { z } from "zod";
 const PROJECT_ROOT = process.cwd();
 const PINNED_REPOSITORY = "https://github.com/xiaolai/vmark";
 const PINNED_COMMIT = "7c409688dc510d87183bdc46308e1ee645c2579f";
-const COMPARED_COMMIT = "e1eea49065282031a725d0c9387a0ce281cf5578";
+const COMPARED_COMMIT = "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c";
 const UPSTREAM_LICENSE_SHA256 =
   "87b3f4064cb76d1c7cc8c39546d7d62790b76372f37cfb9de1bb828a5f652b51";
 const REQUIRED_MAPPING_FAMILIES = [
@@ -23,6 +23,15 @@ const REQUIRED_MAPPING_FAMILIES = [
   "nia-yaml-workflows",
   "browser-markdown-workflows",
   "multi-window-status",
+];
+const REQUIRED_REVIEW_DOMAINS = [
+  "editor-infrastructure",
+  "extensions",
+  "formats",
+  "mcp-contract",
+  "terminal",
+  "theme-i18n",
+  "coherence",
 ];
 const PROJECT_PATH_PATTERN =
   "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*\\/$).+$";
@@ -56,14 +65,39 @@ const mappingSchema = z.strictObject({
   tests: uniqueArray(projectPathSchema),
 });
 
+const reviewDomainSchema = z.strictObject({
+  domainId: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  upstreamPrefixes: uniqueArray(projectPathSchema),
+  aurisPaths: uniqueArray(projectPathSchema),
+  decision: z.enum(["port", "adapt", "defer", "reject"]),
+  rationale: z.string().min(1),
+  lastComparedCommit: z.literal(COMPARED_COMMIT),
+});
+
 const portManifestSchema = z.strictObject({
   $schema: z.literal("./manifest.schema.json"),
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   upstream: z.strictObject({
     repository: z.literal(PINNED_REPOSITORY),
     commit: z.literal(PINNED_COMMIT),
     license: z.literal("ISC"),
   }),
+  reviewDomains: z
+    .array(reviewDomainSchema)
+    .min(1)
+    .superRefine((domains, context) => {
+      const seenDomainIds = new Set<string>();
+      domains.forEach((domain, index) => {
+        if (seenDomainIds.has(domain.domainId)) {
+          context.addIssue({
+            code: "custom",
+            message: "domainId must be unique",
+            path: [index, "domainId"],
+          });
+        }
+        seenDomainIds.add(domain.domainId);
+      });
+    }),
   entries: z
     .array(mappingSchema)
     .min(1)
@@ -100,6 +134,14 @@ type MutableManifest = {
     commit: string;
     license: string;
   } & Record<string, unknown>;
+  reviewDomains: Array<{
+    domainId: string;
+    upstreamPrefixes: string[];
+    aurisPaths: string[];
+    decision: string;
+    rationale: string;
+    lastComparedCommit: string;
+  } & Record<string, unknown>>;
   entries: MutableEntry[];
 } & Record<string, unknown>;
 
@@ -115,19 +157,19 @@ const manifest = portManifestSchema.parse(manifestJson);
 
 const EXPECTED_JSON_SCHEMA = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://auris.local/schemas/vmark-port-manifest-v1.json",
+  $id: "https://auris.local/schemas/vmark-port-manifest-v2.json",
   title: "Auris VMark Port Manifest",
   description:
-    "Many-to-many provenance mappings from a pinned VMark revision to Auris.",
+    "Many-to-many provenance mappings and reviewed capability domains from a pinned VMark revision to Auris.",
   type: "object",
   additionalProperties: false,
-  required: ["$schema", "schemaVersion", "upstream", "entries"],
+  required: ["$schema", "schemaVersion", "upstream", "reviewDomains", "entries"],
   properties: {
     $schema: {
       const: "./manifest.schema.json",
     },
     schemaVersion: {
-      const: 1,
+      const: 2,
     },
     upstream: {
       type: "object",
@@ -146,6 +188,14 @@ const EXPECTED_JSON_SCHEMA = {
         license: {
           const: "ISC",
         },
+      },
+    },
+    reviewDomains: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: {
+        $ref: "#/$defs/reviewDomain",
       },
     },
     entries: {
@@ -179,6 +229,41 @@ const EXPECTED_JSON_SCHEMA = {
       items: {
         type: "string",
         minLength: 1,
+      },
+    },
+    reviewDomain: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "domainId",
+        "upstreamPrefixes",
+        "aurisPaths",
+        "decision",
+        "rationale",
+        "lastComparedCommit",
+      ],
+      properties: {
+        domainId: {
+          type: "string",
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        },
+        upstreamPrefixes: {
+          $ref: "#/$defs/pathArray",
+        },
+        aurisPaths: {
+          $ref: "#/$defs/pathArray",
+        },
+        decision: {
+          enum: ["port", "adapt", "defer", "reject"],
+        },
+        rationale: {
+          type: "string",
+          minLength: 1,
+        },
+        lastComparedCommit: {
+          type: "string",
+          pattern: "^[0-9a-f]{40}$",
+        },
       },
     },
     mapping: {
@@ -267,6 +352,30 @@ const INVALID_MUTATIONS: InvalidMutation[] = [
     },
     expectedPath: ["$schema"],
     expectedCode: "invalid_value",
+  },
+  {
+    name: "a duplicate review domain id",
+    mutate: (candidate) => {
+      candidate.reviewDomains[1].domainId = candidate.reviewDomains[0].domainId;
+    },
+    expectedPath: ["reviewDomains", 1, "domainId"],
+    expectedCode: "custom",
+  },
+  {
+    name: "an unknown review decision",
+    mutate: (candidate) => {
+      candidate.reviewDomains[0].decision = "copy";
+    },
+    expectedPath: ["reviewDomains", 0, "decision"],
+    expectedCode: "invalid_value",
+  },
+  {
+    name: "a malformed review prefix",
+    mutate: (candidate) => {
+      candidate.reviewDomains[0].upstreamPrefixes[0] = "../src";
+    },
+    expectedPath: ["reviewDomains", 0, "upstreamPrefixes", 0],
+    expectedCode: "invalid_format",
   },
   {
     name: "a removed mapping required field",
@@ -404,7 +513,7 @@ describe("VMark port manifest", () => {
     },
   );
 
-  it("freezes the complete JSON Schema v1 contract", () => {
+  it("freezes the complete JSON Schema v2 contract", () => {
     expect(jsonSchema).toEqual(EXPECTED_JSON_SCHEMA);
   });
 
@@ -420,6 +529,23 @@ describe("VMark port manifest", () => {
         const memberKey = `${entry.mappingId}\0${memberPath}`;
         expect(mappingMembers.has(memberKey)).toBe(false);
         mappingMembers.add(memberKey);
+      }
+    }
+  });
+
+  it("records every reviewed product domain at the current comparison commit", () => {
+    const domainIds = manifest.reviewDomains.map((domain) => domain.domainId);
+
+    expect(new Set(domainIds).size).toBe(domainIds.length);
+    expect(domainIds).toEqual(expect.arrayContaining(REQUIRED_REVIEW_DOMAINS));
+    expect(
+      manifest.reviewDomains.every(
+        (domain) => domain.lastComparedCommit === COMPARED_COMMIT,
+      ),
+    ).toBe(true);
+    for (const domain of manifest.reviewDomains) {
+      for (const target of domain.aurisPaths) {
+        expect(existsSync(path.join(PROJECT_ROOT, target))).toBe(true);
       }
     }
   });

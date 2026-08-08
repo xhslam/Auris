@@ -1,11 +1,125 @@
 {
   "$schema": "./manifest.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "upstream": {
     "repository": "https://github.com/xiaolai/vmark",
     "commit": "7c409688dc510d87183bdc46308e1ee645c2579f",
     "license": "ISC"
   },
+  "reviewDomains": [
+    {
+      "domainId": "editor-infrastructure",
+      "upstreamPrefixes": [
+        "src/components/Editor",
+        "src/extensions",
+        "src/services/commands",
+        "src/services/persistence"
+      ],
+      "aurisPaths": [
+        "docs/vmark-port/p1-editor-infrastructure.md",
+        "src/features/notes/commands",
+        "src/features/notes/editor",
+        "src/features/notes/persistence"
+      ],
+      "decision": "adapt",
+      "rationale": "Keep Auris's CodeMirror and raw ProseMirror surfaces while adapting VMark editor behaviors and reliability invariants.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    },
+    {
+      "domainId": "extensions",
+      "upstreamPrefixes": [
+        "src/lib/extensions"
+      ],
+      "aurisPaths": [
+        "src/features/plugins",
+        "src/platform/desktop/plugin-host.ts"
+      ],
+      "decision": "adapt",
+      "rationale": "Adopt the trust-boundary lessons without copying VMark's proposed first-party extension composition; external code execution must remain disabled until isolated.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    },
+    {
+      "domainId": "formats",
+      "upstreamPrefixes": [
+        "src/components/Format",
+        "src/lib/formats",
+        "src/stores/settingsStore"
+      ],
+      "aurisPaths": [
+        "src/features/notes/formats",
+        "src/features/notes/vault/vault-path.ts",
+        "src/features/notes/vault/vault-store.ts"
+      ],
+      "decision": "port",
+      "rationale": "The Auris-native format registry now provides bounded JSON/YAML/TOML parsing, seven schema-aware summaries, safe unknown-text fallback, and lazy vault materialization.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    },
+    {
+      "domainId": "mcp-contract",
+      "upstreamPrefixes": [
+        "server/mcp/src/tools",
+        "src/hooks/mcpBridge",
+        "src/hooks/mcpBridge/v2"
+      ],
+      "aurisPaths": [
+        "electron/auris-notes-mcp-server.mjs",
+        "electron/mcp",
+        "electron/notes-mcp-bridge.cjs"
+      ],
+      "decision": "adapt",
+      "rationale": "Preserve Auris browser and Nia workflow semantics while separating tools by risk, attaching annotations and structured errors, and binding mutating authority to verified installed-client principals.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    },
+    {
+      "domainId": "terminal",
+      "upstreamPrefixes": [
+        "src/components/Terminal",
+        "src/hooks/useTerminal",
+        "src-tauri/src/pty"
+      ],
+      "aurisPaths": [
+        "src/components/notes-v2/terminal"
+      ],
+      "decision": "defer",
+      "rationale": "The five-session xterm core is aligned; file-path navigation, suspend/resume, and full session restoration follow after durable recovery.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    },
+    {
+      "domainId": "theme-i18n",
+      "upstreamPrefixes": [
+        "src/hooks/useEffectiveTheme.ts",
+        "src/i18n",
+        "src/services/theme",
+        "src/theme",
+        "src-tauri/src/window_manager/native_theme.rs"
+      ],
+      "aurisPaths": [
+        "src/components/notes-v2/notes-ui-copy.en.ts",
+        "src/components/notes-v2/notes-ui-copy.ts",
+        "src/features/notes/i18n",
+        "src/features/notes/workbench/notes-reading-theme.ts",
+        "src/stores/app-store.ts"
+      ],
+      "decision": "adapt",
+      "rationale": "Notes now has complete shape-checked zh-CN/en-US resources, persisted live locale switching, and customizable workspace shortcuts; native chrome synchronization and non-Notes product localization remain separate platform work.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    },
+    {
+      "domainId": "coherence",
+      "upstreamPrefixes": [
+        "src/components/Coherence",
+        "src/lib/coherence",
+        "src-tauri/src/coherence"
+      ],
+      "aurisPaths": [
+        "src/features/sessions/prepare-session.ts",
+        "src/features/notes/workbench"
+      ],
+      "decision": "adapt",
+      "rationale": "Translate VMark document coherence into an append-only learning-material lineage from source media and transcripts to notes, cards, and review artifacts.",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c"
+    }
+  ],
   "entries": [
     {
       "mappingId": "source-license-attribution",
@@ -19,7 +133,7 @@
       "intentionalDifferences": [
         "Phase 1 stores the upstream ISC notice verbatim in UPSTREAM-LICENSE.txt; README.md adds Auris provenance context and a non-endorsement disclaimer."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/vmark/vmark-manifest.test.ts"
       ]
@@ -42,7 +156,7 @@
         "The deterministic read-only comparison report is generated from the pinned baseline and records the separately reviewed current comparison commit.",
         "Phase 6 retains manual upstream review: the report never rewrites Auris source or silently changes the pinned provenance baseline."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/vmark/vmark-manifest.test.ts",
         "tests/unit/vmark/vmark-sync-report.test.ts"
@@ -71,7 +185,7 @@
         "URL/origin/AI-navigation policy lives in url-policy.ts; structured target canonicalization and SHA-256 payload binding live in target-descriptor.ts; Electron main still performs final authorization.",
         "ARIA projection, stable refs, and clean-reader live in page-observation.ts / stable-refs.ts / clean-reader.ts with explicit budgets, generation-stamped refs, and no iframe/shadow piercing."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/browser/clean-reader.test.ts",
         "tests/unit/browser/stable-refs.test.ts",
@@ -100,7 +214,7 @@
       "intentionalDifferences": [
         "Phase 2 replaces VMark's Rust/Tauri/WKWebView surface with Electron BrowserWindow and WebContentsView while preserving stable window/tab identities and lifecycle semantics."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/electron/browser/browser-registry.test.ts",
         "tests/unit/electron/browser/browser-surface-manager.test.ts",
@@ -133,7 +247,7 @@
       "intentionalDifferences": [
         "Phase 2 rebuilds browser chrome in Auris's React conventions and warm mint visual system while retaining VMark-equivalent tab, omnibox, history, bookmark, approval, and crash behavior."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/component/browser-window/browser-omnibox.test.tsx",
         "tests/component/browser-window/browser-window-shell.test.tsx",
@@ -148,7 +262,8 @@
         "src/hooks/mcpBridge/v2/browserNavigation.ts",
         "src/hooks/mcpBridge/v2/browserReadClass.ts",
         "src/hooks/mcpBridge/v2/browserScreenshot.ts",
-        "vmark-mcp-server/src/tools/browser.ts"
+        "server/mcp/src/tools/browser.ts",
+        "server/mcp/src/tools/browserRead.ts"
       ],
       "aurisPaths": [
         "electron/browser/browser-command-dispatcher.cjs",
@@ -164,7 +279,7 @@
         "Phase 4 composes production browserMcpDispatcher only after compiled security gates verify and the user enables MCP browser automation; named profiles/cookie replay stay independently gated.",
         "Phase 1 freezes shared command/error fixtures and a Node integration harness for later MCP/main-process tests."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/contracts/browser-command-cases.ts",
         "tests/contracts/browser-error-cases.ts",
@@ -203,7 +318,7 @@
         "Phase 3 lands connection-scoped leases, opaque one-shot approvals, and AiSandbox partition selection in Electron main.",
         "Phase 4 completes standing grants, attachment/mode authority, human reclaim, operation guard, and user-gated production enablement without an env bypass."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/component/browser-window/browser-approval-dialog.test.tsx",
         "tests/component/settings/auris-settings-browser-grants.test.tsx",
@@ -243,7 +358,7 @@
         "Phase 4 maps sessions to Electron partitions and macOS Keychain-backed ciphertext refs, adds crash budgets/hibernation without authority restore, redacted diagnostics audit, and fail-closed UX policy.",
         "Named profiles and cookie/localStorage replay remain independently false in production capability defaults even after Phase 4 security gates verify."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/electron/browser-crash-recovery-smoke.cjs",
         "tests/electron/browser-security-macos-smoke.cjs",
@@ -302,7 +417,7 @@
         "Task 4 executes providers only through fixed, bounded main-process adapters: HTTPS/loopback-only REST transports and shell:false audited Claude, Codex, and Gemini CLI registrations with prompt-on-stdin, isolated temporary cwd, minimal environment, cancellation, output caps, and sender-bound narrow IPC.",
         "Task 5 mounts one sanitized warm-mint Nia surface in browser chrome and Notes, attaches browser/note/workflow context only after explicit user action, and applies Notes proposals only after revision and selection review; local conversation history remains opt-in."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/nia/legacy-genie-migration.test.ts",
         "tests/unit/nia/nia-parser.test.ts",
@@ -356,7 +471,7 @@
         "The packaged CJS contract is the only parser, schema, registry, dependency scheduler, and runner; TypeScript files are thin adapters. Main reparses raw YAML, owns run identity/cancellation, rejects renderer AST/action/token claims, and routes allowlisted action/* effects through an injected approval/review service.",
         "Task 10 exposes both workflow families through one owner-bound main facade and additive auris_workflow MCP/UI surfaces; list/inspect/validate remain pure while each family's start capability stays independently smoke-gated."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/workflows/nia-action-registry.test.ts",
         "tests/unit/workflows/nia-workflow-runner.test.ts",
@@ -406,7 +521,7 @@
         "Task 8 runs only main-reparsed Markdown against an explicit window/tab, reacquires and releases dispatcher control for every step/approval retry, binds imported-source review separately from execution authority, and confines API steps to freshly authorized bounded HTTPS requests without ambient cookies.",
         "Task 9 records only trusted main/browser outcomes, converts every typed value to an opaque declared input before capture, and makes target repair a bounded propose/review/recompile/fresh-authorize flow with no silent rewrite."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/unit/workflows/browser-workflow-parser.test.ts",
         "tests/unit/workflows/browser-workflow-compiler.test.ts",
@@ -453,7 +568,7 @@
         "Phase 6 adapts VMark's window status concepts to multiple independently targetable Electron browser windows plus the existing Auris main window, with explicit identity for ambiguous targets.",
         "Electron BrowserWindow/WebContentsView ownership replaces Tauri window routing, overlay, occlusion, and persistence shells; Auris projects a redacted main-owned status DTO and never derives authority from renderer focus or stored status."
       ],
-      "lastComparedCommit": "e1eea49065282031a725d0c9387a0ce281cf5578",
+      "lastComparedCommit": "2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c",
       "tests": [
         "tests/component/browser-window/browser-window-menu.test.tsx",
         "tests/component/desktop/browser-status-center.test.tsx",
