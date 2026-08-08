@@ -272,13 +272,10 @@ const INITIAL_TOGGLES: Toggles = {
   keepConsecutiveNewlines: false,
   showBr: false,
   showInvisibles: false,
-  largeFileSource: true,
-  confirmLargeFile: true,
   showHidden: false,
   showAllFiles: false,
   confirmQuit: true,
   autoSave: true,
-  keepHistory: true,
   copyToAssets: true,
   cleanUnusedImages: false,
   mcpEnabled: true,
@@ -308,8 +305,6 @@ const INITIAL_TOGGLES: Toggles = {
   optionAsMeta: true,
   shellIntegration: true,
   screenReaderMode: false,
-  autoUpdate: false,
-  autoDownloadUpdate: false,
 };
 
 const INITIAL_SELECTS: Selects = {
@@ -329,10 +324,6 @@ const INITIAL_SELECTS: Selects = {
   lineEnding: 0,
   hardBreakStyle: 0,
   saveInterval: 1,
-  maxVersions: 1,
-  keepVersionDuration: 1,
-  mergeWindow: 1,
-  historyMaxFileSize: 1,
   pasteResize: 0,
   quoteStyle: 0,
   quoteToggleBehavior: 0,
@@ -353,7 +344,6 @@ const INITIAL_SELECTS: Selects = {
   scrollback: 1,
   terminalBell: 1,
   minContrast: 1,
-  updateFrequency: 0,
 };
 
 const INITIAL_RADIOS: Radios = { ai: "claude" };
@@ -435,7 +425,6 @@ type Row =
   | { kind: "browserGrants" };
 
 type ButtonAction =
-  | "checkUpdate"
   | "resetAll"
   | "detectPandoc"
   | "detectCli"
@@ -955,9 +944,6 @@ export function AurisSettings({ accent = DEFAULT_ACCENT }: { accent?: string }) 
   const runAction = useCallback(
     (action: ButtonAction) => {
       switch (action) {
-        case "checkUpdate":
-          if (typeof window !== "undefined") window.alert("已是最新版本（v1.4.0）。");
-          break;
         case "resetAll":
           resetAll();
           break;
@@ -1535,8 +1521,7 @@ function buildPanel(
           {
             title: "大文件",
             rows: [
-              { kind: "toggle", key: "largeFileSource", label: "超过 1 MB 的文件自动以源码模式打开", desc: "源码模式下立即打开。随时可从状态栏切换到富文本模式。" },
-              { kind: "toggle", key: "confirmLargeFile", label: "打开超过 5 MB 的文件前提示确认", desc: "在打开超大文件前显示确认对话框。超过 50 MB 的文件始终被拒绝。" },
+              { kind: "note", text: "已启用：按 UTF-8 实际字节数评估；达到 1 MB 自动切换轻量源码编辑，达到 5 MB 使用纯文本策略并关闭实时预览。" },
             ],
           },
         ],
@@ -1567,11 +1552,7 @@ function buildPanel(
           {
             title: "历史记录",
             rows: [
-              { kind: "toggle", key: "keepHistory", label: "保留文档历史记录", desc: "跟踪版本以用于撤销和恢复" },
-              { kind: "select", key: "maxVersions", label: "最大版本数", desc: "要保留的快照数", options: ["20 个版本", "50 个版本", "100 个版本"] },
-              { kind: "select", key: "keepVersionDuration", label: "保留版本时长", desc: "历史记录的最大年龄", options: ["3 天", "7 天", "30 天"] },
-              { kind: "select", key: "mergeWindow", label: "合并窗口", desc: "此窗口内的连续自动保存会合并为一个快照", options: ["10 秒", "30 秒", "60 秒"] },
-              { kind: "select", key: "historyMaxFileSize", label: "历史记录的最大文件大小", desc: "跳过大于此大小的文件的历史快照", options: ["256 KB", "512 KB", "1 MB"] },
+              { kind: "note", text: "已启用：成功保存时为不超过 512 KB 的文档生成去重版本，最多保留 50 个；右下角“历史版本”可恢复。Hot Exit 捕获不超过 2 MB 的未保存草稿，重启后恢复为脏稿并继续走冲突保护。" },
             ],
           },
           {
@@ -1588,7 +1569,7 @@ function buildPanel(
               {
                 kind: "button",
                 label: "Pandoc",
-                desc: "通用文档转换器 — 启用导出 → 其他格式",
+                desc: "仅检测本机 Pandoc 是否可用；DOCX、EPUB、LaTeX 等导出链路尚未接通",
                 btnText: "检测",
                 variant: "default",
                 align: "right",
@@ -1597,7 +1578,7 @@ function buildPanel(
                 statusColor: ctx.pandocStatus.color,
                 action: "detectPandoc",
               },
-              { kind: "note", text: "安装 Pandoc 以导出为 DOCX、EPUB、LaTeX 等。  安装指南 ↗" },
+              { kind: "note", text: "检测成功只代表运行环境就绪，不代表 Auris 已支持 Pandoc 格式导出。" },
             ],
           },
         ],
@@ -1860,10 +1841,7 @@ function buildPanel(
           {
             title: "更新",
             rows: [
-              { kind: "toggle", key: "autoUpdate", label: "自动更新", desc: "定期检查新版本" },
-              { kind: "select", key: "updateFrequency", label: "检查频率", desc: "检查更新的频率", options: ["启动时", "每天", "每周"], disabled: true },
-              { kind: "toggle", key: "autoDownloadUpdate", label: "自动下载更新", desc: "有可用更新时在后台下载新版本" },
-              { kind: "button", label: "检查更新", btnText: "立即检查", variant: "default", align: "right", action: "checkUpdate" },
+              { kind: "note", text: "计划中：桌面端自动检查、下载和安装更新尚未接入，因此这里不显示会产生误导的更新开关或“立即检查”按钮。" },
             ],
           },
           {

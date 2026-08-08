@@ -38,6 +38,10 @@ export function saveNotesLocale(
   activeLocale = locale;
   storage?.setItem(NOTES_LOCALE_STORAGE_KEY, locale);
 
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = locale;
+  }
+
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent(NOTES_LOCALE_EVENT, { detail: { locale } }),
