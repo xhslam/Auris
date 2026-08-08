@@ -17042,6 +17042,17 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   cursor: default;
 }
 
+.notes-v2__lint-summary {
+  color: var(--notes-muted, #69766f);
+  font-size: 11px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.notes-v2__lint-summary[data-has-errors="true"] {
+  color: #b42318;
+}
+
 @media (max-width: 760px) {
   .notes-v2__markdown-split {
     grid-template-columns: 1fr;

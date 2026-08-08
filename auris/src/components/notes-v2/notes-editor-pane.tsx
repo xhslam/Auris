@@ -43,6 +43,7 @@ import type {
   NotesEditorMode,
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
+import { lintMarkdown } from "@/features/notes/editor/markdown-lint";
 import {
   DEFAULT_NOTES_VIEW_PREFERENCES,
   type NotesViewPreferences,
@@ -144,6 +145,11 @@ export function NotesEditorPane({
     () =>
       document ? parseDocumentEditableSource(document) : null,
     [document],
+  );
+  const lintIssues = useMemo(
+    () =>
+      format.id === "markdown" ? lintMarkdown(document?.rawSource ?? "") : [],
+    [document?.rawSource, format.id],
   );
 
   useEffect(() => {
@@ -684,6 +690,19 @@ export function NotesEditorPane({
             />
           ) : null}
         </div>
+        {format.id === "markdown" ? (
+          <span
+            className="notes-v2__lint-summary"
+            data-has-errors={lintIssues.some(
+              (issue) => issue.severity === "error",
+            )}
+            title={lintIssues
+              .map((issue) => `L${issue.line}: ${issue.message}`)
+              .join("\n")}
+          >
+            Lint {lintIssues.length}
+          </span>
+        ) : null}
       </div>
       {editorMode !== "wysiwyg" && (isFindOpen || findQuery || replaceText) ? (
         <div
