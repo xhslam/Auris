@@ -128,6 +128,14 @@ const workflowBridge = Object.freeze({
 contextBridge.exposeInMainWorld("aurisWorkflows", workflowBridge);
 
 contextBridge.exposeInMainWorld("shadowingDesktop", {
+  menu: {
+    onCommand: (listener) => {
+      if (typeof listener !== "function") return () => undefined;
+      const handler = (_event, commandId) => listener(commandId);
+      ipcRenderer.on("shadowing:menu:command", handler);
+      return () => ipcRenderer.removeListener("shadowing:menu:command", handler);
+    },
+  },
   nia: niaBridge,
   workflows: workflowBridge,
   aiDock: {

@@ -63,6 +63,10 @@ function createApplicationMenuTemplate(options) {
       { role: "copy" },
       { role: "paste" },
       { role: "selectAll" },
+      { type: "separator" },
+      { click: () => callbacks.onNotesCommand?.("notes.save"), label: "Save Note" },
+      { click: () => callbacks.onNotesCommand?.("notes.saveAll"), label: "Save All Notes" },
+      { click: () => callbacks.onNotesCommand?.("notes.split"), label: "Toggle Markdown Split" },
     ],
   };
 

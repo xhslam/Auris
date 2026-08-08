@@ -10,6 +10,7 @@ import type {
   NotesEditorMode,
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
+import type { NotesViewPreferences } from "@/features/notes/editor/notes-view-preferences";
 
 type NotesWorkbenchCenterProps = {
   activeDocument: NoteDocument | null;
@@ -33,6 +34,7 @@ type NotesWorkbenchCenterProps = {
   onOpenWikiLink?: (target: string) => void;
   openDocuments: NoteDocument[];
   rightToolbarActions: ReactNode;
+  viewPreferences?: NotesViewPreferences;
 };
 
 export function NotesWorkbenchCenter({
@@ -53,6 +55,7 @@ export function NotesWorkbenchCenter({
   onOpenWikiLink,
   openDocuments,
   rightToolbarActions,
+  viewPreferences,
 }: NotesWorkbenchCenterProps) {
   const shouldShowLoadingState = isLoading && !activeDocument;
 
@@ -113,6 +116,7 @@ export function NotesWorkbenchCenter({
             (onDocumentChange as (nextSource: string) => void)(nextSource);
           }}
           onSelectionStateChange={onEditorSelectionStateChange}
+          viewPreferences={viewPreferences}
         />
       )}
     </div>

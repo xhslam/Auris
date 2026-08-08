@@ -1,10 +1,11 @@
+import type { Compartment } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import type { EditorView as ProseMirrorEditorView } from "prosemirror-view";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 
 export type NotesEditorChangeHandler = (nextSource: string) => void;
 
-export type NotesEditorMode = "source" | "wysiwyg";
+export type NotesEditorMode = "source" | "split" | "wysiwyg";
 
 export type NotesEditorSelectionState = {
   from: number;
@@ -16,6 +17,8 @@ export type NotesEditorSelectionState = {
 export type NotesEditorSurfaceView = EditorView | ProseMirrorEditorView;
 
 export type NotesEditorEnvironment = {
+  editableCompartment?: Compartment;
+  readOnly?: boolean;
   getDocuments?: () => NoteDocument[];
   documentPath?: string;
   onOpenWikiLink?: (target: string) => void;

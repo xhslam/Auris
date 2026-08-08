@@ -78,6 +78,7 @@ function findApproximatePositionForLine(state: EditorState, line: number) {
 export function createNotesRichEditorBridge(
   view: EditorView | null,
   openSourcePeek?: () => boolean,
+  isReadOnly: () => boolean = () => false,
 ): NotesEditorBridge {
   return {
     focus() {
@@ -101,7 +102,7 @@ export function createNotesRichEditorBridge(
       return view ? serializeNotesRichMarkdown(view.state.doc) : "";
     },
     insertSnippet(snippet: string) {
-      if (!view) {
+      if (!view || isReadOnly()) {
         return;
       }
 
@@ -119,7 +120,7 @@ export function createNotesRichEditorBridge(
       view.dispatch(tr);
       view.focus();
     },
-    openSourcePeek,
+    openSourcePeek: () => !isReadOnly() && Boolean(openSourcePeek?.()),
     revealLine(line: number) {
       if (!view) {
         return;

@@ -2939,6 +2939,11 @@ function installApplicationMenu() {
   const browserSurfaceEnabled = browserCapabilities?.snapshot()?.securityVerified === true;
   const template = createApplicationMenuTemplate({
     callbacks: {
+      onNotesCommand: (commandId) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("shadowing:menu:command", commandId);
+        }
+      },
       onCheckForUpdates: () => {
         void openUpgradeEntry();
       },

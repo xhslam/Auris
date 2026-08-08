@@ -252,7 +252,7 @@ export type DesktopNotesRecoveryDraft = {
 export type DesktopNotesHotExitWorkspace = {
   activePath: string | null;
   commandHistory: string[];
-  editorModesByPath: Record<string, "source" | "wysiwyg">;
+  editorModesByPath: Record<string, "source" | "split" | "wysiwyg">;
   leftSidebarCollapsed: boolean;
   leftSidebarMode: "files" | "outline" | "search";
   openTabs: string[];
@@ -382,6 +382,9 @@ export type DesktopPreparedTrainingSessionInput = {
 };
 
 export type DesktopBridge = {
+  menu?: {
+    onCommand: (listener: (commandId: string) => void) => () => void;
+  };
   nia?: {
     invoke: (
       command:

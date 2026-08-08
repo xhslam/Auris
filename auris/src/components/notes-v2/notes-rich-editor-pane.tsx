@@ -43,6 +43,11 @@ import {
 import { createNotesRichInputRules } from "@/features/notes/editor/notes-rich-input-rules";
 import { createNotesRichKeymap } from "@/features/notes/editor/notes-rich-keymap";
 import {
+  replaceAllNotesRichSearchMatches,
+  replaceNextNotesRichSearchMatch,
+  selectNextNotesRichSearchMatch,
+} from "@/features/notes/editor/notes-rich-find-replace";
+import {
   applyNotesSourcePeekMarkdown,
   canUseNotesSourcePeek,
   getNotesSourcePeekNode,
@@ -86,6 +91,9 @@ type NotesRichEditorPaneProps = {
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
   onOpenWikiLink?: (target: string) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
+  readOnly?: boolean;
+  focusMode?: boolean;
+  typewriterMode?: boolean;
 };
 
 type RichEditableDocument = ReturnType<typeof parseEditableNoteSource>;
@@ -125,6 +133,30 @@ function getLineFromPosition(doc: ProseMirrorNode, position: number) {
   }
 
   return prefix.split("\n").length - 1;
+}
+
+function updateActiveRichBlock(
+  view: EditorView,
+  options: { focusMode: boolean; typewriterMode: boolean },
+) {
+  view.dom
+    .querySelectorAll(".notes-v2__rich-active-block")
+    .forEach((element) =>
+      element.classList.remove("notes-v2__rich-active-block"),
+    );
+  const node = view.domAtPos(view.state.selection.from).node;
+  let element =
+    node instanceof HTMLElement ? node : node.parentElement;
+  while (element && element.parentElement !== view.dom) {
+    element = element.parentElement;
+  }
+  if (!element) return;
+  if (options.focusMode) {
+    element.classList.add("notes-v2__rich-active-block");
+  }
+  if (options.typewriterMode) {
+    element.scrollIntoView?.({ block: "center", inline: "nearest" });
+  }
 }
 
 function getSelectionState(view: EditorView): NotesEditorSelectionState {
@@ -271,6 +303,9 @@ export function NotesRichEditorPane({
   onEnsureWikiLinkNote,
   onOpenWikiLink,
   onSelectionStateChange,
+  readOnly = false,
+  focusMode = false,
+  typewriterMode = false,
 }: NotesRichEditorPaneProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -290,6 +325,7 @@ export function NotesRichEditorPane({
   const onEnsureWikiLinkNoteRef = useRef(onEnsureWikiLinkNote);
   const onOpenWikiLinkRef = useRef(onOpenWikiLink);
   const onSelectionStateChangeRef = useRef(onSelectionStateChange);
+  const viewModeRef = useRef({ focusMode, readOnly, typewriterMode });
   const [tableToolbarState, setTableToolbarState] =
     useState<NotesRichTableToolbarState | null>(null);
   const [contextMenuTarget, setContextMenuTarget] =
@@ -298,6 +334,11 @@ export function NotesRichEditorPane({
     null,
   );
   const [virtualTitleDraft, setVirtualTitleDraft] = useState("");
+  const [findQuery, setFindQuery] = useState("");
+  const [replaceText, setReplaceText] = useState("");
+  const [isFindOpen, setIsFindOpen] = useState(false);
+  const findInputRef = useRef<HTMLInputElement | null>(null);
+  const findQueryRef = useRef("");
   const sourcePeekControllerRef = useRef<NotesSourcePeekController>({
     cancel() {},
     commit() {},
@@ -305,6 +346,20 @@ export function NotesRichEditorPane({
     toggleLivePreview() {},
     updateMarkdown() {},
   });
+
+  useEffect(() => {
+    viewModeRef.current = { focusMode, readOnly, typewriterMode };
+    if (viewRef.current) {
+      viewRef.current.setProps({
+        editable: () => !viewModeRef.current.readOnly,
+      });
+      updateActiveRichBlock(viewRef.current, viewModeRef.current);
+    }
+  }, [focusMode, readOnly, typewriterMode]);
+
+  useEffect(() => {
+    findQueryRef.current = findQuery;
+  }, [findQuery]);
 
   const editableDocument = useMemo(
     () =>
@@ -413,7 +468,7 @@ export function NotesRichEditorPane({
     (target: EditorContextMenuTarget) => {
       const view = viewRef.current;
 
-      if (!view) {
+      if (!view || viewModeRef.current.readOnly) {
         return;
       }
 
@@ -443,7 +498,7 @@ export function NotesRichEditorPane({
     (action: NotesRichTableToolbarAction) => {
       const view = viewRef.current;
 
-      if (!view) {
+      if (!view || viewModeRef.current.readOnly) {
         return;
       }
 
@@ -741,7 +796,29 @@ export function NotesRichEditorPane({
     };
 
     const view = new EditorView(hostRef.current, {
+      editable: () => !viewModeRef.current.readOnly,
       handleKeyDown(keyView, event) {
+        const isMod = event.metaKey || event.ctrlKey;
+
+        if (isMod && event.key.toLowerCase() === "f") {
+          event.preventDefault();
+          setIsFindOpen(true);
+          window.requestAnimationFrame(() => {
+            findInputRef.current?.focus();
+            findInputRef.current?.select();
+          });
+          return true;
+        }
+
+        if (event.key === "F3" || (isMod && event.key.toLowerCase() === "g")) {
+          event.preventDefault();
+          return selectNextNotesRichSearchMatch(
+            keyView,
+            findQueryRef.current,
+            event.shiftKey,
+          );
+        }
+
         if (event.key === "F5") {
           event.preventDefault();
 
@@ -762,7 +839,7 @@ export function NotesRichEditorPane({
         return false;
       },
       handleClick(clickView, position, event) {
-        if (clearNewNotePlaceholder(clickView)) {
+        if (!readOnly && clearNewNotePlaceholder(clickView)) {
           event.preventDefault();
           return true;
         }
@@ -822,8 +899,17 @@ export function NotesRichEditorPane({
           return;
         }
 
+        if (
+          transaction.docChanged &&
+          viewModeRef.current.readOnly &&
+          !transaction.getMeta(NOTES_RICH_EDITOR_SYNC_META)
+        ) {
+          return;
+        }
+
         const nextState = currentView.state.apply(transaction);
         currentView.updateState(nextState);
+        updateActiveRichBlock(currentView, viewModeRef.current);
         setTableToolbarState(getNotesRichTableToolbarState(nextState));
 
         if (
@@ -891,17 +977,23 @@ export function NotesRichEditorPane({
 
     (hostRef.current as NotesRichEditorHostElement).__notesRichEditorView = view;
     viewRef.current = view;
-    const bridge = createNotesRichEditorBridge(view, () => openSourcePeek(view));
+    const bridge = createNotesRichEditorBridge(
+      view,
+      () => openSourcePeek(view),
+      () => viewModeRef.current.readOnly,
+    );
     bridgeRef.current = bridge;
     lastAppliedSourceRef.current = wysiwygDocumentSource;
     lastDocumentPathRef.current = document.path;
     onActiveLineChangeRef.current?.(0);
     onBridgeReadyRef.current?.(bridgeRef.current);
+    updateActiveRichBlock(view, viewModeRef.current);
   }, [
     clearNewNotePlaceholder,
     document,
     editableDocument,
     openSourcePeek,
+    readOnly,
     wysiwygDocumentSource,
   ]);
 
@@ -1025,6 +1117,98 @@ export function NotesRichEditorPane({
         className="notes-v2__rich-editor-surface"
         data-virtual-title={shouldShowVirtualTitle ? "true" : "false"}
       >
+        {isFindOpen ? (
+          <div className="notes-v2__find-replace">
+            <label className="notes-v2__find-replace-field">
+              <span>查找</span>
+              <input
+                aria-label="所见即所得查找"
+                onChange={(event) => setFindQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && viewRef.current) {
+                    event.preventDefault();
+                    selectNextNotesRichSearchMatch(
+                      viewRef.current,
+                      findQuery,
+                      event.shiftKey,
+                    );
+                  }
+                  if (event.key === "Escape") {
+                    setIsFindOpen(false);
+                    viewRef.current?.focus();
+                  }
+                }}
+                ref={findInputRef}
+                type="search"
+                value={findQuery}
+              />
+            </label>
+            {!readOnly ? (
+              <label className="notes-v2__find-replace-field">
+                <span>替换</span>
+                <input
+                  aria-label="所见即所得替换"
+                  onChange={(event) => setReplaceText(event.target.value)}
+                  type="text"
+                  value={replaceText}
+                />
+              </label>
+            ) : null}
+            <div className="notes-v2__find-replace-actions">
+              <button
+                onClick={() =>
+                  viewRef.current &&
+                  selectNextNotesRichSearchMatch(viewRef.current, findQuery, true)
+                }
+                type="button"
+              >
+                上一个
+              </button>
+              <button
+                onClick={() =>
+                  viewRef.current &&
+                  selectNextNotesRichSearchMatch(viewRef.current, findQuery)
+                }
+                type="button"
+              >
+                下一个
+              </button>
+              {!readOnly ? (
+                <>
+                  <button
+                    onClick={() =>
+                      viewRef.current &&
+                      replaceNextNotesRichSearchMatch(
+                        viewRef.current,
+                        findQuery,
+                        replaceText,
+                      )
+                    }
+                    type="button"
+                  >
+                    替换当前
+                  </button>
+                  <button
+                    onClick={() =>
+                      viewRef.current &&
+                      replaceAllNotesRichSearchMatches(
+                        viewRef.current,
+                        findQuery,
+                        replaceText,
+                      )
+                    }
+                    type="button"
+                  >
+                    全部替换
+                  </button>
+                </>
+              ) : null}
+              <button onClick={() => setIsFindOpen(false)} type="button">
+                关闭
+              </button>
+            </div>
+          </div>
+        ) : null}
         {shouldShowVirtualTitle ? (
           <input
             aria-label="Note title"
@@ -1033,6 +1217,7 @@ export function NotesRichEditorPane({
             onChange={(event) => setVirtualTitleDraft(event.target.value)}
             onKeyDown={handleVirtualTitleKeyDown}
             placeholder=""
+            readOnly={readOnly}
             type="text"
             value={virtualTitleDraft}
           />

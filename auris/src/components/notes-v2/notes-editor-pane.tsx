@@ -9,7 +9,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { EditorSelection } from "@codemirror/state";
+import { Compartment, EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import {
   NotesEditorContextMenu,
@@ -42,6 +42,10 @@ import type {
   NotesEditorMode,
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
+import {
+  DEFAULT_NOTES_VIEW_PREFERENCES,
+  type NotesViewPreferences,
+} from "@/features/notes/editor/notes-view-preferences";
 
 type NotesEditorHostElement = HTMLDivElement & {
   __notesEditorView?: EditorView;
@@ -57,6 +61,7 @@ type NotesEditorPaneProps = {
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
   onOpenWikiLink?: (target: string) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
+  viewPreferences?: NotesViewPreferences;
 };
 
 function isNewNotePlaceholderSource(document: NoteDocument | null) {
@@ -73,6 +78,7 @@ export function NotesEditorPane({
   onEnsureWikiLinkNote,
   onOpenWikiLink,
   onSelectionStateChange,
+  viewPreferences = DEFAULT_NOTES_VIEW_PREFERENCES,
 }: NotesEditorPaneProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const lastAppliedSourceRef = useRef<string | null>(null);
@@ -94,10 +100,16 @@ export function NotesEditorPane({
   const [replaceText, setReplaceText] = useState("");
   const [isFindOpen, setIsFindOpen] = useState(false);
   const [sourceTitleDraft, setSourceTitleDraft] = useState("");
+  const [editableCompartment] = useState(() => new Compartment());
+  const viewPreferencesRef = useRef(viewPreferences);
   const findQueryRef = useRef("");
   const replaceTextRef = useRef("");
   const findInputRef = useRef<HTMLInputElement | null>(null);
   const sourceTitleDraftRef = useRef("");
+
+  useEffect(() => {
+    viewPreferencesRef.current = viewPreferences;
+  }, [viewPreferences]);
 
   useEffect(() => {
     documentsRef.current = documents;
@@ -149,7 +161,7 @@ export function NotesEditorPane({
   useEffect(() => {
     const view = viewRef.current;
 
-    if (!view || editorMode !== "source") {
+    if (!view || editorMode === "wysiwyg") {
       return;
     }
 
@@ -157,7 +169,7 @@ export function NotesEditorPane({
   }, [editorMode, findQuery]);
 
   useEffect(() => {
-    if (!isFindOpen || editorMode !== "source") {
+    if (!isFindOpen || editorMode === "wysiwyg") {
       return;
     }
 
@@ -166,7 +178,7 @@ export function NotesEditorPane({
   }, [editorMode, isFindOpen]);
 
   useEffect(() => {
-    if (editorMode !== "source") {
+    if (editorMode === "wysiwyg") {
       return;
     }
 
@@ -208,6 +220,8 @@ export function NotesEditorPane({
           onSelectionStateChange: (selection) =>
             onSelectionStateChangeRef.current?.(selection),
           documentPath: document.path,
+          editableCompartment,
+          readOnly: viewPreferencesRef.current.readOnly,
           resolveImageUrl: (source) =>
             (() => {
               const resolved = resolveMarkdownImageSource(
@@ -244,7 +258,26 @@ export function NotesEditorPane({
     lastDocumentPathRef.current = document.path;
     onActiveLineChangeRef.current?.(0);
     onBridgeReadyRef.current?.(bridgeRef.current);
-  }, [document, editorMode, onActiveLineChange]);
+  }, [document, editableCompartment, editorMode, onActiveLineChange]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: editableCompartment.reconfigure([
+        EditorState.readOnly.of(viewPreferences.readOnly),
+        EditorView.editable.of(!viewPreferences.readOnly),
+      ]),
+    });
+  }, [editableCompartment, viewPreferences.readOnly]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !viewPreferences.typewriterMode) return;
+    view.dispatch({
+      effects: EditorView.scrollIntoView(view.state.selection.main.head, { y: "center" }),
+    });
+  }, [document?.path, editorMode, viewPreferences.typewriterMode]);
 
   const handleRichBridgeReady = useCallback(
     (bridge: NotesEditorBridge | null) => {
@@ -271,7 +304,7 @@ export function NotesEditorPane({
 
   const handleSourceEditorKeyDownCapture = useCallback(
     (event: ReactKeyboardEvent<HTMLDivElement>) => {
-      if (editorMode !== "source" || !viewRef.current) {
+      if (editorMode === "wysiwyg" || !viewRef.current) {
         return;
       }
 
@@ -311,7 +344,12 @@ export function NotesEditorPane({
     (event: ReactMouseEvent<HTMLDivElement>) => {
       const view = viewRef.current;
 
-      if (editorMode !== "source" || !view || !isNewNotePlaceholderSource(document)) {
+      if (
+        editorMode === "wysiwyg" ||
+        !view ||
+        viewPreferencesRef.current.readOnly ||
+        !isNewNotePlaceholderSource(document)
+      ) {
         return;
       }
 
@@ -338,7 +376,11 @@ export function NotesEditorPane({
     (event: ReactMouseEvent<HTMLDivElement>) => {
       const view = viewRef.current;
 
-      if (editorMode !== "source" || !view) {
+      if (
+        editorMode === "wysiwyg" ||
+        !view ||
+        viewPreferencesRef.current.readOnly
+      ) {
         return;
       }
 
@@ -370,7 +412,7 @@ export function NotesEditorPane({
     (target: EditorContextMenuTarget) => {
       const view = viewRef.current;
 
-      if (!view) {
+      if (!view || viewPreferencesRef.current.readOnly) {
         return;
       }
 
@@ -391,6 +433,9 @@ export function NotesEditorPane({
 
   const handleSourceTitleChange = useCallback(
     (nextTitle: string) => {
+      if (viewPreferencesRef.current.readOnly) {
+        return;
+      }
       sourceTitleDraftRef.current = nextTitle;
       setSourceTitleDraft(nextTitle);
 
@@ -435,7 +480,7 @@ export function NotesEditorPane({
   }, []);
 
   const handleReplaceNext = useCallback(() => {
-    if (!viewRef.current) {
+    if (!viewRef.current || viewPreferencesRef.current.readOnly) {
       return;
     }
 
@@ -443,7 +488,7 @@ export function NotesEditorPane({
   }, []);
 
   const handleReplaceAll = useCallback(() => {
-    if (!viewRef.current) {
+    if (!viewRef.current || viewPreferencesRef.current.readOnly) {
       return;
     }
 
@@ -451,7 +496,7 @@ export function NotesEditorPane({
   }, []);
 
   useEffect(() => {
-    if (editorMode !== "source") {
+    if (editorMode === "wysiwyg") {
       return;
     }
 
@@ -520,7 +565,7 @@ export function NotesEditorPane({
   }, [document, editorMode]);
 
   useEffect(() => {
-    if (editorMode === "source") {
+    if (editorMode !== "wysiwyg") {
       return;
     }
 
@@ -593,14 +638,18 @@ export function NotesEditorPane({
     <section
       className="notes-v2__editor-pane"
       data-mode={editorMode}
+      data-focus-mode={viewPreferences.focusMode ? "true" : "false"}
+      data-read-only={viewPreferences.readOnly ? "true" : "false"}
+      data-typewriter-mode={viewPreferences.typewriterMode ? "true" : "false"}
     >
       <div className="notes-v2__editor-heading notes-v2__document-meta">
         <div className="notes-v2__editor-heading-stack">
           <p className="notes-v2__document-path">{document.path}</p>
-          {editorMode === "source" ? (
+          {editorMode !== "wysiwyg" ? (
             <input
               aria-label="Note title"
               className="notes-v2__virtual-title-input"
+              disabled={viewPreferences.readOnly}
               onChange={(event) => handleSourceTitleChange(event.target.value)}
               placeholder=""
               type="text"
@@ -609,7 +658,7 @@ export function NotesEditorPane({
           ) : null}
         </div>
       </div>
-      {editorMode === "source" && (isFindOpen || findQuery || replaceText) ? (
+      {editorMode !== "wysiwyg" && (isFindOpen || findQuery || replaceText) ? (
         <div
           className="notes-v2__find-replace"
           onKeyDown={(event) => {
@@ -641,22 +690,24 @@ export function NotesEditorPane({
               value={findQuery}
             />
           </label>
-          <label className="notes-v2__find-replace-field">
-            <span>替换</span>
-            <input
-              aria-label="替换"
-              onChange={(event) => handleReplaceTextChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  handleReplaceNext();
-                }
-              }}
-              placeholder="输入替换文本"
-              type="text"
-              value={replaceText}
-            />
-          </label>
+          {!viewPreferences.readOnly ? (
+            <label className="notes-v2__find-replace-field">
+              <span>替换</span>
+              <input
+                aria-label="替换"
+                onChange={(event) => handleReplaceTextChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    handleReplaceNext();
+                  }
+                }}
+                placeholder="输入替换文本"
+                type="text"
+                value={replaceText}
+              />
+            </label>
+          ) : null}
           <div className="notes-v2__find-replace-actions">
             <button onClick={handleFindPrevious} type="button">
               上一个
@@ -664,12 +715,16 @@ export function NotesEditorPane({
             <button onClick={handleFindNext} type="button">
               下一个
             </button>
-            <button onClick={handleReplaceNext} type="button">
-              替换当前
-            </button>
-            <button onClick={handleReplaceAll} type="button">
-              全部替换
-            </button>
+            {!viewPreferences.readOnly ? (
+              <>
+                <button onClick={handleReplaceNext} type="button">
+                  替换当前
+                </button>
+                <button onClick={handleReplaceAll} type="button">
+                  全部替换
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -683,7 +738,34 @@ export function NotesEditorPane({
           onEnsureWikiLinkNote={onEnsureWikiLinkNote}
           onOpenWikiLink={onOpenWikiLink}
           onSelectionStateChange={onSelectionStateChange}
+          focusMode={viewPreferences.focusMode}
+          readOnly={viewPreferences.readOnly}
+          typewriterMode={viewPreferences.typewriterMode}
         />
+      ) : editorMode === "split" ? (
+        <div className="notes-v2__markdown-split" data-testid="notes-markdown-split">
+          <div
+            className="notes-v2__editor-surface notes-v2__markdown-split-source"
+            onContextMenu={handleSourceContextMenu}
+            onKeyDownCapture={handleSourceEditorKeyDownCapture}
+            onMouseDownCapture={handleSourceEditorMouseDownCapture}
+          >
+            <div
+              className="notes-v2__editor-host"
+              data-testid="notes-codemirror-host"
+              ref={hostRef}
+            />
+          </div>
+          <div className="notes-v2__markdown-split-preview">
+            <NotesRichEditorPane
+              document={document}
+              documents={documents}
+              onDocumentChange={() => undefined}
+              onOpenWikiLink={onOpenWikiLink}
+              readOnly
+            />
+          </div>
+        </div>
       ) : (
         <div
           className="notes-v2__editor-surface"

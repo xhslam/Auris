@@ -38,7 +38,7 @@ function sanitizeEditorModesByPath(value: unknown) {
     Object.entries(value).filter(
       (entry): entry is [string, NotesEditorMode] =>
         typeof entry[0] === "string" &&
-        (entry[1] === "source" || entry[1] === "wysiwyg"),
+        (entry[1] === "source" || entry[1] === "split" || entry[1] === "wysiwyg"),
     ),
   );
 }

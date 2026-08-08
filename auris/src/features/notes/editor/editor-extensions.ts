@@ -105,6 +105,9 @@ function dispatchImageInsertion(
   from: number,
   to: number,
 ) {
+  if (view.state.readOnly) {
+    return;
+  }
   const insertText = `\n\n${insertions.map((image) => image.markdown).join("\n\n")}\n\n`;
   const start = Math.min(Math.max(from, 0), view.state.doc.length);
   const end = Math.min(Math.max(to, 0), view.state.doc.length);
@@ -128,20 +131,35 @@ async function handleImageFiles(
   from: number,
   to: number,
 ) {
+  if (view.state.readOnly) {
+    return;
+  }
   const notePath = environment?.documentPath ?? "";
   const insertions: PreparedImageInsertion[] = [];
 
   for (const file of files) {
-    insertions.push(
-      await prepareImageInsertion({
-        file,
-        notePath,
-        persistAttachment: environment?.saveAttachment,
-      }),
-    );
+    if (view.state.readOnly) {
+      return;
+    }
+    const insertion = await prepareImageInsertion({
+      file,
+      notePath,
+      persistAttachment: environment?.saveAttachment
+        ? async (path, content) => {
+            if (view.state.readOnly) {
+              throw new Error("The editor is read-only.");
+            }
+            await environment.saveAttachment?.(path, content);
+          }
+        : undefined,
+    });
+    if (view.state.readOnly) {
+      return;
+    }
+    insertions.push(insertion);
   }
 
-  if (insertions.length === 0) {
+  if (insertions.length === 0 || view.state.readOnly) {
     return;
   }
 
@@ -203,6 +221,9 @@ export function createNotesEditorExtensions(
         return true;
       },
       drop(event, view) {
+        if (view.state.readOnly) {
+          return false;
+        }
         const imageFiles = collectImageFiles(event.dataTransfer?.files);
 
         if (imageFiles.length === 0) {
@@ -226,6 +247,9 @@ export function createNotesEditorExtensions(
         return true;
       },
       paste(event, view) {
+        if (view.state.readOnly) {
+          return false;
+        }
         const imageFiles = collectImageFiles(event.clipboardData?.files);
 
         if (imageFiles.length > 0) {
@@ -252,6 +276,7 @@ export function createNotesEditorExtensions(
         return false;
       },
     }),
+
     ...(autoPair ? [closeBrackets()] : []),
     keymap.of([
       ...(autoPair ? closeBracketsKeymap : []),

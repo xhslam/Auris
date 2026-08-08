@@ -1,5 +1,6 @@
 import { EditorSelection, EditorState } from "@codemirror/state";
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
+import { notesEditorSyncAnnotation } from "@/features/notes/editor/editor-annotations";
 import { createNotesEditorExtensions } from "@/features/notes/editor/editor-extensions";
 import type {
   NotesEditorBridge,
@@ -19,11 +20,22 @@ export function createNotesEditorState(
 ) {
   return EditorState.create({
     doc: rawSource,
-    extensions: createNotesEditorExtensions(
-      onDocumentChange,
-      environment,
-      behavior,
-    ),
+    extensions: [
+      EditorState.transactionFilter.of((transaction) =>
+        transaction.docChanged &&
+        transaction.startState.readOnly &&
+        !transaction.annotation(notesEditorSyncAnnotation)
+          ? []
+          : transaction,
+      ),
+      ...(environment?.editableCompartment
+        ? [environment.editableCompartment.of([
+            EditorState.readOnly.of(Boolean(environment.readOnly)),
+            EditorView.editable.of(!environment.readOnly),
+          ])]
+        : []),
+      createNotesEditorExtensions(onDocumentChange, environment, behavior),
+    ],
   });
 }
 
@@ -60,7 +72,7 @@ export function createNotesEditorBridge(
       return view?.state.doc.toString() ?? "";
     },
     insertSnippet(snippet: string) {
-      if (!view) {
+      if (!view || view.state.readOnly) {
         return;
       }
 

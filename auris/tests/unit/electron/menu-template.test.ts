@@ -68,4 +68,19 @@ describe("application menu template", () => {
       ]),
     );
   });
+
+  it("routes Notes menu actions through stable command ids", () => {
+    const onNotesCommand = vi.fn();
+    const template = createApplicationMenuTemplate({
+      callbacks: { onNotesCommand },
+      isMac: false,
+    });
+    const editMenu = findMenu(template, "Edit");
+    const split = editMenu?.submenu.find(
+      (item: { label?: string }) => item.label === "Toggle Markdown Split",
+    );
+
+    split?.click();
+    expect(onNotesCommand).toHaveBeenCalledWith("notes.split");
+  });
 });

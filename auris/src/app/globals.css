@@ -17002,3 +17002,52 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   ) {
   background: #002b36 !important;
 }
+
+/* Notes focused reading and Markdown split modes. */
+.desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host .cm-line,
+.desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host--wysiwyg .ProseMirror > * {
+  opacity: 0.3;
+  transition: opacity 140ms ease;
+}
+
+.desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host .cm-activeLine,
+.desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host--wysiwyg .ProseMirror > .notes-v2__rich-active-block {
+  opacity: 1;
+}
+
+.desktop-app-frame .notes-v2[data-read-only="true"] .notes-v2__editor-host {
+  cursor: default;
+}
+
+.notes-v2__markdown-split {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.notes-v2__markdown-split-source,
+.notes-v2__markdown-split-preview {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+}
+
+.notes-v2__markdown-split-source {
+  border-right: 1px solid var(--notes-line, #e0e0e0);
+}
+
+.notes-v2__markdown-split-preview .notes-v2__editor-host--wysiwyg {
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .notes-v2__markdown-split {
+    grid-template-columns: 1fr;
+  }
+
+  .notes-v2__markdown-split-preview {
+    display: none;
+  }
+}

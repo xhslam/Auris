@@ -35,6 +35,42 @@ describe("NotesEditorPane image paste", () => {
     delete (window as Window & { shadowingDesktop?: unknown }).shadowingDesktop;
   });
 
+  it("does not persist or insert pasted images while read-only", async () => {
+    const saveFile = vi.fn(async () => undefined);
+    (window as Window & { shadowingDesktop?: { vault?: { saveFile?: typeof saveFile } } })
+      .shadowingDesktop = { vault: { saveFile } };
+    const onDocumentChange = vi.fn();
+
+    render(
+      <NotesEditorPane
+        document={createDocument("Paragraph")}
+        documents={[createDocument("Paragraph")]}
+        editorMode="source"
+        onDocumentChange={onDocumentChange}
+        viewPreferences={{
+          focusMode: false,
+          fontSize: 18,
+          readOnly: true,
+          typewriterMode: false,
+        }}
+      />,
+    );
+
+    const host = screen.getByTestId("notes-codemirror-host");
+    const editor = host.querySelector(".cm-content") ?? host;
+    fireEvent.paste(editor, {
+      clipboardData: {
+        files: [new File([new Uint8Array([1, 2, 3])], "blocked.png", {
+          type: "image/png",
+        })],
+      },
+    });
+
+    await Promise.resolve();
+    expect(saveFile).not.toHaveBeenCalled();
+    expect(onDocumentChange).not.toHaveBeenCalled();
+  });
+
   it("saves pasted image files into the note assets folder and inserts a markdown image line", async () => {
     const saveFile = vi.fn(async () => undefined);
     (window as Window & { shadowingDesktop?: { vault?: { saveFile?: typeof saveFile } } })

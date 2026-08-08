@@ -1,4 +1,4 @@
-import { act, render } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
@@ -29,6 +29,145 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("NotesRichEditorPane sync", () => {
+  it("renders an editable Markdown source beside a read-only live preview", () => {
+    const rawSource = "# Daily Review\n\nBody";
+
+    render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="split"
+        onDocumentChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("notes-markdown-split")).toBeInTheDocument();
+    expect(screen.getByTestId("notes-codemirror-host")).toBeInTheDocument();
+    expect(
+      screen
+        .getByTestId("notes-prosemirror-host")
+        .querySelector(".ProseMirror"),
+    ).toHaveAttribute("contenteditable", "false");
+  });
+
+  it("enforces read-only mode in the source editor", () => {
+    const rawSource = "# Daily Review\n\nBody";
+
+    render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="source"
+        onDocumentChange={vi.fn()}
+        viewPreferences={{
+          focusMode: false,
+          fontSize: 18,
+          readOnly: true,
+          typewriterMode: false,
+        }}
+      />,
+    );
+
+    const content = screen
+      .getByTestId("notes-codemirror-host")
+      .querySelector(".cm-content");
+    expect(content).toHaveAttribute("contenteditable", "false");
+
+    fireEvent.keyDown(content as Element, { ctrlKey: true, key: "f" });
+    expect(screen.getByLabelText("查找")).toBeInTheDocument();
+    expect(screen.queryByLabelText("替换")).not.toBeInTheDocument();
+  });
+
+  it("does not let programmatic rich-editor writes bypass read-only mode", () => {
+    const onDocumentChange = vi.fn();
+    let bridge: NotesEditorBridge | null = null;
+    const rawSource = "# Daily Review\n\nBody";
+
+    render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="wysiwyg"
+        onBridgeReady={(nextBridge) => {
+          bridge = nextBridge;
+        }}
+        onDocumentChange={onDocumentChange}
+        viewPreferences={{
+          focusMode: false,
+          fontSize: 18,
+          readOnly: true,
+          typewriterMode: false,
+        }}
+      />,
+    );
+
+    act(() => {
+      bridge?.insertSnippet("blocked");
+    });
+
+    expect(onDocumentChange).not.toHaveBeenCalled();
+    expect(bridge?.getSource()).toBe(rawSource);
+  });
+
+  it("preserves original UTF-16 offsets during case-insensitive replacement", () => {
+    const onDocumentChange = vi.fn();
+    const rawSource = "# Daily Review\n\nİx";
+
+    render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="wysiwyg"
+        onDocumentChange={onDocumentChange}
+      />,
+    );
+
+    const editor = screen
+      .getByTestId("notes-prosemirror-host")
+      .querySelector(".ProseMirror");
+    fireEvent.keyDown(editor as Element, { ctrlKey: true, key: "f" });
+    fireEvent.change(screen.getByLabelText("所见即所得查找"), {
+      target: { value: "x" },
+    });
+    fireEvent.change(screen.getByLabelText("所见即所得替换"), {
+      target: { value: "z" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "全部替换" }));
+
+    expect(onDocumentChange).toHaveBeenLastCalledWith("# Daily Review\n\nİz");
+  });
+
+  it("finds and replaces text inside the WYSIWYG editor", () => {
+    const onDocumentChange = vi.fn();
+    const rawSource = "# Daily Review\n\nBody Body";
+
+    render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="wysiwyg"
+        onDocumentChange={onDocumentChange}
+      />,
+    );
+
+    const editor = screen
+      .getByTestId("notes-prosemirror-host")
+      .querySelector(".ProseMirror");
+    expect(editor).not.toBeNull();
+    fireEvent.keyDown(editor as Element, { ctrlKey: true, key: "f" });
+    fireEvent.change(screen.getByLabelText("所见即所得查找"), {
+      target: { value: "Body" },
+    });
+    fireEvent.change(screen.getByLabelText("所见即所得替换"), {
+      target: { value: "Text" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "全部替换" }));
+
+    expect(onDocumentChange).toHaveBeenLastCalledWith(
+      "# Daily Review\n\nText Text",
+    );
+  });
+
   it("serializes the first rich-editor heading as the note title", () => {
     const onDocumentChange = vi.fn();
     let bridge: NotesEditorBridge | null = null;

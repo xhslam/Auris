@@ -18,6 +18,10 @@ import { getNotesTextMetrics } from "@/features/notes/editor/notes-text-metrics"
 import type { LearningSnippet } from "@/features/notes/integrations/learning-snippets";
 import type { NotesHistoryVersion } from "@/features/notes/persistence/notes-recovery-store";
 import type { NotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
+import {
+  DEFAULT_NOTES_VIEW_PREFERENCES,
+  type NotesViewPreferences,
+} from "@/features/notes/editor/notes-view-preferences";
 
 type RightPopover = "backlinks" | "history" | "library" | "overflow" | "tags";
 
@@ -56,6 +60,8 @@ type NotesWorkbenchBottomRightProps = {
   searchQuery: string;
   searchResults: NoteDocument[];
   selectionState?: NotesEditorSelectionState | null;
+  viewPreferences?: NotesViewPreferences;
+  onViewPreferencesChange?: (preferences: NotesViewPreferences) => void;
 };
 
 export function NotesWorkbenchBottomRight({
@@ -88,6 +94,8 @@ export function NotesWorkbenchBottomRight({
   searchQuery,
   searchResults,
   selectionState,
+  viewPreferences = DEFAULT_NOTES_VIEW_PREFERENCES,
+  onViewPreferencesChange,
 }: NotesWorkbenchBottomRightProps) {
   const [openPopover, setOpenPopover] = useState<RightPopover | null>(null);
   const deferredSource = useDeferredValue(activeDocument?.rawSource ?? "");
@@ -103,6 +111,7 @@ export function NotesWorkbenchBottomRight({
     setOpenPopover((current) => (current === popover ? null : popover));
   }, []);
   const isSourceMode = editorMode === "source";
+  const isSplitMode = editorMode === "split";
   const editorToggleLabel = isSourceMode
     ? NOTES_UI_COPY.toolbar.displayEditing
     : NOTES_UI_COPY.toolbar.source;
@@ -182,6 +191,17 @@ export function NotesWorkbenchBottomRight({
         type="button"
       >
         <span aria-hidden="true">T</span>
+      </button>
+      <button
+        aria-label="Markdown 分屏"
+        aria-pressed={isSplitMode}
+        className="notes-v2__corner-icon"
+        data-active={isSplitMode ? "true" : "false"}
+        onClick={() => onEditorModeChange?.(isSplitMode ? "wysiwyg" : "split")}
+        title="Markdown 源码与实时预览分屏"
+        type="button"
+      >
+        <span aria-hidden="true">◫</span>
       </button>
       <button
         aria-expanded={openPopover === "library"}
@@ -321,6 +341,45 @@ export function NotesWorkbenchBottomRight({
           ) : null}
         </dl>
         <div className="notes-v2__overflow-menu">
+          <button
+            aria-pressed={viewPreferences.readOnly}
+            onClick={() => onViewPreferencesChange?.({
+              ...viewPreferences,
+              readOnly: !viewPreferences.readOnly,
+            })}
+            type="button"
+          >
+            {viewPreferences.readOnly ? "退出只读" : "只读模式"}
+          </button>
+          <button
+            aria-pressed={viewPreferences.focusMode}
+            onClick={() => onViewPreferencesChange?.({
+              ...viewPreferences,
+              focusMode: !viewPreferences.focusMode,
+            })}
+            type="button"
+          >
+            {viewPreferences.focusMode ? "退出聚焦" : "聚焦模式"}
+          </button>
+          <button
+            aria-pressed={viewPreferences.typewriterMode}
+            onClick={() => onViewPreferencesChange?.({
+              ...viewPreferences,
+              typewriterMode: !viewPreferences.typewriterMode,
+            })}
+            type="button"
+          >
+            {viewPreferences.typewriterMode ? "退出打字机" : "打字机模式"}
+          </button>
+          <button
+            onClick={() => {
+              onEditorModeChange?.(editorMode === "source" ? "wysiwyg" : "source");
+              closePopover();
+            }}
+            type="button"
+          >
+            {editorMode === "source" ? "返回所见即所得" : "完整源码编辑"}
+          </button>
           <button onClick={() => onRenameActiveNote?.()} type="button">
             {NOTES_UI_COPY.headerActions.rename}
           </button>

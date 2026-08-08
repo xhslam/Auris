@@ -26,6 +26,7 @@ import {
   NotesMcpEditReviewDialog,
 } from "@/components/notes-v2/notes-mcp-edit-review-dialog";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
+import { useNotesCommandInfrastructure } from "@/components/notes-v2/use-notes-command-infrastructure";
 import {
   NotesWorkbenchBottomLeft,
 } from "@/components/notes-v2/notes-workbench-bottom-left";
@@ -70,6 +71,12 @@ import type {
   NotesEditorMode,
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
+import {
+  DEFAULT_NOTES_VIEW_PREFERENCES,
+  loadNotesViewPreferences,
+  saveNotesViewPreferences,
+  type NotesViewPreferences,
+} from "@/features/notes/editor/notes-view-preferences";
 import type { LearningSnippet } from "@/features/notes/integrations/learning-snippets";
 import type { NotesDirectoryInfo } from "@/features/notes/note-types";
 import type { VaultEntry } from "@/features/notes/vault/vault-types";
@@ -270,6 +277,35 @@ export function NotesWorkbench({
   } | null>(null);
   const [selectionState, setSelectionState] =
     useState<NotesEditorSelectionState | null>(null);
+  const [viewPreferences, setViewPreferences] =
+    useState<NotesViewPreferences>(DEFAULT_NOTES_VIEW_PREFERENCES);
+  useEffect(() => {
+    setViewPreferences(loadNotesViewPreferences());
+  }, []);
+  const handleViewPreferencesChange = useCallback(
+    (next: NotesViewPreferences) => {
+      setViewPreferences(saveNotesViewPreferences(next));
+    },
+    [],
+  );
+  useEffect(() => {
+    const onViewKeyDown = (event: KeyboardEvent) => {
+      if (!event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      const key = event.key.toLowerCase();
+      if (!["f", "r", "t"].includes(key)) return;
+      event.preventDefault();
+      handleViewPreferencesChange({
+        ...viewPreferences,
+        ...(key === "f"
+          ? { focusMode: !viewPreferences.focusMode }
+          : key === "r"
+            ? { readOnly: !viewPreferences.readOnly }
+            : { typewriterMode: !viewPreferences.typewriterMode }),
+      });
+    };
+    window.addEventListener("keydown", onViewKeyDown);
+    return () => window.removeEventListener("keydown", onViewKeyDown);
+  }, [handleViewPreferencesChange, viewPreferences]);
   const [openLeftPopover, setOpenLeftPopover] = useState<"workspace" | null>(
     null,
   );
@@ -407,6 +443,35 @@ export function NotesWorkbench({
     },
     [activeDocument, onDocumentChange],
   );
+  const commandInfrastructure = useNotesCommandInfrastructure({
+    editorMode,
+    hasActiveDocument: Boolean(activeDocument),
+    onOpenPalette: () => onOpenCommandPaletteChange?.(true),
+    onSave: onSaveActiveDocument,
+    onSaveAll: onSaveAllDocuments,
+    onSetEditorMode: onEditorModeChange,
+    onToggleTerminal: () => setIsTerminalSplitOpen((current) => !current),
+  });
+  const resolvedCommandPaletteItems = useMemo(() => {
+    const existingIds = new Set(commandPaletteItems.map((item) => item.id));
+    return [
+      ...commandPaletteItems,
+      ...commandInfrastructure.commands
+        .filter((command) => !existingIds.has(command.id))
+        .map((command) => ({
+          id: command.id,
+          title: command.title,
+          onSelect: () => {
+            void commandInfrastructure.bus.execute(command.id, {
+              activeSurface: "global",
+              editorMode,
+              hasActiveDocument: Boolean(activeDocument),
+            });
+          },
+        })),
+    ];
+  }, [activeDocument, commandInfrastructure, commandPaletteItems, editorMode]);
+
   const resolvedTerminalWidth = useMemo(
     () => clampRightSidebarWidth(terminalWidth, shellWidth, "terminal"),
     [shellWidth, terminalWidth],
@@ -418,30 +483,6 @@ export function NotesWorkbench({
     },
     [shellWidth],
   );
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-
-        if (event.shiftKey) {
-          onSaveAllDocuments?.();
-          return;
-        }
-
-        onSaveActiveDocument?.();
-        return;
-      }
-
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "p") {
-        event.preventDefault();
-        onOpenCommandPaletteChange?.(true);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onOpenCommandPaletteChange, onSaveActiveDocument, onSaveAllDocuments]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -572,6 +613,10 @@ export function NotesWorkbench({
       <section
         className="notes-v2 notes-v2--minimal"
         data-notes-theme={readingTheme}
+        data-focus-mode={viewPreferences.focusMode ? "true" : "false"}
+        data-read-only={viewPreferences.readOnly ? "true" : "false"}
+        data-typewriter-mode={viewPreferences.typewriterMode ? "true" : "false"}
+        data-shortcut-conflicts={commandInfrastructure.conflicts.length}
         data-terminal-open={isTerminalSplitOpen ? "true" : "false"}
         ref={shellRef}
         style={
@@ -603,6 +648,7 @@ export function NotesWorkbench({
               onOpenWikiLink={onOpenWikiLink}
               openDocuments={openDocuments}
               rightToolbarActions={null}
+              viewPreferences={viewPreferences}
             />
           </main>
           {!rightSidebarCollapsed && rightSidebarMode === "properties" ? (
@@ -711,6 +757,8 @@ export function NotesWorkbench({
           searchQuery={searchQuery}
           searchResults={searchResults}
           selectionState={selectionState}
+          viewPreferences={viewPreferences}
+          onViewPreferencesChange={handleViewPreferencesChange}
         />
       </section>
       <NiaPanel
@@ -720,7 +768,7 @@ export function NotesWorkbench({
       />
       <NotesCommandPalette
         isOpen={isCommandPaletteOpen}
-        items={commandPaletteItems}
+        items={resolvedCommandPaletteItems}
         onOpenChange={(open) => onOpenCommandPaletteChange?.(open)}
       />
       {writeConflict ? (

@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { BrowserGrantCenter } from "@/components/browser-window/browser-grant-center";
+import { NotesShortcutSettings } from "@/components/settings/notes-shortcut-settings";
 import type {
   DesktopMcpClient,
   DesktopBrowserSecuritySnapshot,
@@ -428,6 +429,7 @@ type Row =
   | { kind: "note"; text: string }
   | { kind: "subhead"; text: string }
   | { kind: "shortcutBar" }
+  | { kind: "shortcutEditor" }
   | { kind: "browserGrants" };
 
 type ButtonAction =
@@ -1430,6 +1432,9 @@ function RenderRow(props: RowHandlers) {
         </div>
       );
 
+    case "shortcutEditor":
+      return <NotesShortcutSettings />;
+
     default:
       return null;
   }
@@ -1789,17 +1794,14 @@ function buildPanel(
       return {
         title: "快捷键",
         sections: [
-          { rows: [{ kind: "note", text: "单击快捷键以更改它。" }, { kind: "shortcutBar" }] },
           {
-            title: "格式",
+            title: "工作台",
             rows: [
-              { kind: "key", label: "粗体", combo: ["⌘", "B"] },
-              { kind: "key", label: "斜体", combo: ["⌘", "I"] },
-              { kind: "key", label: "行内代码", combo: ["⌘", "⇧", "`"] },
-              { kind: "key", label: "删除线", combo: ["⌘", "⇧", "X"] },
-              { kind: "key", label: "下划线", combo: ["⌘", "U"] },
-              { kind: "key", label: "链接", combo: ["⌘", "K"] },
-              { kind: "key", label: "移除链接", combo: ["⌥", "⇧", "K"], desc: "Remove link from selection, keeping text" },
+              {
+                kind: "note",
+                text: "这里的绑定直接驱动 Notes 命令总线。修改后立即广播到已打开的工作台；导入只接受 schemaVersion 1 的快捷键文件，同层重复绑定会明确报告冲突。",
+              },
+              { kind: "shortcutEditor" },
             ],
           },
         ],
@@ -1980,6 +1982,15 @@ const SETTINGS_CSS = `
 .auris-settings__shortcutbar{padding:12px 2px 18px;display:flex;gap:12px;align-items:center;}
 .auris-settings__shortcutbar-search{flex:1;min-width:0;display:flex;align-items:center;gap:9px;height:38px;padding:0 13px;border-radius:9px;border:1px solid var(--app-line);background:var(--app-fill);}
 .auris-settings__shortcutbar .auris-settings__btn-sm{height:38px;padding:0 15px;border-radius:9px;font-size:13.5px;}
+
+.auris-settings__shortcut-editor{padding:4px 0 10px;}
+.auris-settings__shortcut-editor .auris-settings__shortcutbar{padding-left:0;padding-right:0;}
+.auris-settings__shortcut-editor .auris-settings__shortcutbar>.auris-settings__searchinput{height:38px;padding:0 13px;border:1px solid var(--app-line);border-radius:9px;background:var(--app-fill);}
+.auris-settings__shortcut-editor label>span{display:grid;gap:4px;}
+.auris-settings__shortcut-editor label small{color:var(--app-muted);font-family:ui-monospace,'SF Mono',Menlo,monospace;}
+.auris-settings__shortcut-input{width:180px;height:36px;padding:0 12px;border:1px solid var(--app-line);border-radius:9px;background:var(--app-fill);color:var(--app-text);font-family:ui-monospace,'SF Mono',Menlo,monospace;outline:none;}
+.auris-settings__shortcut-input:focus{border-color:var(--accent);}
+.auris-settings__shortcut-error{margin:10px 0 0;color:#D98A7E;font-size:13px;}
 
 .browser-grant-center{padding:4px 2px 12px;display:flex;flex-direction:column;gap:12px;}
 .browser-grant-center__hint,.browser-grant-center__empty,.browser-grant-center--unavailable p{margin:0;font-size:13px;line-height:1.6;color:var(--app-muted);}
