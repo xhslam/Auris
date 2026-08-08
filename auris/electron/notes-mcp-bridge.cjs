@@ -12,6 +12,51 @@ const AUTH_TIMEOUT_MS = 5_000;
 const MAX_PENDING_REQUESTS = 100;
 const NOTES_MCP_REQUEST_CHANNEL = "shadowing:notes-mcp:request";
 const REQUEST_TIMEOUT_MS = 10_000;
+const READ_ONLY_BROWSER_ACTIONS = new Set([
+  "console",
+  "get_state",
+  "query",
+  "read",
+  "screenshot",
+  "wait",
+  "wait_for",
+]);
+const READ_ONLY_WORKFLOW_ACTIONS = new Set([
+  "get_state",
+  "inspect",
+  "list",
+  "validate",
+]);
+const MUTATING_NOTES_METHODS = new Set([
+  "editor.focus",
+  "editor.revealLine",
+  "notes.mcp.workspace",
+  "notes.replaceSelection",
+  "selection.insertSnippet",
+  "selection.set",
+]);
+
+function createUnverifiedPrincipal() {
+  return Object.freeze({
+    id: "unverified-local",
+    kind: "legacy-mcp-client",
+    verified: false,
+  });
+}
+
+function requiresVerifiedPrincipal(payload) {
+  if (MUTATING_NOTES_METHODS.has(payload.method)) return true;
+  if (payload.method === "notes.mcp.document") {
+    return payload.params?.action !== "read";
+  }
+  if (payload.method === "browser.mcp.action") {
+    return !READ_ONLY_BROWSER_ACTIONS.has(payload.params?.request?.action);
+  }
+  if (payload.method === "workflow.mcp.action") {
+    return !READ_ONLY_WORKFLOW_ACTIONS.has(payload.params?.action);
+  }
+  return false;
+}
 
 function createErrorResponse(id, code, message, data) {
   return {
@@ -118,6 +163,7 @@ function createNotesMcpBridge({
   removeDiscovery = () => undefined,
   releaseBrowserOwnership = () => undefined,
   releaseWorkflowOwnership = () => undefined,
+  verifyClientCredential = async () => null,
   writeDiscovery = () => undefined,
 }) {
   let port = null;
@@ -228,11 +274,24 @@ function createNotesMcpBridge({
       return;
     }
 
+    if (!socket.principal?.verified && requiresVerifiedPrincipal(payload)) {
+      sendSocketJson(
+        socket,
+        createErrorResponse(
+          id,
+          403,
+          "Verified MCP client credential required. Reinstall the Auris MCP integration.",
+        ),
+      );
+      return;
+    }
+
     try {
       if (payload.method === "workflow.mcp.action") {
         const result = await dispatchWorkflowRequest({
           connectionId: socket.connectionId,
           params: payload.params,
+          principal: socket.principal,
         });
         sendSocketJson(socket, createResultResponse(id, result));
         return;
@@ -242,6 +301,7 @@ function createNotesMcpBridge({
         id,
         method: payload.method,
         params: payload.params,
+        principal: socket.principal,
       });
 
       sendSocketJson(socket, createResultResponse(id, result));
@@ -275,14 +335,59 @@ function createNotesMcpBridge({
   }
 
   function handleConnection(socket) {
-    const connectionId = randomUUID();
+    const connectionNonce = randomUUID();
+    let connectionId = connectionNonce;
     socket.connectionId = connectionId;
+    socket.principal = null;
     let isAuthorized = false;
+    let isAuthenticating = false;
     const authTimeout = setTimeout(() => {
       if (!isAuthorized) {
         socket.close(1008, "Authentication timed out.");
       }
     }, AUTH_TIMEOUT_MS);
+
+    async function handleAuthentication(payload, id) {
+      if (
+        payload.method !== "auth" ||
+        !safeCompare(payload.params?.token, token)
+      ) {
+        sendSocketJson(socket, createErrorResponse(id, 401, "Unauthorized."));
+        return;
+      }
+      if (isAuthenticating) {
+        sendSocketJson(socket, createErrorResponse(id, 409, "Authentication already in progress."));
+        return;
+      }
+      isAuthenticating = true;
+      let principal = null;
+      try {
+        principal = await verifyClientCredential({
+          clientId: safeString(payload.params?.client_id),
+          clientToken: safeString(payload.params?.client_token),
+        });
+      } catch {
+        principal = null;
+      }
+      if (socket.readyState !== 1) return;
+      socket.principal =
+        principal && principal.verified === true
+          ? Object.freeze({
+              id: safeString(principal.id),
+              kind: safeString(principal.kind) || "installed-mcp-client",
+              verified: true,
+            })
+          : createUnverifiedPrincipal();
+      connectionId = `mcp:${socket.principal.id}:${connectionNonce}`;
+      socket.connectionId = connectionId;
+      isAuthorized = true;
+      router.registerConnection(connectionId);
+      clearTimeout(authTimeout);
+      sendSocketJson(socket, createResultResponse(id, {
+        ok: true,
+        principal: socket.principal,
+      }));
+    }
 
     socket.on("message", (data) => {
       const payload = parseSocketPayload(data);
@@ -294,18 +399,7 @@ function createNotesMcpBridge({
       }
 
       if (!isAuthorized) {
-        if (
-          payload.method === "auth" &&
-          safeCompare(payload.params?.token, token)
-        ) {
-          isAuthorized = true;
-          router.registerConnection(connectionId);
-          clearTimeout(authTimeout);
-          sendSocketJson(socket, createResultResponse(id, { ok: true }));
-          return;
-        }
-
-        sendSocketJson(socket, createErrorResponse(id, 401, "Unauthorized."));
+        void handleAuthentication(payload, id);
         return;
       }
 

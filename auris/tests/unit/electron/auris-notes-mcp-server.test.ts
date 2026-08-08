@@ -114,7 +114,39 @@ describe("Auris Notes MCP server", () => {
     expect(requests).toEqual([{ method: "notes.read", params: undefined }]);
     expect(result).toEqual({
       content: [{ text: JSON.stringify({ revision: "r1", source: "# Daily" }, null, 2), type: "text" }],
+      structuredContent: {
+        result: { revision: "r1", source: "# Daily" },
+      },
     });
+  });
+
+  it("returns structured Notes bridge failures without violating the declared output schema", async () => {
+    const { createAurisNotesMcpServer } = await loadMcpServer();
+    const server = createAurisNotesMcpServer({
+      request: async () => {
+        throw new Error("Notes renderer is not ready.");
+      },
+    });
+    const client = new Client({ name: "auris-notes-errors", version: "0.1.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    try {
+      const result = await client.callTool({
+        arguments: { action: "get_state" },
+        name: "auris_session",
+      });
+      expect(result).toMatchObject({
+        isError: true,
+        structuredContent: {
+          error: { message: "Notes renderer is not ready." },
+          ok: false,
+        },
+      });
+    } finally {
+      await client.close();
+      await server.close();
+    }
   });
 
   it("rejects selection replacement without a revision before it reaches the bridge", async () => {
@@ -147,12 +179,20 @@ describe("Auris Notes MCP server", () => {
         "auris_workspace",
         "auris_document",
         "auris_selection",
+        "auris_browser_read",
         "auris_browser",
         "auris_workflow",
       ]);
       expect(tools.tools.filter(({ name }) => name === "auris_browser")).toHaveLength(1);
       const notesCompatibilityProjection = tools.tools
-        .filter(({ name }) => name !== "auris_browser" && name !== "auris_workflow")
+        .filter(({ name }) =>
+          [
+            "auris_session",
+            "auris_workspace",
+            "auris_document",
+            "auris_selection",
+          ].includes(name),
+        )
         .map(({ description, inputSchema, name }) => {
           if (name !== "auris_document") return { description, inputSchema, name };
           const properties = Object.fromEntries(
@@ -177,14 +217,45 @@ describe("Auris Notes MCP server", () => {
         type: "object",
       });
       expect(tools.tools.find(({ name }) => name === "auris_browser")).toMatchObject({
-        description: expect.stringContaining("get_state"),
+        description: expect.stringContaining("acquire_control"),
         name: "auris_browser",
+      });
+      expect(tools.tools.find(({ name }) => name === "auris_browser_read")).toMatchObject({
+        description: expect.stringContaining("get_state"),
+        name: "auris_browser_read",
+      });
+      expect(tools.tools.find(({ name }) => name === "auris_session")).toMatchObject({
+        annotations: {
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+          readOnlyHint: true,
+        },
+        title: "Auris Session State",
+      });
+      expect(tools.tools.find(({ name }) => name === "auris_browser_read")).toMatchObject({
+        annotations: {
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+          readOnlyHint: true,
+        },
+        title: "Auris Browser (read-only)",
+      });
+      expect(tools.tools.find(({ name }) => name === "auris_browser")).toMatchObject({
+        annotations: {
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: true,
+          readOnlyHint: false,
+        },
+        title: "Auris Browser",
       });
       expect(tools.tools.find(({ name }) => name === "auris_browser")?.inputSchema).toMatchObject({
         additionalProperties: false,
         anyOf: expect.any(Array),
         properties: {
-          action: { enum: expect.arrayContaining(["get_state", "open", "act", "execute_js"]) },
+          action: { enum: expect.arrayContaining(["open", "act", "execute_js"]) },
           leaseToken: { maxLength: 512, minLength: 16, type: "string" },
           source: { maxLength: 65_536, minLength: 1, type: "string" },
           url: { maxLength: 2_048, minLength: 1, type: "string" },
@@ -208,8 +279,21 @@ describe("Auris Notes MCP server", () => {
         (alternative) => alternative.properties.action.const === action,
       );
 
-      expect(alternatives).toHaveLength(22);
-      expect(forAction("get_state")).toEqual([
+      expect(alternatives).toHaveLength(15);
+      expect(forAction("get_state")).toEqual([]);
+      const readAlternatives = (tools.tools.find(({ name }) => name === "auris_browser_read")?.inputSchema as unknown as {
+        anyOf: Array<{
+          additionalProperties: boolean;
+          properties: Record<string, { const?: string }>;
+          required: string[];
+        }>;
+      }).anyOf;
+      expect(readAlternatives).toHaveLength(7);
+      expect(
+        readAlternatives.filter(
+          (alternative) => alternative.properties.action.const === "get_state",
+        ),
+      ).toEqual([
         expect.objectContaining({
           additionalProperties: false,
           properties: { action: expect.any(Object) },
@@ -813,10 +897,20 @@ describe("Auris Notes MCP server", () => {
       logger: vi.fn(),
       removeDiscovery: vi.fn(),
       releaseBrowserOwnership: (connectionId: string) => dispatcher.releaseOwnership(connectionId),
+      verifyClientCredential: async ({ clientId, clientToken }: {
+        clientId: string;
+        clientToken: string;
+      }) => clientId === "test-client" && clientToken === "test-token"
+        ? { id: clientId, kind: "installed-mcp-client", verified: true }
+        : null,
       writeDiscovery: (content: string) => { discovery = content; },
     });
     const { AurisNotesBridgeClient, createAurisNotesMcpServer } = await loadMcpServer();
-    const bridgeClient = new AurisNotesBridgeClient({ discoveryPath });
+    const bridgeClient = new AurisNotesBridgeClient({
+      clientId: "test-client",
+      clientToken: "test-token",
+      discoveryPath,
+    });
     const server = createAurisNotesMcpServer({
       request: (...args: Parameters<typeof bridgeClient.request>) => bridgeClient.request(...args),
     });

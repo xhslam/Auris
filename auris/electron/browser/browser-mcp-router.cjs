@@ -260,7 +260,7 @@ function createBrowserMcpRouter({
     return state;
   }
 
-  function dispatchBrowser(connectionId, method, rawParams) {
+  function dispatchBrowser(connectionId, principal, method, rawParams) {
     const params = sanitizeBrowserParams(rawParams);
     const state = registerConnection(connectionId);
     if (state.pending.size >= pendingLimit) {
@@ -309,6 +309,7 @@ function createBrowserMcpRouter({
             connectionId,
             method,
             params,
+            principal,
             signal: controller.signal,
           }),
         )
@@ -319,13 +320,13 @@ function createBrowserMcpRouter({
     });
   }
 
-  async function route({ connectionId, id, method, params }) {
+  async function route({ connectionId, id, method, params, principal }) {
     if (NOTES_MCP_METHODS.has(method)) {
-      return forwardNotesRequest({ id, method, params });
+      return forwardNotesRequest({ id, method, params, principal });
     }
 
     if (BROWSER_MCP_METHODS.has(method)) {
-      return dispatchBrowser(connectionId, method, params);
+      return dispatchBrowser(connectionId, principal, method, params);
     }
 
     if (method.startsWith("workflow.") || method.startsWith("nia.")) {

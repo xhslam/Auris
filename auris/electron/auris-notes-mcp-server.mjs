@@ -12,13 +12,16 @@ import WebSocket from "ws";
 import { z } from "zod";
 import {
   BROWSER_TOOL_DESCRIPTION,
-  browserToolMcpInputSchema,
+  BROWSER_READ_TOOL_DESCRIPTION,
+  browserMutationToolMcpInputSchema,
+  browserReadToolMcpInputSchema,
   createBrowserPublicError,
   createBrowserToolErrorResult,
   createBrowserToolSuccessResult,
   getBrowserActionTimeoutMs,
   getBrowserTransportTimeoutMs,
-  parseBrowserToolInput,
+  parseBrowserMutationToolInput,
+  parseBrowserReadToolInput,
   serializeBrowserError,
 } from "./mcp/browser-tool-contract.mjs";
 import {
@@ -57,17 +60,27 @@ function errorMessage(error) {
 }
 
 function toolError(message) {
+  const payload = { error: { message: String(message) }, ok: false };
   return {
-    content: [{ text: message, type: "text" }],
+    content: [{ text: String(message), type: "text" }],
     isError: true,
+    structuredContent: payload,
   };
 }
 
 function toolSuccess(data) {
+  const result = data === undefined ? null : data;
   return {
-    content: [{ text: JSON.stringify(data, null, 2), type: "text" }],
+    content: [{ text: JSON.stringify(result, null, 2), type: "text" }],
+    structuredContent: { result },
   };
 }
+
+const GENERIC_OUTPUT_SCHEMA = {
+  error: z.unknown().optional(),
+  ok: z.literal(false).optional(),
+  result: z.unknown().optional(),
+};
 
 export class AurisBridgeTransportError extends Error {
   constructor(code, message) {
@@ -140,10 +153,14 @@ export function parseDiscovery(content) {
 
 export class AurisNotesBridgeClient {
   constructor({
+    clientId = process.env.AURIS_MCP_CLIENT_ID ?? "",
+    clientToken = process.env.AURIS_MCP_CLIENT_TOKEN ?? "",
     discoveryPath = getDiscoveryPath(),
     timeoutMs = NOTES_REQUEST_TIMEOUT_MS,
     WebSocketImpl = WebSocket,
   } = {}) {
+    this.clientId = clientId;
+    this.clientToken = clientToken;
     this.discoveryPath = discoveryPath;
     this.timeoutMs = timeoutMs;
     this.WebSocketImpl = WebSocketImpl;
@@ -198,7 +215,11 @@ export class AurisNotesBridgeClient {
       });
     });
 
-    const auth = await this.send("auth", { token: discovery.token });
+    const auth = await this.send("auth", {
+      client_id: this.clientId,
+      client_token: this.clientToken,
+      token: discovery.token,
+    });
     if (!auth || auth.ok !== true) {
       throw new Error("Auris Notes MCP bridge rejected authentication.");
     }
@@ -339,66 +360,10 @@ export function createAurisNotesMcpServer(bridge = new AurisNotesBridgeClient())
       return toolError(errorMessage(error));
     }
   };
-
-  server.registerTool("auris_session", {
-    description: "Discover the selected Auris vault and open note tabs.",
-    inputSchema: { action: z.literal("get_state") },
-  }, (input) => call("notes.mcp.session", input, () => null));
-
-  server.registerTool("auris_workspace", {
-    description: "Create, open, save, close, or switch a note tab in the selected Auris vault.",
-    inputSchema: {
-      action: z.enum(["new", "open", "save", "close", "switch_tab"]),
-      force: z.boolean().optional(),
-      path: z.string().optional(),
-      tab_id: z.string().optional(),
-    },
-  }, (input) => call("notes.mcp.workspace", input, () => null));
-
-  server.registerTool("auris_document", {
-    description: "Read or revision-safely replace the complete Markdown source of an open Auris note.",
-    inputSchema: {
-      action: z.enum(["read", "write"]),
-      content: z.string().optional(),
-      evidence: browserEvidenceSchema.optional(),
-      expected_revision: z.string().optional(),
-      tab_id: z.string().optional(),
-    },
-  }, (input) => call("notes.mcp.document", input, (value) =>
-    value.action === "write" && typeof value.content !== "string"
-      ? "content is required for document write"
-      : null,
-  ));
-
-  server.registerTool("auris_selection", {
-    description: "Read or revision-safely replace the current selection in the focused Auris note.",
-    inputSchema: {
-      action: z.enum(["get", "set"]),
-      content: z.string().optional(),
-      expected_revision: z.string().optional(),
-    },
-  }, async (input) => {
-    if (input.action === "get") {
-      return call("notes.getSelection", undefined, () => null);
-    }
-
-    return call("notes.replaceSelection", {
-      content: input.content,
-      expected_revision: input.expected_revision,
-    }, (value) => {
-      if (typeof value.content !== "string") return "content is required for selection set";
-      if (!value.expected_revision) return "expected_revision is required for selection set";
-      return null;
-    });
-  });
-
-  server.registerTool("auris_browser", {
-    description: BROWSER_TOOL_DESCRIPTION,
-    inputSchema: browserToolMcpInputSchema,
-  }, async (input) => {
+  const callBrowser = async (input, parseInput) => {
     let normalized;
     try {
-      normalized = parseBrowserToolInput(input);
+      normalized = parseInput(input);
     } catch (error) {
       return browserToolError(error, input?.action);
     }
@@ -422,11 +387,129 @@ export function createAurisNotesMcpServer(bridge = new AurisNotesBridgeClient())
     } catch (error) {
       return browserToolError(error, normalized.request.action);
     }
+  };
+
+  server.registerTool("auris_session", {
+    annotations: {
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+      readOnlyHint: true,
+    },
+    description: "Discover the selected Auris vault and open note tabs.",
+    inputSchema: { action: z.literal("get_state") },
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Session State",
+  }, (input) => call("notes.mcp.session", input, () => null));
+
+  server.registerTool("auris_workspace", {
+    annotations: {
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false,
+      readOnlyHint: false,
+    },
+    description: "Create, open, save, close, or switch a note tab in the selected Auris vault.",
+    inputSchema: {
+      action: z.enum(["new", "open", "save", "close", "switch_tab"]),
+      force: z.boolean().optional(),
+      path: z.string().optional(),
+      tab_id: z.string().optional(),
+    },
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Notes Workspace",
+  }, (input) => call("notes.mcp.workspace", input, () => null));
+
+  server.registerTool("auris_document", {
+    annotations: {
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false,
+      readOnlyHint: false,
+    },
+    description: "Read or revision-safely replace the complete Markdown source of an open Auris note.",
+    inputSchema: {
+      action: z.enum(["read", "write"]),
+      content: z.string().optional(),
+      evidence: browserEvidenceSchema.optional(),
+      expected_revision: z.string().optional(),
+      tab_id: z.string().optional(),
+    },
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Note Document",
+  }, (input) => call("notes.mcp.document", input, (value) =>
+    value.action === "write" && typeof value.content !== "string"
+      ? "content is required for document write"
+      : null,
+  ));
+
+  server.registerTool("auris_selection", {
+    annotations: {
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false,
+      readOnlyHint: false,
+    },
+    description: "Read or revision-safely replace the current selection in the focused Auris note.",
+    inputSchema: {
+      action: z.enum(["get", "set"]),
+      content: z.string().optional(),
+      expected_revision: z.string().optional(),
+    },
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Note Selection",
+  }, async (input) => {
+    if (input.action === "get") {
+      return call("notes.getSelection", undefined, () => null);
+    }
+
+    return call("notes.replaceSelection", {
+      content: input.content,
+      expected_revision: input.expected_revision,
+    }, (value) => {
+      if (typeof value.content !== "string") return "content is required for selection set";
+      if (!value.expected_revision) return "expected_revision is required for selection set";
+      return null;
+    });
   });
 
+  server.registerTool("auris_browser_read", {
+    annotations: {
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+      readOnlyHint: true,
+    },
+    description: BROWSER_READ_TOOL_DESCRIPTION,
+    inputSchema: browserReadToolMcpInputSchema,
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Browser (read-only)",
+  }, (input) => callBrowser(input, parseBrowserReadToolInput));
+
+  server.registerTool("auris_browser", {
+    annotations: {
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+      readOnlyHint: false,
+    },
+    description: BROWSER_TOOL_DESCRIPTION,
+    inputSchema: browserMutationToolMcpInputSchema,
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Browser",
+  }, (input) => callBrowser(input, parseBrowserMutationToolInput));
+
   server.registerTool("auris_workflow", {
+    annotations: {
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+      readOnlyHint: false,
+    },
     description: WORKFLOW_TOOL_DESCRIPTION,
     inputSchema: workflowToolInputSchema,
+    outputSchema: GENERIC_OUTPUT_SCHEMA,
+    title: "Auris Workflow",
   }, async (input) => {
     try {
       const result = await bridge.request(
@@ -447,7 +530,15 @@ async function main() {
   if (process.argv.includes("--health-check")) {
     process.stdout.write(`${JSON.stringify({
       status: "ok",
-      tools: ["auris_session", "auris_workspace", "auris_document", "auris_selection", "auris_browser", "auris_workflow"],
+      tools: [
+        "auris_session",
+        "auris_workspace",
+        "auris_document",
+        "auris_selection",
+        "auris_browser_read",
+        "auris_browser",
+        "auris_workflow",
+      ],
     })}\n`);
     return;
   }

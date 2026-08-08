@@ -209,6 +209,9 @@ describe("Browser MCP ESM contract adapter", () => {
         text: JSON.stringify({ ok: true, result: { title: "Untrusted page" } }, null, 2),
         type: "text",
       }],
+      structuredContent: {
+        result: { ok: true, result: { title: "Untrusted page" } },
+      },
     });
     expect(() => createBrowserToolSuccessResult(undefined)).toThrow("JSON-compatible");
     const circular: Record<string, unknown> = {};

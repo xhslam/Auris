@@ -10,10 +10,14 @@ const MCP_DISCOVERY_VERSION = 1;
 // and "auris" only when packaged. Pin it to a stable, app-name-independent
 // location instead.
 const DISCOVERY_APP_NAME = "auris";
+const MCP_CLIENT_CREDENTIALS_FILE_NAME = "auris-mcp-clients.json";
 const NOTES_MCP_DISCOVERY_FILE_NAME = "auris-notes-mcp-port";
 
-function defaultDiscoveryDirectory(environment = process.env, plat = process.platform) {
-  const home = os.homedir();
+function defaultDiscoveryDirectory(
+  environment = process.env,
+  plat = process.platform,
+  home = os.homedir(),
+) {
 
   switch (plat) {
     case "darwin":
@@ -35,6 +39,19 @@ function getNotesMcpDiscoveryPath(environment = process.env, plat = process.plat
   return environment.AURIS_NOTES_MCP_PORT_FILE
     ? path.resolve(environment.AURIS_NOTES_MCP_PORT_FILE)
     : path.join(defaultDiscoveryDirectory(environment, plat), NOTES_MCP_DISCOVERY_FILE_NAME);
+}
+
+function getMcpClientCredentialsPath(
+  environment = process.env,
+  plat = process.platform,
+  home = os.homedir(),
+) {
+  return environment.AURIS_MCP_CLIENT_CREDENTIALS_FILE
+    ? path.resolve(environment.AURIS_MCP_CLIENT_CREDENTIALS_FILE)
+    : path.join(
+        defaultDiscoveryDirectory(environment, plat, home),
+        MCP_CLIENT_CREDENTIALS_FILE_NAME,
+      );
 }
 
 function createDefaultMcpPolicy() {
@@ -113,9 +130,11 @@ function parseMcpDiscovery(content) {
 
 module.exports = {
   MCP_DISCOVERY_VERSION,
+  MCP_CLIENT_CREDENTIALS_FILE_NAME,
   NOTES_MCP_DISCOVERY_FILE_NAME,
   createDefaultMcpPolicy,
   defaultDiscoveryDirectory,
+  getMcpClientCredentialsPath,
   getNotesMcpDiscoveryPath,
   normalizeMcpPolicy,
   parseMcpDiscovery,

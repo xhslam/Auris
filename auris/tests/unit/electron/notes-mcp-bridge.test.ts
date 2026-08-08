@@ -12,11 +12,13 @@ const { createNotesMcpBridge } = require("../../../electron/notes-mcp-bridge.cjs
       connectionId: string;
       method: string;
       params: Record<string, unknown>;
+      principal: { id: string; kind: string; verified: boolean };
       signal: AbortSignal;
     }) => Promise<unknown>;
     dispatchWorkflowRequest?: (request: {
       connectionId: string;
       params: Record<string, unknown>;
+      principal: { id: string; kind: string; verified: boolean };
     }) => Promise<unknown>;
     getWindow: () => unknown;
     logger: (message: string) => void;
@@ -24,6 +26,10 @@ const { createNotesMcpBridge } = require("../../../electron/notes-mcp-bridge.cjs
     removeDiscovery: (instanceId: string) => void;
     releaseBrowserOwnership?: (connectionId: string) => void | Promise<void>;
     releaseWorkflowOwnership?: (connectionId: string) => void | Promise<void>;
+    verifyClientCredential?: (input: {
+      clientId: string;
+      clientToken: string;
+    }) => Promise<unknown>;
     writeDiscovery: (content: string) => void;
   }) => {
     close: () => void;
@@ -44,6 +50,71 @@ const { createNotesMcpBridge } = require("../../../electron/notes-mcp-bridge.cjs
 };
 
 describe("notes MCP bridge discovery", () => {
+  it("allows legacy clients to read but rejects mutations with reinstall guidance", async () => {
+    const rendererSend = vi.fn((_channel: string, payload: {
+      bridgeRequestId: string;
+    }) => {
+      bridge.resolveRequest(payload.bridgeRequestId, { source: "# Readable" });
+    });
+    const writeDiscovery = vi.fn();
+    const bridge = createNotesMcpBridge({
+      getWindow: () => ({
+        isDestroyed: () => false,
+        webContents: { send: rendererSend },
+      }),
+      logger: vi.fn(),
+      removeDiscovery: vi.fn(),
+      verifyClientCredential: async () => null,
+      writeDiscovery,
+    });
+    const { port } = await bridge.start();
+    const token = JSON.parse(String(writeDiscovery.mock.calls[0]?.[0])).token;
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/notes-mcp`);
+
+    try {
+      const auth = await waitForMessage(socket, () => {
+        socket.send(JSON.stringify({
+          id: "legacy-auth",
+          method: "auth",
+          params: { token },
+        }));
+      });
+      expect(auth).toMatchObject({
+        result: {
+          ok: true,
+          principal: { id: "unverified-local", verified: false },
+        },
+      });
+
+      const read = await waitForMessage(socket, () => {
+        socket.send(JSON.stringify({
+          id: "legacy-read",
+          method: "notes.mcp.document",
+          params: { action: "read" },
+        }));
+      });
+      expect(read).toMatchObject({ result: { source: "# Readable" } });
+
+      const write = await waitForMessage(socket, () => {
+        socket.send(JSON.stringify({
+          id: "legacy-write",
+          method: "notes.mcp.document",
+          params: { action: "write", content: "# blocked" },
+        }));
+      });
+      expect(write).toMatchObject({
+        error: {
+          code: 403,
+          message: expect.stringMatching(/credential.*Reinstall/iu),
+        },
+      });
+      expect(rendererSend).toHaveBeenCalledOnce();
+    } finally {
+      socket.close();
+      bridge.close();
+    }
+  });
+
   it("publishes an ephemeral port in a versioned discovery record, then removes it on close", async () => {
     const writeDiscovery = vi.fn();
     const removeDiscovery = vi.fn();
@@ -155,7 +226,15 @@ describe("notes MCP bridge discovery", () => {
   });
 
   it("routes Browser requests to main with a random connection identity and never to the renderer", async () => {
-    const dispatchBrowserRequest = vi.fn(async () => ({ ok: true }));
+    const dispatchBrowserRequest = vi.fn(async (_request: {
+      connectionId: string;
+      params: Record<string, unknown>;
+      principal: { id: string; kind: string; verified: boolean };
+      signal: AbortSignal;
+    }) => {
+      void _request;
+      return { ok: true };
+    });
     const rendererSend = vi.fn();
     const { bridge, socket } = await startAuthorizedBridge({
       dispatchBrowserRequest,
@@ -183,7 +262,13 @@ describe("notes MCP bridge discovery", () => {
       expect(rendererSend).not.toHaveBeenCalled();
       expect(dispatchBrowserRequest).toHaveBeenCalledOnce();
       const dispatched = dispatchBrowserRequest.mock.calls[0]?.[0];
-      expect(dispatched?.connectionId).toMatch(/^[0-9a-f-]{36}$/i);
+      expect(dispatched?.connectionId).toMatch(
+        /^mcp:test-client:[0-9a-f-]{36}$/iu,
+      );
+      expect(dispatched?.principal).toMatchObject({
+        id: "test-client",
+        verified: true,
+      });
       expect(dispatched?.connectionId).not.toBe("caller-controlled");
       expect(dispatched?.signal).toBeInstanceOf(AbortSignal);
       expect(dispatched?.params).toEqual({
@@ -348,6 +433,11 @@ describe("notes MCP bridge discovery", () => {
       getWindow: () => null,
       logger: vi.fn(),
       removeDiscovery: vi.fn(),
+      verifyClientCredential: async () => ({
+        id: "test-client",
+        kind: "installed-mcp-client",
+        verified: true,
+      }),
       writeDiscovery,
     });
     const { port } = await bridge.start();
@@ -371,8 +461,8 @@ describe("notes MCP bridge discovery", () => {
 
       expect(new Set(connectionIds).size).toBe(2);
       expect(connectionIds).toEqual([
-        expect.stringMatching(/^[0-9a-f-]{36}$/i),
-        expect.stringMatching(/^[0-9a-f-]{36}$/i),
+        expect.stringMatching(/^mcp:test-client:[0-9a-f-]{36}$/i),
+        expect.stringMatching(/^mcp:test-client:[0-9a-f-]{36}$/i),
       ]);
     } finally {
       sockets.forEach((socket) => socket.close());
@@ -411,7 +501,9 @@ describe("notes MCP bridge discovery", () => {
         id: "browser-limited",
       });
       expect(dispatchBrowserRequest).toHaveBeenCalledOnce();
-      resolveFirst?.({ ok: true });
+      const resolvePending =
+        resolveFirst as unknown as ((value: unknown) => void) | null;
+      resolvePending?.({ ok: true });
       await waitForSocketMessage(socket, (message) => message.id === "browser-pending");
     } finally {
       socket.close();
@@ -421,7 +513,14 @@ describe("notes MCP bridge discovery", () => {
 
   it("aborts Browser work and releases connection-scoped state on disconnect", async () => {
     let observedSignal: AbortSignal | null = null;
-    const dispatchBrowserRequest = vi.fn(({ signal }: { signal: AbortSignal }) => {
+    const dispatchBrowserRequest = vi.fn(({
+      connectionId: _connectionId,
+      signal,
+    }: {
+      connectionId: string;
+      signal: AbortSignal;
+    }) => {
+      void _connectionId;
       observedSignal = signal;
       return new Promise(() => undefined);
     });
@@ -486,7 +585,7 @@ describe("notes MCP bridge discovery", () => {
       expect(timeout).toMatchObject({
         error: { code: -32001, message: "Browser MCP request timed out." },
       });
-      expect(firstSignal?.aborted).toBe(true);
+      expect((firstSignal as unknown as AbortSignal | null)?.aborted).toBe(true);
 
       const second = await waitForMessage(socket, () => {
         socket.send(JSON.stringify({
@@ -497,7 +596,9 @@ describe("notes MCP bridge discovery", () => {
       });
       expect(second).toMatchObject({ result: { attempt: 2 } });
 
-      resolveFirst?.({ late: true });
+      const resolveLate =
+        resolveFirst as unknown as ((value: unknown) => void) | null;
+      resolveLate?.({ late: true });
       await new Promise((resolve) => setTimeout(resolve, 30));
       expect(received.filter((message) => message.id === "browser-timeout")).toHaveLength(1);
     } finally {
@@ -508,7 +609,14 @@ describe("notes MCP bridge discovery", () => {
 
   it("releases Browser state and aborts pending work when the bridge shuts down", async () => {
     let observedSignal: AbortSignal | null = null;
-    const dispatchBrowserRequest = vi.fn(({ signal }: { signal: AbortSignal }) => {
+    const dispatchBrowserRequest = vi.fn(({
+      connectionId: _connectionId,
+      signal,
+    }: {
+      connectionId: string;
+      signal: AbortSignal;
+    }) => {
+      void _connectionId;
       observedSignal = signal;
       return new Promise(() => undefined);
     });
@@ -543,6 +651,14 @@ async function startAuthorizedBridge(overrides: Partial<Parameters<typeof create
     getWindow: () => null,
     logger: vi.fn(),
     removeDiscovery: vi.fn(),
+    verifyClientCredential: async ({ clientId, clientToken }) =>
+      clientId === "test-client" && clientToken === "test-token"
+        ? {
+            id: clientId,
+            kind: "installed-mcp-client",
+            verified: true,
+          }
+        : null,
     writeDiscovery,
     ...overrides,
   });
@@ -555,7 +671,15 @@ async function startAuthorizedBridge(overrides: Partial<Parameters<typeof create
 
 async function authorizeSocket(socket: WebSocket, token: string) {
   await waitForMessage(socket, () => {
-    socket.send(JSON.stringify({ id: "auth-1", method: "auth", params: { token } }));
+    socket.send(JSON.stringify({
+      id: "auth-1",
+      method: "auth",
+      params: {
+        client_id: "test-client",
+        client_token: "test-token",
+        token,
+      },
+    }));
   });
 }
 

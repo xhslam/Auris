@@ -41,6 +41,7 @@ const {
 const { createNotesMcpBridge } = require("./notes-mcp-bridge.cjs");
 const {
   createDefaultMcpPolicy,
+  getMcpClientCredentialsPath,
   getNotesMcpDiscoveryPath: resolveNotesMcpDiscoveryPath,
   normalizeMcpPolicy,
   parseMcpDiscovery,
@@ -50,6 +51,9 @@ const {
   listMcpClients,
   removeMcpClient,
 } = require("./auris-mcp-installer.cjs");
+const {
+  createMcpClientCredentialStore,
+} = require("./mcp/client-credential-store.cjs");
 const {
   MEDIA_PROTOCOL_SCHEME,
   createVideoStreamResponse,
@@ -190,6 +194,7 @@ let terminalSessionUnsubscribers = [];
 let voiceEngineRuntime = null;
 let aiViewManager = null;
 let notesMcpBridge = null;
+let mcpClientCredentialStore = null;
 let browserMcpDispatcher = null;
 let browserCapabilities = null;
 let browserSecurityGates = null;
@@ -960,6 +965,15 @@ function getNotesRecoveryStore() {
   return notesRecoveryStore;
 }
 
+function getMcpClientCredentialStore() {
+  if (!mcpClientCredentialStore) {
+    mcpClientCredentialStore = createMcpClientCredentialStore({
+      registryPath: getMcpClientCredentialsPath(),
+    });
+  }
+  return mcpClientCredentialStore;
+}
+
 function getNotesMcpDiscoveryPath() {
   // Pinned to the app-name-independent location shared with the stdio MCP
   // server, so discovery works in dev (app name "Electron") and packaged
@@ -1381,13 +1395,17 @@ function getNotesMcpBridge() {
       }
       return browserMcpDispatcher.dispatch(request);
     },
-    dispatchWorkflowRequest: ({ connectionId, params }) => {
+    dispatchWorkflowRequest: ({ connectionId, params, principal }) => {
       if (!workflowFacade) {
         throw createBrowserPublicError("CAPABILITY_NOT_VERIFIED", {
           capability: "workflow-facade",
         });
       }
-      return workflowFacade.request({ ownerId: `mcp:${connectionId}`, ...params });
+      return workflowFacade.request({
+        ownerId: connectionId,
+        principal,
+        ...params,
+      });
     },
     getWindow: () => mainWindow,
     logger: writeStartupLog,
@@ -1395,7 +1413,9 @@ function getNotesMcpBridge() {
     releaseBrowserOwnership: (connectionId) =>
       browserMcpDispatcher?.releaseOwnership?.(connectionId),
     releaseWorkflowOwnership: (connectionId) =>
-      workflowFacade?.disconnect?.(`mcp:${connectionId}`),
+      workflowFacade?.disconnect?.(connectionId),
+    verifyClientCredential: ({ clientId, clientToken }) =>
+      getMcpClientCredentialStore().verify(clientId, clientToken),
     writeDiscovery: writeNotesMcpDiscovery,
   });
 
@@ -1796,6 +1816,7 @@ async function updateNotesMcpPolicy(policyPatch) {
 // 用哪个可执行文件当 node（Electron 自身），以及 server 脚本的绝对路径。
 function getMcpInstallerOptions() {
   return {
+    credentialStore: getMcpClientCredentialStore(),
     execPath: process.execPath,
     serverScriptPath: path.join(__dirname, "auris-notes-mcp-server.mjs"),
   };
