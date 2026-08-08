@@ -2,6 +2,7 @@ import MarkdownIt from "markdown-it";
 import {
   DOMParser,
   type DOMOutputSpec,
+  Fragment,
   type Node as ProseMirrorNode,
   type NodeSpec,
   Schema,
@@ -323,6 +324,15 @@ const codeBlockNodeSpec: NodeSpec = {
   marks: "",
   parseDOM: [
     {
+      getContent(dom: Node, schema: Schema) {
+        const code = (dom as HTMLElement).querySelector("code");
+        const source = (code?.textContent ?? dom.textContent ?? "").replace(
+          /\n$/u,
+          "",
+        );
+
+        return source ? Fragment.from(schema.text(source)) : Fragment.empty;
+      },
       getAttrs(dom: HTMLElement) {
         const code = dom.querySelector("code");
         const className = code?.getAttribute("class") ?? "";
@@ -373,8 +383,16 @@ export const notesRichEditorSchema = new Schema({
   nodes: richNodes,
 });
 
-function getCellText(cell: ProseMirrorNode) {
-  return cell.textContent.replace(/\s+/g, " ").trim();
+function getCellMarkdown(cell: ProseMirrorNode) {
+  const cellDocument = notesRichEditorSchema.topNodeType.create(
+    null,
+    cell.content,
+  );
+
+  return notesRichMarkdownSerializer
+    .serialize(cellDocument)
+    .replace(/\s*\n+\s*/gu, " ")
+    .trim();
 }
 
 function escapeTableCell(value: string) {
@@ -396,7 +414,7 @@ function serializeTable(node: ProseMirrorNode) {
     const cells: string[] = [];
 
     row.forEach((cell) => {
-      cells.push(getCellText(cell));
+      cells.push(getCellMarkdown(cell));
     });
 
     rows.push(cells);
