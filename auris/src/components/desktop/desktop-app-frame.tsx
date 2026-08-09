@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { DesktopAppSidebar } from "@/components/desktop/desktop-app-sidebar";
 import { SharedAuthBackgroundFrame } from "@/components/shell/shared-auth-background-frame";
+import { AppUpdateIndicator } from "@/components/updates/app-update-indicator";
+import { useAppUpdateChecker } from "@/features/updates/use-app-updates";
 import { persistLastWorkspace } from "@/features/app-runtime/app-runtime-storage";
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import { useDesktopRoutePrefetch } from "@/platform/desktop/use-desktop-route-prefetch";
@@ -130,6 +132,10 @@ export function DesktopAppFrame({
     });
   }, []);
 
+  // 自动更新：状态权威在主进程，这里只订阅 + 按频率触发启动检查。
+  // 对齐 vmark 把 useUpdateChecker 挂在主窗口的做法（Electron 只有一个渲染宿主）。
+  useAppUpdateChecker();
+
   return (
     <SharedAuthBackgroundFrame>
       <div
@@ -153,6 +159,7 @@ export function DesktopAppFrame({
           <div className="desktop-app-frame__viewport">
             <div className="desktop-app-frame__layout">
               <div className="desktop-app-frame__main">{children}</div>
+              <AppUpdateIndicator />
               <DesktopAiDockShell desktopBridge={desktopBridge} />
             </div>
           </div>

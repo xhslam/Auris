@@ -16,6 +16,10 @@ const path = require("node:path");
 
 const AUDITED_ROOTS = Object.freeze([
   "@modelcontextprotocol/sdk",
+  // 自动更新：main.cjs 通过 electron/updates/app-updater.cjs 懒加载它。
+  // electron-builder.yml 里 node_modules 默认被排除，只有进入这份审计闭包
+  // （落到 electron/node_modules）才会被打包，否则打包后 require 直接抛错。
+  "electron-updater",
   "jsdom",
   "proper-lockfile",
   "smol-toml",

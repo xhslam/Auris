@@ -12398,6 +12398,7 @@ body:has(.workspace-shell),
   position: absolute;
   inset: 0;
   display: flex;
+  gap: 10px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -12451,8 +12452,11 @@ body:has(.workspace-shell),
 .desktop-app-frame .notes-v2--minimal .notes-v2__minimal-properties-pane {
   flex: 0 0 220px;
   min-width: 180px;
+  margin: 10px 10px 10px 0;
   padding: 72px 18px 18px;
-  border-left: 1px solid rgba(36, 36, 36, 0.08);
+  border: 1px solid rgba(36, 36, 36, 0.08);
+  border-radius: 14px;
+  background: var(--notes-surface);
   color: rgba(36, 36, 36, 0.56);
   font-size: 13px;
 }
@@ -12713,6 +12717,17 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-frame .notes-v2__corner-popover[data-size="terminal"] {
   width: min(760px, calc(100vw - 48px));
+}
+
+/* 图谱专用档：固定高度且不可滚动。
+   父级 popover 默认 overflow:auto，如果沿用它，xyflow 的滚轮缩放会先被外层
+   滚动容器吃掉——图看起来"缩放失灵"。所以这里显式关掉外层滚动，把滚轮完整交给
+   画布，并给一个确定高度（画布是 height:100% 的 flex 子项，撑不起 auto 高度）。*/
+.desktop-app-frame .notes-v2__corner-popover[data-size="graph"] {
+  width: min(760px, calc(100vw - 48px));
+  height: min(70vh, 560px);
+  max-height: min(70vh, 560px);
+  overflow: hidden;
 }
 
 .desktop-app-frame .notes-v2__popover-header,
@@ -17113,6 +17128,79 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   color: #b42318;
 }
 
+.notes-start {
+  --notes-start-blue: #2b64c5;
+  --notes-start-ink: #1a1a1a;
+  --notes-start-muted: #8c8c8c;
+  --notes-start-fill: #e5e4e4;
+  --notes-start-border: #d5d4d4;
+  align-items: center;
+  background: #eeedec;
+  box-sizing: border-box;
+  color: var(--notes-start-ink);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: auto;
+  padding: clamp(88px, 15vh, 176px) clamp(28px, 8vw, 128px) 76px;
+}
+
+.notes-start__hero {
+  max-width: 850px;
+  text-align: center;
+  width: 100%;
+}
+
+.notes-start__brand {
+  color: #4d4d4d;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 17px;
+  letter-spacing: .12em;
+  margin: 0 0 clamp(28px, 4.5vh, 52px);
+  text-transform: uppercase;
+}
+
+.notes-start__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  justify-content: center;
+}
+
+.notes-start__action {
+  align-items: center;
+  background: var(--notes-start-fill);
+  border: 1px solid var(--notes-start-border);
+  border-radius: 8px;
+  color: #333;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Aptos", "PingFang SC", sans-serif;
+  font-size: 15px;
+  gap: 10px;
+  justify-content: center;
+  min-height: 72px;
+  padding: 0 36px;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.notes-start__action svg { color: var(--notes-start-blue); }
+.notes-start__action:hover { background: #dddcdc; border-color: #b9b8b8; box-shadow: 0 4px 14px rgb(0 0 0 / 8%); transform: translateY(-1px); }
+.notes-start__action:focus-visible, .notes-start__recent-item:focus-visible { outline: 3px solid rgb(43 100 197 / 30%); outline-offset: 3px; }
+
+.notes-start__recent { margin-top: clamp(60px, 9vh, 104px); max-width: 900px; width: 100%; }
+.notes-start__recent-heading { align-items: center; color: #7c7c7c; display: flex; gap: 8px; margin: 0 0 6px; }
+.notes-start__recent-heading h2 { font-size: 14px; font-weight: 600; letter-spacing: .05em; margin: 0; }
+.notes-start__recent-list { list-style: none; margin: 0; padding: 0; }
+.notes-start__recent-list li { border-bottom: 1px solid #e0dfde; }
+.notes-start__recent-list li:first-child { border-top: 1px solid #e0dfde; }
+.notes-start__recent-item { align-items: baseline; background: transparent; border: 0; color: inherit; cursor: pointer; display: grid; font-family: "Aptos", "PingFang SC", sans-serif; gap: 20px; grid-template-columns: minmax(170px, .9fr) minmax(0, 1.9fr); padding: 13px 10px; text-align: left; transition: background .14s ease; width: 100%; }
+.notes-start__recent-item:hover { background: rgb(43 100 197 / 6%); }
+.notes-start__recent-name { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-start__recent-path { color: var(--notes-start-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-start__empty { border-top: 1px solid #e0dfde; color: #969ba0; font-size: 14px; line-height: 1.7; padding: 20px 0; }
+
 @media (max-width: 760px) {
   .notes-v2__markdown-split {
     grid-template-columns: 1fr;
@@ -17121,6 +17209,555 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   .notes-v2__markdown-split-preview {
     display: none;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* 关系图面板（#6 KB Graph）                                          */
+/* 对齐 vmark src/components/KnowledgeBasePanel/kb-graph.css 的类结构： */
+/* 节点按 doc/tag/unresolved 分色，边按 kind 分色，relation 边加动画。  */
+/* 颜色改用 auris 的 --notes-* token，不引入 vmark 的 --accent-* 体系。 */
+/* ------------------------------------------------------------------ */
+
+.notes-v2__panel--graph {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  height: 100%;
+}
+
+.notes-v2__graph-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notes-v2__graph-scope {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.notes-v2__graph-chip {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--notes-line, rgba(0, 0, 0, 0.12));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--notes-muted, #666);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11.5px;
+  line-height: 1;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.notes-v2__graph-chip:hover {
+  color: var(--notes-text, #222);
+}
+
+.notes-v2__graph-chip[data-active="true"] {
+  border-color: color-mix(in srgb, var(--notes-accent, #3274d9) 34%, transparent);
+  background: color-mix(in srgb, var(--notes-accent, #3274d9) 12%, transparent);
+  color: var(--notes-text, #222);
+}
+
+.notes-v2__graph-depth {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--notes-muted, #666);
+  font-size: 11.5px;
+}
+
+.notes-v2__graph-depth select {
+  height: 24px;
+  border: 1px solid var(--notes-line, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 11.5px;
+}
+
+.notes-v2__graph-depth select:disabled {
+  opacity: 0.45;
+}
+
+.notes-v2__graph-summary {
+  margin: 0;
+  color: var(--notes-muted, #777);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 画布必须有确定高度：xyflow 依赖父容器尺寸测量，height:100% 落在一个
+   没有确定高度的 flex 容器里会算出 0，图就"渲染成功但看不见"。 */
+.notes-v2__graph-canvas,
+.notes-v2__graph-pending {
+  flex: 1;
+  min-height: 260px;
+  border: 1px solid var(--notes-line, rgba(0, 0, 0, 0.1));
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.notes-v2__graph-pending {
+  background: color-mix(in srgb, var(--notes-muted, #888) 6%, transparent);
+}
+
+.notes-graph-node {
+  padding: 4px 8px;
+  border: 1px solid var(--notes-line-strong, rgba(0, 0, 0, 0.18));
+  border-radius: 6px;
+  background: var(--notes-surface, #fff);
+  color: var(--notes-text, #222);
+  font-size: 11.5px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.notes-graph-node--doc {
+  cursor: pointer;
+}
+
+.notes-graph-node--tag {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--notes-accent, #3274d9) 14%, transparent);
+  color: var(--notes-text, #222);
+  cursor: default;
+}
+
+/* 未解析目标：虚线边框 + 降低对比，读起来就是"这篇还不存在"，而不是一个
+   可以点开的普通节点。cursor 也不给 pointer，因为点了确实没有东西可开。 */
+.notes-graph-node--unresolved {
+  border-style: dashed;
+  background: transparent;
+  color: var(--notes-muted, #888);
+  cursor: default;
+}
+
+.react-flow .notes-graph-edge--tag {
+  stroke: color-mix(in srgb, var(--notes-accent, #3274d9) 60%, transparent);
+  opacity: 0.55;
+}
+
+.react-flow .notes-graph-edge--relation {
+  stroke: var(--notes-accent, #3274d9);
+}
+
+.react-flow .notes-graph-edge--wikiLink,
+.react-flow .notes-graph-edge--link {
+  stroke: var(--notes-line-strong, rgba(0, 0, 0, 0.22));
+}
+
+/* ── Workspace Rail ────────────────────────────────────────────────────────
+   移植 vmark `WorkspaceRail.css` + `WorkspaceRailContextMenu.css`，换成 auris
+   的 notes token。
+
+   vmark 在它的 CSS 里记了一个踩过的坑，这里同样适用，所以照它的结论做：激活态
+   的左侧色条画在按钮**内部**（top/bottom/left 都是正偏移），不是负偏移的外部
+   伪元素。`.notes-v2__minimal-workspace` 是 `overflow: hidden`，负偏移的色条会
+   落在裁剪区外、永远不被绘制，激活态就悄悄退化成"只有颜色"。
+
+   而"只有颜色"本身也不够：六个强调色按名字哈希分配，两个工作区可能撞色，色盲
+   用户也读不到颜色差异。所以激活态同时用形状（色条）、背景色和 aria-pressed
+   三种方式表达，任一种失效都还剩两种。
+   ------------------------------------------------------------------------ */
+
+.desktop-app-frame .notes-v2__rail {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 34px;
+  padding: 8px 2px;
+}
+
+.desktop-app-frame .notes-v2__rail-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.desktop-app-frame .notes-v2__rail-entry {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.desktop-app-frame .notes-v2__rail-item {
+  position: relative;
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--notes-muted, #64746c);
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-v2__rail-item:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.46);
+  color: var(--notes-text, #233229);
+}
+
+.desktop-app-frame .notes-v2__rail-item:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.desktop-app-frame .notes-v2__rail-item[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--notes-text, #233229);
+}
+
+/* 色条在按钮内部——见本段顶部关于 overflow 裁剪的说明。 */
+.desktop-app-frame .notes-v2__rail-item[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--notes-rail-color, #3274d9);
+}
+
+.desktop-app-frame .notes-v2__rail-item:focus-visible {
+  outline: none;
+}
+
+/* 焦点环同样不能只靠颜色：用一条独立的下划线，和 hover/active 的背景色区分开。 */
+.desktop-app-frame .notes-v2__rail-item:focus-visible::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 2px;
+  left: 5px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--notes-rail-color, #3274d9);
+}
+
+.desktop-app-frame .notes-v2__rail-glyph {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+/* 根不可达的标记。条目仍然显示（用户需要知道它还在列表里），但明确标出来，
+   而不是让它看起来和可用的根一样。 */
+.desktop-app-frame .notes-v2__rail-item[data-unavailable="true"] .notes-v2__rail-glyph {
+  opacity: 0.45;
+}
+
+.desktop-app-frame .notes-v2__rail-warning {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  display: flex;
+  width: 12px;
+  height: 12px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #c2410c;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.desktop-app-frame .notes-v2__rail-add {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--notes-muted, #64746c);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.desktop-app-frame .notes-v2__rail-add:hover {
+  background: rgba(255, 255, 255, 0.46);
+  color: var(--notes-text, #233229);
+}
+
+.desktop-app-frame .notes-v2__rail-add:focus-visible {
+  outline: 2px solid var(--notes-accent, #3274d9);
+  outline-offset: 1px;
+}
+
+/* rail 只有 34px 宽，放不下一句话。错误文案改为屏幕外可读：读屏器与自动化能
+   拿到它（role="alert"），视觉上不撑破轨道。可见的失败反馈由条目上的不可用
+   标记承担。 */
+.desktop-app-frame .notes-v2__rail-error {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.desktop-app-frame .notes-v2__rail-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 176px;
+  padding: 5px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.desktop-app-frame .notes-v2__rail-menu:focus-visible {
+  outline: none;
+}
+
+.desktop-app-frame .notes-v2__rail-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #2f2f2f;
+  cursor: default;
+  font-size: 13px;
+  text-align: left;
+}
+
+.desktop-app-frame .notes-v2__rail-menu-item:hover:not([aria-disabled="true"]),
+.desktop-app-frame .notes-v2__rail-menu-item:focus-visible:not([aria-disabled="true"]) {
+  outline: none;
+  background: rgba(50, 116, 217, 0.14);
+}
+
+/* aria-disabled 而非 disabled：菜单用 roving focus（显式 .focus()），原生
+   disabled 的按钮不可聚焦，读屏用户就走不到这一项、也听不到它为什么不可用。 */
+.desktop-app-frame .notes-v2__rail-menu-item[aria-disabled="true"] {
+  color: #9a9a9a;
+}
+
+/* ── Nia 动作选择器 ────────────────────────────────────────────────────────
+   视觉语言沿用命令面板（.notes-v2__palette）：同一个应用里两个 spotlight 式
+   浮层长得不一样，会让人以为它们是两套东西。差别只在选择器多了分段标题、
+   scope 过滤条和条目右侧的收藏按钮。 */
+
+.notes-v2__nia-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  place-items: start center;
+  padding-top: 10vh;
+  background: rgba(4, 4, 5, 0.44);
+}
+
+.notes-v2__nia-picker {
+  width: min(720px, calc(100vw - 48px));
+  max-height: 70vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)),
+    rgba(18, 14, 15, 0.96);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.32);
+}
+
+.notes-v2__nia-picker-header {
+  display: grid;
+  gap: 10px;
+}
+
+.notes-v2__nia-picker-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.notes-v2__nia-picker-scopes {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.notes-v2__nia-picker-scope {
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.notes-v2__nia-picker-scope[data-active="true"] {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.notes-v2__nia-picker-list {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  overflow: auto;
+}
+
+/* 分段容器：收藏 / 最近 / 各分类。自己带 grid gap 而不是靠 list 的 gap，
+   因为标题与条目之间需要比条目之间更紧的间距。 */
+.notes-v2__nia-picker-group {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+.notes-v2__nia-picker-group-title {
+  margin: 8px 0 2px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.notes-v2__nia-picker-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name favorite" "meta favorite";
+  gap: 2px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+/* 键盘高亮同时用背景与左侧条，不只用颜色：六色环境下两条动作可能撞色，且
+   纯颜色高亮对色盲用户不可读。与 rail 的激活态同一个理由。 */
+.notes-v2__nia-picker-item[data-active="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 2px 0 0 0 var(--accent, #7cc4a4);
+}
+
+.notes-v2__nia-picker-item-name {
+  grid-area: name;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.notes-v2__nia-picker-item-meta {
+  grid-area: meta;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.notes-v2__nia-picker-item-desc {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notes-v2__nia-picker-item-scope {
+  flex: none;
+  opacity: 0.72;
+}
+
+.notes-v2__nia-picker-favorite {
+  grid-area: favorite;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.notes-v2__nia-picker-favorite[aria-pressed="true"] {
+  color: #e5c07b;
+}
+
+.notes-v2__nia-picker-empty {
+  margin: 0;
+  padding: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.desktop-app-frame .notes-v2__nia-picker-backdrop {
+  background: rgba(41, 54, 45, 0.18);
+}
+
+.desktop-app-frame .notes-v2__nia-picker {
+  border: 1px solid var(--notes-line-strong);
+  border-radius: 14px;
+  background: #f7faf5;
+  box-shadow: 0 24px 48px rgba(67, 86, 74, 0.14);
+}
+
+.desktop-app-frame .notes-v2__nia-picker-input {
+  border: 1px solid var(--notes-line-strong);
+  color: #1f2a22;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.desktop-app-frame .notes-v2__nia-picker-scope {
+  border-color: var(--notes-line);
+  color: #5c6b60;
+}
+
+.desktop-app-frame .notes-v2__nia-picker-scope[data-active="true"] {
+  border-color: var(--notes-line-strong);
+  color: #1f2a22;
+  background: rgba(124, 196, 164, 0.16);
+}
+
+.desktop-app-frame .notes-v2__nia-picker-item[data-active="true"] {
+  background: rgba(124, 196, 164, 0.16);
+  box-shadow: inset 2px 0 0 0 #4f8f72;
+}
+
+.desktop-app-frame .notes-v2__nia-picker-item-name {
+  color: #1f2a22;
+}
+
+.desktop-app-frame .notes-v2__nia-picker-item-meta,
+.desktop-app-frame .notes-v2__nia-picker-empty,
+.desktop-app-frame .notes-v2__nia-picker-group-title {
+  color: #5c6b60;
 }
 
 /* Structured Notes preview. */

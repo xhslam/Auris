@@ -186,6 +186,7 @@ declare namespace niaWorkflowContract {
     executePrompt?: (args: {
       definition: { body?: string; model?: string; [key: string]: unknown };
       input: string;
+      prompt: string;
       model?: string;
       step: NiaWorkflowStep;
       grantsBrowserAuthority: false;

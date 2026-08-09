@@ -75,6 +75,22 @@ function hasValidBrowserStatusBridge(bridge: Partial<DesktopBridge>) {
   );
 }
 
+/**
+ * 更新桥是可选的（旧版本 preload 没有它），但一旦存在就必须完整——半个更新桥
+ * 会让 UI 显示可点的"立即检查"，点下去却是 `undefined is not a function`。
+ */
+function hasValidUpdatesBridge(bridge: Partial<DesktopBridge>) {
+  return !bridge.updates || (
+    isFunction(bridge.updates.check)
+    && isFunction(bridge.updates.download)
+    && isFunction(bridge.updates.getState)
+    && isFunction(bridge.updates.onStateChange)
+    && isFunction(bridge.updates.openReleases)
+    && isFunction(bridge.updates.quitAndInstall)
+    && isFunction(bridge.updates.reset)
+  );
+}
+
 export function isDesktopBridge(value: unknown): value is DesktopBridge {
   if (!value || typeof value !== "object") {
     return false;
@@ -141,6 +157,7 @@ export function isDesktopBridge(value: unknown): value is DesktopBridge {
           isFunction(bridge.videoLibrary.revealDirectory) &&
           isFunction(bridge.videoLibrary.saveThumbnail) &&
           isFunction(bridge.videoLibrary.updateSourceMetadata))) &&
+      hasValidUpdatesBridge(bridge) &&
       bridge.window &&
       isFunction(bridge.window.showInFolder),
   );

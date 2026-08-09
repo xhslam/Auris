@@ -8,7 +8,7 @@ type NotesWorkbenchPopoverProps = {
   labelledBy?: string;
   onClose: () => void;
   open: boolean;
-  size?: "sm" | "md" | "lg" | "terminal";
+  size?: "sm" | "md" | "lg" | "graph" | "terminal";
 };
 
 export function NotesWorkbenchPopover({

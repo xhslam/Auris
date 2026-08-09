@@ -2,8 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NotesEditorBridge } from "@/features/notes/editor/editor-types";
+import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { formatMarkdown } from "@/features/notes/formatting/cjk-formatter";
 import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
+import { loadNoteDocument } from "@/features/notes/documents/document-repository";
+import {
+  VAULT_READ_CONCURRENCY,
+  mapWithConcurrency,
+} from "@/features/notes/vault/map-with-concurrency";
 import { loadCjkFormattingSettings } from "@/features/notes/formatting/cjk-formatting-store";
 import { buildNoteHtmlExport } from "@/features/notes/export/note-export";
 import { buildLearningPanelModel } from "@/features/notes/integrations/learning-panel-model";
@@ -128,6 +134,95 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     snapshot,
     workspace,
   });
+
+  // 关系图的全库数据是按需、临时的独立缓存，不能塞进 vaultStore 的编辑器缓存。
+  // 后者会在每次 refresh 时重读所有缓存路径；若图谱加载过全库，就会让本会话
+  // 之后每次 autosave / 外部变更都退化成 O(整库) 磁盘读取。
+  const graphLiveDocumentsRef = useRef(documents);
+  useEffect(() => {
+    graphLiveDocumentsRef.current = documents;
+  }, [documents]);
+
+  type GraphSnapshot = {
+    source: typeof snapshot;
+    documents: NoteDocument[];
+  };
+  const [graphSnapshot, setGraphSnapshot] = useState<GraphSnapshot | null>(null);
+  const graphSnapshotRef = useRef<GraphSnapshot | null>(null);
+  useEffect(() => {
+    graphSnapshotRef.current = graphSnapshot;
+  }, [graphSnapshot]);
+
+  const graphRequestRef = useRef<{
+    source: typeof snapshot;
+    token: object;
+    promise: Promise<void>;
+  } | null>(null);
+
+  const ensureGraphDocuments = useCallback(() => {
+    const source = snapshot;
+    if (graphSnapshotRef.current?.source === source) {
+      return Promise.resolve();
+    }
+    if (graphRequestRef.current?.source === source) {
+      return graphRequestRef.current.promise;
+    }
+
+    // 串行化并合并连续 refresh：新一代请求会排在旧请求后面，旧请求开始读取前
+    // 若已被更新一代取代就直接跳过，避免同时启动多组 16 路全库读取。
+    const previous = graphRequestRef.current?.promise ?? Promise.resolve();
+    const token = {};
+    const promise = previous
+      .catch(() => undefined)
+      .then(async () => {
+        if (graphRequestRef.current?.token !== token) return;
+
+        const entries = source.entries.filter(
+          (entry) =>
+            entry.kind === "file" && getFormatDescriptor(entry.path).canEdit,
+        );
+        const liveByPath = new Map(
+          graphLiveDocumentsRef.current.map((document) => [document.path, document]),
+        );
+        const loadedDocuments = await mapWithConcurrency(
+          entries,
+          VAULT_READ_CONCURRENCY,
+          async (entry) => {
+            const live = liveByPath.get(entry.path);
+            if (live) return live;
+
+            const loaded = await loadNoteDocument(client, entry);
+            if (!loaded) {
+              throw new Error(`Unable to load graph document: ${entry.path}`);
+            }
+            return loaded;
+          },
+        );
+
+        // 只有仍为最新请求的结果可以提交；被 vault refresh 取代的结果直接丢弃。
+        if (graphRequestRef.current?.token === token) {
+          setGraphSnapshot({ documents: loadedDocuments, source });
+        }
+      })
+      .finally(() => {
+        if (graphRequestRef.current?.token === token) {
+          graphRequestRef.current = null;
+        }
+      });
+    graphRequestRef.current = { promise, source, token };
+    return promise;
+  }, [client, snapshot]);
+
+  const graphDocuments = useMemo(() => {
+    const cached = graphSnapshot?.source === snapshot ? graphSnapshot.documents : [];
+    const byPath = new Map(cached.map((document) => [document.path, document]));
+    // 当前内存文档最后覆盖磁盘快照，保证未保存编辑立即反映到图中。
+    documents.forEach((document) => byPath.set(document.path, document));
+    return snapshot.entries
+      .map((entry) => byPath.get(entry.path) ?? null)
+      .filter((document): document is NoteDocument => document !== null);
+  }, [documents, graphSnapshot, snapshot]);
+
   // Fallback no-op fns so callers don't need to guard against undefined
   const fallbackPrompt = useCallback(
     async (_title: string, _defaultValue?: string): Promise<string | null> => {
@@ -559,6 +654,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     desktopTerminal: desktopBridge?.terminal ?? null,
     directoryInfo,
     documents,
+    graphDocuments,
+    ensureGraphDocuments,
     dirtyPaths,
     editorActiveLine,
     entries: snapshot.entries,

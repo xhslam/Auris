@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "roots": [
     "@modelcontextprotocol/sdk",
+    "electron-updater",
     "jsdom",
     "proper-lockfile",
     "smol-toml",
@@ -203,6 +204,15 @@
       ]
     },
     {
+      "name": "argparse",
+      "version": "2.0.1",
+      "path": "node_modules/argparse",
+      "kind": "dependency",
+      "requiredBy": [
+        "js-yaml"
+      ]
+    },
+    {
       "name": "bidi-js",
       "version": "1.0.3",
       "path": "node_modules/bidi-js",
@@ -342,6 +352,7 @@
       "kind": "dependency",
       "requiredBy": [
         "body-parser",
+        "builder-util-runtime",
         "express",
         "finalhandler",
         "router",
@@ -384,6 +395,24 @@
       "kind": "dependency",
       "requiredBy": [
         "on-finished"
+      ]
+    },
+    {
+      "name": "electron-updater",
+      "version": "6.6.2",
+      "path": "node_modules/electron-updater",
+      "kind": "root",
+      "requiredBy": [
+        "electron/*"
+      ]
+    },
+    {
+      "name": "builder-util-runtime",
+      "version": "9.3.1",
+      "path": "node_modules/electron-updater/node_modules/builder-util-runtime",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
       ]
     },
     {
@@ -557,6 +586,15 @@
       ]
     },
     {
+      "name": "fs-extra",
+      "version": "10.1.0",
+      "path": "node_modules/fs-extra",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
+      ]
+    },
+    {
       "name": "function-bind",
       "version": "1.1.2",
       "path": "node_modules/function-bind",
@@ -604,6 +642,16 @@
       "kind": "dependency",
       "requiredBy": [
         "proper-lockfile"
+      ]
+    },
+    {
+      "name": "graceful-fs",
+      "version": "4.2.11",
+      "path": "node_modules/graceful-fs",
+      "kind": "dependency",
+      "requiredBy": [
+        "fs-extra",
+        "jsonfile"
       ]
     },
     {
@@ -719,6 +767,15 @@
       ]
     },
     {
+      "name": "js-yaml",
+      "version": "4.1.1",
+      "path": "node_modules/js-yaml",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
+      ]
+    },
+    {
       "name": "jsdom",
       "version": "29.0.0",
       "path": "node_modules/jsdom",
@@ -743,6 +800,42 @@
       "kind": "dependency",
       "requiredBy": [
         "@modelcontextprotocol/sdk"
+      ]
+    },
+    {
+      "name": "jsonfile",
+      "version": "6.2.1",
+      "path": "node_modules/jsonfile",
+      "kind": "dependency",
+      "requiredBy": [
+        "fs-extra"
+      ]
+    },
+    {
+      "name": "lazy-val",
+      "version": "1.0.5",
+      "path": "node_modules/lazy-val",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
+      ]
+    },
+    {
+      "name": "lodash.escaperegexp",
+      "version": "4.1.2",
+      "path": "node_modules/lodash.escaperegexp",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
+      ]
+    },
+    {
+      "name": "lodash.isequal",
+      "version": "4.5.0",
+      "path": "node_modules/lodash.isequal",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
       ]
     },
     {
@@ -1015,12 +1108,30 @@
       ]
     },
     {
+      "name": "sax",
+      "version": "1.6.0",
+      "path": "node_modules/sax",
+      "kind": "dependency",
+      "requiredBy": [
+        "builder-util-runtime"
+      ]
+    },
+    {
       "name": "saxes",
       "version": "6.0.0",
       "path": "node_modules/saxes",
       "kind": "dependency",
       "requiredBy": [
         "jsdom"
+      ]
+    },
+    {
+      "name": "semver",
+      "version": "7.7.4",
+      "path": "node_modules/semver",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
       ]
     },
     {
@@ -1155,6 +1266,15 @@
       ]
     },
     {
+      "name": "tiny-typed-emitter",
+      "version": "2.1.0",
+      "path": "node_modules/tiny-typed-emitter",
+      "kind": "dependency",
+      "requiredBy": [
+        "electron-updater"
+      ]
+    },
+    {
       "name": "tldts",
       "version": "7.0.26",
       "path": "node_modules/tldts",
@@ -1225,6 +1345,16 @@
       "kind": "dependency",
       "requiredBy": [
         "jsdom"
+      ]
+    },
+    {
+      "name": "universalify",
+      "version": "2.0.1",
+      "path": "node_modules/universalify",
+      "kind": "dependency",
+      "requiredBy": [
+        "fs-extra",
+        "jsonfile"
       ]
     },
     {

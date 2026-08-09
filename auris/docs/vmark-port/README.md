@@ -42,3 +42,12 @@ Phase handoffs:
 - Phase 3: `phase-3-handoff.md` (MCP research loop)
 - Phase 4: `phase-4-handoff.md` (security authority + enablement gates)
 - Phase 6: `phase-6-handoff.md` (Phase 5 Nia/workflows + Phase 6 multi-window/release verification)
+
+## Upstream capability review
+
+- VMark v0.9.31 (`981afc01`): `feature-gap-report-v0.9.31.md`. Functional and
+  technical gap report against this baseline. Items 5-8 of its difference
+  matrix (Workspace Rail, knowledge-base graph, Genies, auto-update) are the
+  provenance for the corresponding Auris features. This is a tracking report,
+  not a per-domain re-review: `manifest.json` `lastComparedCommit` values are
+  intentionally not advanced without re-verification.

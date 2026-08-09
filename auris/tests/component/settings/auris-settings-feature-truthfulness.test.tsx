@@ -1,14 +1,55 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AurisSettings } from "@/components/settings/auris-settings";
+import type { DesktopUpdateSnapshot } from "@/platform/desktop/desktop-bridge";
 import { resetHydratedDesktopBridgeCacheForTests } from "@/platform/desktop/use-hydrated-desktop-bridge";
+import { __resetAppUpdateStoreForTests } from "@/features/updates/update-store";
+import { __resetUpdateSubscriptionForTests } from "@/features/updates/use-app-updates";
+import { createTestDesktopBridge } from "../../helpers/desktop-bridge";
+
+/**
+ * 完整桥来自 `tests/helpers/desktop-bridge`：`isDesktopBridge()` 要求所有必填
+ * 子桥到位，只挂一个 `updates` 会被整体判为 null——那正是上一版用例挂不上的
+ * 原因。
+ */
+function installUpdatesBridge(snapshot: Partial<DesktopUpdateSnapshot> = {}) {
+  const state = {
+    canInstallInPlace: false,
+    currentVersion: "1.0.0",
+    downloadProgress: null,
+    error: null,
+    errorCode: null,
+    lastCheckedAt: null,
+    releasesUrl: "https://example.test/releases",
+    status: "idle" as const,
+    updateInfo: null,
+    ...snapshot,
+  };
+  const check = vi.fn(async () => state);
+
+  window.shadowingDesktop = createTestDesktopBridge({
+    updates: {
+      check,
+      download: vi.fn(async () => state),
+      getState: vi.fn(async () => state),
+      onStateChange: vi.fn(() => () => undefined),
+      openReleases: vi.fn(async () => ({ ok: true })),
+      quitAndInstall: vi.fn(async () => ({ ok: true })),
+      reset: vi.fn(async () => state),
+    },
+  });
+
+  return { check };
+}
 
 describe("AurisSettings feature truthfulness", () => {
   afterEach(() => {
     delete window.shadowingDesktop;
     window.localStorage.clear();
     resetHydratedDesktopBridgeCacheForTests();
+    __resetUpdateSubscriptionForTests();
+    __resetAppUpdateStoreForTests();
   });
 
   it("describes the active byte-based large-file policy without inert toggles", async () => {
@@ -78,17 +119,46 @@ describe("AurisSettings feature truthfulness", () => {
     expect(document.documentElement.lang).toBe("en-US");
   });
 
-  it("does not simulate an updater that is not connected", async () => {
+  // 更新能力现在真的接通了（electron-updater + 主进程控制器），所以这两个用例
+  // 守护的不再是"不许出现更新控件"，而是同一条诚实性不变量的两半：没有可用的
+  // 更新通道时不许出现能点的按钮；有通道时按钮必须真的打到主进程。
+  it("does not offer update controls when no updater channel exists", async () => {
     const user = userEvent.setup();
     render(<AurisSettings />);
 
     await user.click(screen.getByText("关于"));
 
-    expect(
-      screen.getByText(/桌面端自动检查、下载和安装更新尚未接入/u),
-    ).toBeInTheDocument();
+    expect(screen.getByText("当前环境不可用")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "立即检查" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("wires the check button to the real main-process updater", async () => {
+    const { check } = installUpdatesBridge();
+    const user = userEvent.setup();
+    render(<AurisSettings />);
+
+    await user.click(screen.getByText("关于"));
+
+    const checkButton = await screen.findByRole("button", { name: "立即检查" });
+    expect(screen.queryByText("当前环境不可用")).not.toBeInTheDocument();
+
+    await user.click(checkButton);
+    await waitFor(() => {
+      expect(check).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("reports the real running version instead of a hardcoded one", async () => {
+    installUpdatesBridge({ currentVersion: "2.5.1" } as Partial<DesktopUpdateSnapshot>);
+    const user = userEvent.setup();
+    render(<AurisSettings />);
+
+    await user.click(screen.getByText("关于"));
+
+    await waitFor(() => {
+      expect(screen.getByText("版本 2.5.1")).toBeInTheDocument();
+    });
   });
 });

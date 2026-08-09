@@ -16,6 +16,7 @@ import type {
   DesktopVideoThumbnailInput,
 } from "@/features/video-library/video-library.types";
 import type { BrowserStatusSnapshot } from "@/features/browser/window-status";
+import type { NiaBridgeCommand } from "@/features/nia/nia-bridge";
 
 export type DesktopCommandRecord = {
   id: string;
@@ -363,11 +364,89 @@ export type DesktopVaultFileSelection = DesktopVaultDirectoryInfo & {
   selectedFilePath: string | null;
 };
 
+/**
+ * 一个已授权的 vault 根。
+ *
+ * `available` 报告它当前是否可达（外置盘拔了 / 目录被删 / 仓库被移动过）。
+ * Workspace Rail 据此把它显示成不可用，而不是假装能切过去——静默切到一个空
+ * vault 看起来就是笔记全丢了。
+ */
+export type DesktopVaultRoot = {
+  available: boolean;
+  isActive: boolean;
+  name: string;
+  path: string;
+};
+
 export type DesktopVaultFileRecord = {
   absolutePath: string;
   fileName: string;
   isDirectory?: boolean;
   relativePath: string;
+};
+
+/* ------------------------------------------------------------------ */
+/* 自动更新（对齐 vmark mcpStore.update 语义）                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * 更新状态机。`manual-download` 是 Auris 相对 vmark 多出来的一态：
+ * macOS 未用 Developer ID 签名时 electron-updater 无法就地安装，此时诚实地
+ * 告诉用户「去 releases 页手动下载」，而不是给一个必然失败的安装按钮。
+ */
+export type DesktopUpdateStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "installing"
+  | "ready"
+  | "manual-download"
+  | "up-to-date"
+  | "error";
+
+export type DesktopUpdateInfo = {
+  currentVersion: string;
+  notes: string;
+  pubDate: string;
+  version: string;
+};
+
+export type DesktopUpdateProgress = {
+  downloaded: number;
+  total: number | null;
+};
+
+export type DesktopUpdateSnapshot = {
+  canInstallInPlace: boolean;
+  /**
+   * 仅 `getState()` 返回时带上（主进程 `app.getVersion()`）；事件推送的增量
+   * 快照不重复携带，所以是可选。
+   */
+  currentVersion?: string;
+  downloadProgress: DesktopUpdateProgress | null;
+  error: string | null;
+  errorCode: string | null;
+  lastCheckedAt: number | null;
+  releasesUrl: string | null;
+  status: DesktopUpdateStatus;
+  updateInfo: DesktopUpdateInfo | null;
+};
+
+export type DesktopUpdateStateSnapshot = DesktopUpdateSnapshot & {
+  currentVersion?: string;
+};
+
+export type DesktopUpdatesBridge = {
+  check: () => Promise<DesktopUpdateSnapshot>;
+  download: () => Promise<DesktopUpdateSnapshot>;
+  getState: () => Promise<DesktopUpdateStateSnapshot>;
+  onStateChange: (
+    listener: (snapshot: DesktopUpdateSnapshot) => void,
+  ) => () => void;
+  openReleases: () => Promise<{ ok: boolean; reason?: string }>;
+  quitAndInstall: () => Promise<{ ok: boolean; reason?: string }>;
+  reset: () => Promise<DesktopUpdateSnapshot>;
 };
 
 export type DesktopPreparedTrainingSessionInput = {
@@ -386,14 +465,12 @@ export type DesktopBridge = {
     onCommand: (listener: (commandId: string) => void) => () => void;
   };
   nia?: {
+    // 命令联合直接取自 `NIA_BRIDGE_COMMANDS`，不再手抄一份。原先这里是手维护的
+    // 副本，且已经漂移（漏了全部 provider 变更命令）。真正的消费方都走
+    // `getNiaBridge()`（它有自己的 `NiaNativeBridge` 类型），所以这个联合的作用
+    // 是描述 preload 的形状——描述错了比不描述更糟。
     invoke: (
-      command:
-        | "start"
-        | "cancel"
-        | "getRun"
-        | "listProviders"
-        | "discoverModels"
-        | "testConnection",
+      command: NiaBridgeCommand,
       payload?: Readonly<Record<string, unknown>>,
     ) => Promise<unknown>;
     subscribe: (listener: (event: unknown) => void) => boolean;
@@ -552,11 +629,14 @@ export type DesktopBridge = {
     stop: () => Promise<DesktopVoiceEngineStatus>;
   };
   terminal?: DesktopTerminalBridge;
+  updates?: DesktopUpdatesBridge;
   vault: {
     copyFile?: (fromPath: string, toPath: string) => Promise<void>;
     createDirectory?: (relativePath: string) => Promise<void>;
     getDirectoryInfo: () => Promise<DesktopVaultDirectoryInfo>;
     listFiles: () => Promise<DesktopVaultFileRecord[]>;
+    // 已知（用户此前授权过）的 vault 根。Workspace Rail 的数据源。
+    listRoots?: () => Promise<DesktopVaultRoot[]>;
     moveFile?: (fromPath: string, toPath: string) => Promise<void>;
     onDidChange: (listener: () => void) => () => void;
     pickDirectory: () => Promise<DesktopVaultDirectoryInfo>;
@@ -568,6 +648,9 @@ export type DesktopBridge = {
     revealFile?: (relativePath: string) => Promise<void>;
     revealPluginsDirectory: () => Promise<void>;
     saveFile: (relativePath: string, content: string) => Promise<void>;
+    // 在已授权的根之间切换，不弹对话框。主进程只接受 listRoots 里的路径——
+    // 任意路径会把笔记读写接口变成任意文件读取。新根必须走 pickDirectory。
+    setRoot?: (rootPath: string) => Promise<DesktopVaultDirectoryInfo>;
   };
   videoLibrary?: {
     getSnapshot: () => Promise<DesktopVideoLibrarySnapshot>;

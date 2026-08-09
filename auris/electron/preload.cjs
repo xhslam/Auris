@@ -3,6 +3,7 @@ const VAULT_CHANGED_CHANNEL = "shadowing:vault:changed";
 const NOTES_MCP_REQUEST_CHANNEL = "shadowing:notes-mcp:request";
 const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
+const UPDATES_STATE_CHANNEL = "shadowing:updates:state";
 const {
   NIA_COMMAND_CHANNEL,
   NIA_EVENT_CHANNEL,
@@ -386,6 +387,27 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     resize: (sessionId, size) => invoke("shadowing:terminal:resize", sessionId, size),
     write: (sessionId, data) => invoke("shadowing:terminal:write", sessionId, data),
   },
+  updates: {
+    check: () => invoke("shadowing:updates:check"),
+    download: () => invoke("shadowing:updates:download"),
+    getState: () => invoke("shadowing:updates:get-state"),
+    // 主进程是更新状态的唯一权威：这里只订阅推送，renderer 不维护第二份真相。
+    onStateChange: (listener) => {
+      if (typeof listener !== "function") {
+        return () => undefined;
+      }
+
+      const handler = (_event, snapshot) => listener(snapshot);
+      ipcRenderer.on(UPDATES_STATE_CHANNEL, handler);
+
+      return () => {
+        ipcRenderer.removeListener(UPDATES_STATE_CHANNEL, handler);
+      };
+    },
+    openReleases: () => invoke("shadowing:updates:open-releases"),
+    quitAndInstall: () => invoke("shadowing:updates:quit-and-install"),
+    reset: () => invoke("shadowing:updates:reset"),
+  },
   vault: {
     copyFile: (fromPath, toPath) =>
       invoke("shadowing:vault:copy-file", fromPath, toPath),
@@ -405,6 +427,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
         ipcRenderer.removeListener(VAULT_CHANGED_CHANNEL, handler);
       };
     },
+    listRoots: () => invoke("shadowing:vault:list-roots"),
     pickDirectory: () => invoke("shadowing:vault:pick-directory"),
     pickFile: () => invoke("shadowing:vault:pick-file"),
     readFile: (relativePath) => invoke("shadowing:vault:read-file", relativePath),
@@ -416,6 +439,9 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     revealPluginsDirectory: () => invoke("shadowing:vault:reveal-plugins-directory"),
     saveFile: (relativePath, content) =>
       invoke("shadowing:vault:save-file", relativePath, content),
+    // 在已授权的根之间切换。主进程只接受 list-roots 里出现过的路径——理由见
+    // main.cjs 的 setVaultRoot 注释（否则笔记读写会被升级成任意文件读取）。
+    setRoot: (rootPath) => invoke("shadowing:vault:set-root", rootPath),
   },
   videoLibrary: {
     getSnapshot: () => invoke("shadowing:video-library:get-snapshot"),

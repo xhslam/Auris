@@ -11,6 +11,11 @@ export const NOTES_SHORTCUT_BINDINGS: readonly NotesShortcutBinding[] = [
   { commandId: "notes.save", key: "Mod+S", surface: "global" },
   { commandId: "notes.saveAll", key: "Mod+Shift+S", surface: "global" },
   { commandId: "notes.palette", key: "Mod+P", surface: "global" },
+  // Mod+J 而不是 vmark 的 Cmd+Y：全局绑定会回落进编辑器 surface，而
+  // CodeMirror 的默认 keymap 在 Windows/Linux 上把 `Mod-y` 绑给了 redo
+  // （mac 上是 Mod-Shift-z，所以 vmark 用 Cmd+Y 不出问题）。在源码编辑器里
+  // 按下去会同时重做一次并打开选择器。Mod+J 在两套 keymap 里都空着。
+  { commandId: "notes.niaPicker", key: "Mod+J", surface: "global" },
   { commandId: "notes.split", key: "Mod+\\", surface: "global" },
   { commandId: "notes.terminal", key: "Mod+`", surface: "global" },
   { commandId: "notes.find", key: "Mod+F", surface: "codemirror" },

@@ -9,6 +9,17 @@ export const ZH_CN_NOTES_UI_COPY = {
     label: "笔记库",
     sourceFirstFallback: "展示编辑优先笔记库",
   },
+  workspaceRail: {
+    activate: (name: string) => `切换到 ${name}`,
+    add: "添加笔记库",
+    label: "笔记库切换栏",
+    menuRemove: "从列表移除",
+    menuRemoveActive: "当前笔记库无法移除",
+    menuReveal: "切换到这个笔记库",
+    // 说清楚「移除」只影响这条列表：不动磁盘，也不撤销授权。
+    removeHint: "只从这条列表收起，不会删除文件夹",
+    unavailable: (name: string) => `${name}（当前不可用）`,
+  },
   headerActions: {
     command: "命令",
     delete: "删除",
@@ -48,6 +59,10 @@ export const ZH_CN_NOTES_UI_COPY = {
     backlinks: {
       open: "打开反链面板",
       short: "反",
+    },
+    graph: {
+      open: "打开关系图",
+      short: "图",
     },
     learning: {
       open: "打开学习面板",
@@ -133,6 +148,30 @@ export const ZH_CN_NOTES_UI_COPY = {
     dialogLabel: "笔记命令面板",
     placeholder: "执行命令或打开笔记",
   },
+  niaPicker: {
+    dialogLabel: "Nia 动作选择器",
+    emptyCatalog: "还没有可用的 Nia 动作。",
+    emptyMatch: "没有匹配的动作。",
+    favorite: (name: string) => `收藏「${name}」`,
+    favorites: "收藏",
+    loadFailed: "无法读取 Nia 动作列表。",
+    loading: "正在读取动作…",
+    missing: (name: string) => `「${name}」已不存在，可能刚被卸载。`,
+    placeholder: "搜索动作，或直接输入指令",
+    recents: "最近使用",
+    scope: "适用范围",
+    scopeAll: "全部",
+    // 每个 scope 的显示名。与上面的 `scope`（这一组控件的标签）分开：一个是
+    // 「这组按钮在筛什么」，一个是「这个按钮筛的是哪一种」。
+    scopeLabels: {
+      document: "整篇",
+      selection: "选区",
+    } as Record<"document" | "selection", string>,
+    searchLabel: "搜索 Nia 动作",
+    unavailable: "Nia 尚不可用：请先在设置里配置一个模型提供方。",
+    uncategorized: "未分类",
+    unfavorite: (name: string) => `取消收藏「${name}」`,
+  },
   tabs: {
     closePrefix: "关闭",
     openTabs: "已打开的笔记标签",
@@ -152,6 +191,20 @@ export const ZH_CN_NOTES_UI_COPY = {
       description: "引用当前文件的笔记。",
       empty: "暂时还没有反链。",
       title: "反链",
+    },
+    graph: {
+      depthLabel: "跳数",
+      emptyIsolated: "这篇笔记还没有任何链接、标签或前言关系，图上只有它自己。",
+      emptyNoActive: "打开一篇笔记后可查看它的关系邻域，或切到「整库」看全部。",
+      emptyVault: "当前工作区还没有笔记。",
+      scopeLabel: "图范围",
+      scopeLocal: "当前笔记",
+      scopeVault: "整库",
+      summary: (docs: number, tags: number, edges: number) =>
+        `${docs} 篇笔记 · ${tags} 个标签 · ${edges} 条关系`,
+      tagsToggle: "标签",
+      title: "关系图",
+      unresolved: (count: number) => `${count} 个链接目标不存在`,
     },
     learning: {
       description: "把已保存的单词和句子作为 Markdown 片段插入。",

@@ -17,6 +17,7 @@ import type { NotesEditorMode } from "@/features/notes/editor/editor-types";
 type CommandInfrastructureInput = {
   editorMode: NotesEditorMode;
   hasActiveDocument: boolean;
+  onOpenNiaPicker?: () => void;
   onOpenPalette?: () => void;
   onSave?: () => void;
   onSaveAll?: () => void;
@@ -100,6 +101,11 @@ export function useNotesCommandInfrastructure(
         handler: () => inputRef.current.onToggleTerminal?.(),
         id: "notes.terminal",
         title: "Toggle terminal",
+      }),
+      bus.register({
+        handler: () => inputRef.current.onOpenNiaPicker?.(),
+        id: "notes.niaPicker",
+        title: "Open Nia actions",
       }),
     ];
     setCommands(bus.list());

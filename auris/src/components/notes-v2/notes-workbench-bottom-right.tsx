@@ -2,6 +2,7 @@
 
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { NotesBacklinksPanel } from "@/components/notes-v2/notes-backlinks-panel";
+import { NotesGraphPanel } from "@/components/notes-v2/notes-graph-panel";
 import {
   NotesLibraryNavigatorPanel,
 } from "@/components/notes-v2/notes-library-navigator-panel";
@@ -23,13 +24,20 @@ import {
   type NotesViewPreferences,
 } from "@/features/notes/editor/notes-view-preferences";
 
-type RightPopover = "backlinks" | "history" | "library" | "overflow" | "tags";
+type RightPopover =
+  | "backlinks"
+  | "graph"
+  | "history"
+  | "library"
+  | "overflow"
+  | "tags";
 
 type NotesWorkbenchBottomRightProps = {
   activeDocument: NoteDocument | null;
   backlinks: NoteDocument[];
   documentSaveState?: NotesDocumentSaveState;
   documents: NoteDocument[];
+  graphDocuments?: NoteDocument[];
   editorMode: NotesEditorMode;
   indexRebuildMessage?: string | null;
   isRebuildingIndex?: boolean;
@@ -45,6 +53,7 @@ type NotesWorkbenchBottomRightProps = {
   onExportVault?: () => void;
   onFormatCjk?: () => void;
   onInsertSnippet?: (snippet: string) => void;
+  onEnsureGraphDocuments?: () => Promise<void>;
   onRestoreHistoryVersion?: (version: NotesHistoryVersion) => void;
   onLearningQueryChange?: (value: string) => void;
   onOpenSourcePeek?: () => void;
@@ -69,6 +78,7 @@ export function NotesWorkbenchBottomRight({
   backlinks,
   documentSaveState = "saved",
   documents,
+  graphDocuments = documents,
   editorMode,
   indexRebuildMessage = null,
   isRebuildingIndex = false,
@@ -80,6 +90,7 @@ export function NotesWorkbenchBottomRight({
   onExportActiveDocumentPdf,
   onExportVault,
   onFormatCjk,
+  onEnsureGraphDocuments,
   onRestoreHistoryVersion,
   onOpenSourcePeek,
   onOpenPath,
@@ -151,6 +162,17 @@ export function NotesWorkbenchBottomRight({
         type="button"
       >
         <span aria-hidden="true">↶</span>
+      </button>
+      <button
+        aria-expanded={openPopover === "graph"}
+        aria-label={NOTES_UI_COPY.rightRail.graph.open}
+        className="notes-v2__corner-icon"
+        data-active={openPopover === "graph" ? "true" : "false"}
+        onClick={() => togglePopover("graph")}
+        title={NOTES_UI_COPY.rightRail.graph.open}
+        type="button"
+      >
+        <span aria-hidden="true">⁂</span>
       </button>
       <button
         aria-expanded={openPopover === "tags"}
@@ -270,6 +292,31 @@ export function NotesWorkbenchBottomRight({
           documents={documents}
           onOpenPath={onOpenPath}
         />
+      </NotesWorkbenchPopover>
+
+      <NotesWorkbenchPopover
+        anchor="bottom-right"
+        labelledBy="notes-v2-graph-popover-title"
+        onClose={closePopover}
+        open={openPopover === "graph"}
+        size="graph"
+      >
+        <p className="notes-v2__popover-title" id="notes-v2-graph-popover-title">
+          {NOTES_UI_COPY.panels.graph.title}
+        </p>
+        {/* 只在 popover 打开时挂载：图的 chunk 与 dagre 布局都不该为一个没人看的
+            面板付代价，xyflow 的 ResizeObserver 也不该在零尺寸容器里空转。 */}
+        {openPopover === "graph" ? (
+          <NotesGraphPanel
+            activePath={activeDocument?.path ?? null}
+            documents={graphDocuments}
+            onEnsureDocuments={onEnsureGraphDocuments}
+            onOpenPath={(path) => {
+              onOpenPath(path);
+              closePopover();
+            }}
+          />
+        ) : null}
       </NotesWorkbenchPopover>
 
       <NotesWorkbenchPopover

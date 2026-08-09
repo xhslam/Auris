@@ -97,6 +97,9 @@ import type {
 import { NiaPanel, type NiaContextRequest } from "@/components/nia/nia-panel";
 import type { NiaApplyProposal, NiaContext } from "@/features/nia/nia-context";
 import { useNotesLocale } from "@/features/notes/i18n/notes-locale";
+import { NotesWorkspaceRail } from "@/components/notes-v2/notes-workspace-rail";
+import { NotesNiaPicker } from "@/components/notes-v2/notes-nia-picker";
+import { useNiaPickerStore } from "@/features/nia/nia-picker-store";
 
 export type NotesWorkbenchProps = {
   activePath: string | null;
@@ -107,6 +110,7 @@ export type NotesWorkbenchProps = {
   directoryInfo?: NotesDirectoryInfo;
   dirtyPaths?: Record<string, boolean>;
   documents: NoteDocument[];
+  graphDocuments?: NoteDocument[];
   entries: VaultEntry[];
   errorMessage?: string | null;
   editorMode?: NotesEditorMode;
@@ -145,6 +149,7 @@ export type NotesWorkbenchProps = {
   onLeftSidebarModeChange?: (mode: NotesLeftSidebarMode) => void;
   onLearningQueryChange?: (value: string) => void;
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
+  onEnsureGraphDocuments?: () => Promise<void>;
   onOpenCommandPaletteChange?: (open: boolean) => void;
   onOpenPath: (path: string) => void;
   onOpenWikiLink?: (target: string) => void;
@@ -204,6 +209,7 @@ export function NotesWorkbench({
   directoryInfo,
   dirtyPaths = {},
   documents,
+  graphDocuments = documents,
   editorMode = "wysiwyg",
   entries,
   errorMessage = null,
@@ -236,6 +242,7 @@ export function NotesWorkbench({
   onApplyNiaProposal,
   onLearningQueryChange,
   onEnsureWikiLinkNote,
+  onEnsureGraphDocuments,
   onOpenCommandPaletteChange,
   onOpenPath,
   onOpenWikiLink,
@@ -313,6 +320,20 @@ export function NotesWorkbench({
   );
   const [isTerminalSplitOpen, setIsTerminalSplitOpen] = useState(false);
   const [isTerminalResizing, setIsTerminalResizing] = useState(false);
+  // 打开选择器那一刻的内容快照。不在渲染时现取：用户打开选择器后光标可能移动
+  // （点击列表就会移出编辑器），现取会让「改进选区」拿到一段空选区。
+  const [niaPickerContent, setNiaPickerContent] = useState<{
+    content: string;
+    hasSelection: boolean;
+  }>({ content: "", hasSelection: false });
+  // 选择器合成好的提示词，交给 NiaPanel 的既有 session 发出。
+  //
+  // 为什么不让选择器自己持有一个 session：`useNiaSession` 认领事件的方式是
+  // 「看到第一个 started 事件且自己有 start 在飞」，两个并存的 session 会认领
+  // 同一个 runId，选择器的回复会同时流进面板的消息列表。started 事件不带任何
+  // 能对上具体 start() 调用的关联标识，加判断绕不过去。所以全应用只有一个
+  // session，选择器把提示词交给它。
+  const [pendingNiaPrompt, setPendingNiaPrompt] = useState<string | null>(null);
   const [shellWidth, setShellWidth] = useState(NOTES_CENTER_FALLBACK_WIDTH);
   const [terminalWidth, setTerminalWidth] = useState(
     getDefaultRightSidebarWidth("terminal"),
@@ -445,9 +466,30 @@ export function NotesWorkbench({
     },
     [activeDocument, onDocumentChange],
   );
+  // 打开选择器的那一刻就把内容定格。不在渲染期重新取：用户在选择器里打字时
+  // 编辑器已经失焦，选区可能已经塌陷，再取一次会拿到空串——动作就套用到了空内容上。
+  const handleOpenNiaPicker = useCallback(() => {
+    const selectionContext = onRequestNiaContext?.("selection") ?? null;
+    const documentContext = selectionContext
+      ? null
+      : (onRequestNiaContext?.("document") ?? null);
+    const resolved = selectionContext ?? documentContext;
+    const text =
+      resolved && "text" in resolved && typeof resolved.text === "string"
+        ? resolved.text
+        : "";
+
+    // content 与 hasSelection 成对走 prop：它们是同一个快照的两半。默认范围由
+    // 选择器从 hasSelection 推导，不再额外经由 store 传一次——那会把这一对拆成
+    // 两条通道，然后在某次改动里悄悄发散。
+    setNiaPickerContent({ content: text, hasSelection: Boolean(selectionContext) });
+    useNiaPickerStore.getState().openPicker();
+  }, [onRequestNiaContext, setNiaPickerContent]);
+
   const commandInfrastructure = useNotesCommandInfrastructure({
     editorMode,
     hasActiveDocument: Boolean(activeDocument),
+    onOpenNiaPicker: handleOpenNiaPicker,
     onOpenPalette: () => onOpenCommandPaletteChange?.(true),
     onSave: onSaveActiveDocument,
     onSaveAll: onSaveAllDocuments,
@@ -631,6 +673,9 @@ export function NotesWorkbench({
         }
       >
         <div className="notes-v2__minimal-workspace">
+          {/* 最左侧、在画布之前：rail 是工作区级导航，层级高于当前笔记。
+              非桌面环境（没有 vault bridge）它自己返回 null，不占位。 */}
+          <NotesWorkspaceRail />
           <main className="notes-v2__minimal-canvas">
             <NotesBreadcrumbBar path={activeDocument?.path ?? null} />
             <NotesWorkbenchCenter
@@ -727,6 +772,7 @@ export function NotesWorkbench({
           backlinks={backlinks}
           documentSaveState={activeDocumentSaveState}
           documents={documents}
+          graphDocuments={graphDocuments}
           editorMode={editorMode}
           indexRebuildMessage={indexRebuildMessage}
           isRebuildingIndex={isRebuildingIndex}
@@ -742,6 +788,7 @@ export function NotesWorkbench({
           onExportVault={onExportVault}
           onFormatCjk={onFormatCjk}
           onInsertSnippet={onInsertSnippet}
+          onEnsureGraphDocuments={onEnsureGraphDocuments}
           onRestoreHistoryVersion={handleRestoreHistoryVersion}
           onLearningQueryChange={onLearningQueryChange}
           onOpenSourcePeek={handleOpenSourcePeek}
@@ -766,8 +813,19 @@ export function NotesWorkbench({
       </section>
       <NiaPanel
         onApplyProposal={onApplyNiaProposal}
+        onExternalPromptConsumed={() => setPendingNiaPrompt(null)}
         onRequestContext={onRequestNiaContext}
+        externalPrompt={pendingNiaPrompt}
         supportedContexts={["selection", "document"]}
+      />
+      {/* 选择器只负责挑动作与合成提示词；提交走面板那一个 session。
+          绝不能在这里再挂一个 `useNiaSession`——两个并存的 session 会认领同一个
+          `started` 事件（它不带任何能对上具体 start() 调用的标识），选择器的回复
+          会同时流进面板的消息列表。 */}
+      <NotesNiaPicker
+        content={niaPickerContent.content}
+        hasSelection={niaPickerContent.hasSelection}
+        onSubmit={(submission) => setPendingNiaPrompt(submission.prompt)}
       />
       <NotesCommandPalette
         isOpen={isCommandPaletteOpen}
