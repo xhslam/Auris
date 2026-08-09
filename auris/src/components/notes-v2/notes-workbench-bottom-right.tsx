@@ -37,6 +37,7 @@ type NotesWorkbenchBottomRightProps = {
   backlinks: NoteDocument[];
   documentSaveState?: NotesDocumentSaveState;
   documents: NoteDocument[];
+  graphDocuments?: NoteDocument[];
   editorMode: NotesEditorMode;
   indexRebuildMessage?: string | null;
   isRebuildingIndex?: boolean;
@@ -52,6 +53,7 @@ type NotesWorkbenchBottomRightProps = {
   onExportVault?: () => void;
   onFormatCjk?: () => void;
   onInsertSnippet?: (snippet: string) => void;
+  onEnsureGraphDocuments?: () => Promise<void>;
   onRestoreHistoryVersion?: (version: NotesHistoryVersion) => void;
   onLearningQueryChange?: (value: string) => void;
   onOpenSourcePeek?: () => void;
@@ -76,6 +78,7 @@ export function NotesWorkbenchBottomRight({
   backlinks,
   documentSaveState = "saved",
   documents,
+  graphDocuments = documents,
   editorMode,
   indexRebuildMessage = null,
   isRebuildingIndex = false,
@@ -87,6 +90,7 @@ export function NotesWorkbenchBottomRight({
   onExportActiveDocumentPdf,
   onExportVault,
   onFormatCjk,
+  onEnsureGraphDocuments,
   onRestoreHistoryVersion,
   onOpenSourcePeek,
   onOpenPath,
@@ -305,7 +309,8 @@ export function NotesWorkbenchBottomRight({
         {openPopover === "graph" ? (
           <NotesGraphPanel
             activePath={activeDocument?.path ?? null}
-            documents={documents}
+            documents={graphDocuments}
+            onEnsureDocuments={onEnsureGraphDocuments}
             onOpenPath={(path) => {
               onOpenPath(path);
               closePopover();

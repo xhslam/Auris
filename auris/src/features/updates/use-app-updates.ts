@@ -203,10 +203,11 @@ export function useAppUpdateOperations() {
       // 手动检查不属于自动重试链：清标记，避免它的失败触发退避重试。
       checkFlags.retryChainActive = false;
     }
-    await bridge.check();
-    // 只有真的完成了检查才写时间戳。对齐 vmark：出错时**不**更新
-    // lastCheckTimestamp，否则一次失败会把下一个检查窗口推后一整天。
-    if (useAppUpdateStore.getState().snapshot.status !== "error") {
+    const snapshot = await bridge.check();
+    // invoke 返回的是这次检查的最终权威快照；state push 走另一条 IPC 通道，
+    // 可能稍后才更新 renderer store。若读取 store，会把旧 idle 当成功、或把旧
+    // error 当失败。失败不能更新时间戳，否则会把下一个检查窗口推后一整天。
+    if (snapshot.status !== "error") {
       updateUpdateSetting("lastCheckTimestamp", Date.now());
     }
   }, []);

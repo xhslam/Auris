@@ -6,6 +6,7 @@ import {
   NIA_WORKFLOW_LIMITS,
   parseNiaWorkflowYaml,
   runNiaWorkflow,
+  type NiaWorkflowAdapters,
 } from "@/features/workflows/nia-workflow-runner";
 
 const canonical = readFileSync(
@@ -184,7 +185,9 @@ describe("Nia YAML workflow runner", () => {
  */
 describe("Nia workflow definition prompt composition", () => {
   it("sends the definition body to the provider, not just the user's text", async () => {
-    const executePrompt = vi.fn(async () => ({ text: "ok" }));
+    const executePrompt = vi.fn<NonNullable<NiaWorkflowAdapters["executePrompt"]>>(
+      async () => ({ text: "ok" }),
+    );
 
     await runNiaWorkflow({
       source: canonical,
@@ -203,14 +206,16 @@ describe("Nia workflow definition prompt composition", () => {
       runId: "run-composition",
     });
 
-    const call = executePrompt.mock.calls[0]?.[0] as { input: string; prompt: string };
-    expect(call.prompt).toBe("You are an expert editor.\n\nrough notes");
+    const call = executePrompt.mock.calls[0]?.[0];
+    expect(call?.prompt).toBe("You are an expert editor.\n\nrough notes");
     // `input` 仍是用户原文，供需要区分二者的适配器使用。
-    expect(call.input).toBe("rough notes");
+    expect(call?.input).toBe("rough notes");
   });
 
   it("appends the content when the body declares no insertion point", async () => {
-    const executePrompt = vi.fn(async () => ({ text: "ok" }));
+    const executePrompt = vi.fn<NonNullable<NiaWorkflowAdapters["executePrompt"]>>(
+      async () => ({ text: "ok" }),
+    );
 
     await runNiaWorkflow({
       source: canonical,
@@ -231,7 +236,7 @@ describe("Nia workflow definition prompt composition", () => {
       runId: "run-composition-append",
     });
 
-    const call = executePrompt.mock.calls[0]?.[0] as { prompt: string };
-    expect(call.prompt).toBe("Improve the following text.\n\n---\n\nrough notes");
+    const call = executePrompt.mock.calls[0]?.[0];
+    expect(call?.prompt).toBe("Improve the following text.\n\n---\n\nrough notes");
   });
 });

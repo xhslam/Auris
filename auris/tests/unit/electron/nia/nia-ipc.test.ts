@@ -58,7 +58,10 @@ function createFixture() {
     },
   };
   const providerStore = {
-    readPersistedConfig: vi.fn(async () => ({ activeProviderId: null, providers: [] })),
+    readPersistedConfig: vi.fn(async (): Promise<{
+      activeProviderId: string | null;
+      providers: Array<Record<string, unknown>>;
+    }> => ({ activeProviderId: null, providers: [] })),
     upsertRestProvider: vi.fn(async (input: Record<string, unknown>) => input),
     upsertCliProvider: vi.fn(async (input: Record<string, unknown>) => input),
     setSessionApiKey: vi.fn(),

@@ -166,6 +166,9 @@ export function NotesNiaPicker({
         saveNiaActionPreferences(resolvedStorage, next);
         return next;
       });
+      // 收藏会把动作跨分组移动，原收藏按钮因此被卸载；若不主动恢复焦点，
+      // 浏览器会把焦点退回 BODY，后续 Arrow/Enter/Escape 都无法到达 dialog。
+      inputRef.current?.focus();
     },
     [resolvedStorage],
   );

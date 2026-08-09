@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { NotesGraphPanel } from "@/components/notes-v2/notes-graph-panel";
@@ -33,6 +33,26 @@ function doc(
  * 所以 xyflow 需要的 `ResizeObserver` 由 `vitest.setup.ts` 补齐。
  */
 describe("NotesGraphPanel", () => {
+  it("shows a load error instead of presenting a partial graph as complete", async () => {
+    render(
+      <NotesGraphPanel
+        activePath="a.md"
+        documents={[doc("a.md", "# A\n\n[[B]]")]}
+        onEnsureDocuments={async () => {
+          throw new Error("Could not read the whole vault.");
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("notes-graph-pending")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Could not read the whole vault.",
+      ),
+    );
+    expect(screen.queryByText(/1 篇笔记/u)).not.toBeInTheDocument();
+  });
+
   it("reports graph size so the user knows what is being drawn", () => {
     render(
       <NotesGraphPanel

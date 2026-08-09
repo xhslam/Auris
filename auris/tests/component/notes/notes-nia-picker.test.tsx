@@ -246,6 +246,26 @@ describe("NotesNiaPicker", () => {
     expect(persisted.favorites).toEqual(["summarize"]);
   });
 
+  it("keeps keyboard focus inside the picker after a favorite moves between groups", async () => {
+    const user = userEvent.setup();
+    installBridge();
+
+    render(<NotesNiaPicker content="text" hasSelection={false} onSubmit={vi.fn()} />);
+    await waitFor(() => expect(screen.getAllByRole("option").length).toBe(3));
+
+    const input = screen.getByRole("combobox");
+    await user.click(
+      screen.getByRole("button", { name: NOTES_UI_COPY.niaPicker.favorite("Summarize") }),
+    );
+
+    await waitFor(() => expect(optionNames()[0]).toBe("Summarize"));
+    expect(input).toHaveFocus();
+    expect(document.activeElement).not.toBe(document.body);
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("does not invoke the action when the favorite star is clicked", async () => {
     const user = userEvent.setup();
     installBridge();

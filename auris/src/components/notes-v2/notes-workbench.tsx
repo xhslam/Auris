@@ -110,6 +110,7 @@ export type NotesWorkbenchProps = {
   directoryInfo?: NotesDirectoryInfo;
   dirtyPaths?: Record<string, boolean>;
   documents: NoteDocument[];
+  graphDocuments?: NoteDocument[];
   entries: VaultEntry[];
   errorMessage?: string | null;
   editorMode?: NotesEditorMode;
@@ -148,6 +149,7 @@ export type NotesWorkbenchProps = {
   onLeftSidebarModeChange?: (mode: NotesLeftSidebarMode) => void;
   onLearningQueryChange?: (value: string) => void;
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
+  onEnsureGraphDocuments?: () => Promise<void>;
   onOpenCommandPaletteChange?: (open: boolean) => void;
   onOpenPath: (path: string) => void;
   onOpenWikiLink?: (target: string) => void;
@@ -207,6 +209,7 @@ export function NotesWorkbench({
   directoryInfo,
   dirtyPaths = {},
   documents,
+  graphDocuments = documents,
   editorMode = "wysiwyg",
   entries,
   errorMessage = null,
@@ -239,6 +242,7 @@ export function NotesWorkbench({
   onApplyNiaProposal,
   onLearningQueryChange,
   onEnsureWikiLinkNote,
+  onEnsureGraphDocuments,
   onOpenCommandPaletteChange,
   onOpenPath,
   onOpenWikiLink,
@@ -768,6 +772,7 @@ export function NotesWorkbench({
           backlinks={backlinks}
           documentSaveState={activeDocumentSaveState}
           documents={documents}
+          graphDocuments={graphDocuments}
           editorMode={editorMode}
           indexRebuildMessage={indexRebuildMessage}
           isRebuildingIndex={isRebuildingIndex}
@@ -783,6 +788,7 @@ export function NotesWorkbench({
           onExportVault={onExportVault}
           onFormatCjk={onFormatCjk}
           onInsertSnippet={onInsertSnippet}
+          onEnsureGraphDocuments={onEnsureGraphDocuments}
           onRestoreHistoryVersion={handleRestoreHistoryVersion}
           onLearningQueryChange={onLearningQueryChange}
           onOpenSourcePeek={handleOpenSourcePeek}

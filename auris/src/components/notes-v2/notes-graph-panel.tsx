@@ -22,7 +22,7 @@
  */
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import {
@@ -54,17 +54,48 @@ type GraphScope = "local" | "vault";
 export type NotesGraphPanelProps = {
   activePath: string | null;
   documents: NoteDocument[];
+  onEnsureDocuments?: () => Promise<void>;
   onOpenPath?: (path: string) => void;
 };
 
 export function NotesGraphPanel({
   activePath,
   documents,
+  onEnsureDocuments,
   onOpenPath,
 }: NotesGraphPanelProps) {
   const [scope, setScope] = useState<GraphScope>("local");
   const [depth, setDepth] = useState<number>(1);
   const [showTags, setShowTags] = useState(true);
+  const [isPreparing, setIsPreparing] = useState(Boolean(onEnsureDocuments));
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!onEnsureDocuments) {
+      setIsPreparing(false);
+      return undefined;
+    }
+
+    let active = true;
+    setLoadError(null);
+    setIsPreparing(true);
+    void onEnsureDocuments()
+      .catch((cause) => {
+        if (active) {
+          setLoadError(
+            cause instanceof Error
+              ? cause.message
+              : NOTES_UI_COPY.errors.loadVault,
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setIsPreparing(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [onEnsureDocuments]);
 
   // 全库图只依赖文档集合，先算一次；范围/标签过滤在它之上做，切换控件不必重建。
   const fullGraph = useMemo(() => buildRelationshipGraph(documents), [documents]);
@@ -133,21 +164,29 @@ export function NotesGraphPanel({
         </button>
       </div>
 
-      <p className="notes-v2__graph-summary">
-        {NOTES_UI_COPY.panels.graph.summary(summary.docCount, summary.tagCount, summary.edgeCount)}
-        {summary.unresolvedCount > 0
-          ? ` · ${NOTES_UI_COPY.panels.graph.unresolved(summary.unresolvedCount)}`
-          : ""}
-      </p>
-
-      {documents.length === 0 ? (
-        <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.graph.emptyVault}</p>
-      ) : isLocalScopeUnavailable ? (
-        <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.graph.emptyNoActive}</p>
-      ) : graph.nodes.length === 0 ? (
-        <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.graph.emptyIsolated}</p>
+      {isPreparing ? (
+        <div className="notes-v2__graph-pending" data-testid="notes-graph-pending" />
+      ) : loadError ? (
+        <p className="notes-v2__empty-copy" role="alert">{loadError}</p>
       ) : (
-        <NotesGraphCanvas graph={graph} onOpenPath={onOpenPath} />
+        <>
+          <p className="notes-v2__graph-summary">
+            {NOTES_UI_COPY.panels.graph.summary(summary.docCount, summary.tagCount, summary.edgeCount)}
+            {summary.unresolvedCount > 0
+              ? ` · ${NOTES_UI_COPY.panels.graph.unresolved(summary.unresolvedCount)}`
+              : ""}
+          </p>
+
+          {documents.length === 0 ? (
+            <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.graph.emptyVault}</p>
+          ) : isLocalScopeUnavailable ? (
+            <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.graph.emptyNoActive}</p>
+          ) : graph.nodes.length === 0 ? (
+            <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.graph.emptyIsolated}</p>
+          ) : (
+            <NotesGraphCanvas graph={graph} onOpenPath={onOpenPath} />
+          )}
+        </>
       )}
     </section>
   );
