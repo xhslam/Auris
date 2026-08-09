@@ -15,7 +15,8 @@ with, sponsored by, or endorsed by the VMark project or its author.
 ## Manifest
 
 `manifest.json` records stable, many-to-many mappings from the pinned VMark
-sources to Auris targets. `manifest.schema.json` defines schema version 1.
+sources to Auris targets and explicit review decisions for broader product
+domains. `manifest.schema.json` defines schema version 2.
 All completed mapping targets exist in this tree. Each mapping records both the
 pinned provenance baseline and the latest manually reviewed comparison commit;
 the generated report does not update source files or the baseline automatically.

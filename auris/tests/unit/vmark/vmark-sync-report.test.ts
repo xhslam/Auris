@@ -26,6 +26,7 @@ const {
   createGitRunner,
   createProcessStartIdentityProvider,
   defaultIsProcessAlive,
+  main,
   parseArgs,
   prepareUpstreamCache,
   publishReportsWithRecovery,
@@ -70,14 +71,23 @@ const canonicalMapping = z.strictObject({
   lastComparedCommit: z.string().regex(/^[0-9a-f]{40}$/),
   tests: canonicalUniqueArray(canonicalProjectPath),
 });
+const canonicalReviewDomain = z.strictObject({
+  domainId: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  upstreamPrefixes: canonicalUniqueArray(canonicalProjectPath),
+  aurisPaths: canonicalUniqueArray(canonicalProjectPath),
+  decision: z.enum(["port", "adapt", "defer", "reject"]),
+  rationale: z.string().min(1),
+  lastComparedCommit: z.string().regex(/^[0-9a-f]{40}$/),
+});
 const canonicalManifestContract = z.strictObject({
   $schema: z.literal("./manifest.schema.json"),
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   upstream: z.strictObject({
     repository: z.url(),
     commit: z.string().regex(/^[0-9a-f]{40}$/),
     license: z.literal("ISC"),
   }),
+  reviewDomains: z.array(canonicalReviewDomain).min(1),
   entries: z.array(canonicalMapping).min(1).superRefine((entries, context) => {
     const seen = new Set<string>();
     entries.forEach((entry, index) => {
@@ -179,12 +189,20 @@ describe("VMark sync report", () => {
 
   it("accepts only a full commit or the exact origin/main selector", () => {
     expect(parseArgs(["--upstream", comparedCommit])).toEqual({
+      diagnostics: false,
+      repositoryPath: undefined,
       upstream: comparedCommit,
     });
     expect(parseArgs(["--upstream", "origin/main"])).toEqual({
+      diagnostics: false,
+      repositoryPath: undefined,
       upstream: "origin/main",
     });
-    expect(parseArgs([])).toEqual({ upstream: "origin/main" });
+    expect(parseArgs([])).toEqual({
+      diagnostics: false,
+      repositoryPath: undefined,
+      upstream: "origin/main",
+    });
 
     for (const hostile of [
       "HEAD",
@@ -201,6 +219,37 @@ describe("VMark sync report", () => {
     expect(() => parseArgs(["--other", comparedCommit])).toThrow(
       /Unknown argument/,
     );
+  });
+
+  it("accepts one absolute read-only repository fallback and diagnostics flag", () => {
+    expect(
+      parseArgs([
+        "--diagnostics",
+        "--repository-path",
+        repository,
+        "--upstream",
+        comparedCommit,
+      ]),
+    ).toEqual({
+      diagnostics: true,
+      repositoryPath: repository,
+      upstream: comparedCommit,
+    });
+
+    expect(() =>
+      parseArgs(["--repository-path", "relative/repository"]),
+    ).toThrow(/absolute path/);
+    expect(() =>
+      parseArgs([
+        "--repository-path",
+        repository,
+        "--repository-path",
+        repository,
+      ]),
+    ).toThrow(/only once/);
+    expect(() =>
+      parseArgs(["--diagnostics", "--diagnostics"]),
+    ).toThrow(/only once/);
   });
 
   it("resolves an explicit commit and classifies changed paths deterministically", () => {
@@ -252,7 +301,7 @@ describe("VMark sync report", () => {
     );
 
     expect(() =>
-      validateManifest({ ...validManifest, schemaVersion: 2 }),
+      validateManifest({ ...validManifest, schemaVersion: 1 }),
     ).toThrow(/schemaVersion/);
 
     const representativeInvalidMutations = [
@@ -293,6 +342,7 @@ describe("VMark sync report", () => {
     const reportChanges = [
       ...changes,
       { path: "src/nested.ts", status: "added" },
+      { path: "outside.txt", status: "added" },
     ];
     const first = renderReports({
       manifest,
@@ -301,7 +351,11 @@ describe("VMark sync report", () => {
       aurisRoot,
     });
     const second = renderReports({
-      manifest: { ...manifest, entries: [...manifest.entries].reverse() },
+      manifest: {
+        ...manifest,
+        entries: [...manifest.entries].reverse(),
+        reviewDomains: [...manifest.reviewDomains].reverse(),
+      },
       resolvedCommit: comparedCommit,
       changes: reportChanges,
       aurisRoot,
@@ -320,7 +374,10 @@ describe("VMark sync report", () => {
       "comparedCommit",
       "summary",
       "upstreamChanges",
+      "mappedUpstreamChanges",
       "mappings",
+      "reviewDomains",
+      "domainCandidates",
       "unmappedUpstreamChanges",
     ]);
     expect(Object.keys(report.summary)).toEqual([
@@ -330,15 +387,19 @@ describe("VMark sync report", () => {
       "renamed",
       "missingAurisTargets",
       "staleMappings",
+      "mappedUpstreamChanges",
+      "domainCandidates",
       "unmappedUpstreamChanges",
     ]);
     expect(report.summary).toEqual({
       changed: 1,
-      added: 2,
+      added: 3,
       deleted: 1,
       renamed: 1,
       missingAurisTargets: 1,
       staleMappings: 1,
+      mappedUpstreamChanges: 4,
+      domainCandidates: 1,
       unmappedUpstreamChanges: 1,
     });
     expect(report.mappings[0]).toMatchObject({
@@ -352,7 +413,24 @@ describe("VMark sync report", () => {
       staleLastComparedCommit: true,
     });
     expect(report.unmappedUpstreamChanges).toEqual([
-      { path: "deleted.txt", status: "deleted" },
+      { path: "outside.txt", status: "added" },
+    ]);
+    expect(report.mappedUpstreamChanges).toEqual([
+      { path: "added.txt", status: "added" },
+      { path: "changed.txt", status: "changed" },
+      {
+        fromPath: "renamed-old.txt",
+        path: "renamed-new.txt",
+        status: "renamed",
+      },
+      { path: "src/nested.ts", status: "added" },
+    ]);
+    expect(report.domainCandidates).toEqual([
+      {
+        change: { path: "deleted.txt", status: "deleted" },
+        decision: "defer",
+        domainId: "fixture-domain",
+      },
     ]);
     expect(first.markdown).toContain("# VMark upstream comparison");
     expect(first.markdown).toContain("Missing Auris targets: **1**");
@@ -866,7 +944,7 @@ describe("VMark sync report", () => {
       return { exitCode, stderr };
     };
 
-    writeCliManifest({ ...cliManifest, schemaVersion: 2 });
+    writeCliManifest({ ...cliManifest, schemaVersion: 1 });
     expect(invoke(["--upstream", comparedCommit])).toEqual({
       exitCode: EXIT_CODES.MANIFEST_INVALID,
       stderr:
@@ -945,14 +1023,106 @@ describe("VMark sync report", () => {
     });
   });
 
+  it("uses an explicitly supplied local repository without cloning or fetching", () => {
+    const projectRoot = path.join(fixtureRoot, "local-fallback-project");
+    const manifestDirectory = path.join(projectRoot, "docs", "vmark-port");
+    mkdirSync(manifestDirectory, { recursive: true });
+    const localManifest = makeManifest(baselineCommit, comparedCommit);
+    localManifest.upstream.repository = repositoryUrl;
+    writeFileSync(
+      path.join(manifestDirectory, "manifest.json"),
+      `${JSON.stringify(localManifest)}\n`,
+    );
+    const invocations: string[][] = [];
+    const gitRunner = (
+      argv: string[],
+      options: Record<string, unknown>,
+    ) => {
+      invocations.push(argv);
+      return createGitRunner()(argv, options);
+    };
+
+    const result = main([
+      "--repository-path",
+      repository,
+      "--upstream",
+      comparedCommit,
+    ], {
+      gitRunner,
+      projectRoot,
+      reportWriter: () => undefined,
+      stdout: { write: () => true },
+    });
+
+    expect(result.resolvedCommit).toBe(comparedCommit);
+    expect(invocations.some((argv) => argv.includes("clone"))).toBe(false);
+    expect(invocations.some((argv) => argv.includes("fetch"))).toBe(false);
+    expect(invocations).toContainEqual(["remote", "get-url", "origin"]);
+  });
+
+  it("emits only fingerprinted git diagnostics when explicitly requested", () => {
+    const cliProject = path.join(fixtureRoot, "diagnostic-project");
+    const manifestDirectory = path.join(cliProject, "docs", "vmark-port");
+    mkdirSync(manifestDirectory, { recursive: true });
+    const diagnosticManifest = makeManifest(baselineCommit, comparedCommit);
+    diagnosticManifest.upstream.repository = repositoryUrl;
+    writeFileSync(
+      path.join(manifestDirectory, "manifest.json"),
+      `${JSON.stringify(diagnosticManifest)}\n`,
+    );
+    let stderr = "";
+    const exitCode = runCli([
+      "--diagnostics",
+      "--upstream",
+      comparedCommit,
+    ], {
+      cacheRoot: mkdtempSync(path.join(fixtureRoot, "diagnostic-cache-")),
+      gitRunner: createGitRunner({
+        spawn: () => ({
+          status: 128,
+          stderr:
+            "fatal: Authentication failed for https://secret-user:secret-token@example.invalid/private.git",
+          stdout: "",
+        }),
+      }),
+      projectRoot: cliProject,
+      stderr: {
+        write: (value: string) => {
+          stderr += value;
+          return true;
+        },
+      },
+      stdout: { write: () => true },
+    });
+
+    expect(exitCode).toBe(EXIT_CODES.GIT_FETCH_FAILED);
+    expect(stderr).toContain("Diagnostic: git=clone status=128");
+    expect(stderr).toMatch(/stderr_bytes=\d+ stderr_sha256=[0-9a-f]{12}/);
+    expect(stderr).toMatch(/cache=repository-[0-9a-f]{24}/);
+    expect(stderr).not.toContain("secret-user");
+    expect(stderr).not.toContain("secret-token");
+    expect(stderr).not.toContain("private.git");
+    expect(stderr).not.toContain(fixtureRoot);
+  });
+
   const makeManifest = (baseline: string, compared: string) => ({
     $schema: "./manifest.schema.json",
-    schemaVersion: 1,
+    schemaVersion: 2,
     upstream: {
       repository: "https://example.invalid/vmark",
       commit: baseline,
       license: "ISC",
     },
+    reviewDomains: [
+      {
+        domainId: "fixture-domain",
+        upstreamPrefixes: ["deleted.txt"],
+        aurisPaths: ["present-target.ts"],
+        decision: "defer",
+        rationale: "Fixture domain review.",
+        lastComparedCommit: compared,
+      },
+    ],
     entries: [
       {
         mappingId: "stale-mapping",
