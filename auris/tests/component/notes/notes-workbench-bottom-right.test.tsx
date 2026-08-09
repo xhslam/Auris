@@ -12,6 +12,38 @@ const activeDocument = {
 } as unknown as NoteDocument;
 
 describe("NotesWorkbenchBottomRight", () => {
+  it("opens the Markdown and WeChat preview split from the dedicated button", async () => {
+    const user = userEvent.setup();
+    const onEditorModeChange = vi.fn();
+
+    render(
+      <NotesWorkbenchBottomRight
+        activeDocument={activeDocument}
+        backlinks={[]}
+        documents={[activeDocument]}
+        editorMode="wysiwyg"
+        isTerminalSplitOpen={false}
+        learningQuery=""
+        learningSnippets={[]}
+        onEditorModeChange={onEditorModeChange}
+        onOpenPath={vi.fn()}
+        onTerminalSplitToggle={vi.fn()}
+        recentDocuments={[]}
+        searchQuery=""
+        searchResults={[]}
+      />,
+    );
+
+    const splitButton = screen.getByRole("button", {
+      name: "Markdown 与微信公众号预览分屏",
+    });
+    expect(splitButton).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(splitButton);
+
+    expect(onEditorModeChange).toHaveBeenCalledWith("split");
+  });
+
   it("shows the active note save state beside its Markdown-aware metrics", () => {
     render(
       <NotesWorkbenchBottomRight

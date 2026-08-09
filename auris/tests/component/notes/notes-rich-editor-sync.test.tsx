@@ -1,10 +1,17 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import type { NotesEditorBridge } from "@/features/notes/editor/editor-types";
 import type { EditorView as CodeMirrorEditorView } from "@codemirror/view";
 import type { EditorView as ProseMirrorEditorView } from "prosemirror-view";
+
+afterEach(() => {
+  Object.defineProperty(window, "shadowingDesktop", {
+    configurable: true,
+    value: undefined,
+  });
+});
 
 function createDocument(rawSource: string): NoteDocument {
   return {
@@ -73,25 +80,129 @@ describe("NotesRichEditorPane sync", () => {
     );
   });
 
-  it("renders an editable Markdown source beside a read-only live preview", () => {
+  it("renders editable Markdown beside a WeChat preview that updates in the same edit turn", () => {
     const rawSource = "# Daily Review\n\nBody";
+    const onDocumentChange = vi.fn();
 
     render(
       <NotesEditorPane
         document={createDocument(rawSource)}
         documents={[createDocument(rawSource)]}
         editorMode="split"
-        onDocumentChange={vi.fn()}
+        onDocumentChange={onDocumentChange}
       />,
     );
 
     expect(screen.getByTestId("notes-markdown-split")).toBeInTheDocument();
+    const preview = screen.getByTestId("notes-wechat-preview");
     expect(screen.getByTestId("notes-codemirror-host")).toBeInTheDocument();
-    expect(
-      screen
-        .getByTestId("notes-prosemirror-host")
-        .querySelector(".ProseMirror"),
-    ).toHaveAttribute("contenteditable", "false");
+    expect(within(preview).getByText("微信公众号预览")).toBeInTheDocument();
+    expect(within(preview).getByRole("button", { name: "复制到公众号" })).toBeInTheDocument();
+    expect(within(preview).getByRole("heading", { name: "Daily Review" })).toBeInTheDocument();
+    expect(screen.queryByTestId("notes-prosemirror-host")).not.toBeInTheDocument();
+
+    const host = screen.getByTestId("notes-codemirror-host") as HTMLDivElement & {
+      __notesEditorView?: CodeMirrorEditorView;
+    };
+    act(() => {
+      host.__notesEditorView?.dispatch({
+        changes: { from: 0, insert: "Updated " },
+      });
+    });
+
+    expect(within(preview).getByText("Updated Body")).toBeInTheDocument();
+    expect(onDocumentChange).toHaveBeenLastCalledWith(
+      "# Daily Review\n\nUpdated Body",
+    );
+  });
+
+  it("never previews or copies the previous note after switching documents", async () => {
+    const writeHtml = vi.fn<
+      (html: string, text: string) => Promise<void>
+    >(async () => undefined);
+    Object.defineProperty(window, "shadowingDesktop", {
+      configurable: true,
+      value: {
+        clipboard: {
+          writeHtml,
+          writeText: vi.fn(async () => undefined),
+        },
+      },
+    });
+    const firstDocument = {
+      ...createDocument("# First\n\nFIRST_ONLY"),
+      path: "notes/first.md",
+    };
+    const secondDocument = {
+      ...createDocument("# Second\n\nSECOND_ONLY"),
+      path: "notes/second.md",
+    };
+    const { rerender } = render(
+      <NotesEditorPane
+        document={firstDocument}
+        documents={[firstDocument, secondDocument]}
+        editorMode="split"
+        onDocumentChange={vi.fn()}
+      />,
+    );
+
+    rerender(
+      <NotesEditorPane
+        document={secondDocument}
+        documents={[firstDocument, secondDocument]}
+        editorMode="split"
+        onDocumentChange={vi.fn()}
+      />,
+    );
+
+    const preview = screen.getByTestId("notes-wechat-preview");
+    expect(within(preview).getByText("SECOND_ONLY")).toBeInTheDocument();
+    expect(within(preview).queryByText("FIRST_ONLY")).not.toBeInTheDocument();
+    fireEvent.click(within(preview).getByRole("button", { name: "复制到公众号" }));
+    await waitFor(() => expect(writeHtml).toHaveBeenCalledTimes(1));
+    expect(writeHtml.mock.calls[0][0]).toContain("SECOND_ONLY");
+    expect(writeHtml.mock.calls[0][0]).not.toContain("FIRST_ONLY");
+  });
+
+  it("copies the exact inline-styled preview through the native rich clipboard bridge", async () => {
+    const writeHtml = vi.fn<
+      (html: string, text: string) => Promise<void>
+    >(async () => undefined);
+    Object.defineProperty(window, "shadowingDesktop", {
+      configurable: true,
+      value: {
+        clipboard: {
+          writeHtml,
+          writeText: vi.fn(async () => undefined),
+        },
+      },
+    });
+
+    render(
+      <NotesEditorPane
+        document={createDocument("# Daily Review\n\n**Body**")}
+        documents={[createDocument("# Daily Review\n\n**Body**")]}
+        editorMode="split"
+        onDocumentChange={vi.fn()}
+      />,
+    );
+
+    const previewContent = screen
+      .getByTestId("notes-wechat-preview")
+      .querySelector<HTMLElement>('[data-auris-wechat-content="true"]');
+    expect(previewContent).not.toBeNull();
+    const expectedHtml = previewContent?.outerHTML;
+
+    fireEvent.click(screen.getByRole("button", { name: "复制到公众号" }));
+
+    await waitFor(() => expect(writeHtml).toHaveBeenCalledTimes(1));
+    const [html, text] = writeHtml.mock.calls[0];
+    expect(html).toBe(expectedHtml);
+    expect(html).toContain('data-auris-wechat-content="true"');
+    expect(html).toContain("style=");
+    expect(html).toContain("<strong");
+    expect(text).toContain("Daily Review");
+    expect(screen.getByRole("status")).toHaveTextContent("已复制，可直接粘贴到公众号后台");
   });
 
   it("enforces read-only mode in the source editor", () => {

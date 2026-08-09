@@ -152,8 +152,15 @@ describe("desktop runtime", () => {
     const bridge = createBridge({
       clipboard: {} as DesktopBridge["clipboard"],
     });
+    const malformedRichClipboard = createBridge({
+      clipboard: {
+        writeHtml: "not-a-function",
+        writeText: vi.fn(async () => undefined),
+      } as unknown as DesktopBridge["clipboard"],
+    });
 
     expect(isDesktopBridge(bridge)).toBe(false);
+    expect(isDesktopBridge(malformedRichClipboard)).toBe(false);
   });
 
   it("still recognizes desktop bridges when the voice engine section is absent", () => {

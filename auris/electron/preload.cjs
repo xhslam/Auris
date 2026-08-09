@@ -175,6 +175,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
   },
   clipboard: {
     readText: () => invoke("shadowing:clipboard:read-text"),
+    writeHtml: (html, text) =>
+      invoke("shadowing:clipboard:write-html", html, text),
     writeText: (text) => invoke("shadowing:clipboard:write-text", text),
   },
   downloads: {

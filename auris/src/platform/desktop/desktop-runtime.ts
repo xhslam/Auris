@@ -63,7 +63,11 @@ function hasValidNotesMcpBridge(bridge: Partial<DesktopBridge>) {
 }
 
 function hasValidClipboardBridge(bridge: Partial<DesktopBridge>) {
-  return !bridge.clipboard || isFunction(bridge.clipboard.writeText);
+  return (
+    !bridge.clipboard ||
+    (isFunction(bridge.clipboard.writeText) &&
+      (!bridge.clipboard.writeHtml || isFunction(bridge.clipboard.writeHtml)))
+  );
 }
 
 function hasValidBrowserStatusBridge(bridge: Partial<DesktopBridge>) {
