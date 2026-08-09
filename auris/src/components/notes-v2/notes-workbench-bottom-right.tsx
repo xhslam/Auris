@@ -215,12 +215,12 @@ export function NotesWorkbenchBottomRight({
         <span aria-hidden="true">T</span>
       </button>
       <button
-        aria-label="Markdown 分屏"
+        aria-label={NOTES_UI_COPY.toolbar.wechatSplit.label}
         aria-pressed={isSplitMode}
         className="notes-v2__corner-icon"
         data-active={isSplitMode ? "true" : "false"}
         onClick={() => onEditorModeChange?.(isSplitMode ? "wysiwyg" : "split")}
-        title="Markdown 源码与实时预览分屏"
+        title={NOTES_UI_COPY.toolbar.wechatSplit.title}
         type="button"
       >
         <span aria-hidden="true">◫</span>

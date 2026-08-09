@@ -29,6 +29,7 @@ export type DesktopCommandRunResult = {
 
 export type DesktopClipboardBridge = {
   readText?: () => Promise<string>;
+  writeHtml?: (html: string, text: string) => Promise<void>;
   writeText: (text: string) => Promise<void>;
 };
 

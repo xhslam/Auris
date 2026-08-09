@@ -16,6 +16,7 @@ import {
   type EditorContextMenuTarget,
 } from "@/components/notes-v2/notes-editor-context-menu";
 import { NotesRichEditorPane } from "@/components/notes-v2/notes-rich-editor-pane";
+import { NotesWechatPreview } from "@/components/notes-v2/notes-wechat-preview";
 import { StructuredDataPreview } from "@/components/notes-v2/structured-data-preview";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
@@ -126,6 +127,14 @@ export function NotesEditorPane({
   const [replaceText, setReplaceText] = useState("");
   const [isFindOpen, setIsFindOpen] = useState(false);
   const [sourceTitleDraft, setSourceTitleDraft] = useState("");
+  const [splitPreview, setSplitPreview] = useState({
+    path: document?.path ?? null,
+    source: document?.rawSource ?? "",
+  });
+  const splitPreviewSource =
+    splitPreview.path === (document?.path ?? null)
+      ? splitPreview.source
+      : (document?.rawSource ?? "");
   const [editableCompartment] = useState(() => new Compartment());
   const viewPreferencesRef = useRef(viewPreferences);
   const findQueryRef = useRef("");
@@ -158,6 +167,13 @@ export function NotesEditorPane({
     sourceTitleDraftRef.current = nextTitle;
     setSourceTitleDraft(nextTitle);
   }, [editableDocument]);
+
+  useEffect(() => {
+    setSplitPreview({
+      path: document?.path ?? null,
+      source: document?.rawSource ?? "",
+    });
+  }, [document?.path, document?.rawSource]);
 
   useEffect(() => {
     onActiveLineChangeRef.current = onActiveLineChange;
@@ -208,6 +224,22 @@ export function NotesEditorPane({
     findInputRef.current?.select();
   }, [editorMode, isFindOpen]);
 
+  const resolveWechatImageSource = useCallback(
+    (source: string) => {
+      const resolved = resolveMarkdownImageSource(source, document?.path ?? null);
+
+      if (
+        resolved?.startsWith("shadowing-media://vault/") &&
+        !window.shadowingDesktop?.vault
+      ) {
+        return null;
+      }
+
+      return resolved;
+    },
+    [document?.path],
+  );
+
   useEffect(() => {
     if (editorMode === "wysiwyg") {
       return;
@@ -241,6 +273,10 @@ export function NotesEditorPane({
 
           lastAppliedSourceRef.current = nextRawSource;
           lastEmittedSourceRef.current = nextBodySource;
+          setSplitPreview({
+            path: currentEditableDocument?.path ?? document.path,
+            source: nextRawSource,
+          });
           onDocumentChangeRef.current(nextRawSource);
         },
         {
@@ -256,22 +292,7 @@ export function NotesEditorPane({
           lineSeparator: document.rawSource.includes("\r\n") ? "\r\n" : "\n",
           editableCompartment,
           readOnly: viewPreferencesRef.current.readOnly,
-          resolveImageUrl: (source) =>
-            (() => {
-              const resolved = resolveMarkdownImageSource(
-                source,
-                document.path,
-              );
-
-              if (
-                resolved?.startsWith("shadowing-media://vault/") &&
-                !window.shadowingDesktop?.vault
-              ) {
-                return null;
-              }
-
-              return resolved;
-            })(),
+          resolveImageUrl: resolveWechatImageSource,
           saveAttachment:
             format.id === "markdown" && window.shadowingDesktop?.vault?.saveFile
             ? async (path, content) =>
@@ -293,7 +314,14 @@ export function NotesEditorPane({
     lastDocumentPathRef.current = document.path;
     onActiveLineChangeRef.current?.(0);
     onBridgeReadyRef.current?.(bridgeRef.current);
-  }, [document, editableCompartment, editorMode, format.id, onActiveLineChange]);
+  }, [
+    document,
+    editableCompartment,
+    editorMode,
+    format.id,
+    onActiveLineChange,
+    resolveWechatImageSource,
+  ]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -490,6 +518,10 @@ export function NotesEditorPane({
 
       lastAppliedSourceRef.current = nextRawSource;
       lastEmittedSourceRef.current = bodySource;
+      setSplitPreview({
+        path: currentEditableDocument.path,
+        source: nextRawSource,
+      });
       onDocumentChangeRef.current(nextRawSource);
     },
     [],
@@ -810,12 +842,10 @@ export function NotesEditorPane({
                 source={document.rawSource}
               />
             ) : (
-              <NotesRichEditorPane
-                document={document}
-                documents={documents}
-                onDocumentChange={() => undefined}
-                onOpenWikiLink={onOpenWikiLink}
-                readOnly
+              <NotesWechatPreview
+                markdown={splitPreviewSource}
+                notePath={document.path}
+                resolveImageSource={resolveWechatImageSource}
               />
             )}
           </div>

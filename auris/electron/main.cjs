@@ -172,6 +172,8 @@ const VIDEO_LIBRARY_MANAGED_DIRS = new Set([
 const DEV_SERVER_TIMEOUT_MS = 90_000;
 const DEFAULT_WINDOW_HEIGHT = 900;
 const DEFAULT_WINDOW_WIDTH = 1400;
+const MAX_RICH_CLIPBOARD_HTML_BYTES = 40 * 1024 * 1024;
+const MAX_RICH_CLIPBOARD_TEXT_BYTES = 4 * 1024 * 1024;
 const isDevMode = process.argv.includes("--dev");
 const packagedSmokeUserData = process.env.AURIS_PACKAGED_SMOKE_USER_DATA;
 if (process.env.AURIS_PACKAGED_SMOKE === "1" && packagedSmokeUserData) {
@@ -515,6 +517,17 @@ function requireTrustedMainEvent(event) {
     || !isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event))
   ) {
     throw new Error("This request requires the trusted main Auris renderer.");
+  }
+}
+
+function requireTrustedMainFrameEvent(event) {
+  requireTrustedMainEvent(event);
+
+  if (
+    event?.senderFrame !== event?.sender?.mainFrame
+    || !isTrustedDesktopOrigin(event?.senderFrame?.url)
+  ) {
+    throw new Error("This request requires the trusted top-level Auris renderer.");
   }
 }
 
@@ -3311,6 +3324,23 @@ function registerDesktopHandlers() {
     requireTrustedDesktopEvent(event);
     clipboard.writeText(String(text ?? ""));
   });
+
+  ipcMain.handle(
+    "shadowing:clipboard:write-html",
+    async (event, html, text) => {
+      requireTrustedMainFrameEvent(event);
+      if (typeof html !== "string" || typeof text !== "string") {
+        throw new TypeError("Rich clipboard content must be strings.");
+      }
+      if (Buffer.byteLength(html, "utf8") > MAX_RICH_CLIPBOARD_HTML_BYTES) {
+        throw new RangeError("Rich clipboard HTML exceeds the 40 MB limit.");
+      }
+      if (Buffer.byteLength(text, "utf8") > MAX_RICH_CLIPBOARD_TEXT_BYTES) {
+        throw new RangeError("Rich clipboard text exceeds the 4 MB limit.");
+      }
+      clipboard.write({ html, text });
+    },
+  );
 
   ipcMain.handle("shadowing:clipboard:read-text", async (event) => {
     requireTrustedDesktopEvent(event);
