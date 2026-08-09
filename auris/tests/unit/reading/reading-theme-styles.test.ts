@@ -74,13 +74,13 @@ describe("Reading theme styles", () => {
     }
   });
 
-  it("keeps the article title on the packaged Reading foreground color", () => {
+  it("keeps the article title on the active Reading foreground token", () => {
     const css = readFileSync(redesignCssPath, "utf-8");
     const titleRule = css.match(
       /\.reading-minimal \.reading-minimal__heading h1\s*\{([^}]*)\}/,
     );
 
-    expect(titleRule?.[1]).toContain("color: #f2efe7");
+    expect(titleRule?.[1]).toContain("color: var(--reading-foreground)");
   });
 
   it.each(["white", "paper", "mint", "sepia", "night", "solarized"])(

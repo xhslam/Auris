@@ -25,97 +25,97 @@
 
 /* ──────────────────────────────────────────────────────────────────────────
    首页随全局主题换肤：只重定义 --home-v3-* 令牌，正文（卡片/文字/边框）自动跟随。
-   浅色主题翻成亮底深字、深色主题保持星空感。金色点缀按主题微调以保证可读。
+   六套主题的正文、弱化文字与强调色均保持 WCAG AA 对比度。
    人生阶段星图等硬编码装饰元素保持原样。
    ────────────────────────────────────────────────────────────────────────── */
 .desktop-app-shell[data-app-theme="white"] .home-v3 {
   --home-v3-bg: #f4f2ec;
   --home-v3-bg-2: #eeece4;
-  --home-v3-panel: rgba(40, 35, 25, 0.03);
-  --home-v3-panel-strong: rgba(40, 35, 25, 0.05);
-  --home-v3-line: rgba(40, 35, 25, 0.1);
-  --home-v3-line-gold: rgba(160, 130, 70, 0.3);
-  --home-v3-gold: #9c7f3f;
-  --home-v3-gold-2: #b08f4a;
+  --home-v3-panel: rgba(40, 35, 25, 0.04);
+  --home-v3-panel-strong: rgba(40, 35, 25, 0.07);
+  --home-v3-line: rgba(40, 35, 25, 0.16);
+  --home-v3-line-gold: rgba(118, 82, 20, 0.36);
+  --home-v3-gold: #765214;
+  --home-v3-gold-2: #5f400d;
   --home-v3-text: #2b2a26;
   --home-v3-soft: #4a4842;
-  --home-v3-muted: #7a7568;
-  --home-v3-faint: #a8a294;
+  --home-v3-muted: #5f5a50;
+  --home-v3-faint: #6a655c;
 }
 
 .desktop-app-shell[data-app-theme="paper"] .home-v3 {
   --home-v3-bg: #efe9d8;
   --home-v3-bg-2: #e8e1cd;
-  --home-v3-panel: rgba(90, 70, 35, 0.04);
-  --home-v3-panel-strong: rgba(90, 70, 35, 0.06);
-  --home-v3-line: rgba(90, 70, 35, 0.14);
-  --home-v3-line-gold: rgba(150, 115, 60, 0.3);
-  --home-v3-gold: #8f7233;
-  --home-v3-gold-2: #a5853f;
+  --home-v3-panel: rgba(90, 70, 35, 0.05);
+  --home-v3-panel-strong: rgba(90, 70, 35, 0.08);
+  --home-v3-line: rgba(90, 70, 35, 0.2);
+  --home-v3-line-gold: rgba(111, 79, 24, 0.38);
+  --home-v3-gold: #6f4f18;
+  --home-v3-gold-2: #583d10;
   --home-v3-text: #3a3324;
   --home-v3-soft: #5a4f3a;
-  --home-v3-muted: #7d7259;
-  --home-v3-faint: #a89a7e;
+  --home-v3-muted: #62543f;
+  --home-v3-faint: #6e5a40;
 }
 
 .desktop-app-shell[data-app-theme="mint"] .home-v3 {
   --home-v3-bg: #edf3e8;
   --home-v3-bg-2: #e6eee0;
-  --home-v3-panel: rgba(60, 90, 70, 0.04);
-  --home-v3-panel-strong: rgba(60, 90, 70, 0.06);
-  --home-v3-line: rgba(91, 111, 99, 0.16);
-  --home-v3-line-gold: rgba(120, 140, 90, 0.3);
-  --home-v3-gold: #6f7a3f;
-  --home-v3-gold-2: #80894a;
+  --home-v3-panel: rgba(60, 90, 70, 0.05);
+  --home-v3-panel-strong: rgba(60, 90, 70, 0.08);
+  --home-v3-line: rgba(73, 96, 82, 0.22);
+  --home-v3-line-gold: rgba(54, 93, 63, 0.38);
+  --home-v3-gold: #365d3f;
+  --home-v3-gold-2: #284a31;
   --home-v3-text: #233229;
   --home-v3-soft: #3f5347;
-  --home-v3-muted: #64746c;
-  --home-v3-faint: #93a08f;
+  --home-v3-muted: #51655a;
+  --home-v3-faint: #4a6354;
 }
 
 .desktop-app-shell[data-app-theme="sepia"] .home-v3 {
   --home-v3-bg: #f1e7d0;
   --home-v3-bg-2: #ebe0c6;
-  --home-v3-panel: rgba(120, 95, 60, 0.05);
-  --home-v3-panel-strong: rgba(120, 95, 60, 0.07);
-  --home-v3-line: rgba(120, 95, 60, 0.18);
-  --home-v3-line-gold: rgba(150, 110, 50, 0.3);
-  --home-v3-gold: #8a6d2e;
-  --home-v3-gold-2: #a07f38;
+  --home-v3-panel: rgba(120, 95, 60, 0.06);
+  --home-v3-panel-strong: rgba(120, 95, 60, 0.09);
+  --home-v3-line: rgba(104, 78, 43, 0.24);
+  --home-v3-line-gold: rgba(104, 72, 23, 0.4);
+  --home-v3-gold: #684817;
+  --home-v3-gold-2: #50350e;
   --home-v3-text: #4a3b28;
-  --home-v3-soft: #6a5638;
-  --home-v3-muted: #8a7654;
-  --home-v3-faint: #b3a07e;
+  --home-v3-soft: #5a4630;
+  --home-v3-muted: #654d31;
+  --home-v3-faint: #715027;
 }
 
 .desktop-app-shell[data-app-theme="night"] .home-v3 {
   --home-v3-bg: #1b1c1f;
   --home-v3-bg-2: #161719;
-  --home-v3-panel: rgba(255, 255, 255, 0.03);
-  --home-v3-panel-strong: rgba(255, 255, 255, 0.05);
-  --home-v3-line: rgba(255, 255, 255, 0.08);
-  --home-v3-line-gold: rgba(199, 168, 106, 0.22);
-  --home-v3-gold: #c7a86a;
-  --home-v3-gold-2: #d8bb72;
-  --home-v3-text: #d9d8dd;
-  --home-v3-soft: #b0afb7;
-  --home-v3-muted: #8a8992;
-  --home-v3-faint: #5a5a62;
+  --home-v3-panel: rgba(255, 255, 255, 0.04);
+  --home-v3-panel-strong: rgba(255, 255, 255, 0.07);
+  --home-v3-line: rgba(255, 255, 255, 0.14);
+  --home-v3-line-gold: rgba(212, 181, 110, 0.3);
+  --home-v3-gold: #d4b56e;
+  --home-v3-gold-2: #e4c878;
+  --home-v3-text: #e9e7ec;
+  --home-v3-soft: #d8d7de;
+  --home-v3-muted: #b6b4bd;
+  --home-v3-faint: #a09ea7;
 }
 
 .desktop-app-shell[data-app-theme="solarized"] .home-v3 {
   --home-v3-bg: #002b36;
   --home-v3-bg-2: #00252e;
-  --home-v3-panel: rgba(131, 148, 150, 0.05);
-  --home-v3-panel-strong: rgba(131, 148, 150, 0.08);
-  --home-v3-line: rgba(131, 148, 150, 0.15);
-  --home-v3-line-gold: rgba(181, 137, 0, 0.3);
-  --home-v3-gold: #b58900;
-  --home-v3-gold-2: #cb9b1a;
-  --home-v3-text: #eee8d5;
-  --home-v3-soft: #93a1a1;
-  --home-v3-muted: #839496;
-  --home-v3-faint: #586e75;
+  --home-v3-panel: rgba(167, 182, 182, 0.07);
+  --home-v3-panel-strong: rgba(167, 182, 182, 0.1);
+  --home-v3-line: rgba(167, 182, 182, 0.22);
+  --home-v3-line-gold: rgba(225, 197, 90, 0.34);
+  --home-v3-gold: #e1c55a;
+  --home-v3-gold-2: #f0d879;
+  --home-v3-text: #fdf6e3;
+  --home-v3-soft: #c2cecc;
+  --home-v3-muted: #a7b6b6;
+  --home-v3-faint: #a7b6b6;
 }
 
 .home-v3 *,

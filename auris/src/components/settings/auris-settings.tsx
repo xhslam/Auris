@@ -57,19 +57,39 @@ import {
 
 const DEFAULT_ACCENT = "#C7A86A";
 
+function normalizeHex(hex: string): string {
+  const normalized = (hex || DEFAULT_ACCENT).replace("#", "");
+  return normalized.length === 3
+    ? normalized
+        .split("")
+        .map((char) => char + char)
+        .join("")
+    : normalized;
+}
+
 function hexToRgba(hex: string, alpha: number): string {
-  let normalized = (hex || DEFAULT_ACCENT).replace("#", "");
-  if (normalized.length === 3) {
-    normalized = normalized
-      .split("")
-      .map((char) => char + char)
-      .join("");
-  }
-  const value = parseInt(normalized, 16);
+  const value = parseInt(normalizeHex(hex), 16);
   const r = (value >> 16) & 255;
   const g = (value >> 8) & 255;
   const b = value & 255;
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function readableInkForAccent(hex: string): string {
+  const value = parseInt(normalizeHex(hex), 16);
+  const toLinear = (channel: number) => {
+    const normalized = channel / 255;
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  const red = toLinear((value >> 16) & 255);
+  const green = toLinear((value >> 8) & 255);
+  const blue = toLinear(value & 255);
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  const whiteContrast = 1.05 / (luminance + 0.05);
+  const darkContrast = (luminance + 0.05) / (0.006 + 0.05);
+  return whiteContrast >= darkContrast ? "#fffaf2" : "#17130a";
 }
 
 /* ------------------------------------------------------------------ */
@@ -501,7 +521,7 @@ const DEFAULT_CLI_STATUS: CliStatus = {
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
 
-export function AurisSettings({ accent = DEFAULT_ACCENT }: { accent?: string }) {
+export function AurisSettings({ accent }: { accent?: string }) {
   const [activeCat, setActiveCat] = useState("appearance");
   const [search, setSearch] = useState("");
   const [theme, setTheme] = useState(INITIAL_THEME);
@@ -555,16 +575,22 @@ export function AurisSettings({ accent = DEFAULT_ACCENT }: { accent?: string }) 
     securityVerified: false,
   });
 
-  /* --- accent css vars --- */
+  /* --- accent css vars ---
+     默认不写内联强调色，让外层 data-app-theme 的高对比令牌生效；只有调用方
+     明确传入自定义 accent 时才覆盖。 */
   const accentVars = useMemo(
     () =>
-      ({
-        "--accent": accent,
-        "--accent-28": hexToRgba(accent, 0.28),
-        "--accent-10": hexToRgba(accent, 0.1),
-      }) as CSSProperties,
+      (accent
+        ? {
+            "--accent": accent,
+            "--accent-ink": readableInkForAccent(accent),
+            "--accent-28": hexToRgba(accent, 0.28),
+            "--accent-10": hexToRgba(accent, 0.1),
+          }
+        : {}) as CSSProperties,
     [accent],
   );
+  const resolvedAccent = accent ?? "var(--accent)";
 
   /* --- load real MCP state on desktop --- */
   const syncFromClients = useCallback((clients: DesktopMcpClient[]) => {
@@ -1050,7 +1076,7 @@ export function AurisSettings({ accent = DEFAULT_ACCENT }: { accent?: string }) 
                 <RenderRow
                   key={rowIndex}
                   row={row}
-                  accent={accent}
+                  accent={resolvedAccent}
                   theme={theme}
                   toggles={toggles}
                   selects={selects}
@@ -1134,7 +1160,7 @@ function RenderRow(props: RowHandlers) {
                 </div>
                 <span
                   className="auris-settings__swatch-name"
-                  style={{ color: selected ? accent : "#6E6A62", fontWeight: selected ? 500 : 400 }}
+                  style={{ color: selected ? accent : "var(--app-muted)", fontWeight: selected ? 600 : 500 }}
                 >
                   {sw.name}
                 </span>
@@ -1935,7 +1961,7 @@ const SETTINGS_CSS = `
 
 .auris-settings__btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 16px;border-radius:9px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .18s;}
 .auris-settings__btn[data-variant="default"]{background:var(--app-fill);color:var(--app-text-soft);border:1px solid var(--app-line);}
-.auris-settings__btn[data-variant="primary"]{color:#1A1408;border:none;}
+.auris-settings__btn[data-variant="primary"]{color:var(--accent-ink);border:none;}
 .auris-settings__btn[data-variant="danger"]{background:transparent;color:#D98A7E;border:1px solid rgba(217,138,126,0.4);}
 
 .auris-settings__info-left{display:flex;align-items:center;gap:9px;min-width:0;}
@@ -1954,7 +1980,7 @@ const SETTINGS_CSS = `
 .auris-settings__installer-file>span{font-size:12.5px;color:var(--app-muted);font-family:ui-monospace,'SF Mono',Menlo,monospace;}
 .auris-settings__installer-actions{display:flex;gap:8px;flex:0 0 auto;}
 .auris-settings__btn-sm{height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--app-line);background:var(--app-fill);color:var(--app-text-soft);font-size:13px;cursor:pointer;font-family:inherit;}
-.auris-settings__btn-sm--primary{padding:0 15px;border:none;color:#1A1408;font-weight:600;}
+.auris-settings__btn-sm--primary{padding:0 15px;border:none;color:var(--accent-ink);font-weight:600;}
 .auris-settings__btn-sm--danger{border:1px solid rgba(217,138,126,0.4);background:transparent;color:#D98A7E;}
 
 .auris-settings__subhead{padding:20px 2px 6px;font-size:12px;letter-spacing:0.1em;color:var(--app-muted);text-transform:uppercase;font-weight:500;}

@@ -1746,7 +1746,7 @@ body::-webkit-scrollbar-thumb:hover,
  * ========================================================================== */
 .auris-btn--primary {
   background: var(--accent);
-  color: #1a1408;
+  color: var(--accent-ink, #1a1408);
   border: none;
   font-weight: 600;
   border-radius: 999px;
@@ -2049,7 +2049,7 @@ body::-webkit-scrollbar-thumb:hover,
   font-size: 40px;
   line-height: 1.15;
   letter-spacing: -0.01em;
-  color: #f2efe7;
+  color: var(--app-ink);
 }
 
 .auris-review .auris-page__subtitle {
@@ -2057,7 +2057,7 @@ body::-webkit-scrollbar-thumb:hover,
   max-width: 520px;
   font-size: 15px;
   line-height: 1.7;
-  color: #8c887e;
+  color: var(--app-text-soft);
 }
 
 .auris-review__stats {
@@ -2068,9 +2068,9 @@ body::-webkit-scrollbar-thumb:hover,
 
 .auris-review__stat {
   padding: 14px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--app-line);
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.012);
+  background: var(--app-fill);
   min-width: 104px;
 }
 
@@ -2078,7 +2078,7 @@ body::-webkit-scrollbar-thumb:hover,
   font-family: var(--auris-font-serif);
   font-size: 28px;
   font-weight: 500;
-  color: #f2efe7;
+  color: var(--app-ink);
   line-height: 1;
 }
 
@@ -2089,26 +2089,22 @@ body::-webkit-scrollbar-thumb:hover,
 .auris-review__stat-label {
   margin-top: 8px;
   font-size: 12px;
-  color: #6e6a62;
+  color: var(--app-muted);
   letter-spacing: 0.02em;
 }
 
 .auris-review__divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--app-line-soft);
   margin: 34px 0 24px;
 }
 
 .auris-review__empty {
   flex: 1;
   min-height: 380px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--app-line);
   border-radius: 20px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.022),
-    rgba(255, 255, 255, 0.006)
-  );
+  background: var(--app-fill);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2151,12 +2147,12 @@ body::-webkit-scrollbar-thumb:hover,
 .auris-review__rings span:nth-child(1) {
   width: 124px;
   height: 124px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--app-line-soft);
 }
 .auris-review__rings span:nth-child(2) {
   width: 90px;
   height: 90px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--app-line);
 }
 .auris-review__rings span:nth-child(3) {
   width: 56px;
@@ -2170,7 +2166,7 @@ body::-webkit-scrollbar-thumb:hover,
   font-weight: 500;
   font-size: 26px;
   letter-spacing: -0.005em;
-  color: #f2efe7;
+  color: var(--app-ink);
   position: relative;
 }
 
@@ -2178,7 +2174,7 @@ body::-webkit-scrollbar-thumb:hover,
   margin: 16px 0 0;
   font-size: 14.5px;
   line-height: 1.8;
-  color: #8c887e;
+  color: var(--app-text-soft);
   max-width: 440px;
   position: relative;
 }
@@ -2188,20 +2184,21 @@ body::-webkit-scrollbar-thumb:hover,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent-28);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
   padding: 11px 22px;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 650;
   cursor: pointer;
-  transition: background-color 0.18s ease, gap 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease, gap 0.18s ease;
   position: relative;
 }
 
 .auris-review__cta:hover {
-  background: var(--accent-10);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
   gap: 12px;
 }
 
@@ -2691,7 +2688,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   letter-spacing: -0.015em;
   line-height: 1.1;
   text-transform: none;
-  color: #f2efe7;
+  color: var(--reading-foreground);
 }
 
 .reading-minimal .reading-minimal__meta {
@@ -2701,9 +2698,9 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   letter-spacing: 0.04em;
 }
 
-/* kicker（如「晨间精读」）金色 */
+/* kicker（如「晨间精读」）随阅读主题使用高对比强调色 */
 .reading-minimal .reading-minimal__meta span:first-child {
-  color: var(--accent);
+  color: var(--reading-accent);
   letter-spacing: 0.18em;
 }
 
@@ -2720,25 +2717,25 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 /* 高亮词：金色下划线 + 金色软底 */
 .reading-minimal .reading-minimal-word {
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--reading-accent);
 }
 
 .reading-minimal .reading-minimal-word:hover,
 .reading-minimal .reading-minimal-word[data-active="true"] {
-  background: var(--accent-16);
-  color: #f6f3eb;
+  background: var(--reading-accent-soft);
+  color: var(--reading-foreground);
 }
 
-/* 菱形/spark 标记金色 */
+/* 菱形/spark 标记使用阅读主题强调色 */
 .reading-minimal .reading-minimal__spark {
-  color: var(--accent);
+  color: var(--reading-accent);
 }
 
-/* 顶部工具栏激活态金色 */
+/* 顶部工具栏激活态使用阅读主题强调色 */
 .reading-minimal .reading-minimal__icon-button[data-active="true"],
 .reading-minimal .reading-minimal__text-size-button[data-active="true"] {
-  color: var(--accent);
-  background: var(--accent-10);
+  color: var(--reading-accent);
+  background: var(--reading-accent-soft);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

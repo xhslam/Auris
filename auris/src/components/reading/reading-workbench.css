@@ -39,84 +39,84 @@
 .desktop-app-shell[data-app-theme="white"] .reading-minimal[data-theme="light"] {
   --reading-background: #f6f4ee;
   --reading-foreground: #2b2a26;
-  --reading-muted: #7a7568;
-  --reading-border: rgba(40, 35, 25, 0.12);
+  --reading-muted: #5f5a50;
+  --reading-border: rgba(40, 35, 25, 0.16);
   --reading-panel: #fbfaf4;
   --reading-panel-foreground: #2b2a26;
-  --reading-accent: #c66f4d;
-  --reading-accent-soft: #f3e3da;
-  --reading-accent-line: #b96545;
-  --reading-toolbar: rgba(246, 244, 238, 0.92);
+  --reading-accent: #765214;
+  --reading-accent-soft: rgba(118, 82, 20, 0.12);
+  --reading-accent-line: #5f400d;
+  --reading-toolbar: rgba(246, 244, 238, 0.94);
   --reading-shadow: 0 20px 70px rgba(45, 40, 32, 0.12);
 }
 
 .desktop-app-shell[data-app-theme="paper"] .reading-minimal[data-theme="light"] {
   --reading-background: #efe9d8;
   --reading-foreground: #3a3324;
-  --reading-muted: #7d7259;
-  --reading-border: rgba(90, 70, 35, 0.16);
+  --reading-muted: #62543f;
+  --reading-border: rgba(90, 70, 35, 0.2);
   --reading-panel: #f5efe0;
   --reading-panel-foreground: #3a3324;
-  --reading-accent: #b5742f;
-  --reading-accent-soft: #ecdcbf;
-  --reading-accent-line: #a5853f;
-  --reading-toolbar: rgba(239, 233, 216, 0.92);
+  --reading-accent: #6f4f18;
+  --reading-accent-soft: rgba(111, 79, 24, 0.12);
+  --reading-accent-line: #583d10;
+  --reading-toolbar: rgba(239, 233, 216, 0.94);
   --reading-shadow: 0 20px 70px rgba(90, 70, 35, 0.16);
 }
 
 .desktop-app-shell[data-app-theme="mint"] .reading-minimal[data-theme="light"] {
   --reading-background: #edf3e8;
   --reading-foreground: #233229;
-  --reading-muted: #64746c;
-  --reading-border: rgba(91, 111, 99, 0.18);
+  --reading-muted: #51655a;
+  --reading-border: rgba(73, 96, 82, 0.22);
   --reading-panel: #f2f6ee;
   --reading-panel-foreground: #233229;
-  --reading-accent: #5f8a6a;
-  --reading-accent-soft: #dbe7dc;
-  --reading-accent-line: #4f7a5a;
-  --reading-toolbar: rgba(237, 243, 232, 0.92);
+  --reading-accent: #365d3f;
+  --reading-accent-soft: rgba(54, 93, 63, 0.12);
+  --reading-accent-line: #284a31;
+  --reading-toolbar: rgba(237, 243, 232, 0.94);
   --reading-shadow: 0 20px 70px rgba(60, 90, 70, 0.16);
 }
 
 .desktop-app-shell[data-app-theme="sepia"] .reading-minimal[data-theme="light"] {
   --reading-background: #f1e7d0;
   --reading-foreground: #4a3b28;
-  --reading-muted: #8a7654;
-  --reading-border: rgba(120, 95, 60, 0.2);
+  --reading-muted: #654d31;
+  --reading-border: rgba(104, 78, 43, 0.24);
   --reading-panel: #f6eeda;
   --reading-panel-foreground: #4a3b28;
-  --reading-accent: #a06a35;
-  --reading-accent-soft: #ecdcbb;
-  --reading-accent-line: #8a6d2e;
-  --reading-toolbar: rgba(241, 231, 208, 0.92);
+  --reading-accent: #684817;
+  --reading-accent-soft: rgba(104, 72, 23, 0.12);
+  --reading-accent-line: #50350e;
+  --reading-toolbar: rgba(241, 231, 208, 0.94);
   --reading-shadow: 0 20px 70px rgba(120, 95, 60, 0.18);
 }
 
 .desktop-app-shell[data-app-theme="night"] .reading-minimal[data-theme="light"] {
   --reading-background: #1b1c1f;
-  --reading-foreground: #d9d8dd;
-  --reading-muted: #8a8992;
-  --reading-border: rgba(255, 255, 255, 0.1);
+  --reading-foreground: #e9e7ec;
+  --reading-muted: #b6b4bd;
+  --reading-border: rgba(255, 255, 255, 0.14);
   --reading-panel: #232428;
-  --reading-panel-foreground: #d9d8dd;
-  --reading-accent: #d88a68;
-  --reading-accent-soft: #3a2a23;
-  --reading-accent-line: #d88a68;
-  --reading-toolbar: rgba(27, 28, 31, 0.9);
+  --reading-panel-foreground: #e9e7ec;
+  --reading-accent: #d4b56e;
+  --reading-accent-soft: rgba(212, 181, 110, 0.14);
+  --reading-accent-line: #e4c878;
+  --reading-toolbar: rgba(27, 28, 31, 0.94);
   --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
 }
 
 .desktop-app-shell[data-app-theme="solarized"] .reading-minimal[data-theme="light"] {
   --reading-background: #002b36;
-  --reading-foreground: #eee8d5;
-  --reading-muted: #839496;
-  --reading-border: rgba(131, 148, 150, 0.18);
+  --reading-foreground: #fdf6e3;
+  --reading-muted: #a7b6b6;
+  --reading-border: rgba(167, 182, 182, 0.24);
   --reading-panel: #073642;
-  --reading-panel-foreground: #eee8d5;
-  --reading-accent: #cb9b1a;
-  --reading-accent-soft: rgba(181, 137, 0, 0.18);
-  --reading-accent-line: #b58900;
-  --reading-toolbar: rgba(0, 43, 54, 0.9);
+  --reading-panel-foreground: #fdf6e3;
+  --reading-accent: #e1c55a;
+  --reading-accent-soft: rgba(225, 197, 90, 0.16);
+  --reading-accent-line: #f0d879;
+  --reading-toolbar: rgba(0, 43, 54, 0.94);
   --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
 }
 

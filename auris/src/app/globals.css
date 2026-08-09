@@ -9416,7 +9416,7 @@ button {
   padding: 12px 22px;
   font-size: 14px;
   font-weight: 600;
-  color: #1a1408;
+  color: var(--accent-ink, #1a1408);
   background: var(--accent, #c7a86a);
   border: none;
 }
@@ -10597,12 +10597,12 @@ button {
   --notes-surface: #eef3e9;
   --notes-pane: #f4f7f1;
   --notes-terminal-bg: #edf3e8;
-  --notes-line: rgba(91, 111, 99, 0.18);
-  --notes-line-strong: rgba(91, 111, 99, 0.26);
+  --notes-line: rgba(73, 96, 82, 0.22);
+  --notes-line-strong: rgba(73, 96, 82, 0.32);
   --notes-text: #233229;
   --notes-ink: #111f18;
-  --notes-muted: #64746c;
-  --notes-accent: #dbe7dc;
+  --notes-muted: #51655a;
+  --notes-accent: #d5e3d6;
   --notes-obsidian-tree-bg: color-mix(in srgb, var(--notes-bg) 94%, var(--notes-surface));
   --notes-obsidian-tree-row: color-mix(in srgb, var(--notes-ink) 7%, transparent);
   --notes-obsidian-tree-text: color-mix(in srgb, var(--notes-text) 82%, var(--notes-muted));
@@ -10615,12 +10615,12 @@ button {
   --notes-surface: #eef3e9;
   --notes-pane: #f4f7f1;
   --notes-terminal-bg: #edf3e8;
-  --notes-line: rgba(91, 111, 99, 0.18);
-  --notes-line-strong: rgba(91, 111, 99, 0.26);
+  --notes-line: rgba(73, 96, 82, 0.22);
+  --notes-line-strong: rgba(73, 96, 82, 0.32);
   --notes-text: #233229;
   --notes-ink: #111f18;
-  --notes-muted: #64746c;
-  --notes-accent: #dbe7dc;
+  --notes-muted: #51655a;
+  --notes-accent: #d5e3d6;
   --notes-obsidian-tree-bg: color-mix(in srgb, var(--notes-bg) 94%, var(--notes-surface));
   --notes-obsidian-tree-row: color-mix(in srgb, var(--notes-ink) 7%, transparent);
   --notes-obsidian-tree-text: color-mix(in srgb, var(--notes-text) 82%, var(--notes-muted));
@@ -10647,18 +10647,27 @@ button {
    浅色主题用深色叠加、深色主题用浅色叠加。
    ────────────────────────────────────────────────────────────────────────── */
 
-/* 基础默认（无属性时的回退，等于薄荷） */
+/* 基础默认（无属性时的回退，等于薄荷）。
+ * 正文、弱化文字和强调色均按 WCAG AA（≥ 4.5:1）选色；--accent-* 兼容
+ * 仍在使用旧强调色令牌的页面，避免主题切换后出现“浅底浅字”。 */
 .desktop-app-shell {
   --app-bg: #edf3e8;
   --app-surface: #f4f7f1;
   --app-ink: #111f18;
   --app-text: #233229;
   --app-text-soft: #3f5347;
-  --app-muted: #64746c;
-  --app-line: rgba(91, 111, 99, 0.2);
-  --app-line-soft: rgba(91, 111, 99, 0.12);
-  --app-fill: rgba(91, 111, 99, 0.06);
-  --app-fill-strong: rgba(91, 111, 99, 0.12);
+  --app-muted: #51655a;
+  --app-line: rgba(73, 96, 82, 0.22);
+  --app-line-soft: rgba(73, 96, 82, 0.14);
+  --app-fill: rgba(73, 96, 82, 0.07);
+  --app-fill-strong: rgba(73, 96, 82, 0.13);
+  --accent: #365d3f;
+  --accent-strong: #284a31;
+  --accent-ink: #fffaf2;
+  --accent-40: rgba(54, 93, 63, 0.4);
+  --accent-28: rgba(54, 93, 63, 0.28);
+  --accent-16: rgba(54, 93, 63, 0.16);
+  --accent-10: rgba(54, 93, 63, 0.1);
 }
 
 .desktop-app-shell[data-app-theme="white"] {
@@ -10667,11 +10676,18 @@ button {
   --app-ink: #1f1d18;
   --app-text: #2b2a26;
   --app-text-soft: #4a4842;
-  --app-muted: #7a7568;
-  --app-line: rgba(40, 35, 25, 0.12);
-  --app-line-soft: rgba(40, 35, 25, 0.07);
-  --app-fill: rgba(40, 35, 25, 0.04);
-  --app-fill-strong: rgba(40, 35, 25, 0.08);
+  --app-muted: #5f5a50;
+  --app-line: rgba(40, 35, 25, 0.18);
+  --app-line-soft: rgba(40, 35, 25, 0.11);
+  --app-fill: rgba(40, 35, 25, 0.06);
+  --app-fill-strong: rgba(40, 35, 25, 0.12);
+  --accent: #765214;
+  --accent-strong: #5f400d;
+  --accent-ink: #fffaf2;
+  --accent-40: rgba(118, 82, 20, 0.4);
+  --accent-28: rgba(118, 82, 20, 0.28);
+  --accent-16: rgba(118, 82, 20, 0.16);
+  --accent-10: rgba(118, 82, 20, 0.1);
 }
 
 .desktop-app-shell[data-app-theme="paper"] {
@@ -10680,11 +10696,18 @@ button {
   --app-ink: #221d12;
   --app-text: #3a3324;
   --app-text-soft: #5a4f3a;
-  --app-muted: #7d7259;
-  --app-line: rgba(90, 70, 35, 0.18);
-  --app-line-soft: rgba(90, 70, 35, 0.1);
-  --app-fill: rgba(90, 70, 35, 0.05);
-  --app-fill-strong: rgba(90, 70, 35, 0.1);
+  --app-muted: #62543f;
+  --app-line: rgba(90, 70, 35, 0.22);
+  --app-line-soft: rgba(90, 70, 35, 0.13);
+  --app-fill: rgba(90, 70, 35, 0.07);
+  --app-fill-strong: rgba(90, 70, 35, 0.13);
+  --accent: #6f4f18;
+  --accent-strong: #583d10;
+  --accent-ink: #fffaf2;
+  --accent-40: rgba(111, 79, 24, 0.4);
+  --accent-28: rgba(111, 79, 24, 0.28);
+  --accent-16: rgba(111, 79, 24, 0.16);
+  --accent-10: rgba(111, 79, 24, 0.1);
 }
 
 .desktop-app-shell[data-app-theme="mint"] {
@@ -10693,11 +10716,18 @@ button {
   --app-ink: #111f18;
   --app-text: #233229;
   --app-text-soft: #3f5347;
-  --app-muted: #64746c;
-  --app-line: rgba(91, 111, 99, 0.2);
-  --app-line-soft: rgba(91, 111, 99, 0.12);
-  --app-fill: rgba(91, 111, 99, 0.06);
-  --app-fill-strong: rgba(91, 111, 99, 0.12);
+  --app-muted: #51655a;
+  --app-line: rgba(73, 96, 82, 0.22);
+  --app-line-soft: rgba(73, 96, 82, 0.14);
+  --app-fill: rgba(73, 96, 82, 0.07);
+  --app-fill-strong: rgba(73, 96, 82, 0.13);
+  --accent: #365d3f;
+  --accent-strong: #284a31;
+  --accent-ink: #fffaf2;
+  --accent-40: rgba(54, 93, 63, 0.4);
+  --accent-28: rgba(54, 93, 63, 0.28);
+  --accent-16: rgba(54, 93, 63, 0.16);
+  --accent-10: rgba(54, 93, 63, 0.1);
 }
 
 .desktop-app-shell[data-app-theme="sepia"] {
@@ -10705,38 +10735,59 @@ button {
   --app-surface: #f6eed9;
   --app-ink: #2f2415;
   --app-text: #4a3b28;
-  --app-text-soft: #6a5638;
-  --app-muted: #8a7654;
-  --app-line: rgba(120, 95, 60, 0.22);
-  --app-line-soft: rgba(120, 95, 60, 0.12);
-  --app-fill: rgba(120, 95, 60, 0.06);
-  --app-fill-strong: rgba(120, 95, 60, 0.12);
+  --app-text-soft: #5a4630;
+  --app-muted: #654d31;
+  --app-line: rgba(104, 78, 43, 0.26);
+  --app-line-soft: rgba(104, 78, 43, 0.16);
+  --app-fill: rgba(104, 78, 43, 0.08);
+  --app-fill-strong: rgba(104, 78, 43, 0.15);
+  --accent: #684817;
+  --accent-strong: #50350e;
+  --accent-ink: #fffaf2;
+  --accent-40: rgba(104, 72, 23, 0.4);
+  --accent-28: rgba(104, 72, 23, 0.28);
+  --accent-16: rgba(104, 72, 23, 0.16);
+  --accent-10: rgba(104, 72, 23, 0.1);
 }
 
 .desktop-app-shell[data-app-theme="night"] {
   --app-bg: #1b1c1f;
   --app-surface: #212226;
   --app-ink: #f1f0f4;
-  --app-text: #d9d8dd;
-  --app-text-soft: #b0afb7;
-  --app-muted: #8a8992;
-  --app-line: rgba(255, 255, 255, 0.1);
-  --app-line-soft: rgba(255, 255, 255, 0.05);
-  --app-fill: rgba(255, 255, 255, 0.03);
-  --app-fill-strong: rgba(255, 255, 255, 0.08);
+  --app-text: #e9e7ec;
+  --app-text-soft: #d8d7de;
+  --app-muted: #b6b4bd;
+  --app-line: rgba(255, 255, 255, 0.18);
+  --app-line-soft: rgba(255, 255, 255, 0.1);
+  --app-fill: rgba(255, 255, 255, 0.06);
+  --app-fill-strong: rgba(255, 255, 255, 0.12);
+  --accent: #d4b56e;
+  --accent-strong: #e4c878;
+  --accent-ink: #17130a;
+  --accent-40: rgba(212, 181, 110, 0.4);
+  --accent-28: rgba(212, 181, 110, 0.28);
+  --accent-16: rgba(212, 181, 110, 0.16);
+  --accent-10: rgba(212, 181, 110, 0.1);
 }
 
 .desktop-app-shell[data-app-theme="solarized"] {
   --app-bg: #002b36;
   --app-surface: #073642;
-  --app-ink: #eee8d5;
-  --app-text: #93a1a1;
-  --app-text-soft: #839496;
-  --app-muted: #657b83;
-  --app-line: rgba(131, 148, 150, 0.2);
-  --app-line-soft: rgba(131, 148, 150, 0.1);
-  --app-fill: rgba(131, 148, 150, 0.05);
-  --app-fill-strong: rgba(131, 148, 150, 0.12);
+  --app-ink: #fdf6e3;
+  --app-text: #fdf6e3;
+  --app-text-soft: #eee8d5;
+  --app-muted: #a7b6b6;
+  --app-line: rgba(167, 182, 182, 0.24);
+  --app-line-soft: rgba(167, 182, 182, 0.13);
+  --app-fill: rgba(167, 182, 182, 0.07);
+  --app-fill-strong: rgba(167, 182, 182, 0.13);
+  --accent: #e1c55a;
+  --accent-strong: #f0d879;
+  --accent-ink: #17130a;
+  --accent-40: rgba(225, 197, 90, 0.4);
+  --accent-28: rgba(225, 197, 90, 0.28);
+  --accent-16: rgba(225, 197, 90, 0.16);
+  --accent-10: rgba(225, 197, 90, 0.1);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -10755,12 +10806,12 @@ button {
   --notes-surface: #f7f5ef;
   --notes-pane: #fbfaf6;
   --notes-terminal-bg: #f4f2ec;
-  --notes-line: rgba(60, 55, 45, 0.12);
-  --notes-line-strong: rgba(60, 55, 45, 0.2);
+  --notes-line: rgba(60, 55, 45, 0.16);
+  --notes-line-strong: rgba(60, 55, 45, 0.24);
   --notes-text: #2b2a26;
   --notes-ink: #14130f;
-  --notes-muted: #6f6a60;
-  --notes-accent: #ece8de;
+  --notes-muted: #5f5a50;
+  --notes-accent: #e5e0d5;
 }
 
 /* 纸张：米色，长时间阅读不刺眼 */
@@ -10770,12 +10821,12 @@ button {
   --notes-surface: #ece5d2;
   --notes-pane: #f5f0e3;
   --notes-terminal-bg: #efe9d8;
-  --notes-line: rgba(120, 105, 75, 0.2);
-  --notes-line-strong: rgba(120, 105, 75, 0.3);
+  --notes-line: rgba(100, 82, 50, 0.24);
+  --notes-line-strong: rgba(100, 82, 50, 0.34);
   --notes-text: #3a3324;
   --notes-ink: #221d12;
-  --notes-muted: #7d7259;
-  --notes-accent: #e3d8bf;
+  --notes-muted: #62543f;
+  --notes-accent: #ddd0b3;
 }
 
 /* 薄荷：默认基础绿（与基础 .notes-v2 令牌一致） */
@@ -10785,12 +10836,12 @@ button {
   --notes-surface: #eef3e9;
   --notes-pane: #f4f7f1;
   --notes-terminal-bg: #edf3e8;
-  --notes-line: rgba(91, 111, 99, 0.18);
-  --notes-line-strong: rgba(91, 111, 99, 0.26);
+  --notes-line: rgba(73, 96, 82, 0.22);
+  --notes-line-strong: rgba(73, 96, 82, 0.32);
   --notes-text: #233229;
   --notes-ink: #111f18;
-  --notes-muted: #64746c;
-  --notes-accent: #dbe7dc;
+  --notes-muted: #51655a;
+  --notes-accent: #d5e3d6;
 }
 
 /* 棕褐：经典米黄 sepia */
@@ -10800,27 +10851,27 @@ button {
   --notes-surface: #ede2c9;
   --notes-pane: #f6eed9;
   --notes-terminal-bg: #ede2c9;
-  --notes-line: rgba(120, 95, 60, 0.22);
-  --notes-line-strong: rgba(120, 95, 60, 0.32);
+  --notes-line: rgba(104, 78, 43, 0.26);
+  --notes-line-strong: rgba(104, 78, 43, 0.36);
   --notes-text: #4a3b28;
   --notes-ink: #2f2415;
-  --notes-muted: #8a7654;
-  --notes-accent: #e6d6b3;
+  --notes-muted: #654d31;
+  --notes-accent: #dfcca5;
 }
 
-/* 夜间：低对比深色，避免纯黑刺眼 */
+/* 夜间：低眩光深色，但文字仍保持 AA 对比 */
 .notes-v2[data-notes-theme="night"],
 .desktop-app-frame .notes-v2[data-notes-theme="night"] {
   --notes-bg: #1b1c1f;
   --notes-surface: #212226;
   --notes-pane: #161719;
   --notes-terminal-bg: #161719;
-  --notes-line: rgba(200, 200, 210, 0.12);
-  --notes-line-strong: rgba(200, 200, 210, 0.22);
+  --notes-line: rgba(200, 200, 210, 0.16);
+  --notes-line-strong: rgba(200, 200, 210, 0.26);
   --notes-text: #d9d8dd;
   --notes-ink: #f1f0f4;
-  --notes-muted: #908f98;
-  --notes-accent: #2c2d33;
+  --notes-muted: #b6b4bd;
+  --notes-accent: #303138;
 }
 
 /* Solarized：Solarized Dark 配色 */
@@ -10830,12 +10881,12 @@ button {
   --notes-surface: #073642;
   --notes-pane: #00252e;
   --notes-terminal-bg: #00252e;
-  --notes-line: rgba(131, 148, 150, 0.18);
-  --notes-line-strong: rgba(131, 148, 150, 0.3);
-  --notes-text: #93a1a1;
-  --notes-ink: #eee8d5;
-  --notes-muted: #586e75;
-  --notes-accent: #0a3f4a;
+  --notes-line: rgba(167, 182, 182, 0.24);
+  --notes-line-strong: rgba(167, 182, 182, 0.36);
+  --notes-text: #c2cecc;
+  --notes-ink: #fdf6e3;
+  --notes-muted: #a7b6b6;
+  --notes-accent: #0b4653;
 }
 
 .desktop-app-frame .notes-v2[data-left-collapsed="true"] {
@@ -16756,6 +16807,15 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   border-color: var(--app-line) !important;
 }
 
+.desktop-app-shell[data-app-theme] .desktop-app-sidebar__link {
+  color: var(--app-muted) !important;
+}
+
+.desktop-app-shell[data-app-theme] .desktop-app-sidebar__link:hover,
+.desktop-app-shell[data-app-theme] .desktop-app-sidebar__link[data-active="true"] {
+  color: var(--accent) !important;
+}
+
 .desktop-app-shell[data-app-theme] .desktop-app-sidebar__link:hover,
 .desktop-app-shell[data-app-theme]
   .desktop-app-sidebar__link[data-active="true"] {
@@ -16787,7 +16847,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-shell[data-app-theme="white"] .desktop-video-library-shell {
   --vlib-bg: #f4f2ec;
   --vlib-text: #2b2a26;
-  --vlib-muted: #7a7568;
+  --vlib-muted: #5f5a50;
   --vlib-border: rgba(40, 35, 25, 0.1);
   --vlib-card-bg: #fbfaf4;
   --vlib-card-text: #2b2a26;
@@ -16797,7 +16857,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-shell[data-app-theme="paper"] .desktop-video-library-shell {
   --vlib-bg: #efe9d8;
   --vlib-text: #3a3324;
-  --vlib-muted: #7d7259;
+  --vlib-muted: #62543f;
   --vlib-border: rgba(90, 70, 35, 0.14);
   --vlib-card-bg: #f5efe0;
   --vlib-card-text: #3a3324;
@@ -16807,7 +16867,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-shell[data-app-theme="mint"] .desktop-video-library-shell {
   --vlib-bg: #edf3e8;
   --vlib-text: #233229;
-  --vlib-muted: #64746c;
+  --vlib-muted: #51655a;
   --vlib-border: rgba(91, 111, 99, 0.16);
   --vlib-card-bg: #f2f6ee;
   --vlib-card-text: #233229;
@@ -16817,7 +16877,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-shell[data-app-theme="sepia"] .desktop-video-library-shell {
   --vlib-bg: #f1e7d0;
   --vlib-text: #4a3b28;
-  --vlib-muted: #8a7654;
+  --vlib-muted: #654d31;
   --vlib-border: rgba(120, 95, 60, 0.18);
   --vlib-card-bg: #f6eeda;
   --vlib-card-text: #4a3b28;
@@ -16827,7 +16887,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-shell[data-app-theme="night"] .desktop-video-library-shell {
   --vlib-bg: #1b1c1f;
   --vlib-text: #e9e7ec;
-  --vlib-muted: #8a8992;
+  --vlib-muted: #b6b4bd;
   --vlib-border: rgba(255, 255, 255, 0.08);
   --vlib-card-bg: #232428;
   --vlib-card-text: #e9e7ec;
@@ -16837,7 +16897,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-shell[data-app-theme="solarized"] .desktop-video-library-shell {
   --vlib-bg: #002b36;
   --vlib-text: #eee8d5;
-  --vlib-muted: #839496;
+  --vlib-muted: #a7b6b6;
   --vlib-border: rgba(131, 148, 150, 0.15);
   --vlib-card-bg: #073642;
   --vlib-card-text: #eee8d5;
