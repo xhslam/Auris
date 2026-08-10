@@ -10958,11 +10958,14 @@ button {
   white-space: nowrap;
 }
 
+/* 背景必须从 --notes-bg 派生，不能写死薄荷色：rail 与画布同处一个 .notes-v2
+   主题作用域，写死会让它在 paper/sepia/night 等主题下变成一条不属于当前配色
+   的绿白竖条。96% 保留原本「比画布略实」的层次感。 */
 .desktop-app-frame .notes-v2__rail {
   grid-row: 2;
   min-width: 0;
   min-height: 0;
-  background: rgba(237, 243, 232, 0.96);
+  background: color-mix(in srgb, var(--notes-bg) 96%, transparent);
 }
 
 .desktop-app-frame .notes-v2__rail--left {
@@ -12356,20 +12359,25 @@ body:has(.workspace-shell),
   }
 }
 
+/* 笔记页必须跟随「侧栏之后的可用区」，不能用 100vw/100vh。
+   桌面 shell 里 .desktop-app-frame 已经在常驻侧栏右侧、宽度 = 视口 - 侧栏，
+   页面再取 100vw 就等于把侧栏宽度又算了一次，右侧被裁掉一条（正文右边距因此
+   比左边距小）。改成相对父级的 100%，让可用区自己决定宽高。 */
 .notes-v2-page {
-  width: 100vw;
-  min-height: 100vh;
-  height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  height: 100%;
   overflow: hidden;
   background: #ececeb;
 }
 
 .notes-v2-page .notes-v2-page__frame,
 .notes-v2-page .notes-v2-page__viewport {
-  width: 100vw;
-  max-width: 100vw;
-  min-height: 100vh;
-  height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  height: 100%;
   padding: 0;
   gap: 0;
 }
@@ -12387,8 +12395,8 @@ body:has(.workspace-shell),
 }
 
 .notes-v2-page .notes-v2 {
-  min-height: 100vh;
-  height: 100vh;
+  min-height: 100%;
+  height: 100%;
   border: none;
   border-radius: 0;
   box-shadow: none;
@@ -14621,10 +14629,14 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   display: none !important;
 }
 
+/* The desktop sidebar is a flex sibling of the frame. Size the frame from the
+   remaining parent width; 100vw would count the sidebar a second time and push
+   the right edge of home/notes off-screen. */
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame,
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__viewport {
-  width: 100vw;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 100vh;
   height: 100vh;
   padding: 0;
@@ -15038,8 +15050,8 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame,
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__viewport {
-  width: 100vw;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   min-height: 100vh;
   height: 100vh;
@@ -17523,8 +17535,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   cursor: pointer;
 }
 
+/* hover/激活态同理：白色叠加只在浅色主题下成立，深色主题会被提亮成灰块。
+   改为按 --notes-ink 叠加，由各主题自己的 ink 决定叠加方向。 */
 .desktop-app-frame .notes-v2__rail-item:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.46);
+  background: color-mix(in srgb, var(--notes-ink, #111f18) 7%, transparent);
   color: var(--notes-text, #233229);
 }
 
@@ -17534,7 +17548,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-v2__rail-item[aria-pressed="true"] {
-  background: rgba(255, 255, 255, 0.62);
+  background: color-mix(in srgb, var(--notes-ink, #111f18) 12%, transparent);
   color: var(--notes-text, #233229);
 }
 
@@ -17617,7 +17631,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-v2__rail-add:hover {
-  background: rgba(255, 255, 255, 0.46);
+  background: color-mix(in srgb, var(--notes-ink, #111f18) 7%, transparent);
   color: var(--notes-text, #233229);
 }
 
