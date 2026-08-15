@@ -12,7 +12,6 @@ export function NiaOperationsPanel({ onMemoryContextChange }: { onMemoryContextC
   const [memoryText, setMemoryText] = useState("");
   const [memories, setMemories] = useState<readonly NiaMemoryRecord[]>([]);
   const [taskText, setTaskText] = useState("");
-  const [auditVersion, setAuditVersion] = useState(0);
   const tasks = useNiaTaskStore((state) => state.tasks);
   const hydrateTasks = useNiaTaskStore((state) => state.hydrate);
   const createTask = useNiaTaskStore((state) => state.createTask);
@@ -21,18 +20,18 @@ export function NiaOperationsPanel({ onMemoryContextChange }: { onMemoryContextC
   useEffect(() => { const storage = storageOrNull(); setMemories(loadNiaMemories(storage)); hydrateTasks(); }, [hydrateTasks]);
   const active = useMemo(() => activeNiaMemories(memories), [memories]);
   useEffect(() => { onMemoryContextChange(formatNiaConfirmedMemoriesForPrompt(active)); }, [active, onMemoryContextChange]);
-  const refreshMemory = () => { setMemories(loadNiaMemories(storageOrNull())); setAuditVersion((value) => value + 1); };
+  const refreshMemory = () => { setMemories(loadNiaMemories(storageOrNull())); };
   const candidates = memories.filter((memory) => memory.status === "candidate");
-  const audit = useMemo(() => loadNiaAuditLog(storageOrNull()).slice(-8).reverse(), [auditVersion, memories, tasks]);
+  const audit = loadNiaAuditLog(storageOrNull()).slice(-8).reverse();
 
   return <section aria-label="Nia operations" className="nia-operations">
     <details className="nia-operations__group">
       <summary>Tasks · 任务 <small>{tasks.filter((task) => task.status === "running" || task.status === "planned").length} active</small></summary>
-      <form onSubmit={(event) => { event.preventDefault(); if (createTask(taskText)) { setTaskText(""); setAuditVersion((value) => value + 1); } }}>
+      <form onSubmit={(event) => { event.preventDefault(); if (createTask(taskText)) { setTaskText(""); } }}>
         <input aria-label="Nia task objective" maxLength={800} onChange={(event) => setTaskText(event.target.value)} placeholder="Plan a learning task…" value={taskText} />
         <button type="submit">Add · 添加</button>
       </form>
-      <ol className="nia-operations__list">{tasks.slice().reverse().slice(0, 5).map((task) => <li key={task.id}><div><strong>{task.objective}</strong><small>{task.status} · {task.evidence.length} evidence</small></div><span>{task.status === "planned" ? <button onClick={() => { setTaskStatus(task.id, "running"); setAuditVersion((value) => value + 1); }} type="button">Start</button> : task.status === "running" ? <button onClick={() => setTaskStatus(task.id, "paused")} type="button">Pause</button> : task.status === "paused" ? <button onClick={() => setTaskStatus(task.id, "running")} type="button">Resume</button> : null}{["planned", "running", "paused"].includes(task.status) ? <button onClick={() => setTaskStatus(task.id, "cancelled")} type="button">Cancel</button> : null}</span></li>)}</ol>
+      <ol className="nia-operations__list">{tasks.slice().reverse().slice(0, 5).map((task) => <li key={task.id}><div><strong>{task.objective}</strong><small>{task.status} · {task.evidence.length} evidence</small></div><span>{task.status === "planned" ? <button onClick={() => { setTaskStatus(task.id, "running"); }} type="button">Start</button> : task.status === "running" ? <button onClick={() => setTaskStatus(task.id, "paused")} type="button">Pause</button> : task.status === "paused" ? <button onClick={() => setTaskStatus(task.id, "running")} type="button">Resume</button> : null}{["planned", "running", "paused"].includes(task.status) ? <button onClick={() => setTaskStatus(task.id, "cancelled")} type="button">Cancel</button> : null}</span></li>)}</ol>
     </details>
     <details className="nia-operations__group">
       <summary>Memory · 记忆 <small>{active.length} confirmed</small></summary>

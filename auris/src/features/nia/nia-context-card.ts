@@ -23,14 +23,6 @@ export type NiaContextCard = Readonly<{
   title: string;
 }>;
 
-function cardKind(context: NiaContext): NiaContextCardKind {
-  if (context.kind === "browser_reference") return "browser";
-  if (context.kind === "reading_reference") return "reading";
-  if (context.kind === "video_reference") return "video";
-  if (context.kind === "workflow_step") return "workflow";
-  return "note";
-}
-
 function stableIdentity(context: NiaContext) {
   if (context.kind === "browser_reference") return context.url;
   if (context.kind === "notes_selection") return `${context.path}:${context.revision}:${context.selection.from}:${context.selection.to}`;
