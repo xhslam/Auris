@@ -16,6 +16,7 @@ import {
   type EditorContextMenuTarget,
 } from "@/components/notes-v2/notes-editor-context-menu";
 import { NotesRichEditorPane } from "@/components/notes-v2/notes-rich-editor-pane";
+import { useNotesScrollMemory } from "@/components/notes-v2/use-notes-scroll-memory";
 import { NotesWechatPreview } from "@/components/notes-v2/notes-wechat-preview";
 import { StructuredDataPreview } from "@/components/notes-v2/structured-data-preview";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
@@ -108,6 +109,19 @@ export function NotesEditorPane({
       ? "split"
       : requestedEditorMode;
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const splitPreviewRef = useRef<HTMLDivElement | null>(null);
+  useNotesScrollMemory({
+    enabled: Boolean(document) && editorMode !== "wysiwyg",
+    hostRef,
+    path: document?.path,
+    surface: "source",
+  });
+  useNotesScrollMemory({
+    enabled: Boolean(document) && editorMode === "split",
+    hostRef: splitPreviewRef,
+    path: document?.path,
+    surface: "preview",
+  });
   const lastAppliedSourceRef = useRef<string | null>(null);
   const lastEmittedSourceRef = useRef<string | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -126,6 +140,7 @@ export function NotesEditorPane({
   const [findQuery, setFindQuery] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const [isFindOpen, setIsFindOpen] = useState(false);
+  const [isLintOpen, setIsLintOpen] = useState(false);
   const [sourceTitleDraft, setSourceTitleDraft] = useState("");
   const [splitPreview, setSplitPreview] = useState({
     path: document?.path ?? null,
@@ -174,6 +189,9 @@ export function NotesEditorPane({
       source: document?.rawSource ?? "",
     });
   }, [document?.path, document?.rawSource]);
+  useEffect(() => {
+    setIsLintOpen(false);
+  }, [document?.path]);
 
   useEffect(() => {
     onActiveLineChangeRef.current = onActiveLineChange;
@@ -723,19 +741,51 @@ export function NotesEditorPane({
           ) : null}
         </div>
         {format.id === "markdown" ? (
-          <span
+          <button
+            aria-expanded={isLintOpen}
+            aria-label={`Markdown lint: ${lintIssues.length} issues`}
             className="notes-v2__lint-summary"
             data-has-errors={lintIssues.some(
               (issue) => issue.severity === "error",
             )}
+            onClick={() => setIsLintOpen((current) => !current)}
             title={lintIssues
               .map((issue) => `L${issue.line}: ${issue.message}`)
               .join("\n")}
+            type="button"
           >
             Lint {lintIssues.length}
-          </span>
+          </button>
         ) : null}
       </div>
+      {isLintOpen && format.id === "markdown" ? (
+        <section
+          aria-label="Markdown lint diagnostics"
+          className="notes-v2__lint-diagnostics"
+          role="region"
+        >
+          {lintIssues.length > 0 ? (
+            <ul>
+              {lintIssues.map((issue, index) => (
+                <li key={`${issue.line}-${issue.message}-${index}`}>
+                  <button
+                    data-severity={issue.severity}
+                    onClick={() => {
+                      bridgeRef.current?.revealLine(Math.max(issue.line - 1, 0));
+                      setIsLintOpen(false);
+                    }}
+                    type="button"
+                  >
+                    {`L${issue.line}: ${issue.message}`}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="notes-v2__empty-copy">Markdown lint 已通过。</p>
+          )}
+        </section>
+      ) : null}
       {editorMode !== "wysiwyg" && (isFindOpen || findQuery || replaceText) ? (
         <div
           className="notes-v2__find-replace"
@@ -834,7 +884,10 @@ export function NotesEditorPane({
               ref={hostRef}
             />
           </div>
-          <div className="notes-v2__markdown-split-preview">
+          <div
+            className="notes-v2__markdown-split-preview"
+            ref={splitPreviewRef}
+          >
             {isStructured ? (
               <StructuredDataPreview
                 format={format.id as StructuredDataFormat}

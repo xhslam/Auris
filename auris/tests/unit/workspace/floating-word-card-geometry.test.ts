@@ -1,9 +1,27 @@
 import { describe, expect, it } from "vitest";
 import {
   WORD_CARD_VIEWPORT_MARGIN,
+  centerWordCardPosition,
   clampWordCardPosition,
   proposeWordCardPosition,
 } from "@/components/workspace/floating-word-card-geometry";
+
+describe("centerWordCardPosition", () => {
+  it("centers the card in the viewport", () => {
+    expect(
+      centerWordCardPosition(540, 560, { width: 1440, height: 900 }),
+    ).toEqual({ left: 450, top: 170 });
+  });
+
+  it("keeps an oversized card within the viewport margin", () => {
+    expect(
+      centerWordCardPosition(900, 700, { width: 800, height: 600 }),
+    ).toEqual({
+      left: WORD_CARD_VIEWPORT_MARGIN,
+      top: WORD_CARD_VIEWPORT_MARGIN,
+    });
+  });
+});
 
 describe("clampWordCardPosition", () => {
   it("keeps the card inside the viewport with a safety margin", () => {

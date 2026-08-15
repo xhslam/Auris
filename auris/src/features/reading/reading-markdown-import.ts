@@ -58,7 +58,13 @@ export async function createReadingSourceFromMarkdownFile(
 
   const raw = await file.text();
   const examSections = parseReadingExamMarkdown(raw);
-  const category = options.category ?? "article";
+  const category = options.category ?? (examSections ? "exam" : "article");
+
+  if (options.category === "exam" && !examSections) {
+    throw new Error(
+      "未识别到题型标记。请在 Markdown 中添加“## 题型: 阅读理解”等明确题型后重新导入。",
+    );
+  }
 
   if (examSections) {
     return buildReadingSourceFromExamMarkdown({

@@ -186,6 +186,19 @@ function wikiLinkMarkdownPlugin(md: MarkdownIt) {
   };
 }
 
+// A standalone VMark [TOC] marker is parsed as an atom instead of prose.
+function tableOfContentsMarkdownPlugin(md: MarkdownIt) {
+  md.block.ruler.before("paragraph", "notes_toc", (state, startLine, _endLine, silent) => {
+    const start = state.bMarks[startLine] + state.tShift[startLine];
+    const end = state.eMarks[startLine];
+    if (state.src.slice(start, end).trim().toUpperCase() !== "[TOC]") return false;
+    if (!silent) state.push("notes_toc", "nav", 0);
+    state.line = startLine + 1;
+    return true;
+  });
+  md.renderer.rules.notes_toc = () =>
+    '<nav class="notes-v2__rich-toc" data-notes-toc="true"></nav>';
+}
 const markdownRenderer = MarkdownIt({
   html: false,
   linkify: true,
@@ -194,7 +207,8 @@ const markdownRenderer = MarkdownIt({
   .enable("table")
   .use(wikiLinkMarkdownPlugin)
   .use(mathBlockMarkdownPlugin)
-  .use(mathInlineMarkdownPlugin);
+  .use(mathInlineMarkdownPlugin)
+  .use(tableOfContentsMarkdownPlugin);
 
 // Inline atom node modelling a `[[wiki link]]`. `token` holds the full inner
 // text (e.g. `target#heading|alias`) so the link round-trips losslessly back
@@ -366,6 +380,23 @@ const codeBlockNodeSpec: NodeSpec = {
 
 const baseNodes = basicSchema.spec.nodes.update("code_block", codeBlockNodeSpec);
 const listNodes = addListNodes(baseNodes, "paragraph block*", "block");
+// Block atom whose NodeView renders a live heading navigator.
+const tableOfContentsNodeSpec: NodeSpec = {
+  atom: true,
+  group: "block",
+  parseDOM: [{ tag: "nav[data-notes-toc]" }],
+  selectable: true,
+  toDOM(): DOMOutputSpec {
+    return [
+      "nav",
+      {
+        "aria-label": "文档目录",
+        class: "notes-v2__rich-toc",
+        "data-notes-toc": "true",
+      },
+    ];
+  },
+};
 const richNodes = listNodes
   .append(
     tableNodes({
@@ -376,7 +407,8 @@ const richNodes = listNodes
   )
   .addToEnd("wiki_link", wikiLinkNodeSpec)
   .addToEnd("math_block", mathBlockNodeSpec)
-  .addToEnd("math_inline", mathInlineNodeSpec);
+  .addToEnd("math_inline", mathInlineNodeSpec)
+  .addToEnd("toc", tableOfContentsNodeSpec);
 
 export const notesRichEditorSchema = new Schema({
   marks: basicSchema.spec.marks,
@@ -461,6 +493,10 @@ export const notesRichMarkdownSerializer = new MarkdownSerializer(
     },
     math_inline(state, node) {
       state.write(`$${node.attrs.source as string}$`);
+    },
+    toc(state, node) {
+      state.write("[TOC]");
+      state.closeBlock(node);
     },
   },
   defaultMarkdownSerializer.marks,

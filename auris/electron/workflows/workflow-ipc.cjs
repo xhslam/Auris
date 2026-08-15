@@ -29,7 +29,7 @@ function createWorkflowIpc({ ipcMain, runtime, resolveCallerKind }) {
 
   function owner(event) {
     const kind = resolveCallerKind(event);
-    if (!new Set(["notes", "browser-chrome"]).has(kind) || typeof event?.sender?.id !== "number") {
+    if (!new Set(["notes", "browser-chrome", "nia-standalone"]).has(kind) || typeof event?.sender?.id !== "number") {
       const error = new Error("Untrusted workflow renderer."); error.code = "UNTRUSTED_CALLER"; throw error;
     }
     return `${kind}:${event.sender.id}`;

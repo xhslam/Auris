@@ -102,6 +102,21 @@ const niaBridge = Object.freeze({
   },
 });
 
+const niaStandaloneListeners = new Set();
+let pendingNiaStandaloneLaunch = null;
+ipcRenderer.on("shadowing:nia-standalone:launch", (_event, launch) => {
+  pendingNiaStandaloneLaunch = launch;
+  for (const listener of niaStandaloneListeners) listener(launch);
+});
+const niaStandaloneBridge = Object.freeze({
+  open: (launch = {}) => invoke("shadowing:nia-standalone:open", launch),
+  subscribeLaunch(listener) {
+    if (typeof listener !== "function") return () => undefined;
+    niaStandaloneListeners.add(listener);
+    if (pendingNiaStandaloneLaunch) queueMicrotask(() => listener(pendingNiaStandaloneLaunch));
+    return () => niaStandaloneListeners.delete(listener);
+  },
+});
 const workflowWrappers = new Map();
 const workflowBridge = Object.freeze({
   invoke(command, payload = {}) {
@@ -138,6 +153,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     },
   },
   nia: niaBridge,
+  niaStandalone: niaStandaloneBridge,
   workflows: workflowBridge,
   aiDock: {
     setActiveProvider: (providerId) =>

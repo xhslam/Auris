@@ -149,6 +149,9 @@ export function useNiaSession(host: unknown = typeof window === "undefined" ? gl
   const lastBrowserOptionsRef = useRef<{
     enableBrowserTools?: boolean;
     browserTarget?: Readonly<{ windowId: string; tabId: string }> | null;
+    persistentContext?: string;
+    providerId?: string | null;
+    modelOverride?: string | null;
   }>({});
 
   useEffect(() => {
@@ -224,6 +227,10 @@ export function useNiaSession(host: unknown = typeof window === "undefined" ? gl
     options: {
       enableBrowserTools?: boolean;
       browserTarget?: Readonly<{ windowId: string; tabId: string }> | null;
+      /** Confirmed local memory and other explicit cards, composed by the independent Nia surface. */
+      persistentContext?: string;
+      providerId?: string | null;
+      modelOverride?: string | null;
     } = {},
   ) => {
     const trimmed = prompt.trim();
@@ -236,19 +243,26 @@ export function useNiaSession(host: unknown = typeof window === "undefined" ? gl
     lastBrowserOptionsRef.current = {
       enableBrowserTools: options.enableBrowserTools === true,
       browserTarget: options.browserTarget ?? null,
+      persistentContext: options.persistentContext?.trim() || undefined,
+      providerId: options.providerId ?? null,
+      modelOverride: options.modelOverride ?? null,
     };
     setMessages((current) => [...current, { id: id("user"), role: "user", content: trimmed }]);
     setStatus("streaming");
     pendingStartRef.current = true;
     runIdRef.current = null;
-    const wirePrompt = context
-      ? `${trimmed}\n\n---\n${formatNiaContextForPrompt(context)}`
-      : trimmed;
+    const wirePrompt = [
+      trimmed,
+      ...(context ? [formatNiaContextForPrompt(context)] : []),
+      ...(options.persistentContext?.trim() ? [options.persistentContext.trim()] : []),
+    ].join("\n\n---\n");
+    const effectiveProviderId = options.providerId ?? providerId ?? undefined;
+    const effectiveModel = options.modelOverride ?? model ?? undefined;
     try {
       const started = await bridge.start({
         prompt: wirePrompt,
-        ...(providerId ? { providerId } : {}),
-        ...(model ? { modelOverride: model } : {}),
+        ...(effectiveProviderId ? { providerId: effectiveProviderId } : {}),
+        ...(effectiveModel ? { modelOverride: effectiveModel } : {}),
         ...(options.enableBrowserTools === true ? { enableBrowserTools: true } : {}),
         ...(options.browserTarget
           ? { browserTarget: options.browserTarget }

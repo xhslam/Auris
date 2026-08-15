@@ -51,7 +51,7 @@ const DEFINITION_SUMMARY_KEYS = Object.freeze([
   "tags",
 ]);
 
-const NIA_CALLER_KINDS = Object.freeze(["browser-chrome", "notes"]);
+const NIA_CALLER_KINDS = Object.freeze(["browser-chrome", "notes", "nia-standalone"]);
 
 const COMMAND_SET = new Set(NIA_IPC_COMMANDS);
 

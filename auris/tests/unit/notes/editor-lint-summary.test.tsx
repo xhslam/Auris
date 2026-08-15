@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
@@ -77,6 +78,23 @@ describe("notes editor lint summary", () => {
     expect(title).toContain("L5: Markdown 链接缺少右括号。");
   });
 
+  it("opens a keyboard-accessible diagnostics panel with line targets", async () => {
+    const user = userEvent.setup();
+    renderPane("# Title\n\n[link](\n");
+    await user.click(
+      screen.getByRole("button", { name: "Markdown lint: 1 issues" }),
+    );
+    const diagnostics = screen.getByRole("region", {
+      name: "Markdown lint diagnostics",
+    });
+    expect(
+      screen.getByRole("button", { name: "L3: Markdown 链接缺少右括号。" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "L3: Markdown 链接缺少右括号。" }),
+    );
+    expect(diagnostics).not.toBeInTheDocument();
+  });
   it("omits the badge for non-Markdown formats", () => {
     const { container } = renderPane('{\n  "a": 1\n}\n', "notes/data.json");
 

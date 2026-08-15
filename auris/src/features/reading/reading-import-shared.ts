@@ -39,6 +39,7 @@ export function buildReadingSourceFromPlainText(options: {
     throw new Error("这个文件里没有可导入的文字。");
   }
 
+  const importedAt = new Date().toISOString();
   const sourceId = `${options.idPrefix}-${Date.now()}`;
   const paragraphs = createParagraphsFromText(sourceId, trimmed);
 
@@ -52,7 +53,9 @@ export function buildReadingSourceFromPlainText(options: {
     category: options.category ?? "article",
     estimatedMinutes: Math.max(1, Math.ceil(wordCount / 180)),
     id: sourceId,
+    importedAt,
     kicker: options.fileName,
+    originalFileName: options.fileName,
     paragraphs,
     progress: 0,
     title: deriveReadingTitle(

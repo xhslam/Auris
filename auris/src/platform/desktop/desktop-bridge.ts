@@ -477,6 +477,10 @@ export type DesktopBridge = {
     subscribe: (listener: (event: unknown) => void) => boolean;
     unsubscribe: (listener: (event: unknown) => void) => boolean;
   };
+  niaStandalone?: {
+    open: (launch?: Readonly<Record<string, unknown>>) => Promise<boolean>;
+    subscribeLaunch: (listener: (launch: Readonly<Record<string, unknown>>) => void) => () => void;
+  };
   workflows?: {
     invoke: (
       command: "list" | "inspect" | "validate" | "start" | "get_state" | "cancel",

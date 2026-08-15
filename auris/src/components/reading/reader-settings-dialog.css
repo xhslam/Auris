@@ -1,0 +1,577 @@
+.reader-settings__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px;
+  background: color-mix(in srgb, var(--reading-foreground) 28%, transparent);
+  backdrop-filter: blur(8px);
+  animation: reader-settings-fade 180ms ease-out both;
+}
+
+.reader-settings {
+  --rs-bg: var(--reading-background);
+  --rs-panel-soft: color-mix(in srgb, var(--reading-panel) 91%, var(--reading-foreground) 9%);
+  --rs-panel: color-mix(in srgb, var(--reading-panel) 82%, var(--reading-foreground) 18%);
+  --rs-panel-strong: color-mix(in srgb, var(--reading-panel) 68%, var(--reading-foreground) 32%);
+  --rs-line: color-mix(in srgb, var(--reading-foreground) 28%, transparent);
+  --rs-text: var(--reading-foreground);
+  --rs-muted: color-mix(in srgb, var(--reading-foreground) 70%, var(--reading-background));
+  --rs-focus: var(--reading-accent);
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 100%);
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--rs-line);
+  border-radius: 24px;
+  color: var(--rs-text);
+  background:
+    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--rs-focus) 14%, transparent), transparent 34%),
+    var(--rs-bg);
+  box-shadow: 0 32px 100px color-mix(in srgb, var(--reading-foreground) 34%, transparent);
+  font-family: var(--auris-font-sans);
+  animation: reader-settings-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.reader-settings button,
+.reader-settings select,
+.reader-settings input {
+  font: inherit;
+}
+
+.reader-settings button {
+  color: inherit;
+}
+
+.reader-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 30px 22px;
+}
+
+.reader-settings__eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--rs-focus);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.reader-settings__header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+}
+
+.reader-settings__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-settings__header-actions button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--rs-line);
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.reader-settings__header-actions button:hover {
+  border-color: var(--rs-focus);
+  background: var(--rs-panel-soft);
+}
+
+.reader-settings__header-actions svg {
+  width: 19px;
+  height: 19px;
+}
+
+.reader-settings__header-actions .reader-settings__reset {
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reader-settings__tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 0 30px;
+  padding: 4px;
+  border-radius: 15px;
+  background: var(--rs-panel);
+}
+
+.reader-settings__tabs button {
+  min-width: 0;
+  height: 46px;
+  border: 0;
+  border-radius: 11px;
+  color: var(--rs-muted);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.reader-settings__tabs button:hover {
+  color: var(--rs-text);
+}
+
+.reader-settings__tabs button[data-active="true"] {
+  color: var(--rs-text);
+  background: var(--rs-panel-strong);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--rs-text) 18%, transparent) inset;
+}
+
+.reader-settings__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 18px 30px 24px;
+  padding: 24px;
+  border: 1px solid var(--rs-line);
+  border-radius: 18px;
+  background: var(--rs-panel-soft);
+  scrollbar-color: color-mix(in srgb, var(--rs-text) 32%, transparent) transparent;
+}
+
+.reader-settings__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reader-settings__field,
+.reader-settings__range-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reader-settings__field > span,
+.reader-settings__range-field > span {
+  color: var(--rs-text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.reader-settings__field select {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--rs-line);
+  border-radius: 12px;
+  color: var(--rs-text);
+  background: var(--rs-panel);
+  cursor: pointer;
+}
+
+.reader-settings__field select:focus-visible,
+.reader-settings button:focus-visible,
+.reader-settings input:focus-visible {
+  outline: 2px solid var(--rs-focus);
+  outline-offset: 2px;
+}
+
+.reader-settings__font-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reader-settings__font-grid button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid var(--rs-line);
+  border-radius: 13px;
+  background: var(--rs-bg);
+  cursor: pointer;
+}
+
+.reader-settings__font-grid button[data-active="true"] {
+  border-color: var(--rs-focus);
+  background: var(--rs-panel-strong);
+}
+
+.reader-settings__font-grid button > span {
+  font-size: 19px;
+}
+
+.reader-settings__font-grid button small {
+  color: var(--rs-muted);
+  font-size: 11px;
+}
+
+.reader-settings__font-grid button > svg,
+.reader-settings__theme-grid button > svg {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 15px;
+  height: 15px;
+  color: var(--rs-focus);
+}
+
+.reader-settings__font-grid [data-font="old-style"] > span {
+  font-family: Iowan Old Style, Palatino, Georgia, serif;
+}
+
+.reader-settings__font-grid [data-font="modern"] > span {
+  font-family: Didot, Bodoni 72, serif;
+}
+
+.reader-settings__font-grid [data-font="humanist"] > span {
+  font-family: Optima, Candara, sans-serif;
+}
+
+.reader-settings__font-grid [data-font="monospace"] > span {
+  font-family: SFMono-Regular, Menlo, monospace;
+}
+
+.reader-settings__segments {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--rs-line);
+  border-radius: 12px;
+}
+
+.reader-settings__segments--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.reader-settings__segments button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 0;
+  border-right: 1px solid var(--rs-line);
+  background: transparent;
+  cursor: pointer;
+}
+
+.reader-settings__segments button:last-child {
+  border-right: 0;
+}
+
+.reader-settings__segments button[data-active="true"] {
+  background: var(--rs-panel-strong);
+}
+
+.reader-settings__segments svg {
+  width: 18px;
+  height: 18px;
+}
+
+.reader-settings__toggle-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 58px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rs-line);
+  cursor: pointer;
+}
+
+.reader-settings__toggle-row > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.reader-settings__toggle-row strong {
+  font-size: 14px;
+}
+
+.reader-settings__toggle-row small {
+  color: var(--rs-muted);
+  font-size: 11px;
+}
+
+.reader-settings__toggle-row input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.reader-settings__switch {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 24px;
+  border: 1px solid var(--rs-line);
+  border-radius: 99px;
+  background: var(--rs-bg);
+  transition: background 150ms ease;
+}
+
+.reader-settings__switch::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  margin-right: 17px;
+  border-radius: 50%;
+  background: var(--rs-muted);
+  transition: margin 150ms ease, background 150ms ease;
+}
+
+.reader-settings__switch svg {
+  display: none;
+}
+
+.reader-settings__toggle-row input:checked + .reader-settings__switch {
+  background: var(--rs-focus);
+}
+
+.reader-settings__toggle-row input:checked + .reader-settings__switch::before {
+  margin-right: -17px;
+  background: var(--rs-bg);
+}
+
+.reader-settings__preset-grid,
+.reader-settings__layout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.reader-settings__preset-grid button,
+.reader-settings__layout-grid button {
+  display: flex;
+  min-height: 76px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--rs-line);
+  border-radius: 12px;
+  background: var(--rs-bg);
+  cursor: pointer;
+}
+
+.reader-settings__preset-grid button[data-active="true"],
+.reader-settings__layout-grid button[data-active="true"] {
+  border-color: var(--rs-focus);
+  background: var(--rs-panel-strong);
+}
+
+.reader-settings__preset-grid svg,
+.reader-settings__layout-grid svg {
+  width: 22px;
+  height: 22px;
+}
+
+.reader-settings__range-field {
+  padding-top: 20px;
+  border-top: 1px solid var(--rs-line);
+}
+
+.reader-settings__range-control {
+  display: grid;
+  grid-template-columns: 42px minmax(100px, 1fr) 42px 88px;
+  align-items: center;
+  gap: 12px;
+}
+
+.reader-settings__range-control button {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--rs-line);
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.reader-settings__range-control button:hover {
+  background: var(--rs-panel);
+}
+
+.reader-settings__range-control svg {
+  width: 18px;
+  height: 18px;
+}
+
+.reader-settings__range-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--rs-focus);
+  cursor: pointer;
+}
+
+.reader-settings__range-control output {
+  display: grid;
+  place-items: center;
+  height: 42px;
+  border: 1px solid var(--rs-line);
+  border-radius: 11px;
+  background: var(--rs-panel);
+  font-variant-numeric: tabular-nums;
+}
+
+.reader-settings__theme-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.reader-settings__theme-grid button {
+  position: relative;
+  display: flex;
+  min-height: 72px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid var(--rs-line);
+  border-radius: 12px;
+  background: var(--rs-bg);
+  cursor: pointer;
+}
+
+.reader-settings__theme-grid button[data-active="true"] {
+  border-color: var(--rs-focus);
+}
+
+.reader-settings__theme-grid button > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 27px;
+  border-radius: 6px;
+  font-family: Iowan Old Style, Georgia, serif;
+}
+
+[data-theme-swatch="light"] > span { color: #23211e; background: #faf8f2; }
+[data-theme-swatch="dark"] > span { color: #f1ede4; background: #191a1b; }
+[data-theme-swatch="sepia"] > span { color: #4b3826; background: #eadbbd; }
+[data-theme-swatch="paper"] > span { color: #2b2922; background: #e9e5d8; }
+[data-theme-swatch="contrast-1"] > span { color: #fff; background: #000; }
+[data-theme-swatch="contrast-2"] > span { color: #ffd400; background: #101010; }
+[data-theme-swatch="contrast-3"] > span { color: #001f3f; background: #fff; }
+
+.reader-settings__hint {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--rs-line);
+  border-radius: 12px;
+  color: var(--rs-muted);
+  background: var(--rs-bg);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.reader-settings__tts-hero {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--rs-line);
+  border-radius: 15px;
+  background: var(--rs-panel);
+}
+
+.reader-settings__tts-hero > span {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: var(--rs-bg);
+  background: var(--rs-focus);
+}
+
+.reader-settings__tts-hero svg {
+  width: 22px;
+  height: 22px;
+}
+
+.reader-settings__tts-hero strong {
+  display: block;
+  font-size: 14px;
+}
+
+.reader-settings__tts-hero p {
+  margin: 4px 0 0;
+  color: var(--rs-muted);
+  font-size: 11px;
+}
+
+.reader-settings__tts-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.reader-settings__tts-actions button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--rs-line);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.reader-settings__tts-actions button:first-child {
+  color: var(--rs-bg);
+  border-color: var(--rs-focus);
+  background: var(--rs-focus);
+}
+
+@keyframes reader-settings-in {
+  from { opacity: 0; transform: translateX(18px) scale(0.985); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes reader-settings-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 720px) {
+  .reader-settings__backdrop { padding: 0; }
+  .reader-settings { border-radius: 0; }
+  .reader-settings__header { padding: 20px 18px; }
+  .reader-settings__tabs { margin: 0 18px; overflow-x: auto; grid-template-columns: repeat(5, minmax(100px, 1fr)); }
+  .reader-settings__body { margin: 16px 18px 18px; padding: 22px 18px; }
+  .reader-settings__font-grid,
+  .reader-settings__preset-grid,
+  .reader-settings__layout-grid { grid-template-columns: repeat(2, 1fr); }
+  .reader-settings__theme-grid { grid-template-columns: repeat(2, 1fr); }
+  .reader-settings__range-control { grid-template-columns: 38px minmax(80px, 1fr) 38px 72px; gap: 8px; }
+  .reader-settings__range-control button { width: 38px; height: 38px; }
+  .reader-settings__header-actions .reader-settings__reset { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-settings,
+  .reader-settings__backdrop { animation: none; }
+}

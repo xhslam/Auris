@@ -10,6 +10,10 @@ const homeCss = readFileSync(
   path.join(process.cwd(), "src", "components", "home", "home-v3.css"),
   "utf-8",
 );
+const redesignCss = readFileSync(
+  path.join(process.cwd(), "src", "styles", "auris-redesign.css"),
+  "utf-8",
+);
 
 function getRuleBodies(css: string, selector: string) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -50,5 +54,22 @@ describe("desktop content symmetry", () => {
 
     expect(notesPageRules[0]).toMatch(/width:\s*100%/);
     expect(notesPageRules[0]).toMatch(/max-width:\s*100%/);
+  });
+
+  it("keeps the home canvas attached to the live viewport at every shell layer", () => {
+    const homeRules = getRuleBodies(homeCss, ".home-v3");
+    const homeContainerRules = getRuleBodies(homeCss, ".home-v3__container");
+    const homeShellRules = getRuleBodies(
+      redesignCss,
+      '.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]\n  .desktop-app-frame__viewport,\n.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]\n  .desktop-app-frame__layout,\n.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]\n  .desktop-app-frame__main',
+    );
+
+    expect(homeRules[0]).toMatch(/height:\s*100dvh/);
+    expect(homeRules[0]).toMatch(/max-height:\s*100dvh/);
+    expect(homeContainerRules[0]).toMatch(/width:\s*100%/);
+    expect(homeContainerRules[0]).not.toMatch(/max-width\s*:/);
+    expect(homeShellRules).toHaveLength(1);
+    expect(homeShellRules[0]).toMatch(/height:\s*100%\s*!important/);
+    expect(homeShellRules[0]).toMatch(/min-height:\s*0\s*!important/);
   });
 });

@@ -43,6 +43,7 @@ function renderCard(contextText = "Write a notice for Prof. Smith's research pro
       closeIcon={<span />}
       contextText={contextText}
       entry={entry}
+      initialExpandedSection={null}
       error={null}
       isLoading={false}
       isSaved={false}
@@ -69,8 +70,22 @@ describe("SegmentedWordCard", () => {
 
     const contextToggle = screen.getByRole("button", { name: "当前语境" });
     const etymologyToggle = screen.getByRole("button", { name: "词源构词" });
+    for (const sectionName of [
+      "当前语境",
+      "词源构词",
+      "用法边界",
+      "深层解释",
+      "一语道破",
+    ]) {
+      expect(screen.getByRole("button", { name: sectionName })).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      );
+      expect(screen.queryByRole("region", { name: sectionName })).not.toBeInTheDocument();
+    }
+
+    await user.click(contextToggle);
     expect(contextToggle).toHaveAttribute("aria-expanded", "true");
-    expect(etymologyToggle).toHaveAttribute("aria-expanded", "false");
     const contextRegion = screen.getByRole("region", { name: "当前语境" });
     expect(contextRegion).toHaveTextContent(
       "research 在这里作定语修饰 project",
@@ -82,12 +97,17 @@ describe("SegmentedWordCard", () => {
     );
 
     await user.click(etymologyToggle);
+    expect(contextToggle).toHaveAttribute("aria-expanded", "false");
     expect(contextToggle).toHaveTextContent(
       "这里指 Smith 教授的研究项目，用作名词修饰 project。",
     );
     const etymologyRegion = screen.getByRole("region", { name: "词源构词" });
     expect(etymologyRegion).toHaveTextContent("re-（再）+ search（寻找）");
     expect(etymologyRegion).toHaveTextContent("反复寻找以求发现。");
+
+    await user.click(etymologyToggle);
+    expect(etymologyToggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("region", { name: "词源构词" })).not.toBeInTheDocument();
   });
 
   it("keeps only one deep section expanded at a time", async () => {
@@ -105,7 +125,7 @@ describe("SegmentedWordCard", () => {
     expect(within(region).getByText("核心意象").tagName).toBe("STRONG");
   });
 
-  it("does not reuse a live sentence as missing context analysis", () => {
+  it("does not reuse a live sentence as missing context analysis", async () => {
     const entryWithoutSavedContext = {
       ...entry,
       sections: entry.sections.filter((section) => section.title !== "当前语境"),
@@ -116,6 +136,7 @@ describe("SegmentedWordCard", () => {
         closeIcon={<span />}
         contextText="Write a notice for Prof. Smith's research project."
         entry={entryWithoutSavedContext}
+        initialExpandedSection={null}
         error={null}
         isLoading={false}
         isSaved={false}
@@ -131,6 +152,9 @@ describe("SegmentedWordCard", () => {
     expect(screen.getByRole("region", { name: "在这句话里" })).toHaveTextContent(
       "Write a notice for Prof. Smith's research project.",
     );
+    expect(screen.queryByRole("region", { name: "当前语境" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "当前语境" }));
     expect(screen.getByRole("region", { name: "当前语境" })).toHaveTextContent(
       "这个词还没有当前语境解析。",
     );

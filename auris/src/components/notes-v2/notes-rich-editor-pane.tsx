@@ -11,7 +11,7 @@ import {
 } from "react";
 import { baseKeymap } from "prosemirror-commands";
 import { history } from "prosemirror-history";
-import { EditorState, TextSelection } from "prosemirror-state";
+import { EditorState, Selection, TextSelection } from "prosemirror-state";
 import { keymap } from "prosemirror-keymap";
 import { Node as ProseMirrorNode, Slice } from "prosemirror-model";
 import { EditorView, type NodeView, type ViewMutationRecord } from "prosemirror-view";
@@ -20,6 +20,7 @@ import {
   type EditorContextMenuTarget,
 } from "@/components/notes-v2/notes-editor-context-menu";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
+import { useNotesScrollMemory } from "@/components/notes-v2/use-notes-scroll-memory";
 import { createWikiLinkResolver } from "@/features/notes/documents/backlinks";
 import { findWikiLinkAtLineOffset } from "@/features/notes/documents/wiki-link-navigation";
 import {
@@ -75,6 +76,7 @@ import {
 import { tableEditing } from "prosemirror-tables";
 
 const NOTES_RICH_EDITOR_SYNC_META = "shadowing-notes-rich-editor-sync";
+const NOTES_TOC_REFRESH_EVENT = "auris-notes-toc-refresh";
 const CJK_COMPOSED_RE = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/;
 const PINYIN_PREFIX_RE = /^[A-Za-z0-9;'\s]+$/;
 
@@ -239,6 +241,93 @@ class RichCodeBlockView implements NodeView {
   }
 }
 
+type NotesTocHeading = {
+  depth: number;
+  pos: number;
+  text: string;
+};
+function collectNotesTocHeadings(doc: ProseMirrorNode): NotesTocHeading[] {
+  const headings: NotesTocHeading[] = [];
+  doc.descendants((node, pos) => {
+    if (node.type.name === "heading" && node.textContent.trim()) {
+      headings.push({
+        depth: Number(node.attrs.level) || 1,
+        pos,
+        text: node.textContent.trim(),
+      });
+    }
+  });
+  return headings;
+}
+class RichTableOfContentsView implements NodeView {
+  dom: HTMLElement;
+  private readonly refresh = () => this.render();
+  constructor(private readonly getView: () => EditorView | null) {
+    this.dom = document.createElement("nav");
+    this.dom.className = "notes-v2__rich-toc";
+    this.dom.setAttribute("aria-label", "文档目录");
+    this.dom.setAttribute("data-notes-toc", "true");
+    this.dom.contentEditable = "false";
+    this.dom.addEventListener("click", this.handleClick);
+    window.addEventListener(NOTES_TOC_REFRESH_EVENT, this.refresh);
+    queueMicrotask(this.refresh);
+  }
+  private readonly handleClick = (event: MouseEvent) => {
+    const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>(
+      "button[data-notes-toc-position]",
+    );
+    const view = this.getView();
+    const rawPosition = button?.dataset.notesTocPosition;
+    const position = rawPosition ? Number(rawPosition) : NaN;
+    if (!button || !view || !Number.isFinite(position)) return;
+    event.preventDefault();
+    const target = Math.min(Math.max(position + 1, 0), view.state.doc.content.size);
+    view.dispatch(
+      view.state.tr
+        .setSelection(Selection.near(view.state.doc.resolve(target), 1))
+        .scrollIntoView(),
+    );
+    view.focus();
+  };
+  private render() {
+    const view = this.getView();
+    if (!view) return;
+    const headings = collectNotesTocHeadings(view.state.doc);
+    const title = document.createElement("p");
+    title.className = "notes-v2__rich-toc-title";
+    title.textContent = "目录";
+    if (headings.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "notes-v2__rich-toc-empty";
+      empty.textContent = "添加标题后自动生成目录。";
+      this.dom.replaceChildren(title, empty);
+      return;
+    }
+    const list = document.createElement("ol");
+    list.className = "notes-v2__rich-toc-list";
+    headings.forEach((heading) => {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = heading.text;
+      button.dataset.notesTocPosition = String(heading.pos);
+      button.style.paddingInlineStart = String(8 + (heading.depth - 1) * 14) + "px";
+      item.append(button);
+      list.append(item);
+    });
+    this.dom.replaceChildren(title, list);
+  }
+  update(node: ProseMirrorNode) {
+    if (node.type.name !== "toc") return false;
+    this.render();
+    return true;
+  }
+  ignoreMutation() { return true; }
+  destroy() {
+    this.dom.removeEventListener("click", this.handleClick);
+    window.removeEventListener(NOTES_TOC_REFRESH_EVENT, this.refresh);
+  }
+}
 function createNotesRichEditorState(
   rawSource: string,
   resolveWikiLinkExists: (token: string) => boolean,
@@ -308,6 +397,12 @@ export function NotesRichEditorPane({
   typewriterMode = false,
 }: NotesRichEditorPaneProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  useNotesScrollMemory({
+    enabled: Boolean(document),
+    hostRef,
+    path: document?.path,
+    surface: "wysiwyg",
+  });
   const viewRef = useRef<EditorView | null>(null);
   const bridgeRef = useRef<NotesEditorBridge | null>(null);
   const lastAppliedSourceRef = useRef<string | null>(null);
@@ -920,6 +1015,7 @@ export function NotesRichEditorPane({
         }
 
         if (transaction.docChanged) {
+          window.dispatchEvent(new Event(NOTES_TOC_REFRESH_EVENT));
           const nextWysiwygSource = serializeNotesRichMarkdown(nextState.doc);
           const currentEditableDocument = editableDocumentRef.current;
 
@@ -953,6 +1049,7 @@ export function NotesRichEditorPane({
       },
       nodeViews: {
         code_block: (node) => new RichCodeBlockView(node),
+        toc: () => new RichTableOfContentsView(() => viewState.current),
       },
       state: createNotesRichEditorState(
         wysiwygDocumentSource,

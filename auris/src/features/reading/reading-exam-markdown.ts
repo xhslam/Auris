@@ -1,7 +1,7 @@
 /**
  * Lightweight Markdown parse for the reading exam view.
  * Supports the subset used in exam imports: bold/italic/code, lists, tables,
- * hr, headings, paragraphs, and cloze blanks (`__1__`).
+ * blockquotes, fenced code, hr, headings, paragraphs, and cloze blanks (`__1__`).
  */
 
 export type ExamMdInline =
@@ -13,6 +13,8 @@ export type ExamMdInline =
 
 export type ExamMdBlock =
   | { type: "paragraph"; children: ExamMdInline[] }
+  | { type: "blockquote"; children: ExamMdInline[] }
+  | { type: "codeblock"; value: string }
   | { type: "ul"; items: ExamMdInline[][] }
   | { type: "ol"; items: ExamMdInline[][] }
   | {
@@ -30,6 +32,8 @@ const UL_LINE = /^\s*[-*+]\s+(.+)$/;
 const OL_LINE = /^\s*(\d+)[.)]\s+(.+)$/;
 const HEADING_LINE = /^(#{1,4})\s+(.+)$/;
 const TABLE_SEPARATOR_CELL = /^\s*:?-{1,}:?\s*$/;
+const BLOCKQUOTE_LINE = /^\s*>\s?(.*)$/;
+const CODE_FENCE_LINE = /^\s*```/;
 
 export function splitTableCells(line: string): string[] {
   let trimmed = line.trim();
@@ -208,6 +212,38 @@ export function parseExamMarkdown(text: string): ExamMdBlock[] {
     if (!line.trim()) {
       flushLists();
       flushParagraph(blocks, paragraphLines);
+      continue;
+    }
+
+    if (CODE_FENCE_LINE.test(line)) {
+      flushLists();
+      flushParagraph(blocks, paragraphLines);
+      const codeLines: string[] = [];
+      while (index + 1 < lines.length) {
+        index += 1;
+        const codeLine = lines[index]!;
+        if (CODE_FENCE_LINE.test(codeLine)) break;
+        codeLines.push(codeLine);
+      }
+      blocks.push({ type: "codeblock", value: codeLines.join("\n") });
+      continue;
+    }
+
+    const quoteMatch = line.match(BLOCKQUOTE_LINE);
+    if (quoteMatch) {
+      flushLists();
+      flushParagraph(blocks, paragraphLines);
+      const quoteLines = [quoteMatch[1] ?? ""];
+      while (index + 1 < lines.length) {
+        const nextQuote = lines[index + 1]!.match(BLOCKQUOTE_LINE);
+        if (!nextQuote) break;
+        index += 1;
+        quoteLines.push(nextQuote[1] ?? "");
+      }
+      blocks.push({
+        type: "blockquote",
+        children: parseExamMarkdownInline(quoteLines.join("\n")),
+      });
       continue;
     }
 

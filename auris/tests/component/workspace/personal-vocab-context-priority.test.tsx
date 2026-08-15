@@ -55,6 +55,7 @@ describe("personal vocabulary context roles", () => {
         closeIcon={<span />}
         contextText={LIVE_READING_CONTEXT}
         entry={wordCardEntry}
+        initialExpandedSection={null}
         error={null}
         isLoading={false}
         isSaved={false}
@@ -70,6 +71,13 @@ describe("personal vocabulary context roles", () => {
     expect(screen.getByRole("region", { name: "在这句话里" })).toHaveTextContent(
       LIVE_READING_CONTEXT,
     );
+    expect(screen.getByRole("button", { name: "当前语境" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(screen.queryByRole("region", { name: "当前语境" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "当前语境" }));
     const contextRegion = screen.getByRole("region", { name: "当前语境" });
     expect(contextRegion).toHaveTextContent(SAVED_CONTEXT_DETAIL);
     expect(contextRegion).not.toHaveTextContent(SAVED_CONTEXT_SUMMARY);

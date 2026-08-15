@@ -6,7 +6,7 @@ import { DESKTOP_NAV_ITEMS } from "@/components/desktop/desktop-shell-fixtures";
 const pushMock = vi.fn();
 const prefetchMock = vi.fn();
 const pathnameMock = vi.fn(() => "/");
-const searchParamsGetMock = vi.fn((_key: string) => null);
+const searchParamsGetMock = vi.fn<(key: string) => string | null>(() => null);
 
 vi.mock("next/link", () => ({
   default: ({
@@ -216,10 +216,7 @@ describe("DesktopAppSidebar", () => {
       "href",
       "/reading?filter=exam",
     );
-    expect(screen.getByRole("link", { name: "导入" })).toHaveAttribute(
-      "href",
-      "/reading?import=1",
-    );
+    expect(screen.queryByRole("link", { name: "导入" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "阅读概览" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "收藏夹" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "阅读历史" })).not.toBeInTheDocument();

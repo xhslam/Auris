@@ -488,6 +488,20 @@ body::-webkit-scrollbar-thumb:hover,
   min-width: 0 !important;
 }
 
+/* Home is a single-screen workspace.  Give every intermediate box a definite
+   block size instead of relying on min-height propagation: percentage heights
+   otherwise resolve against intrinsic content after some Electron window
+   resize/restore paths, leaving the home canvas at the old 800px height. */
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame__viewport,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame__layout,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame__main {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"] .desktop-app-frame,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="notes"] .desktop-app-frame,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="workspace"] .desktop-app-frame,

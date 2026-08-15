@@ -641,17 +641,9 @@
       "path": "node_modules/graceful-fs",
       "kind": "dependency",
       "requiredBy": [
-        "proper-lockfile"
-      ]
-    },
-    {
-      "name": "graceful-fs",
-      "version": "4.2.11",
-      "path": "node_modules/graceful-fs",
-      "kind": "dependency",
-      "requiredBy": [
         "fs-extra",
-        "jsonfile"
+        "jsonfile",
+        "proper-lockfile"
       ]
     },
     {

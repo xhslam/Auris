@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   READING_SOURCES,
   type ReadingParagraph,
@@ -19,16 +19,6 @@ import { getBrowserWordbookStorage } from "@/features/wordbook/local-wordbook-st
 import { saveReadingProgressFor } from "@/features/reading/reading-library-store";
 import { loadReadingSourceNotes } from "@/features/reading/reading-source-note";
 import { loadReadingPdfBytes } from "@/features/reading/reading-pdf-store";
-import {
-  EDITOR_WIDTH_SLIDER_FULL,
-  editorMaxWidthToSlider,
-  loadNotesTypography,
-  NOTES_TYPOGRAPHY_EVENT,
-  resolveNotesEditorContentWidth,
-  saveNotesTypography,
-  sliderToEditorMaxWidth,
-  type NotesTypographySettings,
-} from "@/features/notes/formatting/notes-typography";
 import { FloatingWordCard } from "@/components/workspace/floating-word-card";
 import { READING_WORD_CARD_THEME_VARS } from "@/components/workspace/floating-word-card-theme";
 import { SegmentedWordCard } from "@/components/workspace/segmented-word-card";
@@ -37,12 +27,18 @@ import {
   type PdfLookupRequest,
 } from "@/components/reading/reading-pdf-viewer";
 import { ReadingExamView } from "@/components/reading/reading-exam-view";
+import { ReaderSettingsDialog } from "@/components/reading/reader-settings-dialog";
+import {
+  getReaderFontStack,
+  loadReaderSettings,
+  saveReaderSettings,
+  type ReaderSettings,
+} from "@/features/reading/reader-settings";
 import "@/components/reading/reading-workbench.css";
 import type { NotesStorage } from "@/features/notes/note-types";
 import { getNotesStorage } from "@/platform/notes/get-notes-storage";
 
 type DisplayMode = "bilingual" | "chinese" | "english";
-type ThemeMode = "light" | "dark";
 type WordCardState = {
   anchorX: number;
   anchorY: number;
@@ -50,19 +46,8 @@ type WordCardState = {
   term: string;
 } | null;
 
-const MIN_FONT_SCALE = 0.8;
-const MAX_FONT_SCALE = 1.8;
-const FONT_SCALE_STEP = 0.05;
-
-function formatLineWidthLabel(editorMaxWidth: string) {
-  if (!editorMaxWidth || editorMaxWidth === "none") {
-    return "铺满";
-  }
-  return editorMaxWidth;
-}
-
 function getEstimatedMinutes(source: ReadingSource) {
-  return `${source.estimatedMinutes} min read`;
+  return `预计阅读 ${source.estimatedMinutes} 分钟`;
 }
 
 function getTotalWords(source: ReadingSource) {
@@ -117,16 +102,17 @@ export function ReadingWorkbench({
   const [wordLookupError, setWordLookupError] = useState<string | null>(null);
   const [isWordLookupLoading, setIsWordLookupLoading] = useState(false);
   const [pendingWords, setPendingWords] = useState<string[]>([]);
-  const [savedKeys, setSavedKeys] = useState<Set<string>>(() => new Set());
+  const [savedKeys, setSavedKeys] = useState<Set<string>>(() => {
+    const words = getBrowserWordbookStorage()?.readWordsSnapshot() ?? [];
+    return new Set(words.map((item) => item.word.trim().toLowerCase()));
+  });
   const [wordToast, setWordToast] = useState<string | null>(null);
-  const [themeMode, setThemeMode] = useState<ThemeMode>("light");
-  const [fontScale, setFontScale] = useState(1);
-  const [isFontPanelOpen, setIsFontPanelOpen] = useState(false);
-  const [lineWidthValue, setLineWidthValue] = useState(
-    () => loadNotesTypography().editorMaxWidth,
-  );
-  const [isLineWidthPanelOpen, setIsLineWidthPanelOpen] = useState(false);
+  const [readerSettings, setReaderSettings] = useState<ReaderSettings>(loadReaderSettings);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isSpeechPaused, setIsSpeechPaused] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
+  const sourceReloadRequestId = useRef(0);
 
   const allSources = useMemo(() => {
     const seen = new Set<string>();
@@ -170,38 +156,46 @@ export function ReadingWorkbench({
   const totalWords = getTotalWords(selectedSource);
 
   useEffect(() => {
+    if (!storage) {
+      return;
+    }
+
     let cancelled = false;
-    const reloadSources = () => {
-      void loadReadingSourceNotes(storage).then((persistedSources) => {
-        if (cancelled) {
-          return;
-        }
+    const reloadSources = async () => {
+      const requestId = ++sourceReloadRequestId.current;
+      const persistedSources = await loadReadingSourceNotes(storage);
 
-        setUserSources(persistedSources);
+      if (cancelled || requestId !== sourceReloadRequestId.current) {
+        return;
+      }
 
-        // 从内容库带着 initialSourceId 进来时，不要把选中源切走。
-        if (initialSourceId) {
-          return;
-        }
+      setUserSources(persistedSources);
 
-        setSelectedSourceId((currentSourceId) =>
-          currentSourceId === (READING_SOURCES[0]?.id ?? "")
-            ? (persistedSources[0]?.id ?? currentSourceId)
-            : currentSourceId,
-        );
-        setActiveParagraphId((currentParagraphId) =>
-          currentParagraphId === (READING_SOURCES[0]?.paragraphs[0]?.id ?? "")
-            ? (persistedSources[0]?.paragraphs[0]?.id ?? currentParagraphId)
-            : currentParagraphId,
-        );
-      });
+      // 从内容库带着 initialSourceId 进来时，不要把选中源切走。
+      if (initialSourceId) {
+        return;
+      }
+
+      setSelectedSourceId((currentSourceId) =>
+        currentSourceId === (READING_SOURCES[0]?.id ?? "")
+          ? (persistedSources[0]?.id ?? currentSourceId)
+          : currentSourceId,
+      );
+      setActiveParagraphId((currentParagraphId) =>
+        currentParagraphId === (READING_SOURCES[0]?.paragraphs[0]?.id ?? "")
+          ? (persistedSources[0]?.paragraphs[0]?.id ?? currentParagraphId)
+          : currentParagraphId,
+      );
     };
 
-    reloadSources();
-    const unsubscribe = storage?.subscribeToChanges?.(reloadSources);
+    void reloadSources();
+    const unsubscribe = storage.subscribeToChanges?.(() => {
+      void reloadSources();
+    });
 
     return () => {
       cancelled = true;
+      sourceReloadRequestId.current += 1;
       unsubscribe?.();
     };
   }, [storage, initialSourceId]);
@@ -241,23 +235,14 @@ export function ReadingWorkbench({
   }, [selectedSource.id, selectedSource.progress]);
 
   useEffect(() => {
-    const syncFromStore = () => {
-      setLineWidthValue(loadNotesTypography().editorMaxWidth);
-    };
-    const onTypographyEvent = (event: Event) => {
-      const detail = (event as CustomEvent<NotesTypographySettings>).detail;
-      if (detail?.editorMaxWidth) {
-        setLineWidthValue(detail.editorMaxWidth);
-        return;
-      }
-      syncFromStore();
-    };
+    saveReaderSettings(readerSettings);
+  }, [readerSettings]);
 
-    window.addEventListener(NOTES_TYPOGRAPHY_EVENT, onTypographyEvent);
-    window.addEventListener("storage", syncFromStore);
+  useEffect(() => {
     return () => {
-      window.removeEventListener(NOTES_TYPOGRAPHY_EVENT, onTypographyEvent);
-      window.removeEventListener("storage", syncFromStore);
+      if (typeof window !== "undefined") {
+        window.speechSynthesis?.cancel();
+      }
     };
   }, []);
 
@@ -300,23 +285,6 @@ export function ReadingWorkbench({
     paragraphEls.current.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, [isPdfSource, selectedSource, selectedSourceId]);
-
-  useEffect(() => {
-    const wordbook = getBrowserWordbookStorage();
-    if (!wordbook) {
-      return;
-    }
-    let cancelled = false;
-    void wordbook.listWords().then((words) => {
-      if (cancelled) {
-        return;
-      }
-      setSavedKeys(new Set(words.map((item) => item.word.trim().toLowerCase())));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!wordCard || !selectedLookupKey) {
@@ -380,34 +348,14 @@ export function ReadingWorkbench({
   }
 
   function toggleThemeMode() {
-    setThemeMode((currentMode) => (currentMode === "light" ? "dark" : "light"));
+    setReaderSettings((current) => ({
+      ...current,
+      theme: current.theme === "dark" ? "light" : "dark",
+    }));
   }
 
   function toggleFontPanel() {
-    setIsLineWidthPanelOpen(false);
-    setIsFontPanelOpen((open) => !open);
-  }
-
-  function toggleLineWidthPanel() {
-    setIsFontPanelOpen(false);
-    setLineWidthValue(loadNotesTypography().editorMaxWidth);
-    setIsLineWidthPanelOpen((open) => !open);
-  }
-
-  function handleFontScaleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const nextScale = Number(event.target.value);
-    if (Number.isFinite(nextScale)) {
-      setFontScale(nextScale);
-    }
-  }
-
-  function handleLineWidthChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const nextWidth = sliderToEditorMaxWidth(Number(event.target.value));
-    setLineWidthValue(nextWidth);
-    saveNotesTypography({
-      ...loadNotesTypography(),
-      editorMaxWidth: nextWidth,
-    });
+    setIsSettingsOpen(true);
   }
 
   function closeWordCard() {
@@ -482,8 +430,81 @@ export function ReadingWorkbench({
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
+    utterance.rate = readerSettings.ttsRate;
+    utterance.pitch = readerSettings.ttsPitch;
+    const selectedVoice = window.speechSynthesis
+      .getVoices()
+      .find((voice) => voice.voiceURI === readerSettings.ttsVoice);
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
     window.speechSynthesis.speak(utterance);
   }
+
+  const stopSpeaking = useCallback(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      return;
+    }
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setIsSpeechPaused(false);
+  }, []);
+
+  const speakBook = useCallback(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const text = selectedSource.examSections?.length
+      ? selectedSource.examSections.flatMap((section) => section.blocks.map((block) => block.english)).join(" ")
+      : selectedSource.paragraphs.map((paragraph) => paragraph.english).join(" ");
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = readerSettings.ttsRate;
+    utterance.pitch = readerSettings.ttsPitch;
+    const selectedVoice = window.speechSynthesis
+      .getVoices()
+      .find((voice) => voice.voiceURI === readerSettings.ttsVoice);
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setIsSpeechPaused(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setIsSpeechPaused(false);
+    };
+    setIsSpeaking(true);
+    setIsSpeechPaused(false);
+    window.speechSynthesis.speak(utterance);
+  }, [readerSettings.ttsPitch, readerSettings.ttsRate, readerSettings.ttsVoice, selectedSource]);
+
+  const pauseSpeaking = useCallback(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      return;
+    }
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+      setIsSpeaking(true);
+      setIsSpeechPaused(false);
+    } else {
+      window.speechSynthesis.pause();
+      setIsSpeaking(false);
+      setIsSpeechPaused(true);
+    }
+  }, []);
+
+  const resumeOrSpeakBook = useCallback(() => {
+    if (isSpeechPaused && typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.resume();
+      setIsSpeaking(true);
+      setIsSpeechPaused(false);
+      return;
+    }
+    speakBook();
+  }, [isSpeechPaused, speakBook]);
 
   async function toggleSaveWord() {
     const key = selectedWord ? savedActionKey : selectedLookupKey;
@@ -554,23 +575,42 @@ export function ReadingWorkbench({
     });
   }
 
-  const lineWidthSlider = editorMaxWidthToSlider(lineWidthValue);
-  const lineWidthLabel = formatLineWidthLabel(lineWidthValue);
-  const contentWidth = resolveNotesEditorContentWidth(lineWidthValue);
+  const effectiveTheme = readerSettings.theme === "dark" ? "dark" : "light";
+  const textAlign = readerSettings.textAlign === "publisher" ? "start" : readerSettings.textAlign;
+  const fontWeight = readerSettings.fontWeight === "publisher" ? "400" : readerSettings.fontWeight;
+  const isImportedMarkdown = /\.(md|markdown|mdown|mdx|mkdn)$/i.test(
+    selectedSource.kicker.trim(),
+  );
 
   return (
     <main
       className="reading-minimal"
-      data-theme={themeMode}
+      data-columns={readerSettings.columns}
+      data-content-kind={isPdfSource ? "pdf" : isExamSource ? "exam" : "prose"}
+      data-flow={readerSettings.flow}
+      data-normalize={readerSettings.normalizeText ? "true" : "false"}
+      data-publisher-styles={readerSettings.publisherStyles ? "true" : "false"}
+      data-reader-theme={readerSettings.theme}
+      data-theme={effectiveTheme}
       style={
         {
-          "--reading-font-scale": fontScale,
-          "--reading-content-width": contentWidth,
+          "--reading-font-family": getReaderFontStack(readerSettings.fontFamily),
+          "--reading-font-scale": readerSettings.fontScale,
+          "--reading-font-weight": fontWeight,
+          "--reading-letter-spacing": `${readerSettings.letterSpacing}em`,
+          "--reading-line-height": readerSettings.lineHeight,
+          "--reading-line-width": `${readerSettings.lineWidth}ch`,
+          "--reading-paragraph-indent": `${readerSettings.paragraphIndent}em`,
+          "--reading-paragraph-spacing": `${readerSettings.paragraphSpacing}em`,
+          "--reading-content-width": `${readerSettings.pageWidth}%`,
+          "--reading-text-align": textAlign,
+          "--reading-word-spacing": `${readerSettings.wordSpacing}em`,
+          "--reading-hyphens": readerSettings.hyphens ? "auto" : "none",
         } as React.CSSProperties
       }
     >
         <header className="reading-minimal__topbar">
-          <nav aria-label="Reader actions" className="reading-minimal__toolbar">
+          <nav aria-label="阅读器操作" className="reading-minimal__toolbar">
             {onExit ? (
               <>
                 <button
@@ -585,7 +625,7 @@ export function ReadingWorkbench({
               </>
             ) : null}
             <button
-              aria-label={`Reading progress ${activeProgress}%`}
+              aria-label={`阅读进度 ${activeProgress}%`}
               className="reading-minimal__progress-button"
               type="button"
             >
@@ -593,7 +633,7 @@ export function ReadingWorkbench({
             </button>
             {!isPdfSource ? (
               <button
-                aria-label="Toggle language view"
+                aria-label="切换语言显示"
                 className="reading-minimal__icon-button"
                 data-active={displayMode !== "bilingual" ? "true" : "false"}
                 onClick={toggleDisplayMode}
@@ -604,85 +644,19 @@ export function ReadingWorkbench({
             ) : null}
             <div className="reading-minimal__font-control">
               <button
-                aria-expanded={isFontPanelOpen}
-                aria-label={isPdfSource ? "PDF zoom" : "Text size"}
+                aria-expanded={isSettingsOpen}
+                aria-label={isPdfSource ? "PDF 与阅读设置" : "文字与阅读设置"}
                 className="reading-minimal__text-size-button"
-                data-active={isFontPanelOpen ? "true" : "false"}
+                data-active={isSettingsOpen ? "true" : "false"}
                 onClick={toggleFontPanel}
                 type="button"
               >
                 Aa
               </button>
-              {isFontPanelOpen ? (
-                <div className="reading-minimal__font-panel" role="group">
-                  <span
-                    aria-hidden="true"
-                    className="reading-minimal__font-hint reading-minimal__font-hint--small"
-                  >
-                    A
-                  </span>
-                  <input
-                    aria-label="Adjust text size"
-                    className="reading-minimal__font-slider"
-                    max={MAX_FONT_SCALE}
-                    min={MIN_FONT_SCALE}
-                    onChange={handleFontScaleChange}
-                    step={FONT_SCALE_STEP}
-                    type="range"
-                    value={fontScale}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="reading-minimal__font-hint reading-minimal__font-hint--large"
-                  >
-                    A
-                  </span>
-                </div>
-              ) : null}
-            </div>
-            <div className="reading-minimal__font-control">
-              <button
-                aria-expanded={isLineWidthPanelOpen}
-                aria-label="调整正文行宽"
-                className="reading-minimal__text-size-button"
-                data-active={isLineWidthPanelOpen ? "true" : "false"}
-                onClick={toggleLineWidthPanel}
-                title="调整正文行宽"
-                type="button"
-              >
-                ⇔
-              </button>
-              {isLineWidthPanelOpen ? (
-                <div className="reading-minimal__font-panel" role="group">
-                  <span
-                    aria-hidden="true"
-                    className="reading-minimal__font-hint reading-minimal__font-hint--small"
-                  >
-                    窄
-                  </span>
-                  <input
-                    aria-label="调整正文行宽"
-                    aria-valuetext={lineWidthLabel}
-                    className="reading-minimal__font-slider"
-                    max={EDITOR_WIDTH_SLIDER_FULL}
-                    min={0}
-                    onChange={handleLineWidthChange}
-                    step={1}
-                    type="range"
-                    value={lineWidthSlider}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="reading-minimal__font-hint reading-minimal__font-hint--large"
-                  >
-                    宽
-                  </span>
-                </div>
-              ) : null}
             </div>
             <span aria-hidden="true" className="reading-minimal__separator" />
             <button
-              aria-label="Toggle color mode"
+              aria-label="切换明暗主题"
               className="reading-minimal__icon-button"
               onClick={toggleThemeMode}
               type="button"
@@ -694,14 +668,16 @@ export function ReadingWorkbench({
 
         <section className="reading-minimal__shell">
           <article className="reading-minimal__page">
-            <header className="reading-minimal__heading">
-              <h1>{selectedSource.title}</h1>
+            <header
+              className={`reading-minimal__heading${isImportedMarkdown ? " reading-minimal__heading--metadata-only" : ""}`}
+            >
+              {!isImportedMarkdown ? <h1>{selectedSource.title}</h1> : null}
               <div className="reading-minimal__meta">
-                <span>{selectedSource.kicker}</span>
+                {!isImportedMarkdown ? <span>{selectedSource.kicker}</span> : null}
                 <span>
                   {isPdfSource
-                    ? `${getEstimatedMinutes(selectedSource)} · ${selectedSource.pageCount ?? "?"} pages`
-                    : `${getEstimatedMinutes(selectedSource)} · ${totalWords} words total`}
+                    ? `${getEstimatedMinutes(selectedSource)} · ${selectedSource.pageCount ?? "?"} 页`
+                    : `${getEstimatedMinutes(selectedSource)} · 共 ${totalWords} 词`}
                 </span>
               </div>
             </header>
@@ -713,7 +689,7 @@ export function ReadingWorkbench({
                     onLookupWord={openWordCardAt}
                     onProgressChange={handlePdfProgressChange}
                     pdfBytes={selectedSource.pdfBytes}
-                    scale={1.05 * fontScale}
+                    scale={1.05 * readerSettings.fontScale}
                   />
                 ) : (
                   <p className="reading-pdf-viewer__loading">
@@ -776,14 +752,17 @@ export function ReadingWorkbench({
               anchor={{ x: wordCard.anchorX, y: wordCard.anchorY }}
               aria-label="Word definition"
               className="reading-minimal__word-popover"
+              initialPlacement="viewport-center"
               onClose={closeWordCard}
               placementKey={`${wordCard.term}:${wordCard.anchorX}:${wordCard.anchorY}`}
+              style={{ maxHeight: "min(560px, calc(100vh - 32px))" }}
               themeScopeSelector=".reading-minimal"
               themeVarNames={READING_WORD_CARD_THEME_VARS}
             >
               <SegmentedWordCard
                 closeIcon={<CloseIcon />}
                 contextText={wordCard.contextText}
+                initialExpandedSection={null}
                 entry={selectedWord}
                 error={wordLookupError}
                 isLoading={isWordLookupLoading}
@@ -799,6 +778,17 @@ export function ReadingWorkbench({
             </FloatingWordCard>
           ) : null}
         </section>
+
+        <ReaderSettingsDialog
+          isSpeaking={isSpeaking}
+          onChange={setReaderSettings}
+          onClose={() => setIsSettingsOpen(false)}
+          onPauseSpeech={pauseSpeaking}
+          onSpeak={resumeOrSpeakBook}
+          onStopSpeech={stopSpeaking}
+          open={isSettingsOpen}
+          settings={readerSettings}
+        />
 
     </main>
   );

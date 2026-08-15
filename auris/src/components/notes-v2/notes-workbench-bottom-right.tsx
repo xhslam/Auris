@@ -3,6 +3,7 @@
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { NotesBacklinksPanel } from "@/components/notes-v2/notes-backlinks-panel";
 import { NotesGraphPanel } from "@/components/notes-v2/notes-graph-panel";
+import { NotesOutlinePanel } from "@/components/notes-v2/notes-outline-panel";
 import {
   NotesLibraryNavigatorPanel,
 } from "@/components/notes-v2/notes-library-navigator-panel";
@@ -29,6 +30,7 @@ type RightPopover =
   | "graph"
   | "history"
   | "library"
+  | "outline"
   | "overflow"
   | "tags";
 
@@ -57,6 +59,7 @@ type NotesWorkbenchBottomRightProps = {
   onRestoreHistoryVersion?: (version: NotesHistoryVersion) => void;
   onLearningQueryChange?: (value: string) => void;
   onOpenSourcePeek?: () => void;
+  onJumpToHeading?: (line: number) => void;
   onOpenPath: (path: string) => void;
   onRebuildIndex?: () => void;
   onRefresh?: () => void;
@@ -93,6 +96,7 @@ export function NotesWorkbenchBottomRight({
   onEnsureGraphDocuments,
   onRestoreHistoryVersion,
   onOpenSourcePeek,
+  onJumpToHeading,
   onOpenPath,
   onRebuildIndex,
   onRefresh,
@@ -186,6 +190,18 @@ export function NotesWorkbenchBottomRight({
         <span aria-hidden="true">#</span>
       </button>
       <button
+        aria-expanded={openPopover === "outline"}
+        aria-label="大纲"
+        className="notes-v2__corner-icon"
+        disabled={!activeDocument}
+        data-active={openPopover === "outline" ? "true" : "false"}
+        onClick={() => togglePopover("outline")}
+        title="大纲（Ctrl + Shift + 1）"
+        type="button"
+      >
+        <span aria-hidden="true">☷</span>
+      </button>
+      <button
         aria-pressed={isTerminalSplitOpen}
         aria-label={NOTES_UI_COPY.rightRail.terminal.open}
         className="notes-v2__corner-icon"
@@ -276,6 +292,25 @@ export function NotesWorkbenchBottomRight({
         </div>
       </NotesWorkbenchPopover>
 
+      <NotesWorkbenchPopover
+        anchor="bottom-right"
+        labelledBy="notes-v2-outline-popover-title"
+        onClose={closePopover}
+        open={openPopover === "outline"}
+        size="md"
+      >
+        <p className="notes-v2__popover-title" id="notes-v2-outline-popover-title">
+          大纲
+        </p>
+        <NotesOutlinePanel
+          activeLine={selectionState?.line}
+          document={activeDocument}
+          onJumpToHeading={(line) => {
+            onJumpToHeading?.(line);
+            closePopover();
+          }}
+        />
+      </NotesWorkbenchPopover>
       <NotesWorkbenchPopover
         anchor="bottom-right"
         labelledBy="notes-v2-backlinks-popover-title"

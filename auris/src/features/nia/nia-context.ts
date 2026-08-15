@@ -8,7 +8,13 @@ export const NIA_CONTEXT_LIMITS = Object.freeze({
 });
 
 type NiaContextBase = Readonly<{
-  provenance: "explicit_selection" | "explicit_document" | "explicit_browser_reference" | "workflow_step";
+  provenance:
+    | "explicit_selection"
+    | "explicit_document"
+    | "explicit_browser_reference"
+    | "explicit_reading_reference"
+    | "explicit_video_reference"
+    | "workflow_step";
 }>;
 
 export type NiaSelectionContext = NiaContextBase & Readonly<{
@@ -18,35 +24,46 @@ export type NiaSelectionContext = NiaContextBase & Readonly<{
   selection: NotesEditorSelectionState;
   text: string;
 }>;
-
 export type NiaDocumentContext = NiaContextBase & Readonly<{
   kind: "notes_document";
   path: string;
   revision: string;
   text: string;
 }>;
-
 export type NiaBrowserContext = NiaContextBase & Readonly<{
   kind: "browser_reference";
   title: string;
   url: string;
 }>;
-
+export type NiaReadingContext = NiaContextBase & Readonly<{
+  kind: "reading_reference";
+  sourceId: string;
+  title: string;
+  location: string | null;
+  text: string;
+}>;
+export type NiaVideoContext = NiaContextBase & Readonly<{
+  kind: "video_reference";
+  videoId: string;
+  title: string;
+  positionMs: number | null;
+  transcript: string;
+}>;
 export type NiaWorkflowStepContext = NiaContextBase & Readonly<{
   kind: "workflow_step";
   runId: string;
   stepId: string;
   text: string;
 }>;
-
 export type NiaContext =
   | NiaSelectionContext
   | NiaDocumentContext
   | NiaBrowserContext
+  | NiaReadingContext
+  | NiaVideoContext
   | NiaWorkflowStepContext;
 
 export type NiaApplyMode = "replace_selection" | "insert_at_cursor" | "replace_document";
-
 export type NiaApplyProposal = Readonly<{
   content: string;
   context: NiaSelectionContext | NiaDocumentContext;
@@ -63,6 +80,12 @@ function boundedIdentifier(value: string, label: string) {
   const normalized = boundedText(value, 512).trim();
   if (!normalized || normalized.includes("\0")) throw new TypeError(`${label} is invalid.`);
   return normalized;
+}
+
+function boundedOptionalText(value: string | null | undefined, label: string, limit = NIA_CONTEXT_LIMITS.maxTextChars) {
+  if (value == null) return "";
+  if (typeof value !== "string") throw new TypeError(`${label} must be a string.`);
+  return boundedText(value, limit);
 }
 
 export function createNotesSelectionContext(input: {
@@ -82,10 +105,7 @@ export function createNotesSelectionContext(input: {
   });
 }
 
-export function createNotesDocumentContext(input: {
-  path: string;
-  source: string;
-}): NiaDocumentContext {
+export function createNotesDocumentContext(input: { path: string; source: string }): NiaDocumentContext {
   return Object.freeze({
     kind: "notes_document",
     path: boundedIdentifier(input.path, "Note path"),
@@ -95,12 +115,9 @@ export function createNotesDocumentContext(input: {
   });
 }
 
-export function createBrowserReferenceContext(input: {
-  title?: string | null;
-  url: string;
-}): NiaBrowserContext {
+export function createBrowserReferenceContext(input: { title?: string | null; url: string }): NiaBrowserContext {
   const parsed = new URL(input.url);
-  if (!['http:', 'https:'].includes(parsed.protocol)) {
+  if (!["http:", "https:"].includes(parsed.protocol)) {
     throw new TypeError("Only HTTP(S) browser references may be attached.");
   }
   parsed.username = "";
@@ -113,11 +130,44 @@ export function createBrowserReferenceContext(input: {
   });
 }
 
-export function createWorkflowStepContext(input: {
-  runId: string;
-  stepId: string;
-  text: string;
-}): NiaWorkflowStepContext {
+export function createReadingReferenceContext(input: {
+  sourceId: string;
+  title: string;
+  location?: string | null;
+  text?: string | null;
+}): NiaReadingContext {
+  const location = input.location == null ? null : boundedIdentifier(input.location, "Reading location");
+  return Object.freeze({
+    kind: "reading_reference",
+    sourceId: boundedIdentifier(input.sourceId, "Reading source ID"),
+    title: boundedText(input.title.trim(), NIA_CONTEXT_LIMITS.maxTitleChars),
+    location,
+    text: boundedOptionalText(input.text, "Reading excerpt"),
+    provenance: "explicit_reading_reference",
+  });
+}
+
+export function createVideoReferenceContext(input: {
+  videoId: string;
+  title: string;
+  positionMs?: number | null;
+  transcript?: string | null;
+}): NiaVideoContext {
+  const positionMs = input.positionMs == null ? null : input.positionMs;
+  if (positionMs != null && (!Number.isFinite(positionMs) || positionMs < 0)) {
+    throw new TypeError("Video position must be a non-negative finite number.");
+  }
+  return Object.freeze({
+    kind: "video_reference",
+    videoId: boundedIdentifier(input.videoId, "Video ID"),
+    title: boundedText(input.title.trim(), NIA_CONTEXT_LIMITS.maxTitleChars),
+    positionMs,
+    transcript: boundedOptionalText(input.transcript, "Video transcript"),
+    provenance: "explicit_video_reference",
+  });
+}
+
+export function createWorkflowStepContext(input: { runId: string; stepId: string; text: string }): NiaWorkflowStepContext {
   return Object.freeze({
     kind: "workflow_step",
     runId: boundedIdentifier(input.runId, "Workflow run ID"),
@@ -130,6 +180,12 @@ export function createWorkflowStepContext(input: {
 export function formatNiaContextForPrompt(context: NiaContext) {
   if (context.kind === "browser_reference") {
     return `[Explicit browser reference]\nTitle: ${context.title}\nURL: ${context.url}`;
+  }
+  if (context.kind === "reading_reference") {
+    return `[Explicit reading reference]\nTitle: ${context.title}\nSource: ${context.sourceId}${context.location ? `\nLocation: ${context.location}` : ""}${context.text ? `\nExcerpt:\n${context.text}` : ""}`;
+  }
+  if (context.kind === "video_reference") {
+    return `[Explicit video reference]\nTitle: ${context.title}\nVideo: ${context.videoId}${context.positionMs == null ? "" : `\nPosition: ${context.positionMs}ms`}${context.transcript ? `\nTranscript excerpt:\n${context.transcript}` : ""}`;
   }
   if (context.kind === "workflow_step") {
     return `[Workflow step ${context.runId}/${context.stepId}]\n${context.text}`;
@@ -149,13 +205,7 @@ export function validateNiaApplyProposal(
   }
   if (proposal.mode === "replace_selection") {
     const expected = proposal.context.kind === "notes_selection" ? proposal.context.selection : null;
-    if (
-      !expected ||
-      !current.selection ||
-      expected.from !== current.selection.from ||
-      expected.to !== current.selection.to ||
-      expected.text !== current.selection.text
-    ) {
+    if (!expected || !current.selection || expected.from !== current.selection.from || expected.to !== current.selection.to || expected.text !== current.selection.text) {
       return Object.freeze({ ok: false as const, reason: "The selection changed. Review it again." });
     }
   }

@@ -16,6 +16,8 @@ import type {
   NiaSelectionContext,
 } from "@/features/nia/nia-context";
 import { useNiaSession } from "@/features/nia/use-nia-session";
+import { routeNiaTextRequest, type NiaRoutingPreference } from "@/features/nia/nia-model-router";
+import { recordNiaTextUsage } from "@/features/nia/nia-usage-store";
 
 export type NiaContextRequest = "selection" | "document" | "browser";
 
@@ -30,6 +32,10 @@ export function NiaPanel({
   browserTarget = null,
   externalPrompt = null,
   onExternalPromptConsumed,
+  externalContext = null,
+  externalContextToken = 0,
+  persistentContext = "",
+  routingPreference = "auto",
 }: {
   host?: unknown;
   onApplyProposal?: (proposal: NiaApplyProposal) => { ok: boolean; reason?: string } | void;
@@ -52,6 +58,13 @@ export function NiaPanel({
   externalPrompt?: string | null;
   /** 提交后回调，让调用方清空 `externalPrompt`，避免重复提交。 */
   onExternalPromptConsumed?: () => void;
+  /** 独立 Nia Surface 交接的、用户可见的显式上下文。 */
+  externalContext?: NiaContext | null;
+  /** 每次上下文切换递增，避免同一对象被静默吞掉。 */
+  externalContextToken?: number;
+  /** 仅由独立工作区合成：已确认记忆和其它显式上下文卡片。 */
+  persistentContext?: string;
+  routingPreference?: NiaRoutingPreference;
 }) {
   const session = useNiaSession(host);
   const [context, setContext] = useState<NiaContext | null>(null);
@@ -59,6 +72,7 @@ export function NiaPanel({
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [enableBrowserTools, setEnableBrowserTools] = useState(false);
   const [recordedSource, setRecordedSource] = useState<string | null>(null);
+  const [routingMessage, setRoutingMessage] = useState<string | null>(null);
   const selectedHistory = session.history.find((record) => record.id === selectedHistoryId) ?? null;
   const displayedResponse = selectedHistory?.response ?? session.response;
   const noteContext = context?.kind === "notes_selection" || context?.kind === "notes_document"
@@ -69,6 +83,12 @@ export function NiaPanel({
   // 外部提示词只提交一次。用 ref 记住已消费的那一份而不是只看值变化：父组件的
   // 任何重渲染都会重跑这个 effect，仅靠依赖比较会让同一条提示词被重复提交。
   const consumedExternalPromptRef = useRef<string | null>(null);
+  const externalContextTokenRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (externalContextTokenRef.current === externalContextToken) return;
+    externalContextTokenRef.current = externalContextToken;
+    setContext(externalContext);
+  }, [externalContext, externalContextToken]);
   useEffect(() => {
     if (!externalPrompt) {
       consumedExternalPromptRef.current = null;
@@ -84,6 +104,7 @@ export function NiaPanel({
     void session.submit(externalPrompt, context, {
       enableBrowserTools: browserToolsAvailable && enableBrowserTools,
       browserTarget: browserToolsAvailable && enableBrowserTools ? browserTarget : null,
+      persistentContext,
     });
     onExternalPromptConsumed?.();
   }, [
@@ -93,6 +114,7 @@ export function NiaPanel({
     enableBrowserTools,
     externalPrompt,
     onExternalPromptConsumed,
+    persistentContext,
     session,
   ]);
 
@@ -151,6 +173,7 @@ export function NiaPanel({
           <span>Allow browser automation · 允许浏览操作</span>
         </label>
       ) : null}
+      {routingMessage ? <p aria-live="polite" className="nia-panel__tool-status">{routingMessage}</p> : null}
       {session.toolStatus ? (
         <p aria-live="polite" className="nia-panel__tool-status">{session.toolStatus}</p>
       ) : null}
@@ -160,10 +183,17 @@ export function NiaPanel({
         onStop={() => void session.stop()}
         onSubmit={(prompt) => {
           setSelectedHistoryId(null);
+          const route = routeNiaTextRequest({ context, preference: routingPreference, preferredProviderId: session.providerId, prompt, providers: session.providers });
+          const providerKind = route.providerKind;
+          if (!route.providerId || !route.model || (providerKind !== "rest" && providerKind !== "cli")) { setRoutingMessage(route.fallback ?? route.reason); return; }
+          setRoutingMessage(route.fallback ?? `Routing · ${providerKind.toUpperCase()} · ${route.model}`);
           void session.submit(prompt, context, {
             enableBrowserTools: browserToolsAvailable && enableBrowserTools,
             browserTarget: browserToolsAvailable && enableBrowserTools ? browserTarget : null,
-          });
+            persistentContext,
+            providerId: route.providerId,
+            modelOverride: route.model,
+          }).then((started) => { if (started) recordNiaTextUsage({ providerKind, fallback: Boolean(route.fallback) }); });
         }}
       />
       {!session.available ? (

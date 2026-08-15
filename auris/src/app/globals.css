@@ -17237,6 +17237,49 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   box-shadow: 0 12px 32px rgba(24, 32, 29, 0.12);
 }
 
+.notes-v2__rich-toc {
+  margin: 12px 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 11px;
+}
+.notes-v2__rich-toc-title {
+  margin: 0 0 7px;
+  color: var(--notes-muted, #69766f);
+  font-size: 12px;
+  font-weight: 700;
+}
+.notes-v2__rich-toc-empty {
+  margin: 0;
+  color: var(--notes-muted, #69766f);
+  font-size: 12px;
+}
+.notes-v2__rich-toc-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notes-v2__rich-toc-list button {
+  width: 100%;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding-block: 5px;
+  padding-inline-end: 8px;
+  text-align: left;
+}
+.notes-v2__rich-toc-list button:hover {
+  background: rgba(255, 255, 255, 0.075);
+}
+.notes-v2__rich-toc-list button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(56, 132, 255, 0.72);
+}
 .notes-v2__lint-summary {
   color: var(--notes-muted, #69766f);
   font-size: 11px;
@@ -17246,6 +17289,54 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .notes-v2__lint-summary[data-has-errors="true"] {
   color: #b42318;
+}
+.notes-v2__lint-summary {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.notes-v2__lint-summary:hover,
+.notes-v2__lint-summary:focus-visible {
+  background: color-mix(in srgb, var(--notes-muted, #69766f) 12%, transparent);
+  outline: none;
+}
+.notes-v2__lint-summary:focus-visible,
+.notes-v2__lint-diagnostics button:focus-visible {
+  box-shadow: 0 0 0 2px rgba(56, 132, 255, 0.72);
+}
+.notes-v2__lint-diagnostics {
+  margin: 0 0 10px;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 6px;
+}
+.notes-v2__lint-diagnostics ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notes-v2__lint-diagnostics button {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 7px 9px;
+  text-align: left;
+}
+.notes-v2__lint-diagnostics button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+.notes-v2__lint-diagnostics button[data-severity="error"] {
+  color: #d94b45;
 }
 
 .notes-start {

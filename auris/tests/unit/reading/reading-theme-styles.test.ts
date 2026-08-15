@@ -22,6 +22,13 @@ const libraryCssPath = path.join(
   "reading",
   "reading-library.css",
 );
+const settingsCssPath = path.join(
+  process.cwd(),
+  "src",
+  "components",
+  "reading",
+  "reader-settings-dialog.css",
+);
 
 function channelToLinear(channel: number) {
   const normalized = channel / 255;
@@ -49,6 +56,19 @@ function contrastRatio(first: string, second: string) {
 }
 
 describe("Reading theme styles", () => {
+  it("derives the settings dialog from the active reader theme with layered contrast", () => {
+    const css = readFileSync(settingsCssPath, "utf-8");
+    const dialogRule = css.match(/\.reader-settings\s*\{([^}]*)\}/)?.[1];
+    const bodyRule = css.match(/\.reader-settings__body\s*\{([^}]*)\}/)?.[1];
+
+    expect(dialogRule).toContain("--rs-bg: var(--reading-background)");
+    expect(dialogRule).toContain("--rs-text: var(--reading-foreground)");
+    expect(dialogRule).toContain("--rs-focus: var(--reading-accent)");
+    expect(dialogRule).toContain("var(--reading-foreground) 28%");
+    expect(bodyRule).toContain("background: var(--rs-panel-soft)");
+    expect(bodyRule).toContain("border: 1px solid var(--rs-line)");
+  });
+
   it("uses the app sans font throughout the Reading surfaces", () => {
     const redesignCss = readFileSync(redesignCssPath, "utf-8");
     const workbenchCss = readFileSync(workbenchCssPath, "utf-8");
@@ -81,6 +101,30 @@ describe("Reading theme styles", () => {
     );
 
     expect(titleRule?.[1]).toContain("color: var(--reading-foreground)");
+  });
+
+  it("applies reader typography controls to exam and study-guide content", () => {
+    const css = readFileSync(workbenchCssPath, "utf-8");
+    const bodyRule = css.match(/\.reading-exam__block-body\s*\{([^}]*)\}/)?.[1];
+    const paragraphRules = Array.from(
+      css.matchAll(/\.reading-exam__paragraph\s*\{([^}]*)\}/g),
+      (match) => match[1] ?? "",
+    );
+    const studyLayoutRule = css.match(
+      /\.reading-exam__section\[data-layout="reading-study"\] \.reading-exam__section-layout\s*\{([^}]*)\}/,
+    )?.[1];
+
+    expect(bodyRule).toContain("font-family: var(--reading-font-family");
+    expect(bodyRule).toContain("font-weight: var(--reading-font-weight");
+    expect(bodyRule).toContain("letter-spacing: var(--reading-letter-spacing");
+    expect(bodyRule).toContain("line-height: var(--reading-line-height");
+    expect(bodyRule).toContain("text-align: var(--reading-text-align");
+    expect(bodyRule).toContain("word-spacing: var(--reading-word-spacing");
+    expect(bodyRule).toContain("hyphens: var(--reading-hyphens");
+    expect(paragraphRules.some((rule) =>
+      rule.includes("text-indent: var(--reading-paragraph-indent"),
+    )).toBe(true);
+    expect(studyLayoutRule).toContain("var(--reading-line-width");
   });
 
   it.each(["white", "paper", "mint", "sepia", "night", "solarized"])(

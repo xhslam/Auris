@@ -21,6 +21,23 @@ export type WordCardViewport = {
   height: number;
 };
 
+/** Center a card in the viewport while preserving the same safety margin. */
+export function centerWordCardPosition(
+  cardWidth: number,
+  cardHeight: number,
+  viewport: WordCardViewport,
+  margin = WORD_CARD_VIEWPORT_MARGIN,
+): { left: number; top: number } {
+  return clampWordCardPosition(
+    (viewport.width - cardWidth) / 2,
+    (viewport.height - cardHeight) / 2,
+    cardWidth,
+    cardHeight,
+    viewport,
+    margin,
+  );
+}
+
 /**
  * Clamp a card's top-left so the full card stays inside the viewport with a margin.
  */

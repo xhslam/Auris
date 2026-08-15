@@ -70,6 +70,13 @@ export function DesktopHomeShell({
   }, [notesStorage]);
 
   useEffect(() => {
+    // Eagerly compiling every large workspace route can exhaust the Next.js
+    // development server heap. Development already compiles routes on demand;
+    // keep the warm-up optimization for production builds only.
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
     router.prefetch("/notes");
     router.prefetch("/reading");
     router.prefetch("/review");

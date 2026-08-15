@@ -215,7 +215,7 @@ test("pushes main content when the sidebar expands", async ({ page }) => {
   await expect(page.getByRole("link", { name: "文章" })).toBeVisible();
   await expect(page.getByRole("link", { name: "书籍" })).toBeVisible();
   await expect(page.getByRole("link", { name: "题目" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "导入" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "导入" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "收藏夹" })).toHaveCount(0);
 
   const expanded = await page.evaluate(() => {

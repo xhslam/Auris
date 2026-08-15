@@ -33,6 +33,8 @@ type FloatingWordCardProps = {
    * (so a new lookup can replace the card cleanly).
    */
   keepOpenOnContextMenuSelector?: string;
+  /** Initial placement for each new lookup. Dragging remains available afterward. */
+  initialPlacement?: "anchor" | "viewport-center";
   onClose: () => void;
   /**
    * Optional portal owner for top-layer contexts such as HTML fullscreen.
@@ -53,6 +55,7 @@ export function FloatingWordCard({
   "aria-label": ariaLabel = "Word definition",
   children,
   className,
+  initialPlacement = "anchor",
   keepOpenOnContextMenuSelector = ".reading-minimal-word, .video-study__word, .reading-pdf-viewer__text-layer",
   onClose,
   placementKey,
@@ -74,11 +77,12 @@ export function FloatingWordCard({
     onCloseRef.current();
   }, []);
 
-  const { applyClampedPosition, getPosition, maxHeight, position } =
+  const { applyUserPosition, getPosition, maxHeight, position } =
     useFloatingWordCardPosition({
       anchor,
       cardRef,
       draggingRef,
+      initialPlacement,
       placementKey,
     });
 
@@ -87,7 +91,7 @@ export function FloatingWordCard({
       cardRef,
       draggingRef,
       getPosition,
-      onMove: applyClampedPosition,
+      onMove: applyUserPosition,
     });
 
   useFloatingWordCardDismiss({

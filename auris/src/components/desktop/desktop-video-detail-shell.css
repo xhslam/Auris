@@ -895,16 +895,16 @@
 
 /* ---------- word popover（复刻 reading 词卡逻辑） ---------- */
 .video-study__popover {
-  position: fixed;
-  width: min(560px, calc(100vw - 32px));
-  max-height: min(420px, calc(100vh - 32px));
+  width: min(540px, calc(100vw - 32px));
+  height: 100%;
   overflow: hidden;
+  isolation: isolate;
   border: 1px solid var(--vs-panel-border);
   border-radius: 14px;
   color: var(--vs-fg);
   background: var(--vs-panel);
   box-shadow: var(--vs-shadow);
-  z-index: 40;
+  pointer-events: auto;
 }
 
 .video-study__pop-head {

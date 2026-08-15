@@ -30,6 +30,98 @@
   --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.34);
 }
 
+/* Reader Settings themes deliberately override the global app palette inside the book. */
+.reading-minimal[data-reader-theme="light"] {
+  --reading-background: #f7f5ee !important;
+  --reading-foreground: #262621 !important;
+  --reading-muted: #696960 !important;
+  --reading-border: rgba(42, 42, 35, 0.15) !important;
+  --reading-panel: #fdfbf5 !important;
+  --reading-panel-foreground: #302f29 !important;
+  --reading-accent: #2f6154 !important;
+  --reading-accent-soft: rgba(47, 97, 84, 0.12) !important;
+  --reading-accent-line: #2f6154 !important;
+  --reading-toolbar: rgba(247, 245, 238, 0.9) !important;
+}
+
+.reading-minimal[data-reader-theme="dark"] {
+  --reading-background: #171918 !important;
+  --reading-foreground: #eeeae0 !important;
+  --reading-muted: #aaa79e !important;
+  --reading-border: rgba(255, 255, 255, 0.13) !important;
+  --reading-panel: #202321 !important;
+  --reading-panel-foreground: #eeeae0 !important;
+  --reading-accent: #d1b778 !important;
+  --reading-accent-soft: rgba(209, 183, 120, 0.15) !important;
+  --reading-accent-line: #d1b778 !important;
+  --reading-toolbar: rgba(23, 25, 24, 0.9) !important;
+}
+
+.reading-minimal[data-reader-theme="sepia"] {
+  --reading-background: #eadcbf !important;
+  --reading-foreground: #493824 !important;
+  --reading-muted: #715c42 !important;
+  --reading-border: rgba(83, 61, 32, 0.2) !important;
+  --reading-panel: #f1e5cb !important;
+  --reading-panel-foreground: #493824 !important;
+  --reading-accent: #72501e !important;
+  --reading-accent-soft: rgba(114, 80, 30, 0.13) !important;
+  --reading-accent-line: #72501e !important;
+  --reading-toolbar: rgba(234, 220, 191, 0.92) !important;
+}
+
+.reading-minimal[data-reader-theme="paper"] {
+  --reading-background: #e9e5da !important;
+  --reading-foreground: #2e302c !important;
+  --reading-muted: #66675f !important;
+  --reading-border: rgba(45, 48, 43, 0.18) !important;
+  --reading-panel: #f0ede4 !important;
+  --reading-panel-foreground: #2e302c !important;
+  --reading-accent: #355f4f !important;
+  --reading-accent-soft: rgba(53, 95, 79, 0.12) !important;
+  --reading-accent-line: #355f4f !important;
+  --reading-toolbar: rgba(233, 229, 218, 0.92) !important;
+}
+
+.reading-minimal[data-reader-theme="contrast-1"] {
+  --reading-background: #000 !important;
+  --reading-foreground: #fff !important;
+  --reading-muted: #d5d5d5 !important;
+  --reading-border: rgba(255, 255, 255, 0.36) !important;
+  --reading-panel: #000 !important;
+  --reading-panel-foreground: #fff !important;
+  --reading-accent: #fff !important;
+  --reading-accent-soft: rgba(255, 255, 255, 0.18) !important;
+  --reading-accent-line: #fff !important;
+  --reading-toolbar: rgba(0, 0, 0, 0.96) !important;
+}
+
+.reading-minimal[data-reader-theme="contrast-2"] {
+  --reading-background: #0d0d0d !important;
+  --reading-foreground: #ffe45c !important;
+  --reading-muted: #fff3ae !important;
+  --reading-border: rgba(255, 228, 92, 0.42) !important;
+  --reading-panel: #171717 !important;
+  --reading-panel-foreground: #ffe45c !important;
+  --reading-accent: #64d8ff !important;
+  --reading-accent-soft: rgba(100, 216, 255, 0.18) !important;
+  --reading-accent-line: #64d8ff !important;
+  --reading-toolbar: rgba(13, 13, 13, 0.96) !important;
+}
+
+.reading-minimal[data-reader-theme="contrast-3"] {
+  --reading-background: #fff !important;
+  --reading-foreground: #001b33 !important;
+  --reading-muted: #334f66 !important;
+  --reading-border: rgba(0, 27, 51, 0.34) !important;
+  --reading-panel: #f8fbff !important;
+  --reading-panel-foreground: #001b33 !important;
+  --reading-accent: #0057b8 !important;
+  --reading-accent-soft: rgba(0, 87, 184, 0.14) !important;
+  --reading-accent-line: #0057b8 !important;
+  --reading-toolbar: rgba(255, 255, 255, 0.96) !important;
+}
+
 /* ──────────────────────────────────────────────────────────────────────────
    阅读页随「设置 → 外观」全局主题换肤：只重定义 --reading-* 令牌。
    仅作用于默认（light）态，保留阅读器自带的日/夜切换按钮——按下后切到上面的
@@ -137,6 +229,7 @@
   align-items: center;
   background: var(--reading-toolbar);
   backdrop-filter: blur(18px);
+  z-index: 30;
 }
 
 .reading-minimal__toolbar {
@@ -185,41 +278,6 @@
   display: inline-flex;
 }
 
-.reading-minimal__font-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border: 1px solid var(--reading-border);
-  border-radius: 14px;
-  background: var(--reading-background);
-  box-shadow: 0 16px 40px rgba(40, 34, 28, 0.18);
-}
-
-.reading-minimal__font-hint {
-  color: var(--reading-muted);
-  font-weight: 800;
-  line-height: 1;
-}
-
-.reading-minimal__font-hint--small {
-  font-size: 13px;
-}
-
-.reading-minimal__font-hint--large {
-  font-size: 22px;
-}
-
-.reading-minimal__font-slider {
-  width: 150px;
-  accent-color: var(--reading-foreground);
-  cursor: pointer;
-}
-
 .reading-minimal__separator {
   width: 1px;
   height: 16px;
@@ -237,6 +295,11 @@
   stroke-width: 1.8;
 }
 
+.reading-minimal__icon-button > svg:not(.reading-minimal__icon) {
+  width: 15px;
+  height: 15px;
+}
+
 .reading-minimal__shell {
   min-height: calc(100vh - 36px);
   display: grid;
@@ -246,11 +309,22 @@
 
 .reading-minimal__page {
   width: min(var(--reading-content-width, 1000px), 100%);
+  transition: width 180ms ease;
 }
 
 .reading-minimal__heading {
   border-bottom: 1px solid var(--reading-border);
   padding-bottom: 16px;
+}
+
+.reading-minimal__heading--metadata-only {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reading-minimal__heading--metadata-only .reading-minimal__meta {
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .reading-minimal__heading h1 {
@@ -280,14 +354,29 @@
 .reading-minimal__paragraph {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
+  grid-template-columns:
+    minmax(0, min(var(--reading-line-width, 68ch), calc((100% - 78px) / 2)))
+    minmax(320px, min(var(--reading-line-width, 68ch), calc((100% - 78px) / 2)));
+  justify-content: center;
   gap: 78px;
-  margin-bottom: 32px;
+  margin-bottom: var(--reading-paragraph-spacing, 1.3em);
+}
+
+.reading-minimal[data-columns="single"] .reading-minimal__paragraph {
+  grid-template-columns: minmax(0, min(100%, var(--reading-line-width, 68ch)));
+  justify-content: center;
+  gap: 8px;
+}
+
+.reading-minimal[data-columns="dual"] .reading-minimal__paragraph {
+  grid-template-columns:
+    minmax(0, min(var(--reading-line-width, 68ch), calc((100% - 78px) / 2)))
+    minmax(320px, min(var(--reading-line-width, 68ch), calc((100% - 78px) / 2)));
 }
 
 .reading-minimal__paragraph[data-mode="chinese"],
 .reading-minimal__paragraph[data-mode="english"] {
-  grid-template-columns: minmax(0, 760px);
+  grid-template-columns: minmax(0, min(100%, var(--reading-line-width, 68ch)));
   justify-content: center;
 }
 
@@ -304,13 +393,78 @@
   margin: 0;
   color: var(--reading-foreground);
   font-size: calc(26px * var(--reading-font-scale, 1));
-  line-height: 1.62;
+  font-family: var(--reading-font-family, var(--auris-font-sans));
+  font-weight: var(--reading-font-weight, 400);
+  letter-spacing: var(--reading-letter-spacing, 0);
+  line-height: var(--reading-line-height, 1.7);
+  text-align: var(--reading-text-align, start);
+  text-indent: var(--reading-paragraph-indent, 0);
+  word-spacing: var(--reading-word-spacing, 0);
+  hyphens: var(--reading-hyphens, none);
 }
 
 .reading-minimal__translation {
   color: var(--reading-panel-foreground);
   font-size: calc(24px * var(--reading-font-scale, 1));
-  line-height: 1.7;
+  line-height: calc(var(--reading-line-height, 1.7) + 0.08);
+}
+
+.reading-minimal[data-normalize="true"] .reading-minimal__english,
+.reading-minimal[data-normalize="true"] .reading-minimal__translation,
+.reading-minimal[data-normalize="true"] .reading-exam__block-body,
+.reading-minimal[data-normalize="true"] .reading-exam__translation,
+.reading-minimal[data-normalize="true"] .reading-exam__paragraph {
+  text-transform: none !important;
+  white-space: normal;
+}
+
+.reading-minimal[data-reader-theme] .reading-minimal__english,
+.reading-minimal[data-reader-theme] .reading-minimal__translation {
+  font-family: var(--reading-font-family, var(--auris-font-sans));
+  font-weight: var(--reading-font-weight, 400);
+  letter-spacing: var(--reading-letter-spacing, 0);
+  text-align: var(--reading-text-align, start);
+  text-indent: var(--reading-paragraph-indent, 0);
+  word-spacing: var(--reading-word-spacing, 0);
+}
+
+.reading-minimal[data-reader-theme] .reading-minimal__english {
+  line-height: var(--reading-line-height, 1.7);
+}
+
+.reading-minimal[data-reader-theme] .reading-minimal__translation {
+  line-height: calc(var(--reading-line-height, 1.7) + 0.08);
+}
+
+.reading-minimal[data-publisher-styles="false"] .reading-minimal__content :is(em, i) {
+  font-style: normal;
+}
+
+.reading-minimal[data-publisher-styles="false"] .reading-minimal__content :is(strong, b) {
+  font-weight: inherit;
+}
+
+.reading-minimal[data-flow="paginated"] .reading-minimal__shell {
+  height: calc(100vh - 36px);
+  min-height: 0;
+  padding-top: 42px;
+  padding-bottom: 42px;
+  overflow: hidden;
+}
+
+.reading-minimal[data-flow="paginated"] .reading-minimal__page {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: thin;
+}
+
+.reading-minimal[data-flow="paginated"] .reading-minimal__paragraph {
+  min-height: calc(100vh - 220px);
+  align-content: center;
+  padding: 40px 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 /* 所有单词外观与正文一致（不区分是否收录）；右键唤出词卡。 */
@@ -343,7 +497,7 @@
   --reading-accent-soft: #3a2a23;
   --reading-muted: #918b82;
 
-  width: min(700px, calc(100vw - 24px));
+  width: min(540px, calc(100vw - 32px));
   height: 100%;
   font-family: var(--auris-font-sans);
   display: flex;
@@ -485,6 +639,10 @@
     padding: 48px 22px 96px;
   }
 
+  .reading-minimal__page {
+    width: 100%;
+  }
+
   .reading-minimal__paragraph,
   .reading-minimal__paragraph[data-mode="chinese"],
   .reading-minimal__paragraph[data-mode="english"] {
@@ -499,6 +657,12 @@
 
   .reading-minimal__heading h1 {
     font-size: 54px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-minimal__page {
+    transition: none;
   }
 }
 
@@ -526,14 +690,15 @@
 .reading-exam {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 52px;
 }
 
 .reading-exam__section {
+  --exam-rule: var(--reading-accent-line);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-bottom: 8px;
+  gap: 22px;
+  padding-bottom: 40px;
   border-bottom: 1px solid var(--reading-border);
 }
 
@@ -541,24 +706,72 @@
   border-bottom: 0;
 }
 
+.reading-exam__section-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.reading-exam__section-number {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--exam-rule) 56%, var(--reading-border));
+  border-radius: 50%;
+  color: var(--exam-rule);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.reading-exam__section-eyebrow {
+  margin: 1px 0 5px;
+  color: var(--exam-rule);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 .reading-exam__section-title {
   margin: 0;
-  color: var(--reading-accent-line);
-  font-size: 22px;
-  font-weight: 700;
+  color: var(--reading-foreground);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.reading-exam__section-hint {
+  margin: 7px 0 0;
+  color: var(--reading-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.reading-exam__section-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
 }
 
 .reading-exam__block {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 16px;
+  min-width: 0;
+  padding: 18px 20px;
   border: 1px solid var(--reading-border);
   border-radius: 14px;
   background: var(--reading-panel);
 }
 
 .reading-exam__block-title {
+  display: flex;
+  gap: 9px;
+  align-items: center;
   color: var(--reading-muted);
   font-size: 12px;
   font-weight: 600;
@@ -566,27 +779,46 @@
   text-transform: uppercase;
 }
 
+.reading-exam__block-title span {
+  color: var(--exam-rule);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+}
+
 .reading-exam__block-body {
   display: flex;
   flex-direction: column;
-  gap: 0.7em;
+  gap: var(--reading-paragraph-spacing, 1.3em);
   color: var(--reading-panel-foreground);
+  font-family: var(--reading-font-family, inherit);
   font-size: calc(18px * var(--reading-font-scale, 1));
-  line-height: 1.75;
+  font-weight: var(--reading-font-weight, 400);
+  letter-spacing: var(--reading-letter-spacing, 0);
+  line-height: var(--reading-line-height, 1.7);
+  text-align: var(--reading-text-align, start);
+  word-spacing: var(--reading-word-spacing, 0);
+  hyphens: var(--reading-hyphens, none);
 }
 
 .reading-exam__translation {
   display: flex;
   flex-direction: column;
-  gap: 0.55em;
+  gap: var(--reading-paragraph-spacing, 1.3em);
   margin: 0;
   color: var(--reading-muted);
+  font-family: var(--reading-font-family, inherit);
   font-size: calc(16px * var(--reading-font-scale, 1));
-  line-height: 1.7;
+  font-weight: var(--reading-font-weight, 400);
+  letter-spacing: var(--reading-letter-spacing, 0);
+  line-height: var(--reading-line-height, 1.7);
+  text-align: var(--reading-text-align, start);
+  word-spacing: var(--reading-word-spacing, 0);
+  hyphens: var(--reading-hyphens, none);
 }
 
 .reading-exam__paragraph {
   margin: 0;
+  text-indent: var(--reading-paragraph-indent, 0);
   white-space: pre-wrap;
 }
 
@@ -664,6 +896,17 @@
   font-size: 0.92em;
 }
 
+.reading-exam__quote {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.reading-exam__codeblock {
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
 .reading-exam__blank {
   display: inline-flex;
   align-items: center;
@@ -674,4 +917,798 @@
   border-bottom: 2px solid var(--reading-accent-line);
   color: var(--reading-accent);
   font-weight: 700;
+}
+
+/* Each exam family gets a layout shaped around the task, rather than a
+   recoloured copy of the prose reader. */
+.reading-exam__section[data-type="cloze"] {
+  --exam-rule: #c46c48;
+}
+
+.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__section-layout,
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__section-layout,
+.reading-exam__section[data-layout="gap-matcher"] .reading-exam__section-layout {
+  grid-template-columns: minmax(0, 1.65fr) minmax(230px, 0.85fr);
+  align-items: start;
+}
+
+.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="directions"],
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="directions"],
+.reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="directions"],
+.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="answers"],
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="answers"],
+.reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="answers"] {
+  grid-column: 1 / -1;
+}
+
+.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="passage"],
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="passage"],
+.reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="passage"] {
+  grid-column: 1;
+  grid-row: span 3;
+  background: color-mix(in srgb, var(--reading-panel) 74%, transparent);
+}
+
+.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="options"],
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="questions"],
+.reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="options"] {
+  grid-column: 2;
+  border-top: 3px solid var(--exam-rule);
+}
+
+.reading-exam__section[data-type="reading"] {
+  --exam-rule: #4f7f91;
+}
+
+/* Reading comprehension is a paper, not a dashboard. Keep the eye moving
+   down one stable measure; questions begin only after the passage ends. */
+.reading-exam__section[data-layout="passage-questions"] {
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__section-header {
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__section-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(100%, var(--reading-line-width, 68ch));
+  margin-inline: auto;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block + .reading-exam__block {
+  margin-top: 56px;
+  padding-top: 34px;
+  border-top: 1px solid var(--reading-border);
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block-title {
+  margin-bottom: 20px;
+  color: var(--exam-rule);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block-title span {
+  display: none;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="passage"] {
+  display: block;
+  background: transparent;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="passage"] .reading-exam__block-body {
+  color: var(--reading-foreground);
+  font-family: var(--reading-font-family, Georgia, serif);
+  font-size: calc(21px * var(--reading-font-scale, 1));
+  line-height: var(--reading-line-height, 1.7);
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="passage"] .reading-exam__heading {
+  margin-top: 2.2em;
+  color: var(--reading-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="passage"] .reading-exam__heading:first-child {
+  margin-top: 0;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__translation {
+  margin-top: 34px;
+  padding: 28px 0 4px 28px;
+  border-top: 1px solid var(--reading-border);
+  border-left: 2px solid color-mix(in srgb, var(--exam-rule) 66%, transparent);
+  color: var(--reading-muted);
+  font-size: calc(16px * var(--reading-font-scale, 1));
+  line-height: var(--reading-line-height, 1.7);
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="questions"] {
+  padding: 34px clamp(22px, 4vw, 44px);
+  border: 1px solid var(--reading-border);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--reading-panel) 68%, transparent);
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="questions"] .reading-exam__heading {
+  margin-top: 2.4em;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 1.08em;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="questions"] .reading-exam__heading:first-child {
+  margin-top: 0;
+}
+
+.reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="answers"] {
+  padding-left: 22px;
+  border-left: 2px solid var(--exam-rule);
+}
+
+/* Fixed 0–10 close-reading report: restrained academic editorial layout. */
+.reading-exam__section[data-layout="reading-study"] {
+  --exam-rule: #496b61;
+  width: min(100%, 980px);
+  margin-inline: auto;
+  border-bottom: 0;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__section-header {
+  width: min(100%, 780px);
+  margin: 8px auto 42px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid var(--reading-border);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__section-number {
+  width: 8px;
+  height: 54px;
+  border: 0;
+  border-radius: 0;
+  background: var(--exam-rule);
+  color: transparent;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__section-title {
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 560;
+  letter-spacing: -0.035em;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__section-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(100%, var(--reading-line-width, 68ch));
+  margin-inline: auto;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block + .reading-exam__block {
+  margin-top: 76px;
+  padding-top: 38px;
+  border-top: 1px solid var(--reading-border);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block-title {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+  color: var(--reading-foreground);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: clamp(21px, 2.2vw, 27px);
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block-title span {
+  padding-top: 0.65em;
+  color: var(--exam-rule);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block-body {
+  gap: var(--reading-paragraph-spacing, 1.3em);
+  color: var(--reading-foreground);
+  font-family: var(--reading-font-family, Georgia, "Songti SC", serif);
+  font-size: calc(17px * var(--reading-font-scale, 1));
+  font-weight: var(--reading-font-weight, 400);
+  letter-spacing: var(--reading-letter-spacing, 0);
+  line-height: var(--reading-line-height, 1.7);
+  text-align: var(--reading-text-align, start);
+  word-spacing: var(--reading-word-spacing, 0);
+  hyphens: var(--reading-hyphens, none);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__heading {
+  margin-top: 1.6em;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 1.05em;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__heading:first-child {
+  margin-top: 0;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__list {
+  padding-left: 1.2em;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__list li + li {
+  margin-top: 0.72em;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__quote {
+  padding: 20px 0 20px 24px;
+  border-left: 2px solid var(--exam-rule);
+  color: var(--reading-panel-foreground);
+  font-family: var(--reading-font-family, Georgia, serif);
+  font-size: 1.06em;
+  line-height: var(--reading-line-height, 1.7);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__table {
+  font-size: 0.9em;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__table :is(th, td) {
+  padding: 12px 14px;
+  border-right: 0;
+  border-left: 0;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__table th {
+  color: var(--reading-foreground);
+  background: transparent;
+  font-weight: 680;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__codeblock {
+  padding: 24px 28px;
+  border-left: 2px solid var(--exam-rule);
+  background: color-mix(in srgb, var(--exam-rule) 7%, transparent);
+  color: var(--reading-panel-foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82em;
+  line-height: 1.75;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="overview"] {
+  padding: 30px 34px;
+  border-left: 3px solid var(--exam-rule);
+  background: color-mix(in srgb, var(--exam-rule) 6%, transparent);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="overview"] .reading-exam__block-title {
+  margin-bottom: 16px;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="overview"] .reading-exam__block-body {
+  font-size: calc(18px * var(--reading-font-scale, 1));
+  line-height: var(--reading-line-height, 1.7);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="passage"] .reading-exam__paragraph:has(.reading-minimal-word) {
+  line-height: var(--reading-line-height, 1.7);
+}
+
+/* Sentence-by-sentence close reading: the bilingual line stays primary;
+   linguistic notes remain quiet until the learner asks for them. */
+.reading-sentence-study {
+  border-top: 1px solid var(--reading-border);
+}
+
+.reading-sentence-study__item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: 18px;
+  padding: 30px 0 32px;
+  border-bottom: 1px solid var(--reading-border);
+}
+
+.reading-sentence-study__toggle {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin-top: 22px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--exam-rule);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.reading-sentence-study__toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.reading-sentence-study__toggle-sun,
+.reading-sentence-study__toggle-moon {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.reading-sentence-study__toggle-sun circle {
+  fill: none;
+}
+
+.reading-sentence-study__toggle-moon {
+  opacity: 0;
+  transform: scale(0.72) rotate(-16deg);
+}
+
+.reading-sentence-study__toggle:hover,
+.reading-sentence-study__toggle:focus-visible {
+  background: var(--exam-rule);
+  color: var(--reading-background);
+  outline: none;
+}
+
+.reading-sentence-study__toggle:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--exam-rule) 22%, transparent);
+}
+
+.reading-sentence-study__item[data-expanded="true"] .reading-sentence-study__toggle-sun {
+  opacity: 0;
+  transform: scale(0.72) rotate(16deg);
+}
+
+.reading-sentence-study__item[data-expanded="true"] .reading-sentence-study__toggle-moon {
+  opacity: 1;
+  transform: scale(1) rotate(0);
+}
+
+.reading-sentence-study__toggle:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.reading-sentence-study__label {
+  margin: 0 0 12px;
+  color: var(--exam-rule);
+  font-family: var(--auris-font-sans);
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0.13em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.reading-sentence-study__lead {
+  display: grid;
+  gap: 9px;
+}
+
+.reading-sentence-study__lead :is(.reading-exam__paragraph, .reading-exam__quote) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-indent: 0;
+}
+
+.reading-sentence-study__lead > :first-child {
+  color: var(--reading-foreground);
+  font-size: 1.08em;
+  font-weight: 520;
+}
+
+.reading-sentence-study__lead > :nth-child(2) {
+  color: var(--reading-muted);
+  font-size: 0.95em;
+}
+
+.reading-sentence-study__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 30px;
+  margin-top: 24px;
+  padding: 24px 0 2px;
+  border-top: 1px dashed color-mix(in srgb, var(--exam-rule) 34%, var(--reading-border));
+  animation: reading-sentence-reveal 180ms ease-out;
+}
+
+.reading-sentence-study__details[hidden] {
+  display: none;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-sentence-study="persisted"] {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-sentence-study="persisted"] + .reading-exam__block[data-sentence-study="persisted"] {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-sentence-study="persisted"] .reading-exam__block-body {
+  gap: 0;
+}
+
+.reading-sentence-study__detail {
+  padding: 14px 0 16px;
+}
+
+.reading-sentence-study__detail h4 {
+  margin: 0 0 8px;
+  color: var(--exam-rule);
+  font-family: var(--auris-font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.reading-sentence-study__detail .reading-exam__paragraph {
+  margin: 0;
+  color: var(--reading-panel-foreground);
+  font-size: 0.9em;
+  line-height: 1.68;
+  text-indent: 0;
+}
+
+@keyframes reading-sentence-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reading-minimal[data-flow="paginated"] .reading-exam__block {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="logic_map"] .reading-exam__block-body,
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="retelling"] .reading-exam__block-body {
+  padding: 26px 30px;
+  background: color-mix(in srgb, var(--reading-panel) 76%, transparent);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="sentences"] .reading-exam__heading:not(:first-child),
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="questions"] .reading-exam__heading:not(:first-child) {
+  margin-top: 2.6em;
+  padding-top: 1.7em;
+  border-top: 1px solid var(--reading-border);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="questions"] {
+  padding: 34px clamp(24px, 5vw, 46px);
+  border: 1px solid var(--reading-border);
+  background: color-mix(in srgb, var(--reading-panel) 62%, transparent);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="synonyms"] strong,
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="pitfalls"] strong {
+  color: var(--exam-rule);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="takeaways"] {
+  padding-left: 28px;
+  border-left: 2px solid var(--exam-rule);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="summary"] {
+  padding: 32px 36px;
+  background: var(--reading-foreground);
+}
+
+.reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="summary"] :is(.reading-exam__block-title, .reading-exam__block-title span, .reading-exam__block-body, .reading-exam__heading) {
+  color: var(--reading-background);
+}
+
+@media (max-width: 700px) {
+  .reading-exam__section[data-layout="reading-study"] .reading-exam__block + .reading-exam__block {
+    margin-top: 54px;
+    padding-top: 28px;
+  }
+
+  .reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="overview"],
+  .reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="questions"],
+  .reading-exam__section[data-layout="reading-study"] .reading-exam__block[data-kind="summary"] {
+    padding: 24px 22px;
+  }
+
+  .reading-sentence-study__item {
+    grid-template-columns: 28px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+
+  .reading-sentence-study__details {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-sentence-study__details {
+    animation: none;
+  }
+
+  .reading-sentence-study__toggle,
+  .reading-sentence-study__toggle svg {
+    transition: none;
+  }
+}
+
+.reading-exam__section[data-type="new_seven_five"] {
+  --exam-rule: #6f7850;
+}
+
+.reading-exam__section[data-type="new_order"] {
+  --exam-rule: #9a7042;
+}
+
+.reading-exam__section[data-layout="sequence-board"] .reading-exam__section-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reading-exam__section[data-layout="sequence-board"] .reading-exam__block[data-kind="chain"] {
+  grid-column: 1 / -1;
+  border: 0;
+  border-radius: 4px;
+  background: var(--exam-rule);
+  color: #fffaf1;
+}
+
+.reading-exam__section[data-layout="sequence-board"] .reading-exam__block[data-kind="chain"] :is(.reading-exam__block-title, .reading-exam__block-body, .reading-exam__block-title span) {
+  color: inherit;
+}
+
+.reading-exam__section[data-layout="sequence-board"] .reading-exam__block[data-kind="paragraphs"] {
+  grid-column: 1 / -1;
+  border-style: dashed;
+}
+
+.reading-exam__section[data-type="translation"] {
+  --exam-rule: #8a5f75;
+}
+
+.reading-exam__section[data-layout="translation-desk"] .reading-exam__section-layout {
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  align-items: start;
+}
+
+.reading-exam__section[data-layout="translation-desk"] .reading-exam__block[data-kind="directions"],
+.reading-exam__section[data-layout="translation-desk"] .reading-exam__block[data-kind="answers"] {
+  grid-column: 1 / -1;
+}
+
+.reading-exam__section[data-layout="translation-desk"] .reading-exam__block[data-kind="underlined"] {
+  position: sticky;
+  top: 74px;
+  border-left: 4px solid var(--exam-rule);
+  background: color-mix(in srgb, var(--exam-rule) 8%, var(--reading-panel));
+}
+
+.reading-exam__section[data-type="writing_a"] {
+  --exam-rule: #497769;
+}
+
+.reading-exam__section[data-layout="letter-desk"] .reading-exam__section-layout {
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+}
+
+.reading-exam__section[data-layout="letter-desk"] .reading-exam__block[data-kind="letter"],
+.reading-exam__section[data-layout="letter-desk"] .reading-exam__block[data-kind="model"] {
+  grid-column: 2;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(transparent 0 34px, color-mix(in srgb, var(--reading-border) 62%, transparent) 35px),
+    var(--reading-panel);
+  box-shadow: 0 14px 30px rgba(18, 20, 18, 0.16);
+}
+
+.reading-exam__section[data-layout="letter-desk"] .reading-exam__block[data-kind="directions"],
+.reading-exam__section[data-layout="letter-desk"] .reading-exam__block[data-kind="prompt"] {
+  grid-column: 1;
+  border-left: 3px solid var(--exam-rule);
+}
+
+.reading-exam__section[data-type="writing_b"] {
+  --exam-rule: #7d6548;
+}
+
+/* 作文精读：参考课堂讲义的纵向节奏。标题、双语正文和表达清单
+   都留在同一条阅读流里，不使用卡片或分栏来打断视线。 */
+.reading-exam__section[data-layout="composition-handout"] {
+  --composition-blue: #397dcc;
+  --composition-green: #4d986d;
+  --composition-violet: #9666bd;
+  --composition-coral: #d5574c;
+  --composition-ochre: #ca862a;
+  gap: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.reading-minimal[data-theme="dark"] .reading-exam__section[data-layout="composition-handout"] {
+  --composition-blue: #78aee8;
+  --composition-green: #78bd91;
+  --composition-violet: #bd94db;
+  --composition-coral: #ef8379;
+  --composition-ochre: #e2ab5e;
+}
+
+.reading-exam__section[data-layout="composition-handout"] > .reading-exam__section-header {
+  display: none;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__section-layout {
+  display: block;
+  width: min(100%, 76ch);
+  margin-inline: auto;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__block {
+  display: block;
+  padding: 0 0 42px;
+  border: 0;
+  border-bottom: 1px solid var(--reading-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__block + .reading-exam__block {
+  padding-top: 38px;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__block:last-child {
+  border-bottom: 0;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__block-title {
+  display: block;
+  margin: 0 0 27px;
+  color: var(--reading-foreground);
+  font-family: var(--auris-font-sans);
+  font-size: calc(30px * var(--reading-font-scale, 1));
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.22;
+  text-transform: none;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__block-title span {
+  display: none;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__block-body {
+  gap: 22px;
+  font-size: calc(20px * var(--reading-font-scale, 1));
+  line-height: max(1.68, var(--reading-line-height, 1.7));
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__heading {
+  margin-top: 4px;
+  color: var(--reading-foreground);
+  font-family: var(--auris-font-sans);
+  font-size: calc(17px * var(--reading-font-scale, 1));
+  font-weight: 750;
+  letter-spacing: -0.012em;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__paragraph {
+  line-height: inherit;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__list {
+  padding-left: 1.55em;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__list li {
+  padding-left: 0.15em;
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__list li + li {
+  margin-top: 0.72em;
+}
+
+.reading-exam__section[data-layout="composition-handout"] strong {
+  color: var(--composition-blue);
+  font-weight: 690;
+}
+
+.reading-exam__section[data-layout="composition-handout"] strong:nth-of-type(5n + 2) {
+  color: var(--composition-green);
+}
+
+.reading-exam__section[data-layout="composition-handout"] strong:nth-of-type(5n + 3) {
+  color: var(--composition-violet);
+}
+
+.reading-exam__section[data-layout="composition-handout"] strong:nth-of-type(5n + 4) {
+  color: var(--composition-coral);
+}
+
+.reading-exam__section[data-layout="composition-handout"] strong:nth-of-type(5n) {
+  color: var(--composition-ochre);
+}
+
+.reading-exam__section[data-layout="composition-handout"] .reading-exam__code {
+  padding: 0.08em 0.2em;
+  border-radius: 2px;
+  color: inherit;
+  background: color-mix(in srgb, var(--composition-blue) 11%, transparent);
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.reading-exam__section[data-layout="essay-studio"] .reading-exam__section-layout {
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+}
+
+.reading-exam__section[data-layout="essay-studio"] .reading-exam__block[data-kind="chart"],
+.reading-exam__section[data-layout="essay-studio"] .reading-exam__block[data-kind="prompt"] {
+  grid-column: 1;
+  border-top: 3px solid var(--exam-rule);
+}
+
+.reading-exam__section[data-layout="essay-studio"] .reading-exam__block[data-kind="model"] {
+  grid-column: 2;
+  grid-row: span 3;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--reading-panel) 82%, transparent);
+}
+
+@media (max-width: 900px) {
+  .reading-exam__section[data-layout] .reading-exam__section-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reading-exam__section[data-layout] .reading-exam__section-layout .reading-exam__block {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .reading-exam__section[data-layout="translation-desk"] .reading-exam__block[data-kind="underlined"] {
+    position: static;
+  }
 }

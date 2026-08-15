@@ -136,7 +136,8 @@ describe("reading-source-note", () => {
     const page = buildReadingSourceNotePage(source);
 
     expect(page.frontmatter?.type).toBe("reading-source");
-    expect(page.relativePath).toMatch(/^Reading\//);
+    expect(page.fileName).toBe("Quiet Momentum.md");
+    expect(page.relativePath).toBe("Reading/文章/Quiet Momentum.md");
     expect(page.markdownBody).toContain("安静的动量从学习者回到同一页开始。");
 
     const parsed = parseReadingSourceNotePage(page);
@@ -175,6 +176,38 @@ describe("reading-source-note", () => {
     expect(parseReadingSourceNotePage(renamedPage)?.title).toBe("Renamed Outside Auris");
   });
 
+  it("uses a category folder moved outside Auris and keeps the stable id", () => {
+    const page = buildReadingSourceNotePage(createReadingSource());
+    const movedPage = {
+      ...page,
+      relativePath: `Reading/书籍/${page.fileName}`,
+    };
+
+    const parsed = parseReadingSourceNotePage(movedPage);
+
+    expect(parsed?.category).toBe("book");
+    expect(parsed?.id).toBe(page.id);
+  });
+
+  it("keeps legacy flat Reading files compatible", () => {
+    const source = createReadingSource();
+    const page = buildReadingSourceNotePage(source);
+    const legacyPage = {
+      ...page,
+      fileName: `quiet-momentum--${source.id}.md`,
+      frontmatter: {
+        ...page.frontmatter,
+        storageFileName: undefined,
+      },
+      relativePath: `Reading/quiet-momentum--${source.id}.md`,
+    };
+
+    const parsed = parseReadingSourceNotePage(legacyPage);
+
+    expect(parsed?.category).toBe("article");
+    expect(parsed?.title).toBe("Quiet Momentum");
+  });
+
   it("saves to and loads from a configured vault", async () => {
     const { storage } = createFakeVault(true);
     const source = createReadingSource({ category: "episode", estimatedMinutes: 5 });
@@ -188,6 +221,60 @@ describe("reading-source-note", () => {
     expect(loaded[0]?.category).toBe("episode");
     expect(loaded[0]?.estimatedMinutes).toBe(5);
     expect(loaded[0]?.paragraphs).toHaveLength(2);
+  });
+
+  it("adds a readable copy number when a different source has the same name", async () => {
+    const { storage } = createFakeVault(true);
+    const first = createReadingSource({ id: "reading-one" });
+    const second = createReadingSource({ id: "reading-two" });
+
+    await saveReadingSourceNote(storage, first);
+    await saveReadingSourceNote(storage, second);
+
+    const summaries = await storage.listPages();
+    expect(summaries.map((summary) => summary.relativePath).sort()).toEqual([
+      "Reading/文章/Quiet Momentum (2).md",
+      "Reading/文章/Quiet Momentum.md",
+    ]);
+  });
+
+  it("moves an existing source when its category changes", async () => {
+    const { storage } = createFakeVault(true);
+    const source = createReadingSource();
+    await saveReadingSourceNote(storage, source);
+
+    const moved = await saveReadingSourceNote(storage, {
+      ...source,
+      category: "book",
+    });
+
+    expect(moved).toBe(true);
+    expect((await storage.listPages()).map((page) => page.relativePath)).toEqual([
+      "Reading/书籍/Quiet Momentum.md",
+    ]);
+    expect((await loadReadingSourceNotes(storage))[0]?.category).toBe("book");
+  });
+
+  it("syncs an external folder move and rename back into frontmatter", async () => {
+    const { files, storage } = createFakeVault(true);
+    const source = createReadingSource();
+    await saveReadingSourceNote(storage, source);
+
+    const stored = files.get(source.id)!;
+    files.set(source.id, {
+      ...stored,
+      fileName: "A Better Name.md",
+      relativePath: "Reading/书籍/A Better Name.md",
+    });
+
+    const loaded = await loadReadingSourceNotes(storage);
+    const synced = await storage.getPage(source.id);
+
+    expect(loaded[0]?.category).toBe("book");
+    expect(loaded[0]?.title).toBe("A Better Name");
+    expect(synced?.frontmatter?.category).toBe("book");
+    expect(synced?.frontmatter?.storageFileName).toBe("A Better Name.md");
+    expect(synced?.title).toBe("A Better Name");
   });
 
   it("stays in-memory when no vault is configured", async () => {

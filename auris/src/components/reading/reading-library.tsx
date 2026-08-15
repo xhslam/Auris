@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BookOpen, MagnifyingGlass, UploadSimple } from "@phosphor-icons/react";
 import {
   READING_SOURCES,
   type ReadingSource,
@@ -9,11 +10,7 @@ import {
 } from "@/features/reading/reading-fixtures";
 import { getWordCount } from "@/features/reading/reading-text";
 import {
-  READING_CURATED_CHILD_FILTERS,
-  READING_SIDEBAR_FILTER_LABELS,
   filterSources,
-  groupSourcesByDate,
-  isReadingLibraryImportMode,
   parseReadingLibraryFilter,
   readingLibraryHref,
 } from "@/features/reading/reading-library";
@@ -48,14 +45,6 @@ type ReadingLibraryProps = {
   sessionSources?: ReadingSource[];
 };
 
-const IMPORT_CATEGORY_ORDER: ReadingImportCategory[] = ["article", "book", "exam"];
-
-const IMPORT_CATEGORY_HINTS: Record<ReadingImportCategory, string> = {
-  article: "导入后会出现在「文章」列表",
-  book: "导入后会出现在「书籍」列表",
-  exam: "导入后会出现在「题目」列表",
-};
-
 function getTotalWords(source: ReadingSource) {
   return source.paragraphs.reduce(
     (total, paragraph) => total + getWordCount(paragraph.english),
@@ -78,27 +67,6 @@ function isNestedButtonEvent(event: React.KeyboardEvent<HTMLElement>) {
   return Boolean(target?.closest("button"));
 }
 
-function pickContinueReading(
-  sources: ReadingSource[],
-  progressById: Readonly<Record<string, number>>,
-): ReadingSource | null {
-  let best: ReadingSource | null = null;
-  let bestProgress = 0;
-
-  for (const source of sources) {
-    const progress = progressById[source.id] ?? source.progress ?? 0;
-    if (progress <= 0 || progress >= 100) {
-      continue;
-    }
-    if (progress > bestProgress) {
-      best = source;
-      bestProgress = progress;
-    }
-  }
-
-  return best;
-}
-
 export function ReadingLibrary({
   onImported,
   onOpen,
@@ -113,29 +81,28 @@ export function ReadingLibrary({
   );
   const [userSources, setUserSources] = useState<ReadingSource[]>([]);
   const filter = parseReadingLibraryFilter(searchParams.get("filter"));
-  const isImportMode = isReadingLibraryImportMode(searchParams.get("import"));
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [deletedSourceIds, setDeletedSourceIds] = useState<Set<string>>(() => new Set());
   const [progressMap, setProgressMap] = useState<Record<string, number>>({});
   const [importCategory, setImportCategory] =
-    useState<ReadingImportCategory>("article");
+    useState<ReadingImportCategory>(() =>
+      filter === "article" || filter === "book" || filter === "exam"
+        ? filter
+        : "article",
+    );
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [movingSourceId, setMovingSourceId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [languageFilter, setLanguageFilter] = useState("all");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setDeletedSourceIds(loadDeletedReadingSourceIds());
     setFavorites(loadReadingFavorites());
     setProgressMap(loadReadingProgress());
   }, []);
-
-  useEffect(() => {
-    if (!isImportMode) {
-      return;
-    }
-    setImportCategory("article");
-    setImportMessage(null);
-  }, [isImportMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,6 +122,17 @@ export function ReadingLibrary({
       unsubscribe?.();
     };
   }, [storage]);
+
+  useEffect(() => {
+    const focusSearch = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", focusSearch);
+    return () => window.removeEventListener("keydown", focusSearch);
+  }, []);
 
   const allSources = useMemo(() => {
     const seen = new Set<string>();
@@ -178,12 +156,28 @@ export function ReadingLibrary({
     () => filterSources(allSources, filter, favorites, progressMap),
     [allSources, filter, favorites, progressMap],
   );
-
-  const groups = useMemo(() => groupSourcesByDate(visibleSources), [visibleSources]);
-  const continueReading = useMemo(
-    () => pickContinueReading(visibleSources, progressMap),
-    [progressMap, visibleSources],
+  const editableSourceIds = useMemo(
+    () => new Set(userSources.map((source) => source.id)),
+    [userSources],
   );
+
+  const searchedSources = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase();
+    return visibleSources.filter((source) => {
+      const searchable = [source.title, source.author, source.summary, source.kicker]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase();
+      const hasTranslation = source.paragraphs.some(
+        (paragraph) => paragraph.translation && paragraph.translation !== "placeholder",
+      );
+      const matchesLanguage =
+        languageFilter === "all" ||
+        languageFilter === "english" ||
+        (languageFilter === "bilingual" && hasTranslation);
+      return matchesLanguage && (!query || searchable.includes(query));
+    });
+  }, [languageFilter, searchQuery, visibleSources]);
 
   function resolveProgress(source: ReadingSource) {
     return progressMap[source.id] ?? source.progress ?? 0;
@@ -207,6 +201,10 @@ export function ReadingLibrary({
   function openFilePicker() {
     setImportMessage(null);
     fileInputRef.current?.click();
+  }
+
+  function openQuickImport() {
+    openFilePicker();
   }
 
   async function handleImportFileChange(
@@ -244,146 +242,120 @@ export function ReadingLibrary({
     }
   }
 
-  if (isImportMode) {
-    return (
-      <main className="reading-library reading-library--import">
-        <header className="reading-library__topbar">
-          <div>
-            <p className="reading-library__kicker">Reading Library</p>
-            <h1>导入阅读材料</h1>
-          </div>
-        </header>
+  async function handleSourceCategoryChange(
+    source: ReadingSource,
+    category: ReadingImportCategory,
+  ) {
+    if (source.category === category) {
+      return;
+    }
+    if (category === "exam" && (source.examSections?.length ?? 0) === 0) {
+      setImportMessage(
+        "未识别到题型结构，请先在 Markdown 中添加“## 题型: 阅读理解”。",
+      );
+      return;
+    }
 
-        <section
-          aria-label="选择导入分类"
-          className="reading-library__import-categories"
-        >
-          <p className="reading-library__import-lead">
-            先选择要放入的分类，再选择 Markdown 文件。默认从「文章」开始。
-          </p>
-          <div className="reading-library__import-boxes">
-            {IMPORT_CATEGORY_ORDER.map((category) => (
-              <button
-                aria-label={`放入${READING_SIDEBAR_FILTER_LABELS[category]}`}
-                aria-pressed={importCategory === category}
-                className="reading-library__import-box"
-                data-active={importCategory === category ? "true" : "false"}
-                key={category}
-                onClick={() => setImportCategory(category)}
-                type="button"
-              >
-                <strong>{READING_SIDEBAR_FILTER_LABELS[category]}</strong>
-                <span>{IMPORT_CATEGORY_HINTS[category]}</span>
-              </button>
-            ))}
-          </div>
-          <div className="reading-library__import-actions">
-            <button
-              className="reading-library__import-primary"
-              disabled={isImporting}
-              onClick={openFilePicker}
-              type="button"
-            >
-              {isImporting
-                ? "导入中..."
-                : `选择文件并导入到「${READING_SIDEBAR_FILTER_LABELS[importCategory]}」`}
-            </button>
-            <button
-              className="reading-library__import-ghost"
-              disabled={isImporting}
-              onClick={() =>
-                router.replace(readingLibraryHref(READING_CURATED_CHILD_FILTERS[0]), {
-                  scroll: false,
-                })
-              }
-              type="button"
-            >
-              取消
-            </button>
-          </div>
-          {importMessage ? (
-            <p className="reading-library__import-message">{importMessage}</p>
-          ) : null}
-          <p className="reading-library__import-note">
-            仅支持 Markdown（.md）。英文段后空一行再写中文，会自动左英右中。
-          </p>
-        </section>
+    const nextSource = { ...source, category };
+    setMovingSourceId(source.id);
+    setImportMessage(null);
 
-        <input
-          accept={READING_IMPORT_ACCEPT}
-          className="reading-library__file-input"
-          onChange={(event) => void handleImportFileChange(event)}
-          ref={fileInputRef}
-          type="file"
-        />
-      </main>
-    );
+    try {
+      const saved = await saveReadingSourceNote(storage, nextSource);
+      if (storage && !saved) {
+        throw new Error("无法移动这份阅读材料。");
+      }
+      setUserSources((currentSources) =>
+        currentSources.map((item) =>
+          item.id === source.id ? nextSource : item,
+        ),
+      );
+      router.replace(readingLibraryHref(category), { scroll: false });
+    } catch (error) {
+      setImportMessage(
+        error instanceof Error ? error.message : "分类更新失败，请稍后再试。",
+      );
+    } finally {
+      setMovingSourceId(null);
+    }
   }
 
   return (
     <main className="reading-library">
       <header className="reading-library__topbar">
         <div>
-          <p className="reading-library__kicker">Reading Library</p>
-          <h1>Curated Reads</h1>
+          <p className="reading-library__kicker">Your reading room</p>
+          <h1>Ebooks</h1>
+          <p className="reading-library__count">
+            {searchedSources.length} {searchedSources.length === 1 ? "ebook" : "ebooks"}
+          </p>
+        </div>
+        <div className="reading-library__import-controls">
+          <label className="reading-library__import-category">
+            <span>导入到</span>
+            <select
+              aria-label="选择导入分类"
+              disabled={isImporting}
+              onChange={(event) =>
+                setImportCategory(event.target.value as ReadingImportCategory)
+              }
+              value={importCategory}
+            >
+              <option value="article">文章</option>
+              <option value="book">书籍</option>
+              <option value="exam">题目</option>
+            </select>
+          </label>
+          <button
+            className="reading-library__quick-import"
+            disabled={isImporting}
+            onClick={openQuickImport}
+            type="button"
+          >
+            <UploadSimple weight="bold" />
+            {isImporting ? "Importing…" : "Import"}
+          </button>
         </div>
       </header>
 
-      {visibleSources.length === 0 ? (
-        <p className="reading-library__empty">这个分类下还没有内容。</p>
+      <section aria-label="Search and language filters" className="reading-library__filters">
+        <label className="reading-library__search">
+          <MagnifyingGlass aria-hidden="true" />
+          <span className="reading-library__visually-hidden">Search ebooks</span>
+          <input
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search by title, author, or topic"
+            ref={searchInputRef}
+            type="search"
+            value={searchQuery}
+          />
+          <kbd>⌘ K</kbd>
+        </label>
+        <label className="reading-library__language">
+          <span className="reading-library__visually-hidden">Language</span>
+          <select onChange={(event) => setLanguageFilter(event.target.value)} value={languageFilter}>
+            <option value="all">All languages</option>
+            <option value="english">English</option>
+            <option value="bilingual">English + Chinese</option>
+          </select>
+        </label>
+      </section>
+
+      {searchedSources.length === 0 ? (
+        <div className="reading-library__empty">
+          <BookOpen />
+          <strong>No books found</strong>
+          <span>Try a different search, or import a Markdown/PDF book.</span>
+        </div>
       ) : null}
 
-      {continueReading ? (
-        <article
-          className="reading-library__featured"
-          onClick={() => onOpen(continueReading.id)}
-          onKeyDown={(event) => {
-            if (isNestedButtonEvent(event)) {
-              return;
-            }
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onOpen(continueReading.id);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-        >
-          <div className="reading-library__featured-body">
-            <span className="reading-library__eyebrow">
-              {getProgressLabel(resolveProgress(continueReading))}
-            </span>
-            <h2>{continueReading.title}</h2>
-            {continueReading.summary ? <p>{continueReading.summary}</p> : null}
-          </div>
-          <span className="reading-library__featured-cta">
-            {getProgressLabel(resolveProgress(continueReading))} ·{" "}
-            {continueReading.estimatedMinutes} min
-          </span>
-          <button
-            aria-label={`删除 ${continueReading.title}`}
-            className="reading-library__delete"
-            onClick={(event) => {
-              event.stopPropagation();
-              handleDeleteSource(continueReading.id);
-            }}
-            type="button"
-          >
-            <TrashIcon />
-          </button>
-        </article>
-      ) : null}
-
-      {groups.map((group) => (
-        <section className="reading-library__group" key={group.date || "ungrouped"}>
-          <div className="reading-library__group-label">
-            <time dateTime={group.date || undefined}>{group.label}</time>
-          </div>
-          {group.sources.map((source) => {
+      <section aria-label="Ebook shelf" className="reading-library__shelf">
+        {searchedSources.map((source, index) => {
             const progress = resolveProgress(source);
             return (
               <article
                 className="reading-library__card"
+                data-cover={String(index % 6)}
                 key={source.id}
                 onClick={() => onOpen(source.id)}
                 onKeyDown={(event) => {
@@ -398,28 +370,62 @@ export function ReadingLibrary({
                 role="button"
                 tabIndex={0}
               >
-                <div className="reading-library__card-main">
-                  <div className="reading-library__card-head">
-                    <h3>{source.title}</h3>
-                    <button
-                      aria-label={`删除 ${source.title}`}
-                      className="reading-library__delete"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleDeleteSource(source.id);
-                      }}
-                      type="button"
-                    >
-                      <TrashIcon />
-                    </button>
+                <div className="reading-library__cover">
+                  <div aria-hidden="true" className="reading-library__cover-art">
+                    <span />
+                    <span />
+                    <span />
                   </div>
-                  {source.author ? (
-                    <p className="reading-library__author">{source.author}</p>
+                  <div className="reading-library__cover-icon"><BookOpen /></div>
+                  <div className="reading-library__cover-copy">
+                    <span>{source.category === "exam" ? "Study edition" : source.kicker}</span>
+                    <h2>{source.title}</h2>
+                    <p>{source.author || "Imported by you"}</p>
+                  </div>
+                  <div className="reading-library__cover-progress">
+                    <span style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+                <div className="reading-library__card-info">
+                  <div>
+                    <p>{source.author || "Imported by you"}</p>
+                  </div>
+                  {editableSourceIds.has(source.id) &&
+                  (source.category === "article" ||
+                    source.category === "book" ||
+                    source.category === "exam") ? (
+                    <select
+                      aria-label={`修改 ${source.title} 的分类`}
+                      className="reading-library__card-category"
+                      disabled={movingSourceId === source.id}
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        void handleSourceCategoryChange(
+                          source,
+                          event.target.value as ReadingImportCategory,
+                        );
+                      }}
+                      onClick={(event) => event.stopPropagation()}
+                      value={source.category}
+                    >
+                      <option value="article">文章</option>
+                      <option value="book">书籍</option>
+                      <option value="exam">题目</option>
+                    </select>
                   ) : null}
-                  {source.summary ? (
-                    <p className="reading-library__summary">{source.summary}</p>
-                  ) : null}
-                  <div className="reading-library__meta">
+                  <button
+                    aria-label={`删除 ${source.title}`}
+                    className="reading-library__delete"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleDeleteSource(source.id);
+                    }}
+                    type="button"
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
+                <div className="reading-library__meta">
                     <span
                       className="reading-library__status"
                       data-done={progress >= 100 ? "true" : "false"}
@@ -434,13 +440,25 @@ export function ReadingLibrary({
                         ? `${source.pageCount ?? "?"} pages`
                         : `${getTotalWords(source)} words`}
                     </span>
-                  </div>
                 </div>
+                {source.publishedAt ? (
+                  <time className="reading-library__visually-hidden" dateTime={source.publishedAt}>
+                    {source.publishedAt.replaceAll("-", ".")}
+                  </time>
+                ) : null}
               </article>
             );
           })}
-        </section>
-      ))}
+      </section>
+
+      <input
+        accept={READING_IMPORT_ACCEPT}
+        className="reading-library__file-input"
+        onChange={(event) => void handleImportFileChange(event)}
+        ref={fileInputRef}
+        type="file"
+      />
+      {importMessage ? <p className="reading-library__import-message">{importMessage}</p> : null}
     </main>
   );
 }

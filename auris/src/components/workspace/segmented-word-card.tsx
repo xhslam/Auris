@@ -39,6 +39,7 @@ type SegmentedWordSection = {
 
 type SegmentedWordCardProps = {
   closeIcon: ReactNode;
+  initialExpandedSection?: SegmentedWordSectionKey | null;
   contextText?: string;
   emptyHint?: string;
   entry: WordCardEntry | null;
@@ -232,6 +233,7 @@ function HighlightedContext({ context, word }: { context: string; word: string }
 export function SegmentedWordCard({
   closeIcon,
   contextText,
+  initialExpandedSection = "context",
   emptyHint = "收录后这里会显示分区词条内容。",
   entry,
   error,
@@ -246,14 +248,14 @@ export function SegmentedWordCard({
   toast,
 }: SegmentedWordCardProps) {
   const [activeSectionKey, setActiveSectionKey] =
-    useState<SegmentedWordSectionKey | null>("context");
+    useState<SegmentedWordSectionKey | null>(initialExpandedSection);
   const sections = useMemo(() => buildSections(entry), [entry]);
   const resolvedContextText = contextText?.trim() ?? "";
   const displayWord = entry?.word ?? term;
 
   useEffect(() => {
-    setActiveSectionKey("context");
-  }, [term, contextText]);
+    setActiveSectionKey(initialExpandedSection);
+  }, [initialExpandedSection, term, contextText]);
 
   return (
     <>
@@ -351,7 +353,11 @@ export function SegmentedWordCard({
                       aria-expanded={isActive}
                       aria-label={section.label}
                       className="word-segmented-card__accordion-trigger"
-                      onClick={() => setActiveSectionKey(section.key)}
+                      onClick={() =>
+                        setActiveSectionKey((current) =>
+                          current === section.key ? null : section.key,
+                        )
+                      }
                       type="button"
                     >
                       <SectionIcon

@@ -330,24 +330,28 @@ describe("DesktopVideoDetailShell", () => {
       expect(screen.getByText("Lesson One")).toBeInTheDocument();
     });
 
-    // 取第一个被标为生词的 token（reading 素材里是 "momentum"）。
-    const vocabWord = document
-      .querySelector('.video-study__word[data-vocab="true"]') as HTMLElement | null;
-    expect(vocabWord).not.toBeNull();
+    // 取当前跟读台中的 "momentum" 单词按钮。
+    const vocabWord = screen.getAllByRole("button", { name: /momentum/i })[0];
+    expect(vocabWord).toBeDefined();
 
     fireEvent.contextMenu(vocabWord!);
 
     await waitFor(() => {
       expect(screen.getByRole("complementary", { name: "词条释义" })).toBeInTheDocument();
     });
-    expect(await screen.findByText("选择左侧分区查看内容。")).toBeInTheDocument();
+    const wordCard = screen.getByRole("complementary", { name: "词条释义" });
+    expect(wordCard).toHaveClass("floating-word-card");
+    expect(wordCard.style.left).toBe(`${(window.innerWidth - 560) / 2}px`);
+    expect(wordCard.style.top).toBe(`${(window.innerHeight - 360) / 2}px`);
+    expect(wordCard.querySelector(".video-study__popover")).not.toBeNull();
+    expect(await screen.findByRole("region", { name: "在这句话里" })).toBeInTheDocument();
     expect(
       screen.queryByText("核心意象: 已经动起来的东西继续向前。"),
     ).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "词源构词" }));
 
-    expect(screen.getByLabelText("词源构词")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "词源构词" })).toBeInTheDocument();
     expect(screen.getByText("核心意象: 已经动起来的东西继续向前。")).toBeInTheDocument();
   });
 });

@@ -7,6 +7,28 @@ afterEach(() => {
 });
 
 describe("FloatingWordCard", () => {
+  it("can open in the viewport center", () => {
+    vi.stubGlobal("innerWidth", 1440);
+    vi.stubGlobal("innerHeight", 900);
+
+    render(
+      <FloatingWordCard
+        anchor={{ x: 40, y: 50 }}
+        initialPlacement="viewport-center"
+        onClose={vi.fn()}
+        placementKey="centered:40:50"
+      >
+        <div>centered word</div>
+      </FloatingWordCard>,
+    );
+
+    const card = screen.getByLabelText("Word definition");
+    expect(card.style.left).toBe("440px");
+    expect(card.style.top).toBe("270px");
+
+    vi.unstubAllGlobals();
+  });
+
   it("uses an explicit portal target for fullscreen top-layer content", () => {
     const fullscreenSurface = document.createElement("div");
     document.body.append(fullscreenSurface);

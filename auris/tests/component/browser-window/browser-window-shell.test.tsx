@@ -10,6 +10,7 @@ import type {
 describe("BrowserWindowShell", () => {
   afterEach(() => {
     delete window.aurisBrowser;
+    delete window.shadowingDesktop;
     window.localStorage.clear();
   });
 
@@ -137,24 +138,29 @@ describe("BrowserWindowShell", () => {
     expect(fixture.unsubscribe).toHaveBeenCalledTimes(2);
   });
 
-  it("toggles the Nia side panel and syncs setSideInset", async () => {
+  it("hands the active page to the independent Nia window and releases the browser inset", async () => {
     const user = userEvent.setup();
-    window.localStorage.clear();
     const fixture = installBridge(snapshot());
+    const open = vi.fn().mockResolvedValue(true);
+    const subscribeLaunch = vi.fn(() => () => undefined);
+    Object.defineProperty(window, "shadowingDesktop", {
+      configurable: true,
+      value: { niaStandalone: { open, subscribeLaunch } },
+    });
     render(<BrowserWindowShell />);
-
-    expect(await screen.findByLabelText("Nia side panel")).toHaveAttribute("data-open", "true");
-    await waitFor(() => expect(fixture.invoke).toHaveBeenCalledWith("setSideInset", { width: 360 }));
-
-    await user.click(screen.getByRole("button", { name: "Close Nia sidebar · 收起助手" }));
-    expect(screen.getByLabelText("Nia side panel")).toHaveAttribute("data-open", "false");
-    expect(document.querySelector(".browser-window-root")).toHaveAttribute("data-nia-open", "false");
-    await waitFor(() => expect(fixture.invoke).toHaveBeenCalledWith("setSideInset", { width: 40 }));
-    expect(window.localStorage.getItem("auris.browser.niaOpen")).toBe("false");
-
-    await user.click(screen.getByRole("button", { name: "Open Nia sidebar · 展开助手" }));
-    expect(screen.getByLabelText("Nia side panel")).toHaveAttribute("data-open", "true");
-    await waitFor(() => expect(fixture.invoke).toHaveBeenCalledWith("setSideInset", { width: 360 }));
+    await waitFor(() => expect(fixture.invoke).toHaveBeenCalledWith("setSideInset", { width: 0 }));
+    expect(screen.queryByLabelText("Nia side panel")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ask Nia about this page · 把当前页交给 Nia" }));
+    expect(open).toHaveBeenCalledWith({
+      browserTarget: { tabId: "browser-tab-1", windowId: "browser-window-1" },
+      context: {
+        kind: "browser_reference",
+        provenance: "explicit_browser_reference",
+        title: "Auris 文档",
+        url: "https://example.com/docs",
+      },
+      origin: "browser",
+    });
   });
 });
 

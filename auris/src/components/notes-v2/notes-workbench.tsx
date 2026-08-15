@@ -792,6 +792,7 @@ export function NotesWorkbench({
           onRestoreHistoryVersion={handleRestoreHistoryVersion}
           onLearningQueryChange={onLearningQueryChange}
           onOpenSourcePeek={handleOpenSourcePeek}
+          onJumpToHeading={(line) => editorBridgeRef.current?.revealLine(line)}
           onOpenPath={onOpenPath}
           onRebuildIndex={onRebuildIndex}
           onRefresh={onRefresh}

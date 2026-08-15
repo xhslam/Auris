@@ -92,6 +92,14 @@ export function useNotesCommandInfrastructure(
       bus.register({
         handler: () =>
           inputRef.current.onSetEditorMode?.(
+            inputRef.current.editorMode === "source" ? "wysiwyg" : "source",
+          ),
+        id: "notes.source",
+        title: "Toggle Markdown source",
+      }),
+      bus.register({
+        handler: () =>
+          inputRef.current.onSetEditorMode?.(
             inputRef.current.editorMode === "split" ? "wysiwyg" : "split",
           ),
         id: "notes.split",

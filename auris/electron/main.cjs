@@ -190,6 +190,7 @@ const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
 
 let mainWindow = null;
+let niaStandaloneWindow = null;
 let mainWindowCreationPromise = null;
 let nextProcess = null;
 let nextProcessReady = false;
@@ -353,9 +354,52 @@ function resolveTrustedAssistantCaller(event) {
     getSenderUrl(event),
   )) return "notes";
   if (sender && browserWindowManager?.getControllerForWebContents(sender)) return "browser-chrome";
+  if (sender && sender === niaStandaloneWindow?.webContents && isTrustedDesktopOrigin(
+    event?.senderFrame?.url,
+    getSenderUrl(event),
+  )) return "nia-standalone";
   return null;
 }
 
+function normalizeNiaStandaloneLaunch(input) {
+  const value = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+  const origin = ["browser", "command", "home", "note", "reading", "video", "voice"].includes(value.origin) ? value.origin : "home";
+  const browserTarget = value.browserTarget && typeof value.browserTarget === "object"
+    && typeof value.browserTarget.windowId === "string" && typeof value.browserTarget.tabId === "string"
+    ? Object.freeze({ windowId: value.browserTarget.windowId, tabId: value.browserTarget.tabId }) : null;
+  const context = value.context && typeof value.context === "object" && typeof value.context.kind === "string"
+    ? value.context : null;
+  return Object.freeze({ browserTarget, context, origin });
+}
+function isTrustedNiaStandaloneLauncher(event) {
+  const sender = event?.sender;
+  return Boolean(
+    (sender === mainWindow?.webContents && isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event)))
+    || (browserWindowManager?.getControllerForWebContents(sender)
+      && isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event))),
+  );
+}
+async function openNiaStandaloneWindow(event, launch) {
+  if (!isTrustedNiaStandaloneLauncher(event)) throw new Error("Untrusted Nia launcher.");
+  const payload = normalizeNiaStandaloneLaunch(launch);
+  const targetUrl = await startNextServer();
+  if (!niaStandaloneWindow || niaStandaloneWindow.isDestroyed()) {
+    niaStandaloneWindow = new BrowserWindow({
+      width: 520, height: 780, minWidth: 400, minHeight: 560, show: false, title: "Nia · Auris",
+      ...(process.platform === "darwin" ? { titleBarStyle: "hiddenInset" } : {}),
+      webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs"), sandbox: false },
+    });
+    niaStandaloneWindow.once("ready-to-show", () => niaStandaloneWindow?.show());
+    niaStandaloneWindow.on("closed", () => { niaStandaloneWindow = null; });
+    const url = new URL("/nia", targetUrl + "/").toString();
+    await niaStandaloneWindow.loadURL(url);
+  }
+  if (niaStandaloneWindow.isMinimized?.()) niaStandaloneWindow.restore();
+  niaStandaloneWindow.show();
+  niaStandaloneWindow.focus();
+  niaStandaloneWindow.webContents.send("shadowing:nia-standalone:launch", payload);
+  return true;
+}
 async function reviewImportedBrowserWorkflow(summary) {
   const reviewsPath = path.join(app.getPath("userData"), "nia", "browser-workflow-reviews.json");
   const digest = `sha256:${crypto.createHash("sha256").update(summary.normalizedSource).digest("hex")}`;
@@ -3821,6 +3865,7 @@ function registerDesktopHandlers() {
     shell.showItemInFolder(targetPath);
   });
 
+  ipcMain.handle("shadowing:nia-standalone:open", async (event, launch) => openNiaStandaloneWindow(event, launch));
   ipcMain.handle("shadowing:system:open-upgrade", async () => openUpgradeEntry());
 
   ipcMain.handle("shadowing:system:detect-binary", async (_event, name) =>

@@ -72,6 +72,9 @@ export function createLocalWordbookStorage(storage: Storage) {
     async listWords() {
       return readWordsFromStorage(storage);
     },
+    readWordsSnapshot() {
+      return readWordsFromStorage(storage);
+    },
     async saveWord(record: WordbookRecord) {
       const updated = [
         record,

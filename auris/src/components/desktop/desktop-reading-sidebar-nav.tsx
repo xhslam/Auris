@@ -6,10 +6,8 @@ import { useSearchParams } from "next/navigation";
 import {
   READING_CURATED_CHILD_FILTERS,
   READING_SIDEBAR_FILTER_LABELS,
-  isReadingLibraryImportMode,
   parseReadingLibraryFilter,
   readingLibraryHref,
-  readingLibraryImportHref,
   type ReadingLibraryFilter,
 } from "@/features/reading/reading-library";
 
@@ -90,29 +88,6 @@ function ExamGlyph() {
   );
 }
 
-function ImportGlyph() {
-  return (
-    <svg aria-hidden="true" className="desktop-reading-nav__glyph" viewBox="0 0 24 24">
-      <path
-        d="M6 4.5h9a3 3 0 0 1 3 3v12H8a2 2 0 0 1-2-2v-13Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-      <path
-        d="M12 8.5v6M9.5 12 12 14.5 14.5 12"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
-}
-
 function ChevronGlyph({ open }: { open?: boolean }) {
   return (
     <svg
@@ -146,13 +121,11 @@ function filterGlyph(filter: ReadingLibraryFilter) {
   }
 }
 
-/** 阅读精选手风琴：文章 / 书籍 / 题目 / 导入。 */
+/** 阅读精选手风琴：文章 / 书籍 / 题目。 */
 export function DesktopReadingSidebarNav() {
   const searchParams = useSearchParams();
   const activeFilter = parseReadingLibraryFilter(searchParams.get("filter"));
-  const isImportActive = isReadingLibraryImportMode(searchParams.get("import"));
-  const curatedChildActive =
-    READING_CURATED_CHILD_FILTERS.includes(activeFilter) || isImportActive;
+  const curatedChildActive = READING_CURATED_CHILD_FILTERS.includes(activeFilter);
   const [isCuratedOpen, setIsCuratedOpen] = useState(true);
 
   return (
@@ -186,11 +159,11 @@ export function DesktopReadingSidebarNav() {
               <li key={filter}>
                 <Link
                   aria-current={
-                    !isImportActive && activeFilter === filter ? "page" : undefined
+                    activeFilter === filter ? "page" : undefined
                   }
                   className="desktop-reading-nav__row desktop-reading-nav__row--child"
                   data-active={
-                    !isImportActive && activeFilter === filter ? "true" : "false"
+                    activeFilter === filter ? "true" : "false"
                   }
                   href={readingLibraryHref(filter)}
                 >
@@ -205,21 +178,6 @@ export function DesktopReadingSidebarNav() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                aria-current={isImportActive ? "page" : undefined}
-                className="desktop-reading-nav__row desktop-reading-nav__row--child"
-                data-active={isImportActive ? "true" : "false"}
-                href={readingLibraryImportHref()}
-              >
-                <span className="desktop-reading-nav__leading">
-                  <span className="desktop-reading-nav__mark" aria-hidden="true">
-                    <ImportGlyph />
-                  </span>
-                  <span className="desktop-reading-nav__label">导入</span>
-                </span>
-              </Link>
-            </li>
           </ul>
         ) : null}
       </div>

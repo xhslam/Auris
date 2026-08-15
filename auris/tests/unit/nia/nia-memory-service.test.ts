@@ -1,0 +1,7 @@
+import { describe, expect, it } from "vitest";
+import { activeNiaMemories, confirmNiaMemory, createNiaMemoryCandidate, formatNiaConfirmedMemoriesForPrompt, loadNiaMemories, persistNiaMemoryCandidate, revokeNiaMemory } from "@/features/nia/nia-memory-service";
+function storage() { const records = new Map<string, string>(); return { getItem: (key: string) => records.get(key) ?? null, setItem: (key: string, value: string) => { records.set(key, value); } }; }
+describe("Nia controlled memory", () => {
+  it("never exposes a candidate until the user confirms it", () => { const local = storage(); const candidate = createNiaMemoryCandidate({ kind: "preference", source: "assistant", content: "Prefer short explanations" }, 100); persistNiaMemoryCandidate(local, candidate); expect(activeNiaMemories(loadNiaMemories(local), 101)).toEqual([]); confirmNiaMemory(local, candidate.id, 102); expect(formatNiaConfirmedMemoriesForPrompt(loadNiaMemories(local), 103)).toContain("Prefer short explanations"); });
+  it("stops forwarding revoked and expired memories", () => { const local = storage(); const candidate = createNiaMemoryCandidate({ kind: "goal", source: "user", content: "Prepare for a quiz", expiresAt: 200 }, 100); persistNiaMemoryCandidate(local, candidate); confirmNiaMemory(local, candidate.id, 101); expect(activeNiaMemories(loadNiaMemories(local), 201)).toEqual([]); revokeNiaMemory(local, candidate.id, 150); expect(activeNiaMemories(loadNiaMemories(local), 151)).toEqual([]); });
+});

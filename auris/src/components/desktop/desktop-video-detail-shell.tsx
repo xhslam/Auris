@@ -13,11 +13,10 @@ import {
 import type { DictionaryEntry } from "@/features/dictionary/dictionary.types";
 import { dictionaryEntryToWordCardEntry } from "@/features/dictionary/word-card-entry";
 import {
-  cleanDisplayToken,
   getLookupKey,
-  normalizeWord,
-  tokenizeParagraph,
 } from "@/features/reading/reading-text";
+import { FloatingWordCard } from "@/components/workspace/floating-word-card";
+import { VIDEO_WORD_CARD_THEME_VARS } from "@/components/workspace/floating-word-card-theme";
 import { SegmentedWordCard } from "@/components/workspace/segmented-word-card";
 import {
   READING_WORD_ACCEPT,
@@ -25,6 +24,7 @@ import {
 } from "@/features/reading/reading-word-import";
 import { getBrowserWordbookStorage } from "@/features/wordbook/local-wordbook-store";
 import type { DesktopVideoDetails } from "@/features/video-library/video-library.types";
+import { EnjoyShadowingStudio } from "@/components/player/enjoy-shadowing-studio";
 import "@/components/desktop/desktop-video-detail-shell.css";
 
 type DesktopVideoDetailShellProps = {
@@ -32,10 +32,10 @@ type DesktopVideoDetailShellProps = {
 };
 
 type WordCardState = {
+  anchorX: number;
+  anchorY: number;
   contextText: string;
-  left: number;
   term: string;
-  top: number;
 } | null;
 type ThemeMode = "dark" | "light";
 
@@ -93,10 +93,6 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   const [isMuted, setIsMuted] = useState(false);
   const [areControlsVisible, setAreControlsVisible] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // 跟读练习状态
-  const [isRecording, setIsRecording] = useState(false);
-  const [isWaveformOpen, setIsWaveformOpen] = useState(false);
 
   // 查词（复用 reading 逻辑）
   const [wordCard, setWordCard] = useState<WordCardState>(null);
@@ -247,51 +243,6 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
       cancelled = true;
     };
   }, []);
-
-  // R 键开始/停止录音；Esc 关闭词卡
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      const target = event.target as HTMLElement | null;
-      const isTyping =
-        target?.isContentEditable ||
-        target?.tagName === "INPUT" ||
-        target?.tagName === "TEXTAREA";
-
-      if (event.key === "Escape") {
-        setWordCard(null);
-        setWordToast(null);
-        return;
-      }
-
-      if (!isTyping && (event.key === "r" || event.key === "R")) {
-        event.preventDefault();
-        setIsRecording((current) => !current);
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  // 点击页面其他地方关闭词卡
-  useEffect(() => {
-    if (!wordCard) {
-      return;
-    }
-    function handlePointerDown(event: MouseEvent) {
-      const target = event.target as HTMLElement | null;
-      if (target?.closest(".video-study__popover")) {
-        return;
-      }
-      if (event.button === 2 && target?.closest(".video-study__word")) {
-        return;
-      }
-      setWordCard(null);
-      setWordToast(null);
-    }
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [wordCard]);
 
   useEffect(() => {
     if (!wordCard || !selectedLookupKey) {
@@ -484,44 +435,30 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     window.speechSynthesis.speak(utterance);
   }
 
+  function closeWordCard() {
+    setWordCard(null);
+    setWordToast(null);
+  }
+
   function openWordCard(
-    event: React.MouseEvent<HTMLElement>,
+    event: React.MouseEvent<HTMLButtonElement>,
     paragraph: ReadingParagraph,
     fallbackTerm: string,
   ) {
     event.preventDefault();
-
-    const selection = typeof window !== "undefined" ? window.getSelection() : null;
-    const selectedText =
-      selection && !selection.isCollapsed ? selection.toString().trim() : "";
-    const term =
-      selectedText && /\s/.test(selectedText) && /[A-Za-z]/.test(selectedText)
-        ? selectedText
-        : fallbackTerm;
-
-    if (!term) {
-      return;
-    }
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const gap = 12;
-    const cardWidth = 360;
-    let left = rect.right + gap;
-    if (left + cardWidth > window.innerWidth - 16) {
-      left = Math.max(16, rect.left - gap - cardWidth);
-    }
-    const top = Math.min(Math.max(16, rect.top), Math.max(16, window.innerHeight - 200));
+    const selectedText = window.getSelection()?.toString().trim() ?? "";
+    const term = selectedText && /[A-Za-z]/.test(selectedText) ? selectedText : fallbackTerm;
 
     setWordToast(null);
     setWordEntry(null);
     setWordLookupError(null);
     setIsWordLookupLoading(true);
-    setWordCard({ contextText: paragraph.english, left, term, top });
-  }
-
-  function closeWordCard() {
-    setWordCard(null);
-    setWordToast(null);
+    setWordCard({
+      anchorX: event.clientX,
+      anchorY: event.clientY,
+      contextText: paragraph.english,
+      term,
+    });
   }
 
   async function toggleSaveWord() {
@@ -567,32 +504,6 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
       setPendingWords((current) => [...current, key]);
       setWordToast(`已加入待整理：${selectedTerm}`);
     }
-  }
-
-  function renderEnglish(paragraph: ReadingParagraph) {
-    const vocab = new Set(paragraph.wordKeys);
-
-    return tokenizeParagraph(paragraph.english).map((token, index) => {
-      const cleaned = cleanDisplayToken(token);
-      if (!cleaned) {
-        return <span key={`${paragraph.id}-${index}`}>{token}</span>;
-      }
-
-      const lookup = normalizeWord(token);
-      const isVocab = Boolean(lookup && vocab.has(lookup));
-
-      return (
-        <span
-          className="video-study__word"
-          data-active={wordCard && selectedLookupKey === lookup ? "true" : "false"}
-          data-vocab={isVocab ? "true" : "false"}
-          key={`${paragraph.id}-${index}`}
-          onContextMenu={(event) => openWordCard(event, paragraph, cleaned)}
-        >
-          {token}
-        </span>
-      );
-    });
   }
 
   function renderToolbar(title: string) {
@@ -826,55 +737,6 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
           </div>
         </div>
 
-        <div className="video-study__divider" />
-
-        <div>
-          <div className="video-study__shadow-head">
-            <span className="video-study__shadow-title">
-              <MicIcon />
-              跟读练习
-            </span>
-            <span className="video-study__shadow-clip">
-              <ClockIcon />
-              {formatClock(duration)}
-            </span>
-          </div>
-          <p className="video-study__shadow-hint">
-            跟着片段朗读并录音，注意匹配语速和语调。按 <kbd>R</kbd> 键开始 / 停止。
-          </p>
-
-          <button
-            className="video-study__waveform-toggle"
-            data-open={isWaveformOpen ? "true" : "false"}
-            onClick={() => setIsWaveformOpen((open) => !open)}
-            type="button"
-          >
-            <span className="video-study__waveform-label">
-              <WaveformIcon />
-              音高曲线
-              <HelpCircleIcon />
-            </span>
-            <span className="video-study__waveform-chevron">
-              <ChevronDownIcon />
-            </span>
-          </button>
-          {isWaveformOpen ? (
-            <div className="video-study__waveform-body">录音后这里会显示音高对比曲线</div>
-          ) : null}
-
-          <div className="video-study__record-row">
-            <button
-              className="video-study__record"
-              data-recording={isRecording ? "true" : "false"}
-              onClick={() => setIsRecording((current) => !current)}
-              type="button"
-            >
-              {isRecording ? <SquareIcon /> : <MicIcon />}
-              {isRecording ? "停止" : "录音"}
-            </button>
-          </div>
-        </div>
-
         <div className="video-study__spacer" />
       </div>
     );
@@ -883,25 +745,26 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   function renderRight() {
     return (
       <div className="video-study__right">
-        <div
-          className="video-study__script"
-          style={{ "--vs-font-scale": fontScale } as React.CSSProperties}
-        >
-          {scriptSource && scriptSource.paragraphs.length > 0 ? (
-            scriptSource.paragraphs.map((paragraph) => (
-              <div key={paragraph.id}>
-                <p className="video-study__para-en">{renderEnglish(paragraph)}</p>
-                {showTranslation ? (
-                  <p className="video-study__para-zh">{paragraph.translation}</p>
-                ) : null}
-              </div>
-            ))
-          ) : (
-            <p className="video-study__script-empty">
-              这个视频还没有对应的台词 / 字幕。导入同名字幕后，这里会显示双语剧本。
-            </p>
-          )}
-        </div>
+        {scriptSource && scriptSource.paragraphs.length > 0 ? (
+          <EnjoyShadowingStudio
+            currentTime={currentTime}
+            duration={duration}
+            fontScale={fontScale}
+            isPlaying={isPlaying}
+            mediaRef={videoRef}
+            onSeek={seekToTime}
+            onTogglePlay={togglePlay}
+            onWordContextMenu={openWordCard}
+            paragraphs={scriptSource.paragraphs}
+            showTranslation={showTranslation}
+            sourceId={detail?.video.id ?? videoId}
+            sourceLabel={detail?.video.title ?? "本地视频"}
+          />
+        ) : (
+          <p className="video-study__script-empty">
+            这个视频还没有对应的台词 / 字幕。导入同名字幕后，这里会显示双语剧本。
+          </p>
+        )}
       </div>
     );
   }
@@ -912,10 +775,17 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     }
 
     return (
-      <aside
+      <FloatingWordCard
+        anchor={{ x: wordCard.anchorX, y: wordCard.anchorY }}
         aria-label="词条释义"
         className="video-study__popover"
-        style={{ left: wordCard.left, top: wordCard.top }}
+        initialPlacement="viewport-center"
+        keepOpenOnContextMenuSelector=".enjoy-shadow__word"
+        onClose={closeWordCard}
+        placementKey={`${wordCard.term}:${wordCard.anchorX}:${wordCard.anchorY}`}
+        style={{ maxHeight: "min(560px, calc(100vh - 32px))" }}
+        themeScopeSelector=".video-study"
+        themeVarNames={VIDEO_WORD_CARD_THEME_VARS}
       >
         <SegmentedWordCard
           closeIcon={<CloseIcon />}
@@ -932,7 +802,7 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
           term={selectedTerm}
           toast={wordToast}
         />
-      </aside>
+      </FloatingWordCard>
     );
   }
 
@@ -1014,14 +884,6 @@ function ChevronLeftIcon({ size = 16 }: IconProps) {
   return (
     <svg {...baseProps(size)}>
       <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon({ size = 16 }: IconProps) {
-  return (
-    <svg {...baseProps(size)}>
-      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }
@@ -1127,55 +989,6 @@ function MinimizeIcon({ size = 17 }: IconProps) {
       <path d="M16 3v3a2 2 0 0 0 2 2h3" />
       <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
       <path d="M3 16h3a2 2 0 0 1 2 2v3" />
-    </svg>
-  );
-}
-
-function MicIcon({ size = 17 }: IconProps) {
-  return (
-    <svg {...baseProps(size)}>
-      <path d="M12 19v3" />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-      <rect x="9" y="2" width="6" height="13" rx="3" />
-    </svg>
-  );
-}
-
-function SquareIcon({ size = 16 }: IconProps) {
-  return (
-    <svg {...baseProps(size)}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-    </svg>
-  );
-}
-
-function ClockIcon({ size = 13 }: IconProps) {
-  return (
-    <svg {...baseProps(size)}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l4 2" />
-    </svg>
-  );
-}
-
-function WaveformIcon({ size = 15 }: IconProps) {
-  return (
-    <svg {...baseProps(size)}>
-      <path d="M12 3v18" />
-      <path d="M8 7v10" />
-      <path d="M16 7v10" />
-      <path d="M4 10v4" />
-      <path d="M20 10v4" />
-    </svg>
-  );
-}
-
-function HelpCircleIcon({ size = 13 }: IconProps) {
-  return (
-    <svg {...baseProps(size)}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-      <path d="M12 17h.01" />
     </svg>
   );
 }

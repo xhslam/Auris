@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -31,13 +30,6 @@ type DesktopAppFrameProps = {
 
 const SIDEBAR_EXPANDED_SESSION_KEY = "auris.desktop.sidebar-expanded";
 
-const DesktopAiDockShell = dynamic(
-  () =>
-    import("@/components/ai-dock/ai-dock-shell").then((module) => module.DesktopAiDockShell),
-  {
-    loading: () => null,
-  },
-);
 
 function readSidebarExpanded(): boolean {
   if (typeof window === "undefined") {
@@ -160,7 +152,6 @@ export function DesktopAppFrame({
             <div className="desktop-app-frame__layout">
               <div className="desktop-app-frame__main">{children}</div>
               <AppUpdateIndicator />
-              <DesktopAiDockShell desktopBridge={desktopBridge} />
             </div>
           </div>
         </div>

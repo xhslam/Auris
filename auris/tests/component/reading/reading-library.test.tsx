@@ -7,7 +7,7 @@ import type { ReadingSource } from "@/features/reading/reading-fixtures";
 import { buildReadingSourceNotePage } from "@/features/reading/reading-source-note";
 
 const replaceMock = vi.fn();
-const searchParamsGetMock = vi.fn((_key: string) => null);
+const searchParamsGetMock = vi.fn<(key: string) => string | null>(() => null);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -61,42 +61,21 @@ describe("ReadingLibrary", () => {
     expect(screen.queryByRole("heading", { name: "导入阅读材料" })).not.toBeInTheDocument();
   });
 
-  it("opens the import page with article selected by default", async () => {
-    const user = userEvent.setup();
+  it("ignores the retired import page query", () => {
     searchParamsGetMock.mockImplementation((key: string) =>
       key === "import" ? "1" : null,
     );
 
     render(<ReadingLibrary notesStorage={null} onOpen={vi.fn()} />);
 
-    expect(screen.getByRole("heading", { name: "导入阅读材料" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "放入文章" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(screen.getByRole("button", { name: "放入书籍" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
-    expect(screen.getByRole("button", { name: "放入题目" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
-
-    await user.click(screen.getByRole("button", { name: "放入书籍" }));
-    expect(screen.getByRole("button", { name: "放入书籍" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(
-      screen.getByRole("button", { name: /选择文件并导入到「书籍」/ }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "导入阅读材料" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ebooks" })).toBeInTheDocument();
   });
 
-  it("imports a markdown file into the selected category", async () => {
+  it("imports a markdown file through the replacement quick action", async () => {
     const user = userEvent.setup();
     searchParamsGetMock.mockImplementation((key: string) =>
-      key === "import" ? "1" : null,
+      key === "filter" ? "exam" : null,
     );
     const storage = createMemoryNotesStorage({ pages: [] });
     const savePageSpy = vi.spyOn(storage, "savePage");
@@ -111,10 +90,12 @@ describe("ReadingLibrary", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "放入题目" }));
+    await user.click(screen.getByRole("button", { name: "Import" }));
 
     const file = new File(
-      ["Local reading starts with a small paragraph.\n\nSecond notes keep context close."],
+      [
+        "## 题型: 阅读理解\n\n### 篇章\nLocal reading starts with a small paragraph.",
+      ],
       "Exam Notes.md",
       { type: "text/markdown" },
     );
@@ -132,6 +113,19 @@ describe("ReadingLibrary", () => {
     expect(replaceMock).toHaveBeenCalledWith("/reading?filter=exam", {
       scroll: false,
     });
+  });
+
+  it("defaults a quick import from the all view to articles and lets the user choose", async () => {
+    const user = userEvent.setup();
+    const storage = createMemoryNotesStorage({ pages: [] });
+
+    render(<ReadingLibrary notesStorage={storage} onOpen={vi.fn()} />);
+
+    const category = screen.getByRole("combobox", { name: "选择导入分类" });
+    expect(category).toHaveValue("article");
+
+    await user.selectOptions(category, "book");
+    expect(category).toHaveValue("book");
   });
 
   it("groups visible sources under date labels", async () => {

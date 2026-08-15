@@ -10,6 +10,7 @@ import {
 import {
   WORD_CARD_DEFAULT_HEIGHT,
   WORD_CARD_DEFAULT_WIDTH,
+  centerWordCardPosition,
   clampWordCardPosition,
   getWordCardMaxHeight,
   proposeWordCardPosition,
@@ -25,6 +26,7 @@ type UseFloatingWordCardPositionOptions = {
    * When true, resize-driven reclamps are skipped so drag stays smooth.
    */
   draggingRef: RefObject<boolean>;
+  initialPlacement?: "anchor" | "viewport-center";
   placementKey: string;
 };
 
@@ -43,8 +45,10 @@ export function useFloatingWordCardPosition({
   anchor,
   cardRef,
   draggingRef,
+  initialPlacement = "anchor",
   placementKey,
 }: UseFloatingWordCardPositionOptions) {
+  const hasUserPositionedRef = useRef(false);
   const positionRef = useRef({
     left: WORD_CARD_VIEWPORT_FALLBACK_LEFT,
     top: WORD_CARD_VIEWPORT_FALLBACK_TOP,
@@ -57,12 +61,19 @@ export function useFloatingWordCardPosition({
       };
     }
 
-    return proposeWordCardPosition(
-      anchor,
-      WORD_CARD_DEFAULT_WIDTH,
-      WORD_CARD_DEFAULT_HEIGHT,
-      getViewport(),
-    );
+    const viewport = getViewport();
+    return initialPlacement === "viewport-center"
+      ? centerWordCardPosition(
+          WORD_CARD_DEFAULT_WIDTH,
+          WORD_CARD_DEFAULT_HEIGHT,
+          viewport,
+        )
+      : proposeWordCardPosition(
+          anchor,
+          WORD_CARD_DEFAULT_WIDTH,
+          WORD_CARD_DEFAULT_HEIGHT,
+          viewport,
+        );
   });
   const [maxHeight, setMaxHeight] = useState(() =>
     getWordCardMaxHeight(
@@ -96,27 +107,41 @@ export function useFloatingWordCardPosition({
     [cardRef],
   );
 
-  const reseatNearAnchor = useCallback(() => {
+  const reseatForPlacement = useCallback(() => {
     const viewport = getViewport();
-    const next = proposeWordCardPosition(
-      { x: anchor.x, y: anchor.y },
-      cardRef.current?.offsetWidth || WORD_CARD_DEFAULT_WIDTH,
-      cardRef.current?.offsetHeight || WORD_CARD_DEFAULT_HEIGHT,
-      viewport,
-    );
+    const width = cardRef.current?.offsetWidth || WORD_CARD_DEFAULT_WIDTH;
+    const height = cardRef.current?.offsetHeight || WORD_CARD_DEFAULT_HEIGHT;
+    const next =
+      initialPlacement === "viewport-center"
+        ? centerWordCardPosition(width, height, viewport)
+        : proposeWordCardPosition(
+            { x: anchor.x, y: anchor.y },
+            width,
+            height,
+            viewport,
+          );
     positionRef.current = next;
     setPosition(next);
     setMaxHeight(getWordCardMaxHeight(next.top, viewport.height));
-  }, [anchor.x, anchor.y, cardRef]);
+  }, [anchor.x, anchor.y, cardRef, initialPlacement]);
+
+  const applyUserPosition = useCallback(
+    (left: number, top: number) => {
+      hasUserPositionedRef.current = true;
+      applyClampedPosition(left, top);
+    },
+    [applyClampedPosition],
+  );
 
   useLayoutEffect(() => {
     positionRef.current = position;
   }, [position]);
 
-  // Re-seed near the new anchor whenever the active lookup changes.
+  // Re-seed for every new lookup; dragging can then override that position.
   useLayoutEffect(() => {
-    reseatNearAnchor();
-  }, [placementKey, reseatNearAnchor]);
+    hasUserPositionedRef.current = false;
+    reseatForPlacement();
+  }, [placementKey, reseatForPlacement]);
 
   // After paint, re-measure real card size and correct placement/flip.
   useLayoutEffect(() => {
@@ -125,7 +150,7 @@ export function useFloatingWordCardPosition({
       return;
     }
 
-    reseatNearAnchor();
+    reseatForPlacement();
 
     if (typeof ResizeObserver === "undefined") {
       return;
@@ -135,26 +160,48 @@ export function useFloatingWordCardPosition({
       if (draggingRef.current) {
         return;
       }
+      if (
+        initialPlacement === "viewport-center" &&
+        !hasUserPositionedRef.current
+      ) {
+        reseatForPlacement();
+        return;
+      }
       applyClampedPosition(positionRef.current.left, positionRef.current.top);
     });
     observer.observe(node);
 
     return () => observer.disconnect();
-  }, [applyClampedPosition, cardRef, draggingRef, placementKey, reseatNearAnchor]);
+  }, [
+    applyClampedPosition,
+    cardRef,
+    draggingRef,
+    initialPlacement,
+    placementKey,
+    reseatForPlacement,
+  ]);
 
   useLayoutEffect(() => {
     function reclampToViewport() {
+      if (
+        initialPlacement === "viewport-center" &&
+        !hasUserPositionedRef.current
+      ) {
+        reseatForPlacement();
+        return;
+      }
       applyClampedPosition(positionRef.current.left, positionRef.current.top);
     }
 
     window.addEventListener("resize", reclampToViewport);
     return () => window.removeEventListener("resize", reclampToViewport);
-  }, [applyClampedPosition]);
+  }, [applyClampedPosition, initialPlacement, reseatForPlacement]);
 
   const getPosition = useCallback(() => positionRef.current, []);
 
   return {
     applyClampedPosition,
+    applyUserPosition,
     getPosition,
     maxHeight,
     position,

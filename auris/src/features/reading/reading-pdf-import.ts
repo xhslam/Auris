@@ -60,6 +60,7 @@ export async function createReadingSourceFromPdfFile(
   }
 
   const sourceId = `pdf-reading-${Date.now()}`;
+  const importedAt = new Date().toISOString();
   const title = deriveReadingTitle(file.name, file.name, /\.pdf$/i);
   const pdfBytes = arrayBuffer.slice(0);
 
@@ -80,7 +81,9 @@ export async function createReadingSourceFromPdfFile(
     estimatedMinutes: Math.max(1, Math.ceil(pageCount * 1.5)),
     format: "pdf",
     id: sourceId,
+    importedAt,
     kicker: file.name,
+    originalFileName: file.name,
     pageCount,
     paragraphs: [],
     pdfBytes,

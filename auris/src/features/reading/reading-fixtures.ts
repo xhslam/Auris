@@ -20,9 +20,18 @@ export type ReadingExamType =
 
 export type ReadingExamBlockKind =
   | "directions"
+  | "overview"
   | "passage"
+  | "logic_map"
+  | "sentences"
+  | "vocabulary"
   | "options"
   | "questions"
+  | "synonyms"
+  | "pitfalls"
+  | "retelling"
+  | "takeaways"
+  | "summary"
   | "chain"
   | "paragraphs"
   | "underlined"
@@ -36,6 +45,8 @@ export type ReadingExamBlockKind =
 export type ReadingExamBlock = {
   english: string;
   kind: ReadingExamBlockKind;
+  /** Original Markdown heading, retained when the heading carries study meaning. */
+  title?: string;
   translation?: string;
 };
 
@@ -78,7 +89,11 @@ export type ReadingSource = {
   category: ReadingSourceCategory;
   estimatedMinutes: number;
   id: string;
+  /** ISO 时间：用户首次导入该文件的时间。 */
+  importedAt?: string;
   kicker: string;
+  /** 导入时的原始文件名，用于在 Vault 中生成人类可读的文件名。 */
+  originalFileName?: string;
   paragraphs: ReadingParagraph[];
   progress: number;
   title: string;
@@ -268,4 +283,3 @@ export const READING_SOURCES: ReadingSource[] = [
     ],
   },
 ];
-

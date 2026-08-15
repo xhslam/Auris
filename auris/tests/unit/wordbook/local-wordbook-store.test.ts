@@ -27,6 +27,7 @@ describe("local wordbook storage", () => {
     await storage.saveWord(first);
     await storage.saveWord(second);
 
+    expect(storage.readWordsSnapshot()).toEqual([second]);
     await expect(storage.listWords()).resolves.toEqual([second]);
   });
 

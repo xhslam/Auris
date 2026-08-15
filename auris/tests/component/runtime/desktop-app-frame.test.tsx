@@ -260,10 +260,7 @@ describe("DesktopAppFrame", () => {
       );
     });
 
-    expect(screen.getByTestId("desktop-ai-dock-shell")).toHaveAttribute(
-      "data-bridge",
-      "true",
-    );
+    expect(screen.queryByTestId("desktop-ai-dock-shell")).not.toBeInTheDocument();
   });
 
   it("warms up the bounded desktop route set after mount", () => {

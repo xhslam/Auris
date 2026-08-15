@@ -80,17 +80,6 @@ export function readingLibraryHref(filter: ReadingLibraryFilter = "all"): string
   return `/reading?filter=${filter}`;
 }
 
-/** 侧栏「导入」入口：打开分类选择 + 文件导入页。 */
-export function readingLibraryImportHref(): string {
-  return "/reading?import=1";
-}
-
-export function isReadingLibraryImportMode(
-  value: string | null | undefined,
-): boolean {
-  return value === "1" || value === "true";
-}
-
 export type ReadingDateGroup = {
   /** 原始 publishedAt（YYYY-MM-DD），无日期为 "" */
   date: string;
