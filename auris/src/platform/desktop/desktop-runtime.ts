@@ -92,6 +92,7 @@ function hasValidUpdatesBridge(bridge: Partial<DesktopBridge>) {
     && isFunction(bridge.updates.openReleases)
     && isFunction(bridge.updates.quitAndInstall)
     && isFunction(bridge.updates.reset)
+    && isFunction(bridge.updates.recover)
   );
 }
 
@@ -135,6 +136,7 @@ export function isDesktopBridge(value: unknown): value is DesktopBridge {
         (isFunction(bridge.terminal.create) &&
           isFunction(bridge.terminal.kill) &&
           isFunction(bridge.terminal.list) &&
+          isFunction(bridge.terminal.resume) &&
           isFunction(bridge.terminal.onData) &&
           isFunction(bridge.terminal.onExit) &&
           isFunction(bridge.terminal.resize) &&

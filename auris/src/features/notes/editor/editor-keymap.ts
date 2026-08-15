@@ -285,6 +285,24 @@ function insertCodeBlock(view: EditorView): boolean {
   return true;
 }
 
+function insertMarkdownTable(view: EditorView): boolean {
+  if (view.state.readOnly) {
+    return false;
+  }
+  const range = view.state.selection.main;
+  const line = view.state.doc.lineAt(range.from);
+  const prefix = line.from === range.from || line.text.trim() === "" ? "" : "\n";
+  const insert = `${prefix}| Column 1 | Column 2 |\n| --- | --- |\n|  |  |\n`;
+  const firstCell = range.from + prefix.length + "| ".length;
+  view.dispatch({
+    changes: { from: range.from, insert, to: range.to },
+    scrollIntoView: true,
+    selection: EditorSelection.cursor(firstCell),
+    userEvent: "input",
+  });
+  return true;
+}
+
 function insertHorizontalRule(view: EditorView): boolean {
   if (view.state.readOnly) {
     return false;
@@ -501,6 +519,7 @@ export const notesEditorKeymap: readonly KeyBinding[] = [
   { key: "Mod-Alt-u", run: toggleBulletList, preventDefault: true },
   { key: "Mod-Alt-o", run: toggleOrderedList, preventDefault: true },
   { key: "Mod-Alt--", run: insertHorizontalRule, preventDefault: true },
+  { key: "Mod-Alt-t", run: insertMarkdownTable, preventDefault: true },
 
   // ── Heading levels. Keep Ctrl aliases for existing muscle memory. ───────
   { key: "Mod-1", run: (view) => setHeadingLevel(view, 1), preventDefault: true },

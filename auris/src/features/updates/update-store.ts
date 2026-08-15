@@ -47,6 +47,7 @@ export type UpdateSnapshot = {
   lastCheckedAt: number | null;
   releasesUrl: string | null;
   status: UpdateStatus;
+  stalledOperation: "check" | "download" | null;
   updateInfo: UpdateInfo | null;
 };
 
@@ -76,6 +77,7 @@ const initialSnapshot: UpdateSnapshot = {
   lastCheckedAt: null,
   releasesUrl: null,
   status: "idle",
+  stalledOperation: null,
   updateInfo: null,
 };
 
@@ -109,6 +111,7 @@ export const useAppUpdateStore = create<UpdateState & UpdateActions>()((set) => 
           lastCheckedAt: incoming.lastCheckedAt,
           releasesUrl: incoming.releasesUrl,
           status: incoming.status,
+          stalledOperation: incoming.stalledOperation,
           updateInfo: incoming.updateInfo,
         },
       };

@@ -47,6 +47,7 @@ const STATUS_LABELS: Record<string, string> = {
   "manual-download": "需手动下载",
   ready: "已就绪，重启即可安装",
   "up-to-date": "已是最新版本",
+  stalled: "更新已停止响应",
 };
 
 function formatMb(bytes: number) {
@@ -124,12 +125,12 @@ export function AppUpdatePanel() {
 
   const snapshot = useAppUpdateStore(selectUpdateSnapshot);
   const available = useAppUpdateStore((state) => state.available);
-  const { checkForUpdates, downloadUpdate, openReleasesPage, restartToInstall, skipVersion } =
+  const { checkForUpdates, downloadUpdate, openReleasesPage, recoverStalledUpdate, restartToInstall, skipVersion } =
     useAppUpdateOperations();
   const { settings, update: updateSetting } = useAppUpdateSettings();
   const [isRestarting, setIsRestarting] = useState(false);
 
-  const { canInstallInPlace, downloadProgress, error, errorCode, status, updateInfo } = snapshot;
+  const { canInstallInPlace, downloadProgress, error, errorCode, stalledOperation, status, updateInfo } = snapshot;
 
   useEffect(() => {
     if (status !== "installing") {
@@ -176,11 +177,19 @@ export function AppUpdatePanel() {
             className="auris-update__btn"
             disabled={busy}
             onClick={() => {
+              if (status === "stalled") {
+                void recoverStalledUpdate();
+                return;
+              }
               void checkForUpdates({ manual: true });
             }}
             type="button"
           >
-            {status === "checking" ? "检查中…" : "立即检查"}
+            {status === "checking"
+              ? "检查中…"
+              : status === "stalled"
+                ? `恢复${stalledOperation === "download" ? "下载" : "检查"}`
+                : "立即检查"}
           </button>
         </div>
       </div>
@@ -189,7 +198,9 @@ export function AppUpdatePanel() {
         <p className="auris-update__error" role="alert">
           {errorCode === "UPDATE_FEED_NOT_CONFIGURED"
             ? "这个构建没有配置发布源，无法检查更新。请从发布页手动下载。"
-            : error}
+            : errorCode === "UPDATE_STALLED"
+              ? `更新${stalledOperation === "download" ? "下载" : "检查"}已停止响应。恢复会丢弃这次卡住的请求，并重新开始。`
+              : error}
         </p>
       ) : null}
 
@@ -370,7 +381,7 @@ const UPDATE_PANEL_CSS = `
 .auris-update__actions{display:flex;align-items:center;gap:10px;}
 .auris-update__status{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;letter-spacing:0.04em;color:var(--app-muted);}
 .auris-update__status[data-status="available"],.auris-update__status[data-status="ready"]{color:var(--accent);}
-.auris-update__status[data-status="error"]{color:#c2554d;}
+.auris-update__status[data-status="error"],.auris-update__status[data-status="stalled"]{color:#c2554d;}
 .auris-update__btn{height:30px;padding:0 13px;border-radius:9px;border:1px solid var(--app-line);background:var(--app-fill);color:var(--app-text);font-size:12.5px;font-family:inherit;cursor:pointer;transition:all .15s;}
 .auris-update__btn:hover:not(:disabled){border-color:var(--accent-28);color:var(--accent);}
 .auris-update__btn:disabled{opacity:.5;cursor:default;}

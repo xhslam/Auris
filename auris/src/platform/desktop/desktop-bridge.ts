@@ -204,6 +204,7 @@ export type DesktopTerminalBridge = {
   ) => Promise<DesktopTerminalSessionRecord>;
   kill: (sessionId: string) => Promise<void>;
   list: () => Promise<DesktopTerminalSessionRecord[]>;
+  resume: (input: DesktopTerminalSessionInput) => Promise<DesktopTerminalSessionRecord>;
   onData: (listener: (event: DesktopTerminalDataEvent) => void) => () => void;
   onExit: (listener: (event: DesktopTerminalExitEvent) => void) => () => void;
   resize: (
@@ -404,7 +405,8 @@ export type DesktopUpdateStatus =
   | "ready"
   | "manual-download"
   | "up-to-date"
-  | "error";
+  | "error"
+  | "stalled";
 
 export type DesktopUpdateInfo = {
   currentVersion: string;
@@ -431,6 +433,7 @@ export type DesktopUpdateSnapshot = {
   lastCheckedAt: number | null;
   releasesUrl: string | null;
   status: DesktopUpdateStatus;
+  stalledOperation: "check" | "download" | null;
   updateInfo: DesktopUpdateInfo | null;
 };
 
@@ -448,6 +451,12 @@ export type DesktopUpdatesBridge = {
   openReleases: () => Promise<{ ok: boolean; reason?: string }>;
   quitAndInstall: () => Promise<{ ok: boolean; reason?: string }>;
   reset: () => Promise<DesktopUpdateSnapshot>;
+  recover: () => Promise<{
+    ok: boolean;
+    operation?: "check" | "download";
+    reason?: string;
+    snapshot: DesktopUpdateSnapshot;
+  }>;
 };
 
 export type DesktopPreparedTrainingSessionInput = {

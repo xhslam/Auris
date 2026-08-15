@@ -137,6 +137,8 @@ const {
   rememberVaultRoot: rememberKnownVaultRoot,
 } = require("./vault/vault-roots.cjs");
 const { createAppUpdater } = require("./updates/app-updater.cjs");
+const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
+const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
@@ -148,6 +150,7 @@ const LOCAL_HISTORY_DB_FILE = "shadowing-local-history.db";
 const BROWSER_STATE_DB_FILE = "auris-browser-state.db";
 const RUNTIME_STATE_DB_FILE = "shadowing-runtime-state.db";
 const TRAINING_AUDIO_DIR = "training-audio";
+const TERMINAL_RECOVERY_FILE = "terminal-session-recovery.json";
 const VIDEO_LIBRARY_DATA_DIR = "video-libraries";
 const VIDEO_LIBRARY_DB_FILE = "shadowing-video-library.db";
 const VIDEO_LIBRARY_EXTENSIONS = new Set([
@@ -1391,6 +1394,15 @@ function scheduleVaultChanged() {
   }, 120);
 }
 
+function getTerminalRecoveryStore() {
+  return createTerminalSessionRecoveryStore(
+    path.join(app.getPath("userData"), TERMINAL_RECOVERY_FILE),
+  );
+}
+function persistTerminalRecovery() {
+  if (!terminalSessionManager) return [];
+  return getTerminalRecoveryStore().save(terminalSessionManager.listSessions());
+}
 function sendTerminalEvent(channel, payload) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -1425,14 +1437,21 @@ function getTerminalSessionManager() {
     terminalSessionManager.onData((payload) =>
       sendTerminalEvent(TERMINAL_DATA_CHANNEL, payload),
     ),
-    terminalSessionManager.onExit((payload) =>
-      sendTerminalEvent(TERMINAL_EXIT_CHANNEL, payload),
-    ),
+    terminalSessionManager.onExit((payload) => {
+      persistTerminalRecovery();
+      sendTerminalEvent(TERMINAL_EXIT_CHANNEL, payload);
+    }),
   ];
-
+  for (const descriptor of getTerminalRecoveryStore().load()) {
+    try {
+      terminalSessionManager.createSession(descriptor);
+    } catch (error) {
+      writeStartupLog(`terminal:${descriptor.id}:restore-failed ${error?.message ?? error}`);
+    }
+  }
+  persistTerminalRecovery();
   return terminalSessionManager;
 }
-
 function getNotesMcpBridge() {
   if (notesMcpBridge) {
     return notesMcpBridge;
@@ -1485,6 +1504,7 @@ function closeTerminalSessionManager() {
     }
   });
   terminalSessionUnsubscribers = [];
+  persistTerminalRecovery();
   terminalSessionManager?.killAll();
   terminalSessionManager = null;
 }
@@ -1492,12 +1512,14 @@ function closeTerminalSessionManager() {
 async function createTerminalSession(input) {
   const vaultPath = await getVaultPath();
 
-  return getTerminalSessionManager().createSession(
+  const record = getTerminalSessionManager().createSession(
     createTerminalSessionInput(input, {
       homePath: app.getPath("home"),
       vaultPath,
     }),
   );
+  persistTerminalRecovery();
+  return record;
 }
 
 function requireTerminalSessionId(value) {
@@ -1699,6 +1721,8 @@ function getUpgradeUrl() {
 /* ------------------------------------------------------------------ */
 
 let appUpdater = null;
+let appUpdaterStallWatchdog = null;
+let closeAttemptTracker = null;
 let cachedInstallCapability = null;
 
 /**
@@ -1763,6 +1787,14 @@ async function canInstallUpdateInPlace() {
   return cachedInstallCapability;
 }
 
+function getCloseAttemptTracker() {
+  if (!closeAttemptTracker) {
+    closeAttemptTracker = createCloseAttemptTracker({
+      log: (event, detail) => writeStartupLog(`${event}${detail ? ` ${detail}` : ""}`),
+    });
+  }
+  return closeAttemptTracker;
+}
 function pushUpdateState(snapshot) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -1798,6 +1830,13 @@ async function getAppUpdater() {
   });
 
   appUpdater.onStateChange(pushUpdateState);
+  // electron-updater 的网络 promise 可能永久悬挂；不能只依赖 finally 清理 single-flight。
+  if (!appUpdaterStallWatchdog) {
+    appUpdaterStallWatchdog = setInterval(() => {
+      appUpdater?.checkForStall();
+    }, 15_000);
+    appUpdaterStallWatchdog.unref?.();
+  }
   return appUpdater;
 }
 
@@ -3138,13 +3177,19 @@ async function createMainWindow() {
       if (!mainWindow || mainWindow.isDestroyed()) {
         return;
       }
-
-      aiDockStateBuffer.flush();
-      updateRuntimeState({
-        lastRoute: extractRoutePath(mainWindow.webContents.getURL()),
-        windowBounds: mainWindow.getBounds(),
+      writeStartupLog("main-window:close:start");
+      try {
+        aiDockStateBuffer.flush();
+        updateRuntimeState({
+          lastRoute: extractRoutePath(mainWindow.webContents.getURL()),
+          windowBounds: mainWindow.getBounds(),
+        });
+        writeStartupLog("main-window:close:state-persisted");
+      } catch (error) {
+        writeStartupLog(`main-window:close:error ${error?.stack ?? error}`);
+        throw error;
+      }
     });
-  });
 
   mainWindow.on("closed", () => {
     writeStartupLog("createMainWindow:closed");
@@ -3400,6 +3445,12 @@ function registerDesktopHandlers() {
     requireTrustedDesktopEvent(event);
     return getTerminalSessionManager().listSessions();
   });
+  ipcMain.handle("shadowing:terminal:resume", async (event, input) => {
+    requireTrustedDesktopEvent(event);
+    const sessionId = requireTerminalSessionId(input?.sessionId);
+    const existing = getTerminalSessionManager().listSessions().find((item) => item.id === sessionId);
+    return existing ?? createTerminalSession(input);
+  });
 
   ipcMain.handle("shadowing:terminal:write", async (event, sessionId, data) => {
     requireTrustedDesktopEvent(event);
@@ -3417,6 +3468,7 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:terminal:kill", async (event, sessionId) => {
     requireTrustedDesktopEvent(event);
     getTerminalSessionManager().kill(requireTerminalSessionId(sessionId));
+    persistTerminalRecovery();
   });
 
   ipcMain.handle("shadowing:plugins:list", async () => {
@@ -3876,6 +3928,12 @@ function registerDesktopHandlers() {
     updater.reset();
     return updater.getSnapshot();
   });
+  ipcMain.handle("shadowing:updates:recover", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    const result = updater.recoverFromStall();
+    return { ...result, snapshot: updater.getSnapshot() };
+  });
 }
 
 // Only these tools may be probed from the renderer — never run an arbitrary
@@ -4023,11 +4081,18 @@ app.on("window-all-closed", async () => {
 });
 
 app.on("before-quit", async () => {
-  writeStartupLog("app:before-quit");
+  const closeAttempt = getCloseAttemptTracker().begin("before-quit");
+  writeStartupLog("app:before-quit:start");
+  if (appUpdaterStallWatchdog) {
+    clearInterval(appUpdaterStallWatchdog);
+    appUpdaterStallWatchdog = null;
+  }
+  getCloseAttemptTracker().milestone(closeAttempt, "updater-watchdog-cleared");
   aiDockStateBuffer.flush();
   aiDockStateBuffer.dispose();
   browserWindowManager?.closeAll();
   browserWindowManager = null;
+  getCloseAttemptTracker().milestone(closeAttempt, "browser-windows-closed");
   browserIpc?.dispose();
   browserIpc = null;
   browserGrantsIpc?.dispose();
@@ -4066,6 +4131,7 @@ app.on("before-quit", async () => {
   browserRegistry = null;
   browserPartitionSelector = null;
   closeTerminalSessionManager();
+  getCloseAttemptTracker().milestone(closeAttempt, "terminal-closed");
   notesMcpBridge?.close();
   notesMcpBridge = null;
   browserMcpDispatcher = null;
@@ -4076,5 +4142,8 @@ app.on("before-quit", async () => {
   closeVideoLibraryRepository();
   runtimeStateRepository?.close();
   runtimeStateRepository = null;
+  getCloseAttemptTracker().milestone(closeAttempt, "runtime-resources-closed");
   await stopNextServer();
+  getCloseAttemptTracker().complete(closeAttempt);
+  writeStartupLog("app:before-quit:complete");
 });

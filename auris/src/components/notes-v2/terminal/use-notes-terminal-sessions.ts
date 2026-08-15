@@ -325,6 +325,11 @@ export function useNotesTerminalSessions({
         }, 1);
 
         nextSessionIdRef.current = Math.max(nextSessionIdRef.current, nextIndex);
+        setSessions((current) => current.length ? current : records.map((record, index) => ({
+          backend: record.backend, cwd: record.cwd, id: record.id, isAlive: true,
+          label: `Terminal ${index + 1}`, shell: record.shell, status: "starting",
+        })));
+        setActiveSessionId((current) => current ?? records.at(-1)?.id ?? null);
       })
       .catch(() => undefined)
       .finally(() => {
@@ -619,7 +624,7 @@ export function useNotesTerminalSessions({
           terminal,
         });
 
-        const record = await terminalBridge.create({
+        const record = await terminalBridge.resume({
           cols: terminal.cols || DEFAULT_COLS,
           cwd,
           rows: terminal.rows || DEFAULT_ROWS,

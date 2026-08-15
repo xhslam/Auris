@@ -43,7 +43,9 @@
     "desktop:assemble": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs && npm run desktop:privacy:audit",
     "desktop:assemble:win": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs --target=win32-x64 && npm run desktop:privacy:audit",
     "desktop:build:verify": "node scripts/verify-desktop-build.cjs",
-    "postinstall": "node scripts/copy-pdf-worker.cjs"
+    "postinstall": "node scripts/copy-pdf-worker.cjs",
+    "quality:desktop-ipc": "node scripts/verify-desktop-ipc-contract.cjs",
+    "quality:feature-ledger": "node scripts/verify-feature-ledger.cjs"
   },
   "keywords": [
     "english",

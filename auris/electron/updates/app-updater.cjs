@@ -33,12 +33,14 @@ const UPDATE_STATUSES = Object.freeze([
   "manual-download",
   "up-to-date",
   "error",
+  "stalled",
 ]);
 
 /** 未配置发布源时的错误码，UI 据此显示"未配置更新源"而不是网络错误。 */
 const NO_FEED_CODE = "UPDATE_FEED_NOT_CONFIGURED";
 /** 未签名/无法就地安装时的错误码。 */
 const UNSIGNED_CODE = "UPDATE_REQUIRES_SIGNED_BUILD";
+const UPDATE_STALLED_CODE = "UPDATE_STALLED";
 
 /**
  * 进度写入节流——逐字节移植 vmark
@@ -135,6 +137,9 @@ function isNewerVersion(candidate, current) {
  * @param {string|null} [options.releasesUrl]       无法就地安装时引导用户去的页面
  * @param {boolean} [options.canInstallInPlace]     是否具备就地安装条件（签名等）
  * @param {(message: string, detail?: unknown) => void} [options.log]
+ * @param {() => number} [options.now]                可注入时钟，便于验证停滞恢复
+ * @param {number} [options.checkStallAfterMs]        检查操作无状态变化多久后可恢复
+ * @param {number} [options.downloadStallAfterMs]     下载操作无状态变化多久后可恢复
  */
 function createAppUpdater(options) {
   const {
@@ -144,6 +149,9 @@ function createAppUpdater(options) {
     releasesUrl = null,
     canInstallInPlace = true,
     log = () => {},
+    now = () => Date.now(),
+    checkStallAfterMs = 60_000,
+    downloadStallAfterMs = 180_000,
   } = options ?? {};
 
   if (!autoUpdater) {
@@ -151,6 +159,10 @@ function createAppUpdater(options) {
   }
   if (typeof getCurrentVersion !== "function") {
     throw new TypeError("createAppUpdater requires getCurrentVersion().");
+  }
+
+  if (typeof now !== "function") {
+    throw new TypeError("createAppUpdater requires now().");
   }
 
   const emitter = new EventEmitter();
@@ -164,11 +176,15 @@ function createAppUpdater(options) {
     releasesUrl,
     canInstallInPlace: canInstallInPlace === true,
     lastCheckedAt: null,
+    stalledOperation: null,
   };
 
   // 主进程级 single-flight：所有窗口共享。vmark 的等价物是 per-window 的
   // `inFlight`，这里更严一层。
   const inFlight = { check: null, download: null };
+  const operationStartedAt = { check: null, download: null };
+  const operationLastActivityAt = { check: null, download: null };
+  const operationGeneration = { check: 0, download: 0 };
   let downloadedInfo = null;
 
   function snapshot() {
@@ -181,6 +197,7 @@ function createAppUpdater(options) {
       releasesUrl: state.releasesUrl,
       canInstallInPlace: state.canInstallInPlace,
       lastCheckedAt: state.lastCheckedAt,
+      stalledOperation: state.stalledOperation,
     };
   }
 
@@ -204,7 +221,66 @@ function createAppUpdater(options) {
   }
 
   function setError(message, code = null) {
-    patch({ status: "error", error: message, errorCode: code, downloadProgress: null });
+    patch({
+      status: "error",
+      error: message,
+      errorCode: code,
+      downloadProgress: null,
+      stalledOperation: null,
+    });
+  }
+  function markActivity(operation) {
+    operationLastActivityAt[operation] = now();
+  }
+  function startOperation(operation) {
+    operationGeneration[operation] += 1;
+    const timestamp = now();
+    operationStartedAt[operation] = timestamp;
+    operationLastActivityAt[operation] = timestamp;
+    return operationGeneration[operation];
+  }
+  function isCurrentOperation(operation, generation) {
+    return operationGeneration[operation] === generation;
+  }
+  function checkForStall() {
+    if (state.stalledOperation) return { operation: state.stalledOperation, stalled: true };
+    const operation = inFlight.check ? "check" : inFlight.download ? "download" : null;
+    if (!operation) return { operation: null, stalled: false };
+    const threshold = operation === "check" ? checkStallAfterMs : downloadStallAfterMs;
+    const lastActivityAt = operationLastActivityAt[operation] ?? operationStartedAt[operation];
+    if (typeof lastActivityAt !== "number" || now() - lastActivityAt < threshold) {
+      return { operation: null, stalled: false };
+    }
+    const message = operation === "check"
+      ? "Update check has stopped responding. You can retry safely."
+      : "Update download has stopped making progress. You can retry safely.";
+    patch({
+      status: "stalled",
+      error: message,
+      errorCode: UPDATE_STALLED_CODE,
+      stalledOperation: operation,
+    });
+    log("updater:stalled", operation);
+    return { operation, stalled: true };
+  }
+  function recoverFromStall() {
+    const operation = state.stalledOperation;
+    if (!operation) return { ok: false, reason: "NOT_STALLED" };
+    operationGeneration[operation] += 1;
+    inFlight[operation] = null;
+    operationStartedAt[operation] = null;
+    operationLastActivityAt[operation] = null;
+    downloadedInfo = null;
+    patch({
+      status: "idle",
+      updateInfo: null,
+      downloadProgress: null,
+      error: null,
+      errorCode: null,
+      stalledOperation: null,
+    });
+    log("updater:recovered-from-stall", operation);
+    return { ok: true, operation };
   }
 
   /**
@@ -233,92 +309,94 @@ function createAppUpdater(options) {
     });
 
     autoUpdater.on("download-progress", (progress) => {
-      const total =
-        typeof progress?.total === "number" && progress.total > 0 ? progress.total : null;
-      const downloaded =
-        typeof progress?.transferred === "number" ? progress.transferred : 0;
+      const total = typeof progress?.total === "number" && progress.total > 0 ? progress.total : null;
+      const downloaded = typeof progress?.transferred === "number" ? progress.transferred : 0;
+      if (inFlight.download) markActivity("download");
       const lastWritten = state.downloadProgress?.downloaded ?? -1;
-      if (!shouldWriteProgress(downloaded, lastWritten, total)) return;
-      patch({ status: "downloading", downloadProgress: { downloaded, total } });
+      const revivesDownload = state.stalledOperation === "download";
+      if (!revivesDownload && !shouldWriteProgress(downloaded, lastWritten, total)) return;
+      patch({
+        status: "downloading",
+        downloadProgress: { downloaded, total },
+        error: null,
+        errorCode: null,
+        stalledOperation: null,
+      });
     });
-
     autoUpdater.on("update-downloaded", (info) => {
+      if (!inFlight.download && state.status === "idle") return;
       downloadedInfo = info ?? null;
+      operationStartedAt.download = null;
+      operationLastActivityAt.download = null;
       patch({
         status: "ready",
         downloadProgress: null,
         error: null,
         errorCode: null,
+        stalledOperation: null,
       });
     });
   }
 
   async function runCheck() {
     if (inFlight.check) return inFlight.check;
-
-    inFlight.check = (async () => {
+    const generation = startOperation("check");
+    const operation = (async () => {
       if (!hasFeed()) {
-        setError(
-          "No update feed is configured for this build.",
-          NO_FEED_CODE,
-        );
+        setError("No update feed is configured for this build.", NO_FEED_CODE);
         return false;
       }
-
       bindListeners();
-      setStatus("checking");
-
+      setStatus("checking", { stalledOperation: null });
       try {
-        // autoDownload 交给显式的 download 动作，对齐 vmark 的
-        // available → (用户或 autoDownload 设置) → downloading 分两步。
         autoUpdater.autoDownload = false;
         autoUpdater.autoInstallOnAppQuit = true;
-
         const result = await autoUpdater.checkForUpdates();
+        if (!isCurrentOperation("check", generation)) return false;
+        markActivity("check");
         const currentVersion = getCurrentVersion();
         const candidate = result?.updateInfo?.version ?? null;
-
-        state.lastCheckedAt = Date.now();
-
+        state.lastCheckedAt = now();
         if (!candidate || !isNewerVersion(candidate, currentVersion)) {
-          setStatus("up-to-date", { updateInfo: null, lastCheckedAt: Date.now() });
+          setStatus("up-to-date", { updateInfo: null, lastCheckedAt: now(), stalledOperation: null });
           return false;
         }
-
         patch({
           status: "available",
-          lastCheckedAt: Date.now(),
+          lastCheckedAt: now(),
           updateInfo: {
             version: candidate,
             currentVersion,
             notes: normalizeReleaseNotes(result?.updateInfo?.releaseNotes),
-            pubDate:
-              typeof result?.updateInfo?.releaseDate === "string"
-                ? result.updateInfo.releaseDate
-                : "",
+            pubDate: typeof result?.updateInfo?.releaseDate === "string" ? result.updateInfo.releaseDate : "",
           },
           error: null,
           errorCode: null,
+          stalledOperation: null,
         });
         return true;
       } catch (cause) {
-        setError(toErrorMessage(cause, "Update check failed."));
+        if (isCurrentOperation("check", generation)) {
+          setError(toErrorMessage(cause, "Update check failed."));
+        }
         return false;
       } finally {
-        inFlight.check = null;
+        if (isCurrentOperation("check", generation)) {
+          inFlight.check = null;
+          operationStartedAt.check = null;
+          operationLastActivityAt.check = null;
+        }
       }
     })();
-
-    return inFlight.check;
+    inFlight.check = operation;
+    return operation;
   }
 
   async function runDownload() {
     if (inFlight.download) return inFlight.download;
     if (!state.updateInfo) return false;
-
-    // 不能就地安装时，不假装能下载安装：直接把用户送到 releases 页。
     if (!state.canInstallInPlace) {
-      patch({ status: "manual-download", downloadProgress: null });
+      patch({ status: "manual-download", downloadProgress: null, stalledOperation: null });
       if (state.releasesUrl && typeof openExternal === "function") {
         try {
           await openExternal(state.releasesUrl);
@@ -328,33 +406,39 @@ function createAppUpdater(options) {
       }
       return false;
     }
-
-    inFlight.download = (async () => {
+    const generation = startOperation("download");
+    const operation = (async () => {
       bindListeners();
       patch({
         status: "downloading",
         downloadProgress: { downloaded: 0, total: null },
         error: null,
         errorCode: null,
+        stalledOperation: null,
       });
-
       try {
         await autoUpdater.downloadUpdate();
-        // `update-downloaded` 监听器负责把状态推到 ready；若 provider 未触发
-        // 该事件（异常路径），这里兜底，避免永远停在 downloading。
+        if (!isCurrentOperation("download", generation)) return false;
+        markActivity("download");
         if (state.status === "downloading") {
-          patch({ status: "ready", downloadProgress: null });
+          patch({ status: "ready", downloadProgress: null, stalledOperation: null });
         }
         return true;
       } catch (cause) {
-        setError(toErrorMessage(cause, "Update download failed."));
+        if (isCurrentOperation("download", generation)) {
+          setError(toErrorMessage(cause, "Update download failed."));
+        }
         return false;
       } finally {
-        inFlight.download = null;
+        if (isCurrentOperation("download", generation)) {
+          inFlight.download = null;
+          operationStartedAt.download = null;
+          operationLastActivityAt.download = null;
+        }
       }
     })();
-
-    return inFlight.download;
+    inFlight.download = operation;
+    return operation;
   }
 
   /**
@@ -390,13 +474,16 @@ function createAppUpdater(options) {
       downloadProgress: null,
       error: null,
       errorCode: null,
+      stalledOperation: null,
     });
   }
 
   return Object.freeze({
     NO_FEED_CODE,
     UNSIGNED_CODE,
+    UPDATE_STALLED_CODE,
     check: runCheck,
+    checkForStall,
     download: runDownload,
     getDownloadedInfo: () => downloadedInfo,
     getSnapshot: snapshot,
@@ -406,6 +493,7 @@ function createAppUpdater(options) {
     },
     openReleasesPage,
     quitAndInstall,
+    recoverFromStall,
     reset,
   });
 }
@@ -414,6 +502,7 @@ module.exports = {
   INDETERMINATE_STEP_BYTES,
   NO_FEED_CODE,
   UNSIGNED_CODE,
+  UPDATE_STALLED_CODE,
   UPDATE_STATUSES,
   createAppUpdater,
   isNewerVersion,

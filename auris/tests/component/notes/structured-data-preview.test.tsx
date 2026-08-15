@@ -18,6 +18,17 @@ describe("StructuredDataPreview", () => {
     expect(screen.getByText("true")).toBeInTheDocument();
   });
 
+  it("parses quoted CSV fields into the same bounded safe tree", () => {
+    render(
+      <StructuredDataPreview
+        format="csv"
+        source={'name,score\n"Liu, Xiaolai",92'}
+      />,
+    );
+    expect(screen.getByRole("tree", { name: "CSV 结构预览" })).toBeInTheDocument();
+    expect(screen.getByText("Liu, Xiaolai")).toBeInTheDocument();
+    expect(screen.getByText("92")).toBeInTheDocument();
+  });
   it("shows parser failures without evaluating or hiding the source", () => {
     render(<StructuredDataPreview format="json" source='{"broken":}' />);
 

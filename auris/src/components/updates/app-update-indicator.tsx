@@ -46,6 +46,7 @@ function getIndicatorConfig(status: string): IndicatorConfig | null {
     case "ready":
       return { clickable: true, glyph: "✓", showDot: true, tone: "accent" };
     case "error":
+    case "stalled":
       return { clickable: true, glyph: "!", showDot: false, tone: "danger" };
     default:
       return null;
@@ -59,7 +60,7 @@ export function AppUpdateIndicator() {
   const router = useRouter();
   const snapshot = useAppUpdateStore(selectUpdateSnapshot);
   const available = useAppUpdateStore((state) => state.available);
-  const { checkForUpdates, restartToInstall } = useAppUpdateOperations();
+  const { checkForUpdates, recoverStalledUpdate, restartToInstall } = useAppUpdateOperations();
   const { settings } = useAppUpdateSettings();
 
   const { downloadProgress, status, updateInfo } = snapshot;
@@ -94,6 +95,8 @@ export function AppUpdateIndicator() {
     title = `更新 ${updateInfo.version} 已就绪，点击重启安装`;
   } else if (status === "error") {
     title = "更新检查失败，点击重试";
+  } else if (status === "stalled") {
+    title = "更新已停止响应，点击恢复";
   }
 
   const handleClick = () => {
@@ -106,6 +109,10 @@ export function AppUpdateIndicator() {
     }
     if (status === "error") {
       void checkForUpdates({ manual: true });
+      return;
+    }
+    if (status === "stalled") {
+      void recoverStalledUpdate();
       return;
     }
     router.push("/settings");
