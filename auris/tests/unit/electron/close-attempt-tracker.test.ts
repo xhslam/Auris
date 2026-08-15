@@ -27,14 +27,14 @@ describe("createCloseAttemptTracker", () => {
   });
 
   it("emits a stall log only for the still-current attempt", () => {
-    let scheduled: (() => void) | null = null;
+    const scheduler: { callback: (() => void) | null } = { callback: null };
     let now = 0;
     const log = vi.fn();
     const tracker = createCloseAttemptTracker({
       log,
       now: () => now,
       setTimeoutImpl: vi.fn((callback: () => void) => {
-        scheduled = callback;
+        scheduler.callback = callback;
         return { unref: vi.fn() };
       }),
       clearTimeoutImpl: vi.fn(),
@@ -43,10 +43,10 @@ describe("createCloseAttemptTracker", () => {
 
     const id = tracker.begin();
     now = 101;
-    scheduled?.();
+    scheduler.callback?.();
     expect(log).toHaveBeenLastCalledWith("app:close:stalled", "id=1 elapsedMs=101");
     tracker.complete(id);
-    scheduled?.();
+    scheduler.callback?.();
     expect(log).toHaveBeenCalledTimes(3);
   });
 
