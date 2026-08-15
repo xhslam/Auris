@@ -24,6 +24,7 @@ function updateSnapshot(
     lastCheckedAt: null,
     releasesUrl: "https://example.test/releases",
     status: "idle",
+    stalledOperation: null,
     updateInfo: null,
     ...overrides,
   };
@@ -40,6 +41,7 @@ function installUpdatesBridge(checkResult: DesktopUpdateSnapshot) {
       openReleases: vi.fn(async () => ({ ok: true })),
       quitAndInstall: vi.fn(async () => ({ ok: true })),
       reset: vi.fn(async () => checkResult),
+      recover: vi.fn(async () => ({ ok: true, snapshot: checkResult })),
     },
   });
   return { check };
@@ -81,6 +83,29 @@ describe("useAppUpdateOperations", () => {
     expect(loadUpdateSettings().lastCheckTimestamp).toBe(now.getTime());
   });
 
+  it("applies the authoritative snapshot after recovering a stalled update", async () => {
+    const recovered = updateSnapshot({ status: "idle" });
+    installUpdatesBridge(recovered);
+    useAppUpdateStore.getState().applySnapshot(
+      updateSnapshot({
+        error: "Update check has stopped responding.",
+        errorCode: "UPDATE_STALLED",
+        stalledOperation: "check",
+        status: "stalled",
+      }),
+    );
+    const { result } = renderHook(() => useAppUpdateOperations());
+
+    await act(async () => {
+      await result.current.recoverStalledUpdate();
+    });
+
+    expect(useAppUpdateStore.getState().snapshot).toMatchObject({
+      error: null,
+      stalledOperation: null,
+      status: "idle",
+    });
+  });
   it("does not record a successful check time when IPC returns an error before the state push arrives", async () => {
     installUpdatesBridge(
       updateSnapshot({

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "domains": [
+    {
+      "domainId": "notes",
+      "problem": "让用户在本地学习笔记中安全编辑、恢复异常内容，并避免外部文件竞争写入造成数据丢失。",
+      "features": [
+        {
+          "featureId": "notes-safe-recovery",
+          "problem": "应用异常退出或文件竞争写入时，用户需要可恢复的笔记历史与冲突证据。",
+          "implementation": [
+            "electron/notes/notes-recovery-store.cjs",
+            "src/features/notes/vault/vault-safe-write.ts"
+          ],
+          "tests": [
+            "tests/unit/notes/notes-recovery-store.test.ts",
+            "tests/unit/notes/vault-safe-write.test.ts"
+          ]
+        },
+        {
+          "featureId": "notes-format-registry",
+          "problem": "结构化学习材料不能被误当作普通 Markdown，且未知格式必须安全降级。",
+          "implementation": [
+            "src/features/notes/formats/format-registry.ts",
+            "src/features/notes/formats/structured-data.ts"
+          ],
+          "tests": [
+            "tests/unit/notes/format-registry.test.ts",
+            "tests/unit/notes/structured-data.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "domainId": "mcp",
+      "problem": "让 AI 在不覆盖用户最新编辑的前提下读写笔记，并确保每个写入请求可验证。",
+      "features": [
+        {
+          "featureId": "notes-mcp-revision-safe-write",
+          "problem": "模型在生成期间可能遇到用户修改，陈旧写入必须返回 STALE 而不是静默覆盖。",
+          "implementation": [
+            "electron/auris-notes-mcp-server.mjs",
+            "src/features/notes/workbench/notes-mcp-request-handler.ts"
+          ],
+          "tests": [
+            "tests/unit/notes/notes-mcp-contract.test.ts",
+            "tests/unit/notes/notes-mcp-request-handler.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "domainId": "nia",
+      "problem": "将多模型辅助限制在可审计、可配置的学习任务边界中。",
+      "features": [
+        {
+          "featureId": "nia-provider-boundaries",
+          "problem": "提供商凭据、工具权限与会话上下文不能由普通渲染层或模型任意扩大。",
+          "implementation": [
+            "electron/nia/nia-provider-store.cjs",
+            "src/features/nia/nia-context.ts"
+          ],
+          "tests": [
+            "tests/unit/nia/nia-bridge.test.ts",
+            "tests/unit/nia/nia-context.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "domainId": "browser",
+      "problem": "在嵌入式浏览器中提供自动化能力，同时阻止模型、页面与渲染层越权操作。",
+      "features": [
+        {
+          "featureId": "browser-lease-and-approval",
+          "problem": "自动化操作必须绑定窗口、标签、导航版本与一次性批准，避免会话或页面内容伪造权限。",
+          "implementation": [
+            "electron/browser/browser-command-dispatcher.cjs",
+            "electron/browser/browser-operation-guard.cjs"
+          ],
+          "tests": [
+            "tests/unit/electron/browser/browser-command-dispatcher.test.ts",
+            "tests/integration/browser-authority-adversarial.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "domainId": "updates",
+      "problem": "更新和关闭流程需要在网络或清理操作停滞时保持可诊断、可恢复，不能永久占用操作状态。",
+      "features": [
+        {
+          "featureId": "update-stall-recovery",
+          "problem": "检查或下载更新的 Promise 永不 settle 时，用户必须能丢弃卡住请求并重新开始。",
+          "implementation": [
+            "electron/updates/app-updater.cjs",
+            "src/features/updates/use-app-updates.ts"
+          ],
+          "tests": [
+            "tests/unit/electron/app-updater.test.ts",
+            "tests/unit/updates/use-app-updates.test.tsx"
+          ]
+        },
+        {
+          "featureId": "close-attempt-observability",
+          "problem": "关闭过程中卡在保存、浏览器清理或运行时退出时，支持人员需要有可关联的诊断里程碑。",
+          "implementation": [
+            "electron/close-attempt-tracker.cjs",
+            "electron/main.cjs"
+          ],
+          "tests": [
+            "tests/unit/electron/close-attempt-tracker.test.ts"
+          ]
+        }
+      ]
+    }
+  ]
+}

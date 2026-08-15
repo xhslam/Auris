@@ -378,6 +378,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     create: (input) => invoke("shadowing:terminal:create", input),
     kill: (sessionId) => invoke("shadowing:terminal:kill", sessionId),
     list: () => invoke("shadowing:terminal:list"),
+    resume: (input) => invoke("shadowing:terminal:resume", input),
     onData: (listener) => {
       if (typeof listener !== "function") {
         return () => undefined;
@@ -425,6 +426,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     openReleases: () => invoke("shadowing:updates:open-releases"),
     quitAndInstall: () => invoke("shadowing:updates:quit-and-install"),
     reset: () => invoke("shadowing:updates:reset"),
+    recover: () => invoke("shadowing:updates:recover"),
   },
   vault: {
     copyFile: (fromPath, toPath) =>

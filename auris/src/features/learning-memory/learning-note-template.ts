@@ -4,6 +4,7 @@ import type {
 } from "@/features/learning-memory/learning-memory-types";
 import type { SavedSentenceRecord } from "@/features/sentencebook/local-sentencebook-store";
 import type { SavedWordRecord } from "@/features/wordbook/local-wordbook-store";
+import { buildLearningAssetLineageSection } from "@/features/learning-memory/learning-asset-lineage";
 
 export type BuildLearningNoteMarkdownInput = LearningMemoryContext & {
   createdAt: string;
@@ -130,6 +131,12 @@ export function buildLearningNoteMarkdown(
     buildSourceSection(input),
     buildSavedWordsSection(input.words),
     buildSavedSentencesSection(input.sentences),
+    buildLearningAssetLineageSection({
+      sessionId: input.sessionId,
+      sourceNotePath: input.sourceNotePath,
+      sentences: input.sentences,
+      words: input.words,
+    }),
     buildRelatedMemorySection(input.recallItems),
     [
       "## Review",

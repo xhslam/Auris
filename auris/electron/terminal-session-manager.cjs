@@ -328,9 +328,11 @@ function createTerminalSessionManager(options = {}) {
         logger?.(`terminal:${sessionId}:pty-ready ${candidate.name}`);
         sessions.set(sessionId, {
           backend: "pty",
+          cols,
           cwd,
           process: pty,
           ptyPackage: candidate.name,
+          rows,
           shell,
         });
 
@@ -399,9 +401,11 @@ function createTerminalSessionManager(options = {}) {
 
     sessions.set(sessionId, {
       backend: "pipe",
+      cols,
       cwd,
       platform,
       process: child,
+      rows,
       shell,
     });
 
@@ -495,11 +499,13 @@ function createTerminalSessionManager(options = {}) {
   function listSessions() {
     return [...sessions.entries()].map(([id, session]) => ({
       backend: session.backend,
+      cols: session.cols ?? DEFAULT_COLS,
       cwd: session.cwd,
       id,
       // ptyPackage is null for pipe sessions; it lets the UI and bug reports
       // distinguish "real ConPTY via node-pty" from a silent pipe fallback.
       ptyPackage: session.ptyPackage ?? null,
+      rows: session.rows ?? DEFAULT_ROWS,
       shell: session.shell,
     }));
   }

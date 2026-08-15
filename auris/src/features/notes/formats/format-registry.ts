@@ -1,11 +1,13 @@
 export type NotesFormatId =
   | "attachment"
   | "audio"
+  | "csv"
   | "json"
   | "jsonl"
   | "markdown"
   | "text"
   | "toml"
+  | "tsv"
   | "unknown-text"
   | "yaml";
 
@@ -38,17 +40,21 @@ const REGISTERED_FORMATS = Object.freeze([
   }),
   format({
     canEdit: true,
-    extensions: [
-      ".conf",
-      ".csv",
-      ".env",
-      ".ini",
-      ".log",
-      ".properties",
-      ".text",
-      ".tsv",
-      ".txt",
-    ],
+    extensions: [".csv"],
+    id: "csv",
+    label: "CSV",
+    previewKind: "structured-tree",
+  }),
+  format({
+    canEdit: true,
+    extensions: [".tsv"],
+    id: "tsv",
+    label: "TSV",
+    previewKind: "structured-tree",
+  }),
+  format({
+    canEdit: true,
+    extensions: [".conf", ".env", ".ini", ".log", ".properties", ".text", ".txt"],
     id: "text",
     label: "Plain text",
     previewKind: "none",

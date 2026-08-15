@@ -89,4 +89,20 @@ describe("learning-note-template", () => {
     expect(markdown).toContain("## Saved Sentences\n\nNo saved sentences yet.");
     expect(markdown).toContain("## Related Memory\n\nNo related memory found yet.");
   });
+  it("includes deterministic asset lineage for future audit and recall", () => {
+    const markdown = buildLearningNoteMarkdown({
+      createdAt: "2026-01-01T00:00:00.000Z",
+      materialText: "Practice rhythm.",
+      recallItems: [],
+      sentences: [],
+      sessionId: "session-1",
+      sourceNotePath: "sources/rhythm.md",
+      title: "Rhythm",
+      words: [],
+    });
+    expect(markdown).toContain("## Asset Lineage");
+    expect(markdown).toContain("- Session: session-1");
+    expect(markdown).toContain("- Source note: [[sources/rhythm.md]]");
+  });
+
 });

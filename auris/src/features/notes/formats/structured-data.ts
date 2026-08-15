@@ -6,7 +6,7 @@ const STRUCTURED_PREVIEW_MAX_BYTES = 2 * 1024 * 1024;
 
 export type StructuredDataFormat = Extract<
   NotesFormatId,
-  "json" | "jsonl" | "toml" | "yaml"
+  "csv" | "json" | "jsonl" | "toml" | "tsv" | "yaml"
 >;
 
 export type StructuredDataResult =
@@ -20,6 +20,35 @@ export type StructuredDataResult =
       };
     };
 
+function parseDelimited(source: string, delimiter: string): unknown[] {
+  const rows: string[][] = [];
+  let cell = "";
+  let row: string[] = [];
+  let quoted = false;
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (character === '"') {
+      if (quoted && source[index + 1] === '"') { cell += '"'; index += 1; }
+      else { quoted = !quoted; }
+      continue;
+    }
+    if (!quoted && character === delimiter) { row.push(cell); cell = ""; continue; }
+    if (!quoted && (character === "\n" || character === "\r")) {
+      if (character === "\r" && source[index + 1] === "\n") index += 1;
+      row.push(cell); cell = "";
+      if (row.some((value) => value.length > 0)) rows.push(row);
+      row = [];
+      continue;
+    }
+    cell += character;
+  }
+  if (quoted) throw new Error("Delimited data contains an unterminated quoted field.");
+  row.push(cell);
+  if (row.some((value) => value.length > 0)) rows.push(row);
+  if (rows.length === 0) return [];
+  const [header, ...data] = rows;
+  return data.slice(0, 1000).map((values) => Object.fromEntries(header.map((name, index) => [name || `column_${index + 1}`, values[index] ?? ""])));
+}
 function errorResult(error: unknown): StructuredDataResult {
   if (error instanceof Error) {
     return {
@@ -51,6 +80,9 @@ export function parseStructuredData(
   }
 
   try {
+    if (format === "csv" || format === "tsv") {
+      return { ok: true, value: parseDelimited(source, format === "csv" ? "," : "\t") };
+    }
     if (format === "json") {
       return { ok: true, value: JSON.parse(source) as unknown };
     }

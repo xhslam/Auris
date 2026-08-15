@@ -185,6 +185,91 @@ describe("createAppUpdater", () => {
     expect(calls).toBe(1);
   });
 
+  it("marks a hung check as stalled and starts a fresh check after recovery", async () => {
+    let calls = 0;
+    let now = 0;
+    const { updater } = createUpdater(
+      {
+        checkForUpdates: async () => {
+          calls += 1;
+          if (calls === 1) {
+            return new Promise(() => {});
+          }
+          return { updateInfo: { version: "2.0.0" } };
+        },
+      },
+      {
+        checkStallAfterMs: 1_000,
+        now: () => now,
+      },
+    );
+    void updater.check();
+    now = 1_001;
+
+    expect(updater.checkForStall()).toEqual({ operation: "check", stalled: true });
+    expect(updater.getSnapshot()).toMatchObject({
+      errorCode: "UPDATE_STALLED",
+      stalledOperation: "check",
+      status: "stalled",
+    });
+    expect(updater.recoverFromStall()).toEqual({ ok: true, operation: "check" });
+
+    await expect(updater.check()).resolves.toBe(true);
+    expect(calls).toBe(2);
+    expect(updater.getSnapshot()).toMatchObject({
+      stalledOperation: null,
+      status: "available",
+    });
+  });
+  it("treats download progress as activity and never offers recovery while bytes move", async () => {
+    let now = 0;
+    const { autoUpdater, updater } = createUpdater(
+      {
+        checkForUpdates: async () => ({ updateInfo: { version: "2.0.0" } }),
+        downloadUpdate: async () => new Promise(() => {}),
+      },
+      {
+        downloadStallAfterMs: 1_000,
+        now: () => now,
+      },
+    );
+    await updater.check();
+    void updater.download();
+    now = 900;
+    autoUpdater.emit("download-progress", { total: 1_000, transferred: 10 });
+    now = 1_800;
+
+    expect(updater.checkForStall()).toEqual({ operation: null, stalled: false });
+    expect(updater.getSnapshot()).toMatchObject({
+      stalledOperation: null,
+      status: "downloading",
+    });
+  });
+  it("releases a hung download so a fresh update check can begin", async () => {
+    let now = 0;
+    const { updater } = createUpdater(
+      {
+        checkForUpdates: async () => ({ updateInfo: { version: "2.0.0" } }),
+        downloadUpdate: async () => new Promise(() => {}),
+      },
+      {
+        downloadStallAfterMs: 1_000,
+        now: () => now,
+      },
+    );
+    await updater.check();
+    void updater.download();
+    now = 1_001;
+
+    expect(updater.checkForStall()).toEqual({ operation: "download", stalled: true });
+    expect(updater.recoverFromStall()).toEqual({ ok: true, operation: "download" });
+    expect(updater.getSnapshot()).toMatchObject({
+      downloadProgress: null,
+      stalledOperation: null,
+      status: "idle",
+      updateInfo: null,
+    });
+  });
   it("throttles download progress instead of pushing every chunk", async () => {
     const { autoUpdater, updater } = createUpdater({
       checkForUpdates: async () => ({ updateInfo: { version: "2.0.0" } }),

@@ -7,7 +7,9 @@ import { getVaultEntryDisplayKind } from "@/features/notes/vault/vault-path";
 
 describe("notes format registry", () => {
   it.each([
+    ["notes/a.csv", "csv"],
     ["notes/a.json", "json"],
+    ["notes/a.tsv", "tsv"],
     ["notes/a.jsonl", "jsonl"],
     ["notes/a.yaml", "yaml"],
     ["notes/a.yml", "yaml"],
@@ -44,6 +46,7 @@ describe("notes format registry", () => {
   });
 
   it("classifies structured data separately in the vault", () => {
+    expect(getVaultEntryDisplayKind("data.csv")).toBe("structured-data");
     expect(getVaultEntryDisplayKind("data.json")).toBe("structured-data");
     expect(getVaultEntryDisplayKind("config.yaml")).toBe("structured-data");
     expect(getVaultEntryDisplayKind("Cargo.toml")).toBe("structured-data");

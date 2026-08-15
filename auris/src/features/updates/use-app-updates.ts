@@ -218,6 +218,13 @@ export function useAppUpdateOperations() {
     await bridge.download();
   }, []);
 
+  const recoverStalledUpdate = useCallback(async () => {
+    const bridge = getUpdatesBridge();
+    if (!bridge) return { ok: false as const, reason: "NO_BRIDGE" };
+    const result = await bridge.recover();
+    useAppUpdateStore.getState().applySnapshot(result.snapshot);
+    return result;
+  }, []);
   const restartToInstall = useCallback(async () => {
     const bridge = getUpdatesBridge();
     if (!bridge) return { ok: false as const, reason: "NO_BRIDGE" };
@@ -242,6 +249,7 @@ export function useAppUpdateOperations() {
     checkForUpdates,
     downloadUpdate,
     openReleasesPage,
+    recoverStalledUpdate,
     restartToInstall,
     skipVersion,
   };

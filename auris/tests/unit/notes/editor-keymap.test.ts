@@ -153,6 +153,18 @@ describe("notes editor keymap", () => {
     }
   });
 
+  it("inserts a Markdown table with a predictable first-cell cursor", () => {
+    const { destroy, view } = createView("before", selectCursor("before".length));
+    try {
+      runShortcut(view, "Mod-Alt-t");
+      expect(view.state.doc.toString()).toBe(
+        "before\n| Column 1 | Column 2 |\n| --- | --- |\n|  |  |\n",
+      );
+      expect(view.state.selection.main.head).toBe("before\n| ".length);
+    } finally {
+      destroy();
+    }
+  });
   it("supports heading levels one through six with Mod-number shortcuts", () => {
     const { destroy, view } = createView("heading", selectCursor(0));
 
