@@ -61,12 +61,27 @@ function shouldWriteProgress(downloaded, lastWritten, total) {
   return downloaded - lastWritten >= INDETERMINATE_STEP_BYTES;
 }
 
+const UPDATE_ERROR_MAX_LENGTH = 240;
+const SENSITIVE_UPDATE_ERROR_PATTERN = /\b(?:headers?|set-cookie|cookie|authorization|proxy-authorization|x-github|x-octo|content-security-policy|actual status)\b/i;
+
 function toErrorMessage(cause, fallback) {
-  if (cause instanceof Error && typeof cause.message === "string" && cause.message) {
-    return cause.message;
+  const message =
+    cause instanceof Error && typeof cause.message === "string"
+      ? cause.message
+      : typeof cause === "string"
+        ? cause
+        : "";
+  const compact = message.replace(/\s+/g, " ").trim();
+
+  if (
+    !compact ||
+    compact.length > UPDATE_ERROR_MAX_LENGTH ||
+    SENSITIVE_UPDATE_ERROR_PATTERN.test(compact)
+  ) {
+    return fallback;
   }
-  if (typeof cause === "string" && cause) return cause;
-  return fallback;
+
+  return compact;
 }
 
 /**
@@ -303,7 +318,7 @@ function createAppUpdater(options) {
     listenersBound = true;
 
     autoUpdater.on("error", (cause) => {
-      const message = toErrorMessage(cause, "Update failed.");
+      const message = toErrorMessage(cause, "更新失败，请稍后重试。");
       log("updater:error", message);
       setError(message);
     });
@@ -377,7 +392,7 @@ function createAppUpdater(options) {
         return true;
       } catch (cause) {
         if (isCurrentOperation("check", generation)) {
-          setError(toErrorMessage(cause, "Update check failed."));
+          setError(toErrorMessage(cause, "更新检查失败，请稍后重试。"));
         }
         return false;
       } finally {
@@ -426,7 +441,7 @@ function createAppUpdater(options) {
         return true;
       } catch (cause) {
         if (isCurrentOperation("download", generation)) {
-          setError(toErrorMessage(cause, "Update download failed."));
+          setError(toErrorMessage(cause, "更新下载失败，请稍后重试。"));
         }
         return false;
       } finally {

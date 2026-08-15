@@ -171,6 +171,26 @@ describe("createAppUpdater", () => {
     });
   });
 
+  it("hides verbose HTTP response details from the renderer", async () => {
+    const leakedCookie = "_gh_sess=should-not-reach-the-renderer";
+    const { updater } = createUpdater({
+      checkForUpdates: async () => {
+        throw new Error(
+          `Please double check your authentication token. Headers: { "set-cookie": "${leakedCookie}", "x-github-request-id": "request-id" }`,
+        );
+      },
+    });
+
+    await updater.check();
+    const snapshot = updater.getSnapshot();
+    expect(snapshot).toMatchObject({
+      status: "error",
+      error: "更新检查失败，请稍后重试。",
+    });
+    expect(snapshot.error).not.toContain(leakedCookie);
+    expect(snapshot.error).not.toContain("Headers:");
+  });
+
   it("shares one in-flight check across concurrent callers", async () => {
     let calls = 0;
     const { updater } = createUpdater({
