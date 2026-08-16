@@ -1,4 +1,7 @@
-.home-v3 {
+/* Keep the home canvas authoritative after client-side route transitions.
+   `/review` loads the shared `.auris-page` rule lazily; without the compound
+   selector that later rule can replace Home's themed background and padding. */
+.auris-page.home-v3 {
   box-sizing: border-box;
   --home-v3-bg: #0b0b0c;
   --home-v3-bg-2: #09090a;
