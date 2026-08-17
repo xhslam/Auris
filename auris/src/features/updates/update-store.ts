@@ -48,6 +48,7 @@ export type UpdateSnapshot = {
   releasesUrl: string | null;
   status: UpdateStatus;
   stalledOperation: "check" | "download" | null;
+  supported: boolean;
   updateInfo: UpdateInfo | null;
 };
 
@@ -78,6 +79,7 @@ const initialSnapshot: UpdateSnapshot = {
   releasesUrl: null,
   status: "idle",
   stalledOperation: null,
+  supported: false,
   updateInfo: null,
 };
 
@@ -112,6 +114,9 @@ export const useAppUpdateStore = create<UpdateState & UpdateActions>()((set) => 
           releasesUrl: incoming.releasesUrl,
           status: incoming.status,
           stalledOperation: incoming.stalledOperation,
+          // 兼容旧版 preload 和测试 fixture：未携带该字段的已打包
+          // 快照按“支持更新”处理，只有显式 false 才是开发构建。
+          supported: incoming.supported !== false,
           updateInfo: incoming.updateInfo,
         },
       };

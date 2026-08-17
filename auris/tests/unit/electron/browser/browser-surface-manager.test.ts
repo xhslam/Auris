@@ -80,6 +80,50 @@ describe("browser surface manager", () => {
     expect(fixture.views[0].bounds).toEqual({ x: 0, y: 40, width: 0, height: 0 });
   });
 
+  it("uses a renderer-measured embedded viewport and hides it when the workspace is inactive", () => {
+    const fixture = createFixture();
+    fixture.manager.createSurface({ hostWindow: fixture.host, tabId: "tab-1", windowId: "window-1" });
+    fixture.manager.activateSurface("window-1", "tab-1");
+
+    expect(fixture.manager.setWindowViewport("window-1", {
+      height: 480,
+      visible: true,
+      width: 760,
+      x: 214,
+      y: 132,
+    })).toEqual({ height: 480, visible: true, width: 760, x: 214, y: 132 });
+    expect(fixture.views[0].bounds).toEqual({ height: 480, width: 760, x: 214, y: 132 });
+    expect(fixture.views[0].visible).toBe(true);
+
+    fixture.manager.setWindowViewport("window-1", {
+      height: 480,
+      visible: false,
+      width: 760,
+      x: 214,
+      y: 132,
+    });
+    expect(fixture.views[0].visible).toBe(false);
+  });
+
+  it("rejects non-finite or negative embedded viewport bounds", () => {
+    const fixture = createFixture();
+
+    expect(() => fixture.manager.setWindowViewport("window-1", {
+      height: 480,
+      visible: true,
+      width: Number.NaN,
+      x: 0,
+      y: 0,
+    })).toThrow(/finite/u);
+    expect(() => fixture.manager.setWindowViewport("window-1", {
+      height: -1,
+      visible: true,
+      width: 760,
+      x: 0,
+      y: 0,
+    })).toThrow(/negative/u);
+  });
+
   it("removes child views, listeners, and destroys contents exactly once", () => {
     const fixture = createFixture();
     fixture.manager.createSurface({ hostWindow: fixture.host, tabId: "tab-1", windowId: "window-1" });
@@ -102,6 +146,21 @@ describe("browser surface manager", () => {
     fixture.views[0].webContents.emit("did-stop-loading");
     fixture.views[0].webContents.emit("did-navigate", {}, "https://late.test/");
     expect(onEvent).toHaveBeenCalledOnce();
+  });
+
+  it("forwards native page title changes to the owning browser tab", () => {
+    const onEvent = vi.fn();
+    const fixture = createFixture({ onEvent });
+    fixture.manager.createSurface({ hostWindow: fixture.host, tabId: "tab-1", windowId: "window-1" });
+
+    fixture.views[0].webContents.emit("page-title-updated", {}, "Reference guide");
+
+    expect(onEvent).toHaveBeenCalledWith({
+      tabId: "tab-1",
+      title: "Reference guide",
+      type: "title-updated",
+      windowId: "window-1",
+    });
   });
 
   it("destroys every surface for one window without affecting another", () => {

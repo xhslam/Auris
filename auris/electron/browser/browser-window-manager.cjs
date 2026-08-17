@@ -19,6 +19,7 @@ function createBrowserWindowManager({
   targetUrl,
 } = {}) {
   const nativeWindows = new Map();
+  const hostKinds = new Map();
   const controllersBySender = new Map();
   const closedSessions = [];
   const hibernatedTabs = new Map();
@@ -36,6 +37,12 @@ function createBrowserWindowManager({
   function getNativeWindow(windowId) {
     const nativeWindow = nativeWindows.get(windowId);
     return nativeWindow && !nativeWindow.isDestroyed?.() ? nativeWindow : null;
+  }
+
+  function getMostRecentWindowByKind(kind) {
+    return registry.snapshot().windows
+      .filter((entry) => hostKinds.get(entry.windowId) === kind && getNativeWindow(entry.windowId))
+      .sort((left, right) => right.lastActiveAt - left.lastActiveAt)[0] ?? null;
   }
 
   function resolveTab(windowId, requestedTabId) {
@@ -127,6 +134,10 @@ function createBrowserWindowManager({
         expectedGeneration: event.expectedGeneration,
         url: event.url,
       });
+      return publishSnapshot();
+    }
+    if (type === "title-updated") {
+      registry.updateTab(windowId, tabId, { title: event.title });
       return publishSnapshot();
     }
     if (type === "loading-started") {
@@ -266,6 +277,10 @@ function createBrowserWindowManager({
         return tab;
       },
       closeTab: async ({ tabId }) => {
+        const current = registry.getWindow(windowId);
+        if (hostKinds.get(windowId) === "embedded" && current?.tabs.length === 1) {
+          return false;
+        }
         clearPendingReload(windowId, tabId);
         hibernatedTabs.delete(hibernateKey(windowId, tabId));
         recovery?.purgeTab?.(windowId, tabId);
@@ -303,6 +318,15 @@ function createBrowserWindowManager({
         const next = surfaceManager.setSideInsetRight(windowId, width);
         surfaceManager.layoutWindow(windowId, nativeWindow.getContentBounds());
         return { width: next };
+      },
+      setViewport: async (viewport) => {
+        if (hostKinds.get(windowId) !== "embedded") {
+          throw new Error("Browser viewport commands require an embedded host");
+        }
+        if (typeof surfaceManager.setWindowViewport !== "function") {
+          throw new Error("Browser surface manager cannot set an embedded viewport");
+        }
+        return surfaceManager.setWindowViewport(windowId, viewport);
       },
       navigate: async ({ tabId, url }) => {
         if (!decideHttpNavigation(url).allowed) throw new TypeError("Navigation blocked");
@@ -413,6 +437,7 @@ function createBrowserWindowManager({
       nativeWindow.getBounds?.() ?? nativeWindow.getContentBounds(),
     );
     nativeWindows.set(windowId, nativeWindow);
+    hostKinds.set(windowId, "standalone");
     const controller = createController(windowId, nativeWindow);
     controllersBySender.set(chromeWebContents, controller);
 
@@ -438,6 +463,7 @@ function createBrowserWindowManager({
       }
       controllersBySender.delete(chromeWebContents);
       nativeWindows.delete(windowId);
+      hostKinds.delete(windowId);
       surfaceManager.destroyWindow(windowId);
       registry.closeWindow(windowId);
       logger(`browser-window:closed ${windowId}`);
@@ -460,11 +486,59 @@ function createBrowserWindowManager({
     return registry.getWindow(windowId);
   }
 
+  async function attachEmbeddedHost({ hostWindow } = {}) {
+    capabilities.assertOpenAllowed({});
+    if (!hostWindow || hostWindow.isDestroyed?.() || !hostWindow.webContents) {
+      throw new TypeError("A live host window is required for the embedded browser");
+    }
+    const hostWebContents = hostWindow.webContents;
+    const existingController = controllersBySender.get(hostWebContents);
+    if (existingController) {
+      return registry.getWindow(existingController.currentWindowId);
+    }
+
+    const registryWindow = registry.createWindow();
+    const windowId = registryWindow.windowId;
+    nativeWindows.set(windowId, hostWindow);
+    hostKinds.set(windowId, "embedded");
+    const controller = createController(windowId, hostWindow);
+    controllersBySender.set(hostWebContents, controller);
+    surfaceManager.setWindowViewport?.(windowId, {
+      height: 0,
+      visible: false,
+      width: 0,
+      x: 0,
+      y: 0,
+    });
+
+    hostWindow.on?.("focus", () => registry.activateWindow(windowId));
+    hostWindow.on?.("closed", () => {
+      const session = registry.exportWindowSession?.(windowId);
+      for (const tab of session?.tabs ?? []) {
+        clearPendingReload(windowId, tab.tabId);
+        hibernatedTabs.delete(hibernateKey(windowId, tab.tabId));
+        recovery?.purgeTab?.(windowId, tab.tabId);
+        purgeAuthority(windowId, tab.tabId, { kind: "window-close" });
+      }
+      // Electron destroys BrowserWindow.webContents before/while emitting
+      // `closed`; reading the property here can throw "Object has been
+      // destroyed". The live sender identity was captured during attach.
+      controllersBySender.delete(hostWebContents);
+      nativeWindows.delete(windowId);
+      hostKinds.delete(windowId);
+      surfaceManager.destroyWindow(windowId);
+      registry.closeWindow(windowId);
+      logger(`browser-embedded:detached ${windowId}`);
+    });
+    logger(`browser-embedded:attached ${windowId}`);
+    return registry.getWindow(windowId);
+  }
+
   async function openBrowser({ newWindow = false, url, localFixture = false } = {}) {
     capabilities.assertOpenAllowed({ localFixture });
     if (url && !decideHttpNavigation(url).allowed) throw new TypeError("Navigation blocked");
     if (!newWindow) {
-      const recent = registry.getMostRecentWindow();
+      const recent = getMostRecentWindowByKind("standalone");
       const nativeWindow = recent ? getNativeWindow(recent.windowId) : null;
       if (recent && nativeWindow) {
         if (nativeWindow.isMinimized?.()) nativeWindow.restore();
@@ -508,6 +582,7 @@ function createBrowserWindowManager({
   }
 
   function closeWindow(windowId) {
+    if (hostKinds.get(windowId) === "embedded") return false;
     const nativeWindow = getNativeWindow(windowId);
     if (!nativeWindow) return false;
     nativeWindow.close();
@@ -517,7 +592,10 @@ function createBrowserWindowManager({
   function closeAll() {
     if (closingAll) return 0;
     closingAll = true;
-    const targets = [...nativeWindows.values()].filter((window) => !window.isDestroyed?.());
+    const targets = [...nativeWindows.entries()]
+      .filter(([windowId, window]) =>
+        hostKinds.get(windowId) === "standalone" && !window.isDestroyed?.())
+      .map(([, window]) => window);
     if (targets.length > 0) persistState();
     for (const nativeWindow of targets) nativeWindow.close();
     closingAll = false;
@@ -526,7 +604,9 @@ function createBrowserWindowManager({
 
   function persistState() {
     if (!stateRepository?.saveWindows) return false;
-    stateRepository.saveWindows(registry.snapshot().windows);
+    stateRepository.saveWindows(
+      registry.snapshot().windows.filter((entry) => hostKinds.get(entry.windowId) === "standalone"),
+    );
     return true;
   }
 
@@ -553,7 +633,7 @@ function createBrowserWindowManager({
       throw error;
     }
     capabilities.assertOpenAllowed({});
-    let windowRecord = registry.getMostRecentWindow();
+    let windowRecord = getMostRecentWindowByKind("standalone");
     if (!windowRecord || !getNativeWindow(windowRecord.windowId)) {
       windowRecord = await openBrowser({});
     }
@@ -599,6 +679,7 @@ function createBrowserWindowManager({
   }
 
   return Object.freeze({
+    attachEmbeddedHost,
     closeAll,
     closeWindow,
     createAiSandboxTarget,

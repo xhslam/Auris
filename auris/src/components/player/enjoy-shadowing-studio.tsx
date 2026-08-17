@@ -1,25 +1,44 @@
 "use client";
 
 import {
-  useEffect,
+  CaretDown,
+  CaretUp,
+  Gear,
+  Microphone,
+  Pause,
+  Play,
+  Repeat,
+  SkipBack,
+  SkipForward,
+  Stop,
+  X,
+} from "@phosphor-icons/react";
+import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  type RefObject,
   type MouseEvent as ReactMouseEvent,
+  type RefObject,
 } from "react";
 import { startWavRecording, type ActiveWavRecorder } from "@/features/assessment/wav-recorder";
+import {
+  getBrowserPronunciationAssessmentStorage,
+} from "@/features/assessment/local-pronunciation-assessment-store";
 import type { PronunciationAssessmentRecord } from "@/features/assessment/pronunciation-assessment.types";
 import {
   listLocalRecordings,
   saveLocalRecording,
+  type LocalRecordingRecord,
 } from "@/features/recordings/local-recording-store";
 import {
   READING_WORD_CHAINS,
   type ReadingParagraph,
 } from "@/features/reading/reading-fixtures";
 import { tokenizeParagraph } from "@/features/reading/reading-text";
+import { createDesktopPronunciationAssessmentStorage } from "@/platform/desktop/assessment-adapter";
+import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 import "@/components/player/enjoy-shadowing-studio.css";
 
 type ShadowSegment = {
@@ -32,7 +51,6 @@ type ShadowSegment = {
 };
 
 type RecordingState = "idle" | "recording" | "assessing" | "ready" | "error";
-type TutorMode = "analysis" | "simplify" | "similar" | "summary";
 
 type EnjoyShadowingStudioProps = {
   currentTime: number;
@@ -56,13 +74,6 @@ type EnjoyShadowingStudioProps = {
 const DISPLAY_IPA_KEY = "auris.shadowing.display-ipa";
 const DISPLAY_TRANSLATION_KEY = "auris.shadowing.display-translation";
 const PLAYBACK_RATE_KEY = "auris.shadowing.playback-rate";
-const FINAL_RECORDING_ID = "shadowing-studio-final-recording";
-const TUTOR_LABELS: Record<TutorMode, string> = {
-  analysis: "句子分析",
-  simplify: "简化结构",
-  similar: "相似表达",
-  summary: "全文总结",
-};
 
 function formatClock(seconds: number) {
   const safe = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
@@ -84,7 +95,10 @@ function readRate() {
 
 function buildSegments(paragraphs: ReadingParagraph[], duration: number): ShadowSegment[] {
   const weights = paragraphs.map((paragraph) =>
-    Math.max(1, tokenizeParagraph(paragraph.english).filter((token) => /[A-Za-z]/.test(token)).length),
+    Math.max(
+      1,
+      tokenizeParagraph(paragraph.english).filter((token) => /[A-Za-z]/.test(token)).length,
+    ),
   );
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || 1;
   const usableDuration = duration > 0 ? duration : Math.max(12, paragraphs.length * 8);
@@ -113,6 +127,7 @@ function getRecorderMessage(error: unknown) {
     return "麦克风权限被拒绝，请在系统设置中允许 Auris 录音。";
   }
   if (message === "MICROPHONE_NOT_SUPPORTED") return "当前环境不支持麦克风录音。";
+  if (message === "AUDIO_CONTEXT_NOT_SUPPORTED") return "当前环境不支持音频录制。";
   return "录音启动失败，请稍后重试。";
 }
 
@@ -125,39 +140,33 @@ function getSegmentPhonetics(segment: ShadowSegment) {
   return phonetics.length > 0 ? phonetics.join(" · ") : "音标数据将在字幕解析后显示";
 }
 
-function createTutorAnswer(mode: TutorMode, segment: ShadowSegment, paragraphs: ReadingParagraph[]) {
-  const sentence = segment.paragraph.english;
-  if (mode === "analysis") {
-    return {
-      title: "结构拆解",
-      lines: [
-        `主干：${sentence.split(/[,;:]/)[0]?.trim() ?? sentence}`,
-        `意群：${sentence.split(/(?<=[,;:])\s+/).join("  /  ")}`,
-        `跟读建议：先贴住重音与停顿，再补齐弱读词；本句建议分 ${Math.max(2, Math.ceil(segment.words.length / 8))} 个气群。`,
-      ],
-    };
-  }
-  if (mode === "simplify") {
-    const clauses = sentence.split(/[,;:]/).map((item) => item.trim()).filter(Boolean);
-    return { title: "简化结构", lines: clauses.map((item, index) => `${index + 1}. ${item}`) };
-  }
-  if (mode === "similar") {
-    return {
-      title: "迁移表达",
-      lines: [
-        `保持语气：${sentence.replace(/\bthe\b/gi, "a").replace(/\byou\b/gi, "we")}`,
-        "复述时优先保留句型骨架，再替换名词与动词。",
-        "挑战：用同样节奏说一个与你学习经历有关的句子。",
-      ],
-    };
-  }
-  return {
-    title: "全文总结",
-    lines: [
-      paragraphs.map((paragraph) => paragraph.english).join(" "),
-      `共 ${paragraphs.length} 段。建议先完整听一遍，再开启单句循环逐段跟读，最后关闭文本做一次复述。`,
-    ],
-  };
+function getPracticeKey(sourceId: string, segmentId: string) {
+  return `${sourceId}:${segmentId}`;
+}
+
+function createRecordingId(sourceId: string, segmentId: string) {
+  const uniquePart = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `shadowing:${sourceId}:${segmentId}:${uniquePart}`;
+}
+
+function isEditableTarget(target: EventTarget | null) {
+  const element = target instanceof HTMLElement ? target : null;
+  return Boolean(
+    element?.isContentEditable
+      || element?.closest("input, textarea, select, [contenteditable='true']"),
+  );
+}
+
+function scoreTone(score: number) {
+  if (score >= 85) return "strong";
+  if (score >= 70) return "medium";
+  return "weak";
+}
+
+function setAudioCurrentTime(audio: HTMLAudioElement, time: number) {
+  audio.currentTime = time;
 }
 
 export function EnjoyShadowingStudio({
@@ -177,6 +186,7 @@ export function EnjoyShadowingStudio({
   const recorderRef = useRef<ActiveWavRecorder | null>(null);
   const recordingAudioRef = useRef<HTMLAudioElement | null>(null);
   const recordingUrlRef = useRef<string | null>(null);
+  const autoplayRecordingRef = useRef(false);
   const selectedSegmentRef = useRef<HTMLDivElement | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLooping, setIsLooping] = useState(false);
@@ -189,24 +199,34 @@ export function EnjoyShadowingStudio({
   );
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [recordings, setRecordings] = useState<LocalRecordingRecord[]>([]);
+  const [selectedRecordingId, setSelectedRecordingId] = useState<string | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [recordingPlaybackTime, setRecordingPlaybackTime] = useState(0);
   const [isRecordingPlaying, setIsRecordingPlaying] = useState(false);
-  const [assessment, setAssessment] = useState<PronunciationAssessmentRecord | null>(null);
+  const [assessments, setAssessments] = useState<PronunciationAssessmentRecord[]>([]);
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const [recordingNotice, setRecordingNotice] = useState<string | null>(null);
-  const [tutorMode, setTutorMode] = useState<TutorMode | null>(null);
-  const [tutorSubmitted, setTutorSubmitted] = useState(false);
+  const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
+  const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
 
   const segments = useMemo(() => buildSegments(paragraphs, duration), [duration, paragraphs]);
   const activeIndex = useMemo(() => {
     const found = segments.findIndex(
-      (segment, index) => currentTime >= segment.start && (currentTime < segment.end || index === segments.length - 1),
+      (segment, index) =>
+        currentTime >= segment.start
+        && (currentTime < segment.end || index === segments.length - 1),
     );
     return found >= 0 ? found : 0;
   }, [currentTime, segments]);
   const selectedSegment = segments[selectedIndex] ?? segments[0] ?? null;
-  const tutorAnswer = tutorMode && selectedSegment
-    ? createTutorAnswer(tutorMode, selectedSegment, paragraphs)
+  const selectedRecording = recordings.find((item) => item.id === selectedRecordingId) ?? null;
+  const selectedRecordingIndex = selectedRecording
+    ? recordings.findIndex((item) => item.id === selectedRecording.id)
+    : -1;
+  const selectedAssessment = selectedRecording
+    ? assessments.find((item) => item.id === selectedRecording.id)
+      ?? (selectedRecordingIndex === 0 ? assessments[0] : null)
     : null;
 
   const replaceRecordingUrl = useCallback((nextUrl: string | null) => {
@@ -216,9 +236,26 @@ export function EnjoyShadowingStudio({
     setRecordingUrl(nextUrl);
   }, []);
 
+  const createRecordingAudio = useCallback((url: string) => {
+    const audio = new Audio(url);
+    audio.onended = () => {
+      setIsRecordingPlaying(false);
+      setRecordingPlaybackTime(0);
+    };
+    audio.onpause = () => setIsRecordingPlaying(false);
+    audio.onplay = () => setIsRecordingPlaying(true);
+    audio.ontimeupdate = () => setRecordingPlaybackTime(audio.currentTime);
+    recordingAudioRef.current = audio;
+    return audio;
+  }, []);
+
   useEffect(() => {
     if (!isLooping) setSelectedIndex(activeIndex);
   }, [activeIndex, isLooping]);
+
+  useEffect(() => {
+    selectedSegmentRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [selectedIndex]);
 
   useEffect(() => {
     const media = mediaRef.current;
@@ -233,6 +270,10 @@ export function EnjoyShadowingStudio({
   useEffect(() => {
     window.localStorage.setItem(DISPLAY_TRANSLATION_KEY, String(displayTranslation));
   }, [displayTranslation]);
+
+  useEffect(() => {
+    setDisplayTranslation(showTranslation);
+  }, [showTranslation]);
 
   useEffect(() => {
     if (!isLooping || !selectedSegment || !isPlaying) return;
@@ -252,41 +293,99 @@ export function EnjoyShadowingStudio({
   }, [recordingState]);
 
   useEffect(() => {
+    let cancelled = false;
+    const practiceKey = selectedSegment
+      ? getPracticeKey(sourceId, selectedSegment.id)
+      : null;
+
+    setRecordings([]);
+    setAssessments([]);
+    setSelectedRecordingId(null);
+    setRecordingError(null);
+    setRecordingNotice(null);
+    setRecordingState("idle");
+
+    async function loadPracticeHistory() {
+      if (!practiceKey || !selectedSegment) return;
+
+      try {
+        const nextRecordings = (await listLocalRecordings())
+          .filter((item) => item.title === practiceKey)
+          .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+        if (!cancelled) {
+          setRecordings(nextRecordings);
+          setSelectedRecordingId(nextRecordings[0]?.id ?? null);
+          setRecordingState(nextRecordings.length > 0 ? "ready" : "idle");
+        }
+      } catch {
+        if (!cancelled) {
+          setRecordingNotice("本地录音历史暂时不可用，本次录音仍可在当前页面回放。");
+        }
+      }
+
+      try {
+        const desktopStorage = createDesktopPronunciationAssessmentStorage(getDesktopBridge());
+        const storage = desktopStorage ?? getBrowserPronunciationAssessmentStorage();
+        const nextAssessments = storage ? await storage.listAssessments() : [];
+        if (!cancelled) {
+          setAssessments(
+            nextAssessments
+              .filter(
+                (item) => item.sourceId === sourceId && item.sentenceId === selectedSegment.id,
+              )
+              .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
+          );
+        }
+      } catch {
+        if (!cancelled) setAssessments([]);
+      }
+    }
+
+    void loadPracticeHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSegment, sourceId]);
+
+  useEffect(() => {
+    recordingAudioRef.current?.pause();
+    recordingAudioRef.current = null;
+    setIsRecordingPlaying(false);
+    setRecordingPlaybackTime(0);
+
+    if (!selectedRecording) {
+      replaceRecordingUrl(null);
+      setRecordingSeconds(0);
+      return;
+    }
+
+    const nextUrl = URL.createObjectURL(selectedRecording.blob);
+    replaceRecordingUrl(nextUrl);
+    setRecordingSeconds(selectedRecording.durationMs / 1000);
+
+    if (autoplayRecordingRef.current) {
+      autoplayRecordingRef.current = false;
+      const audio = createRecordingAudio(nextUrl);
+      void audio.play().catch(() => undefined);
+    }
+  }, [createRecordingAudio, replaceRecordingUrl, selectedRecording]);
+
+  useEffect(() => {
+    if (!isAssessmentOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsAssessmentOpen(false);
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isAssessmentOpen]);
+
+  useEffect(() => {
     return () => {
       void recorderRef.current?.cleanup().catch(() => undefined);
       recordingAudioRef.current?.pause();
       if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const expectedTitle = `${sourceId}:${selectedSegment?.id ?? ""}`;
-
-    async function loadFinalRecording() {
-      try {
-        const finalRecording = (await listLocalRecordings()).find(
-          (item) => item.id === FINAL_RECORDING_ID && item.title === expectedTitle,
-        );
-        if (cancelled) return;
-        recordingAudioRef.current?.pause();
-        recordingAudioRef.current = null;
-        replaceRecordingUrl(finalRecording ? URL.createObjectURL(finalRecording.blob) : null);
-        setRecordingSeconds(finalRecording ? finalRecording.durationMs / 1000 : 0);
-        setRecordingState(finalRecording ? "ready" : "idle");
-        setAssessment(null);
-        setRecordingError(null);
-        setRecordingNotice(finalRecording ? "已载入最后一次完成的录音。" : null);
-      } catch {
-        if (!cancelled) setRecordingNotice("最终录音存储暂时不可用，本次仍可在当前页面回放。");
-      }
-    }
-
-    void loadFinalRecording();
-    return () => {
-      cancelled = true;
-    };
-  }, [replaceRecordingUrl, selectedSegment?.id, sourceId]);
 
   function selectSegment(index: number, autoplay = true) {
     const segment = segments[index];
@@ -307,7 +406,6 @@ export function EnjoyShadowingStudio({
   async function startRecording() {
     setRecordingError(null);
     setRecordingNotice(null);
-    setAssessment(null);
     recordingAudioRef.current?.pause();
     setIsRecordingPlaying(false);
     try {
@@ -325,8 +423,8 @@ export function EnjoyShadowingStudio({
     const recorder = recorderRef.current;
     recorderRef.current = null;
     if (recorder) await recorder.cleanup().catch(() => undefined);
-    setRecordingState(recordingUrl ? "ready" : "idle");
-    setRecordingSeconds(0);
+    setRecordingState(recordings.length > 0 ? "ready" : "idle");
+    setRecordingSeconds(selectedRecording ? selectedRecording.durationMs / 1000 : 0);
   }
 
   async function stopAndAssess() {
@@ -335,100 +433,159 @@ export function EnjoyShadowingStudio({
     recorderRef.current = null;
     setRecordingState("assessing");
     setRecordingError(null);
+
     try {
       const recording = await recorder.stop();
-      const nextUrl = URL.createObjectURL(recording.blob);
-      recordingAudioRef.current?.pause();
-      recordingAudioRef.current = null;
-      replaceRecordingUrl(nextUrl);
-      setRecordingSeconds(recording.durationMs / 1000);
-      setRecordingState("ready");
+      const createdAt = new Date().toISOString();
+      const recordingRecord: LocalRecordingRecord = {
+        blob: recording.blob,
+        createdAt,
+        durationMs: recording.durationMs,
+        id: createRecordingId(sourceId, selectedSegment.id),
+        mimeType: recording.mimeType,
+        title: getPracticeKey(sourceId, selectedSegment.id),
+      };
+      let recordingWasSaved = true;
 
       try {
-        await saveLocalRecording({
-          blob: recording.blob,
-          createdAt: new Date().toISOString(),
-          durationMs: recording.durationMs,
-          id: FINAL_RECORDING_ID,
-          mimeType: recording.mimeType,
-          title: `${sourceId}:${selectedSegment.id}`,
-        });
-        setRecordingNotice("已保存为唯一最终版；下一次完成录音会直接覆盖它。 ");
+        await saveLocalRecording(recordingRecord);
       } catch {
-        setRecordingNotice("最终版只保留在当前页面，关闭页面后不会保留。 ");
+        recordingWasSaved = false;
       }
+
+      autoplayRecordingRef.current = true;
+      setRecordings((current) => [
+        recordingRecord,
+        ...current.filter((item) => item.id !== recordingRecord.id),
+      ]);
+      setSelectedRecordingId(recordingRecord.id);
+      setRecordingSeconds(recording.durationMs / 1000);
+      setRecordingState("ready");
+      setRecordingNotice(
+        recordingWasSaved
+          ? "录音已保存在本机，正在生成发音评估…"
+          : "录音仅保留在当前页面，关闭后不会保存。",
+      );
 
       const form = new FormData();
       form.set("referenceText", selectedSegment.paragraph.english);
       form.set("locale", "en-US");
       form.set("sourceLabel", sourceLabel);
       form.set("audio", recording.blob, `shadow-${selectedSegment.id}.wav`);
-      const response = await fetch("/api/assessment/pronunciation", { body: form, method: "POST" });
+      const response = await fetch("/api/assessment/pronunciation", {
+        body: form,
+        method: "POST",
+      });
       const payload = (await response.json()) as {
         assessment?: PronunciationAssessmentRecord;
         code?: string;
         message?: string;
       };
+
       if (!response.ok || !payload.assessment) {
         if (payload.code === "AZURE_PRONUNCIATION_ASSESSMENT_NOT_CONFIGURED") {
-          setRecordingNotice("最终录音已保存；配置 Azure Speech 后可启用发音评分。 ");
+          setRecordingNotice("录音已保存在本机；配置 Azure Speech 后可显示发音评分。");
         } else {
           setRecordingError(payload.message ?? "录音已保留，但本次评分不可用。");
         }
         return;
       }
-      setAssessment({
+
+      const assessment: PronunciationAssessmentRecord = {
         ...payload.assessment,
         endMs: Math.round(selectedSegment.end * 1000),
+        id: recordingRecord.id,
         referenceText: selectedSegment.paragraph.english,
         sentenceId: selectedSegment.id,
         sourceId,
         sourceLabel,
         startMs: Math.round(selectedSegment.start * 1000),
-      });
+      };
+      setAssessments((current) => [
+        assessment,
+        ...current.filter((item) => item.id !== assessment.id),
+      ]);
+
+      try {
+        const desktopStorage = createDesktopPronunciationAssessmentStorage(getDesktopBridge());
+        const storage = desktopStorage ?? getBrowserPronunciationAssessmentStorage();
+        await storage?.saveAssessment(assessment);
+      } catch {
+        setRecordingNotice("评分已生成，但历史记录暂时无法保存。");
+        return;
+      }
+
+      setRecordingNotice("发音评估已完成，点击分数查看逐词详情。");
     } catch {
-      setRecordingState("error");
-      setRecordingError("录音处理失败，请重新录制。 ");
+      setRecordingState(recordings.length > 0 ? "ready" : "error");
+      setRecordingError("录音处理失败，请重新录制。");
     }
   }
 
   function toggleRecordingPlayback() {
     if (!recordingUrl) return;
-    let audio = recordingAudioRef.current;
-    if (!audio) {
-      audio = new Audio(recordingUrl);
-      audio.onended = () => setIsRecordingPlaying(false);
-      audio.onpause = () => setIsRecordingPlaying(false);
-      audio.onplay = () => setIsRecordingPlaying(true);
-      recordingAudioRef.current = audio;
-    }
-    if (audio.paused) void audio.play();
+    const audio = recordingAudioRef.current ?? createRecordingAudio(recordingUrl);
+    if (audio.paused) void audio.play().catch(() => undefined);
     else audio.pause();
   }
+
+  function seekRecording(time: number) {
+    if (!recordingUrl) return;
+    const audio = recordingAudioRef.current ?? createRecordingAudio(recordingUrl);
+    setAudioCurrentTime(audio, time);
+    setRecordingPlaybackTime(time);
+  }
+
+  useEffect(() => {
+    function handleRecordingShortcut(event: KeyboardEvent) {
+      if (event.code !== "KeyR" || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isEditableTarget(event.target) || isAssessmentOpen) return;
+      event.preventDefault();
+      if (recordingState === "recording") void stopAndAssess();
+      else if (recordingState !== "assessing") void startRecording();
+    }
+
+    window.addEventListener("keydown", handleRecordingShortcut);
+    return () => window.removeEventListener("keydown", handleRecordingShortcut);
+  });
 
   if (!selectedSegment) {
     return <div className="enjoy-shadow enjoy-shadow--empty">导入台词后即可开始跟读。</div>;
   }
 
-  const progress = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
+  const progress = duration > 0
+    ? Math.min(100, Math.max(0, (currentTime / duration) * 100))
+    : 0;
+  const recordingDuration = selectedRecording
+    ? selectedRecording.durationMs / 1000
+    : recordingSeconds;
+  const attemptNumber = selectedRecordingIndex >= 0
+    ? recordings.length - selectedRecordingIndex
+    : recordings.length;
 
   return (
     <section className="enjoy-shadow" aria-label="完整跟读练习台">
-      <header className="enjoy-shadow__header">
-        <div>
-          <span className="enjoy-shadow__eyebrow">SHADOWING STUDIO</span>
-          <h2>逐句跟读</h2>
-        </div>
-        <span className="enjoy-shadow__counter">{activeIndex + 1} / {segments.length}</span>
-      </header>
-
-      <div className="enjoy-shadow__transcript" style={{ "--shadow-font-scale": fontScale } as React.CSSProperties}>
+      <div
+        className="enjoy-shadow__transcript"
+        style={{ "--shadow-font-scale": fontScale } as React.CSSProperties}
+      >
         {segments.map((segment) => {
           const isActive = segment.order === activeIndex;
           const isSelected = segment.order === selectedIndex;
           const activeWord = isActive
-            ? Math.min(segment.words.length - 1, Math.max(0, Math.floor(((currentTime - segment.start) / Math.max(0.01, segment.end - segment.start)) * segment.words.length)))
+            ? Math.min(
+              segment.words.length - 1,
+              Math.max(
+                0,
+                Math.floor(
+                  ((currentTime - segment.start)
+                    / Math.max(0.01, segment.end - segment.start))
+                    * segment.words.length,
+                ),
+              ),
+            )
             : -1;
+
           return (
             <div
               className="enjoy-shadow__segment"
@@ -439,8 +596,8 @@ export function EnjoyShadowingStudio({
               ref={isSelected ? selectedSegmentRef : undefined}
             >
               <div className="enjoy-shadow__segment-meta">
-                <span>#{segment.order + 1}</span>
-                <span>{formatClock(segment.start)}–{formatClock(segment.end)}</span>
+                <span>{formatClock(segment.start)}</span>
+                <span>{formatClock(segment.end - segment.start)}</span>
               </div>
               <p className="enjoy-shadow__sentence" aria-label={segment.paragraph.english}>
                 {segment.words.map((word, wordIndex) => (
@@ -462,22 +619,173 @@ export function EnjoyShadowingStudio({
                   </button>
                 ))}
               </p>
-              {displayIPA ? <p className="enjoy-shadow__ipa">{getSegmentPhonetics(segment)}</p> : null}
-              {displayTranslation ? <p className="enjoy-shadow__translation">{segment.paragraph.translation}</p> : null}
+              {displayIPA ? (
+                <p className="enjoy-shadow__ipa">{getSegmentPhonetics(segment)}</p>
+              ) : null}
+              {displayTranslation ? (
+                <p className="enjoy-shadow__translation">{segment.paragraph.translation}</p>
+              ) : null}
+
+              {isSelected ? (
+                <section
+                  aria-label={`跟读练习 ${segment.id}`}
+                  className="enjoy-shadow__practice"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <header className="enjoy-shadow__practice-header">
+                    <div>
+                      <Microphone aria-hidden="true" size={16} weight="bold" />
+                      <strong>跟读练习</strong>
+                    </div>
+                    <span>{recordingState === "recording" ? formatClock(recordingSeconds) : formatClock(segment.end - segment.start)}</span>
+                  </header>
+                  <p className="enjoy-shadow__practice-hint">
+                    朗读结束后自动回放本次录音。按 <kbd>R</kbd> 开始或停止。
+                  </p>
+
+                  <div className="enjoy-shadow__analysis">
+                    <button
+                      aria-expanded={isAnalysisExpanded}
+                      className="enjoy-shadow__analysis-toggle"
+                      onClick={() => setIsAnalysisExpanded((value) => !value)}
+                      type="button"
+                    >
+                      <span>发音评估</span>
+                      {isAnalysisExpanded ? <CaretUp size={14} /> : <CaretDown size={14} />}
+                    </button>
+                    {isAnalysisExpanded ? (
+                      <div className="enjoy-shadow__analysis-content">
+                        {selectedAssessment?.wordAssessments.length ? (
+                          <div
+                            aria-label="逐词准确度"
+                            className="enjoy-shadow__word-chart"
+                            role="img"
+                          >
+                            {selectedAssessment.wordAssessments.map((word, index) => (
+                              <span
+                                data-tone={scoreTone(word.accuracyScore)}
+                                key={`${word.word}-${index}`}
+                                style={{ "--word-score": `${Math.max(8, word.accuracyScore)}%` } as React.CSSProperties}
+                                title={`${word.word} ${Math.round(word.accuracyScore)}`}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="enjoy-shadow__analysis-empty">
+                            {selectedRecording
+                              ? "本次录音暂无可用评分"
+                              : "完成一次录音后显示逐词准确度"}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="enjoy-shadow__recording-list">
+                    <span>已有录音</span>
+                    {recordings.length > 0 ? (
+                      <select
+                        aria-label="选择练习录音"
+                        onChange={(event) => setSelectedRecordingId(event.target.value)}
+                        value={selectedRecordingId ?? ""}
+                      >
+                        {recordings.map((recording, index) => (
+                          <option key={recording.id} value={recording.id}>
+                            {`练习 ${recordings.length - index}`}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <small>还没有录音</small>
+                    )}
+                  </div>
+
+                  <div className="enjoy-shadow__recording-player">
+                    {recordingUrl ? (
+                      <button
+                        aria-label={isRecordingPlaying ? "暂停我的录音" : "播放我的录音"}
+                        onClick={toggleRecordingPlayback}
+                        type="button"
+                      >
+                        {isRecordingPlaying ? <Pause size={14} weight="fill" /> : <Play size={14} weight="fill" />}
+                      </button>
+                    ) : (
+                      <span className="enjoy-shadow__recording-placeholder" />
+                    )}
+                    {selectedAssessment ? (
+                      <button
+                        aria-label="查看发音评估详情"
+                        className="enjoy-shadow__score-chip"
+                        data-tone={scoreTone(selectedAssessment.overallScore)}
+                        onClick={() => setIsAssessmentOpen(true)}
+                        type="button"
+                      >
+                        {Math.round(selectedAssessment.overallScore)}
+                      </button>
+                    ) : null}
+                    <span>{formatClock(recordingPlaybackTime)}</span>
+                    <input
+                      aria-label="我的录音进度"
+                      disabled={!recordingUrl}
+                      max={Math.max(recordingDuration, 0.01)}
+                      min={0}
+                      onChange={(event) => seekRecording(Number(event.target.value))}
+                      step={0.01}
+                      type="range"
+                      value={Math.min(recordingPlaybackTime, recordingDuration)}
+                    />
+                    <span>{formatClock(recordingDuration)}</span>
+                  </div>
+
+                  <div className="enjoy-shadow__recording-action">
+                    {recordingState === "recording" ? (
+                      <>
+                        <button
+                          aria-label="取消录音"
+                          className="enjoy-shadow__record-cancel"
+                          onClick={() => void cancelRecording()}
+                          type="button"
+                        >
+                          <X size={14} />
+                        </button>
+                        <button
+                          aria-label="停止录音并评分"
+                          className="enjoy-shadow__record enjoy-shadow__record--live"
+                          onClick={() => void stopAndAssess()}
+                          type="button"
+                        >
+                          <Stop size={15} weight="fill" />
+                        </button>
+                        <strong>{formatClock(recordingSeconds)}</strong>
+                      </>
+                    ) : (
+                      <button
+                        aria-label="开始跟读录音"
+                        className="enjoy-shadow__record"
+                        disabled={recordingState === "assessing"}
+                        onClick={() => void startRecording()}
+                        type="button"
+                      >
+                        <Microphone size={17} weight="fill" />
+                        <span>{recordingState === "assessing" ? "评分中…" : "录音"}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {recordingError ? (
+                    <p className="enjoy-shadow__error" role="status">{recordingError}</p>
+                  ) : null}
+                  {recordingNotice ? (
+                    <p className="enjoy-shadow__notice" role="status">{recordingNotice}</p>
+                  ) : null}
+                </section>
+              ) : null}
             </div>
           );
         })}
       </div>
 
-      <div className="enjoy-shadow__dock">
-        <div className="enjoy-shadow__tutor-row">
-          {(Object.keys(TUTOR_LABELS) as TutorMode[]).map((mode) => (
-            <button key={mode} onClick={() => { setTutorMode(mode); setTutorSubmitted(false); }} type="button">
-              {TUTOR_LABELS[mode]}
-            </button>
-          ))}
-        </div>
-
+      <footer className="enjoy-shadow__dock">
         <div className="enjoy-shadow__timeline-row">
           <span>{formatClock(currentTime)}</span>
           <input
@@ -492,61 +800,167 @@ export function EnjoyShadowingStudio({
           <span>{formatClock(duration)}</span>
         </div>
 
-        <div className="enjoy-shadow__recording-stage" data-state={recordingState}>
-          {recordingState === "recording" ? (
-            <>
-              <button aria-label="取消录音" className="enjoy-shadow__record-cancel" onClick={() => void cancelRecording()} type="button">×</button>
-              <button aria-label="停止录音并评分" className="enjoy-shadow__record enjoy-shadow__record--live" onClick={() => void stopAndAssess()} type="button"><span /></button>
-              <strong>{formatClock(recordingSeconds)}</strong>
-            </>
-          ) : (
-            <>
-              {recordingUrl ? (
-                <button aria-label={isRecordingPlaying ? "暂停我的录音" : "播放我的录音"} className="enjoy-shadow__record-play" onClick={toggleRecordingPlayback} type="button">
-                  {isRecordingPlaying ? "Ⅱ" : "▶"}
-                </button>
-              ) : null}
-              <button aria-label="开始跟读录音" className="enjoy-shadow__record" disabled={recordingState === "assessing"} onClick={() => void startRecording()} type="button">●</button>
-              {recordingState === "assessing" ? <strong>处理中…</strong> : recordingUrl ? <strong>{formatClock(recordingSeconds)}</strong> : null}
-            </>
-          )}
-        </div>
-
-        {assessment ? (
-          <div className="enjoy-shadow__score" role="status">
-            <strong>{Math.round(assessment.overallScore)}</strong>
-            <span>总分</span><span>准确 {Math.round(assessment.accuracyScore)}</span><span>流利 {Math.round(assessment.fluencyScore)}</span><span>完整 {Math.round(assessment.completenessScore)}</span>
-          </div>
-        ) : null}
-        {recordingError ? <p className="enjoy-shadow__error" role="status">{recordingError}</p> : null}
-        {recordingNotice ? <p className="enjoy-shadow__notice" role="status">{recordingNotice}</p> : null}
-
         <div className="enjoy-shadow__transport">
-          <button aria-label="播放或暂停" onClick={onTogglePlay} type="button">{isPlaying ? "Ⅱ" : "▶"}<small>{isPlaying ? "暂停" : "播放"}</small></button>
-          <button disabled={selectedIndex <= 0} onClick={() => selectSegment(selectedIndex - 1)} type="button">|◀<small>上一段</small></button>
-          <button disabled={selectedIndex >= segments.length - 1} onClick={() => selectSegment(selectedIndex + 1)} type="button">▶|<small>下一段</small></button>
-          <button className={isLooping ? "is-active" : ""} onClick={() => { setIsLooping((value) => !value); setSelectedIndex(activeIndex); }} type="button">↻<small>单句</small></button>
+          <button
+            aria-label="上一句"
+            disabled={selectedIndex <= 0}
+            onClick={() => selectSegment(selectedIndex - 1)}
+            type="button"
+          >
+            <SkipBack size={16} weight="fill" />
+          </button>
+          <button aria-label="播放或暂停" onClick={onTogglePlay} type="button">
+            {isPlaying ? <Pause size={17} weight="fill" /> : <Play size={17} weight="fill" />}
+          </button>
+          <button
+            aria-label="下一句"
+            disabled={selectedIndex >= segments.length - 1}
+            onClick={() => selectSegment(selectedIndex + 1)}
+            type="button"
+          >
+            <SkipForward size={16} weight="fill" />
+          </button>
+          <button
+            aria-label="单句循环"
+            className={isLooping ? "is-active" : ""}
+            onClick={() => {
+              setIsLooping((value) => !value);
+              setSelectedIndex(activeIndex);
+            }}
+            type="button"
+          >
+            <Repeat size={17} />
+          </button>
           <div className="enjoy-shadow__popover-anchor">
-            <button className={playbackRate !== 1 ? "is-active" : ""} onClick={() => setIsRateOpen((value) => !value)} type="button">{playbackRate.toFixed(1)}x<small>倍速</small></button>
-            {isRateOpen ? <div className="enjoy-shadow__rate-popover"><input aria-label="播放倍速" max={2} min={0.5} onChange={(event) => setPlaybackRate(Number(event.target.value))} step={0.1} type="range" value={playbackRate} /><span>{playbackRate.toFixed(1)}x</span></div> : null}
+            <button
+              aria-label="调整播放倍速"
+              className={playbackRate !== 1 ? "is-active" : ""}
+              onClick={() => setIsRateOpen((value) => !value)}
+              type="button"
+            >
+              {playbackRate.toFixed(1)}x
+            </button>
+            {isRateOpen ? (
+              <div className="enjoy-shadow__rate-popover">
+                <input
+                  aria-label="播放倍速"
+                  max={2}
+                  min={0.5}
+                  onChange={(event) => setPlaybackRate(Number(event.target.value))}
+                  step={0.1}
+                  type="range"
+                  value={playbackRate}
+                />
+                <span>{playbackRate.toFixed(1)}x</span>
+              </div>
+            ) : null}
           </div>
           <div className="enjoy-shadow__popover-anchor">
-            <button onClick={() => setIsSettingsOpen((value) => !value)} type="button">⚙<small>设置</small></button>
-            {isSettingsOpen ? <div className="enjoy-shadow__settings-popover">
-              <label><input checked={displayIPA} onChange={(event) => setDisplayIPA(event.target.checked)} type="checkbox" />显示音标</label>
-              <label><input checked={displayTranslation} onChange={(event) => setDisplayTranslation(event.target.checked)} type="checkbox" />显示翻译</label>
-            </div> : null}
+            <button
+              aria-label="跟读显示设置"
+              onClick={() => setIsSettingsOpen((value) => !value)}
+              type="button"
+            >
+              <Gear size={17} />
+            </button>
+            {isSettingsOpen ? (
+              <div className="enjoy-shadow__settings-popover">
+                <label>
+                  <input
+                    checked={displayIPA}
+                    onChange={(event) => setDisplayIPA(event.target.checked)}
+                    type="checkbox"
+                  />
+                  显示音标
+                </label>
+                <label>
+                  <input
+                    checked={displayTranslation}
+                    onChange={(event) => setDisplayTranslation(event.target.checked)}
+                    type="checkbox"
+                  />
+                  显示翻译
+                </label>
+              </div>
+            ) : null}
           </div>
+          <span className="enjoy-shadow__counter">
+            {activeIndex + 1}/{segments.length}
+          </span>
         </div>
-      </div>
+      </footer>
 
-      {tutorMode && tutorAnswer ? (
-        <div className="enjoy-shadow__modal-backdrop" onMouseDown={() => setTutorMode(null)}>
-          <section aria-label="AI 导师" className="enjoy-shadow__modal" onMouseDown={(event) => event.stopPropagation()}>
-            <header><div><span>AI TUTOR</span><h3>{TUTOR_LABELS[tutorMode]}</h3></div><button aria-label="关闭 AI 导师" onClick={() => setTutorMode(null)} type="button">×</button></header>
-            <textarea aria-label="AI 导师提示词" defaultValue={`${TUTOR_LABELS[tutorMode]}：${tutorMode === "summary" ? paragraphs.map((item) => item.english).join(" ") : selectedSegment.paragraph.english}`} />
-            {tutorSubmitted ? <div className="enjoy-shadow__tutor-answer"><strong>{tutorAnswer.title}</strong>{tutorAnswer.lines.map((line, index) => <p key={index}>{line}</p>)}</div> : null}
-            <button className="enjoy-shadow__tutor-submit" onClick={() => setTutorSubmitted(true)} type="button">生成学习卡</button>
+      {isAssessmentOpen && selectedAssessment ? (
+        <div
+          className="enjoy-shadow__modal-backdrop"
+          onMouseDown={() => setIsAssessmentOpen(false)}
+        >
+          <section
+            aria-label="发音评估详情"
+            aria-modal="true"
+            className="enjoy-shadow__modal"
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <header>
+              <div>
+                <h3>发音评估</h3>
+                <p>{`练习 ${attemptNumber} · 详细发音评估结果`}</p>
+              </div>
+              <button
+                aria-label="关闭发音评估"
+                onClick={() => setIsAssessmentOpen(false)}
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            <div className="enjoy-shadow__score-summary">
+              <div
+                className="enjoy-shadow__score-ring"
+                style={{ "--score": selectedAssessment.overallScore } as React.CSSProperties}
+              >
+                <span>总分</span>
+                <strong>{Math.round(selectedAssessment.overallScore)}</strong>
+              </div>
+              <div className="enjoy-shadow__score-bars">
+                {[
+                  ["准确度", selectedAssessment.accuracyScore],
+                  ["完整度", selectedAssessment.completenessScore],
+                  ["流畅度", selectedAssessment.fluencyScore],
+                ].map(([label, rawScore]) => {
+                  const score = Number(rawScore);
+                  return (
+                    <div key={String(label)}>
+                      <span>{label}</span>
+                      <i><b style={{ width: `${score}%` }} /></i>
+                      <strong>{Math.round(score)}</strong>
+                    </div>
+                  );
+                })}
+                <div>
+                  <span>韵律</span>
+                  <i><b className="is-unavailable" /></i>
+                  <strong>—</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="enjoy-shadow__word-results">
+              <span>发音分析</span>
+              <div>
+                {selectedAssessment.wordAssessments.map((word, index) => (
+                  <span
+                    data-tone={scoreTone(word.accuracyScore)}
+                    key={`${word.word}-${index}`}
+                    title={`准确度 ${Math.round(word.accuracyScore)}`}
+                  >
+                    {word.word}
+                  </span>
+                ))}
+              </div>
+            </div>
           </section>
         </div>
       ) : null}

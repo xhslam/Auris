@@ -20,6 +20,7 @@ function createBrowserSurfaceManager({
   const surfaces = new Map();
   const windowBackgrounds = new Map();
   const windowSideInsets = new Map();
+  const windowViewports = new Map();
   const defaultSideInsetRight = Math.min(480, Math.max(0, Math.round(sideInsetRight)));
 
   function resolveSideInset(windowId) {
@@ -111,6 +112,9 @@ function createBrowserSurfaceManager({
         windowId,
       });
     });
+    listen("page-title-updated", (_event, title) => {
+      onEvent({ tabId, title, type: "title-updated", windowId });
+    });
     listen("render-process-gone", (_event, details) =>
       onEvent({ details, tabId, type: "crashed", windowId }),
     );
@@ -153,7 +157,8 @@ function createBrowserSurfaceManager({
     for (const record of surfaces.values()) {
       if (record.windowId !== windowId || record.destroyed) continue;
       record.active = record === target;
-      record.view.setVisible(record.active);
+      const viewport = windowViewports.get(windowId);
+      record.view.setVisible(record.active && viewport?.visible !== false);
     }
     return true;
   }
@@ -166,6 +171,22 @@ function createBrowserSurfaceManager({
   }
 
   function layoutWindow(windowId, bounds) {
+    const viewport = windowViewports.get(windowId);
+    if (viewport) {
+      const pageBounds = {
+        height: viewport.height,
+        width: viewport.width,
+        x: viewport.x,
+        y: viewport.y,
+      };
+      for (const record of surfaces.values()) {
+        if (record.windowId === windowId && record.active && !record.destroyed) {
+          record.view.setBounds(pageBounds);
+          record.view.setVisible(viewport.visible);
+        }
+      }
+      return pageBounds;
+    }
     const width = Number.isFinite(bounds?.width) ? Math.max(0, Math.round(bounds.width)) : 0;
     const totalHeight = Number.isFinite(bounds?.height) ? Math.max(0, Math.round(bounds.height)) : 0;
     const inset = Math.min(Math.max(0, chromeInset), totalHeight);
@@ -182,6 +203,32 @@ function createBrowserSurfaceManager({
       }
     }
     return pageBounds;
+  }
+
+  function setWindowViewport(windowId, input) {
+    if (typeof windowId !== "string" || windowId.length === 0) {
+      throw new TypeError("windowId is required to set the browser viewport");
+    }
+    const values = [input?.x, input?.y, input?.width, input?.height];
+    if (!values.every(Number.isFinite)) {
+      throw new TypeError("browser viewport bounds must be finite numbers");
+    }
+    if (input.width < 0 || input.height < 0) {
+      throw new TypeError("browser viewport bounds cannot have a negative extent");
+    }
+    if (typeof input.visible !== "boolean") {
+      throw new TypeError("browser viewport visibility must be a boolean");
+    }
+    const viewport = Object.freeze({
+      height: Math.round(input.height),
+      visible: input.visible,
+      width: Math.round(input.width),
+      x: Math.round(input.x),
+      y: Math.round(input.y),
+    });
+    windowViewports.set(windowId, viewport);
+    layoutWindow(windowId, viewport);
+    return viewport;
   }
 
   function setSideInsetRight(windowId, width) {
@@ -264,6 +311,7 @@ function createBrowserSurfaceManager({
     for (const record of targets) destroySurface(record.windowId, record.tabId);
     windowBackgrounds.delete(windowId);
     windowSideInsets.delete(windowId);
+    windowViewports.delete(windowId);
     return targets.length;
   }
 
@@ -283,6 +331,7 @@ function createBrowserSurfaceManager({
     getSurface,
     layoutWindow,
     setSideInsetRight,
+    setWindowViewport,
     setWindowBackgroundColor,
   });
 }

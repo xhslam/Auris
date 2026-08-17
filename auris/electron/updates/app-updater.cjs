@@ -136,6 +136,7 @@ function isNewerVersion(candidate, current) {
  * @param {(url: string) => Promise<void>} options.openExternal 打开外部链接
  * @param {string|null} [options.releasesUrl]       无法就地安装时引导用户去的页面
  * @param {boolean} [options.canInstallInPlace]     是否具备就地安装条件（签名等）
+ * @param {boolean} [options.supported]             当前构建是否允许连接更新源
  * @param {(message: string, detail?: unknown) => void} [options.log]
  * @param {() => number} [options.now]                可注入时钟，便于验证停滞恢复
  * @param {number} [options.checkStallAfterMs]        检查操作无状态变化多久后可恢复
@@ -148,6 +149,7 @@ function createAppUpdater(options) {
     openExternal,
     releasesUrl = null,
     canInstallInPlace = true,
+    supported = true,
     log = () => {},
     now = () => Date.now(),
     checkStallAfterMs = 60_000,
@@ -175,6 +177,7 @@ function createAppUpdater(options) {
     errorCode: null,
     releasesUrl,
     canInstallInPlace: canInstallInPlace === true,
+    supported: supported === true,
     lastCheckedAt: null,
     stalledOperation: null,
   };
@@ -196,6 +199,7 @@ function createAppUpdater(options) {
       errorCode: state.errorCode,
       releasesUrl: state.releasesUrl,
       canInstallInPlace: state.canInstallInPlace,
+      supported: state.supported,
       lastCheckedAt: state.lastCheckedAt,
       stalledOperation: state.stalledOperation,
     };
@@ -339,6 +343,10 @@ function createAppUpdater(options) {
   }
 
   async function runCheck() {
+    // electron-updater 在未打包的 Electron 中会记录“skip”但可能返回
+    // 一个永不 settle 的 promise。不要让开发构建进入 checking，否则 watchdog
+    // 会把正常的开发环境误报成“更新卡死”。
+    if (!state.supported) return false;
     if (inFlight.check) return inFlight.check;
     const generation = startOperation("check");
     const operation = (async () => {

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { NotesWorkbench } from "@/components/notes-v2/notes-workbench";
+import type { BrowserNativeBridge } from "@/features/browser/browser-bridge";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import type { VaultEntry } from "@/features/notes/vault/vault-types";
 import type { DesktopTerminalBridge } from "@/platform/desktop/desktop-bridge";
@@ -677,6 +678,50 @@ describe("NotesWorkbench", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("notes-prosemirror-host")).toBeInTheDocument();
     expect(screen.queryByTestId("notes-codemirror-host")).not.toBeInTheDocument();
+  });
+
+  it("opens the embedded browser from the Note corner and returns to the editor", async () => {
+    const user = userEvent.setup();
+    const observer = class {
+      disconnect() {}
+      observe() {}
+      unobserve() {}
+    };
+    vi.stubGlobal("ResizeObserver", observer);
+    const snapshot = {
+      currentWindowId: "browser-window-embedded",
+      windows: [{ activeTabId: null, tabs: [], windowId: "browser-window-embedded" }],
+    };
+    const bridge: BrowserNativeBridge = {
+      invoke: async (command) => command === "getSnapshot" ? snapshot : true,
+      subscribe: () => true,
+      unsubscribe: () => true,
+    };
+    window.aurisBrowser = bridge;
+
+    render(
+      <NotesWorkbench
+        activePath="notes/daily.md"
+        documents={[createDocument()]}
+        entries={ENTRIES}
+        onDocumentChange={vi.fn()}
+        onOpenPath={vi.fn()}
+        openTabs={["notes/daily.md"]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "打开内置浏览器" }));
+    expect(await screen.findByRole("region", { name: "Note 内置浏览器" }))
+      .toBeInTheDocument();
+    expect(screen.queryByTestId("notes-prosemirror-host")).not.toBeInTheDocument();
+    expect(document.querySelector(".notes-v2__minimal-properties-pane")).toBeNull();
+    expect(document.querySelector(".notes-v2__rail")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "返回笔记" }));
+    expect(screen.getByTestId("notes-prosemirror-host")).toBeInTheDocument();
+
+    delete window.aurisBrowser;
+    vi.unstubAllGlobals();
   });
 
   it("shows the external editor conflict dialog with reload, keep, and copy actions", async () => {

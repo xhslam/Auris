@@ -14,6 +14,7 @@ import { BrowserGrantCenter } from "@/components/browser-window/browser-grant-ce
 import { NotesLocaleSettings } from "@/components/settings/notes-locale-settings";
 import { NotesShortcutSettings } from "@/components/settings/notes-shortcut-settings";
 import { AppUpdatePanel } from "@/components/updates/app-update-panel";
+import { UPDATE_SETTINGS_NAVIGATION_EVENT } from "@/features/updates/update-navigation";
 import { useAppUpdateStore } from "@/features/updates/update-store";
 import type {
   DesktopMcpClient,
@@ -577,6 +578,31 @@ export function AurisSettings({ accent }: { accent?: string }) {
     securityReason: "browser-security-unavailable",
     securityVerified: false,
   });
+
+  // 右上角更新按钮通过 query 深链到「关于 → 更新」。在 effect
+  // 中读取可避免 SSR/CSR 初始树不一致。
+  useEffect(() => {
+    const selectRequestedSection = (requestedSection: string | null) => {
+      if (requestedSection && CATEGORIES.some((category) => category.id === requestedSection)) {
+        setActiveCat(requestedSection);
+      }
+    };
+    const syncFromLocation = () => {
+      selectRequestedSection(new URLSearchParams(window.location.search).get("section"));
+    };
+    const handleNavigationRequest = (event: Event) => {
+      const detail = (event as CustomEvent<{ section?: string }>).detail;
+      selectRequestedSection(detail?.section ?? null);
+    };
+
+    syncFromLocation();
+    window.addEventListener("popstate", syncFromLocation);
+    window.addEventListener(UPDATE_SETTINGS_NAVIGATION_EVENT, handleNavigationRequest);
+    return () => {
+      window.removeEventListener("popstate", syncFromLocation);
+      window.removeEventListener(UPDATE_SETTINGS_NAVIGATION_EVENT, handleNavigationRequest);
+    };
+  }, []);
 
   /* --- accent css vars ---
      默认不写内联强调色，让外层 data-app-theme 的高对比令牌生效；只有调用方

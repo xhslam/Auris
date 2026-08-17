@@ -117,6 +117,22 @@ describe("createAppUpdater", () => {
     expect(updater.getSnapshot().status).toBe("idle");
   });
 
+  it("keeps development builds idle without calling electron-updater", async () => {
+    const checkForUpdates = vi.fn(async () => new Promise(() => {}));
+    const { updater } = createUpdater(
+      { checkForUpdates },
+      { supported: false },
+    );
+
+    await expect(updater.check()).resolves.toBe(false);
+    expect(checkForUpdates).not.toHaveBeenCalled();
+    expect(updater.getSnapshot()).toMatchObject({
+      status: "idle",
+      supported: false,
+    });
+    expect(updater.checkForStall()).toEqual({ operation: null, stalled: false });
+  });
+
   it("reports up-to-date when the feed offers the current version", async () => {
     const { updater } = createUpdater({
       checkForUpdates: async () => ({ updateInfo: { version: "1.0.0" } }),

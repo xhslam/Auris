@@ -434,6 +434,8 @@ export type DesktopUpdateSnapshot = {
   releasesUrl: string | null;
   status: DesktopUpdateStatus;
   stalledOperation: "check" | "download" | null;
+  /** false 表示开发构建：可打开更新中心/发布页，但不连接自动更新源。 */
+  supported?: boolean;
   updateInfo: DesktopUpdateInfo | null;
 };
 
