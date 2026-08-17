@@ -3244,3 +3244,18 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   background: var(--accent-10);
   outline: none;
 }
+
+/* Sidebar geometry baseline: expanded navigation must retain the collapsed
+   rail's vertical anchor (36px brand content + 8px padding + 12px measured gap) and 36px / 4px rhythm. */
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__brand {
+  min-height: 36px;
+  margin-bottom: 12px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link {
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 8px !important;
+}

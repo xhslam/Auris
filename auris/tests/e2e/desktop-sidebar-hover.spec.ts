@@ -54,7 +54,9 @@ test("keeps the app sidebar as a persistent home-style rail on notes", async ({
   );
 
   // Hover must not change layout width (expand is click-only).
-  expect(Math.abs(revealedViewportWidth - initialViewportWidth)).toBeLessThan(1);
+  expect(Math.abs(revealedViewportWidth - initialViewportWidth)).toBeLessThan(
+    1,
+  );
 
   const sidebarBox = await sidebar.boundingBox();
 
@@ -122,9 +124,14 @@ test("keeps the bottom navigation item visible on shorter desktop heights", asyn
 
   const metrics = await page.evaluate(() => {
     const sidebarElement = document.querySelector(".desktop-app-sidebar");
-    const sectionsElement = document.querySelector(".desktop-app-sidebar__sections");
+    const sectionsElement = document.querySelector(
+      ".desktop-app-sidebar__sections",
+    );
 
-    if (!(sidebarElement instanceof HTMLElement) || !(sectionsElement instanceof HTMLElement)) {
+    if (
+      !(sidebarElement instanceof HTMLElement) ||
+      !(sectionsElement instanceof HTMLElement)
+    ) {
       throw new Error("Desktop sidebar elements are missing");
     }
 
@@ -173,7 +180,10 @@ test("shows the persistent app sidebar on the reading page", async ({
   await expect(page.getByTestId("desktop-sidebar-reveal-zone")).toHaveCount(0);
   await expect(sidebar).toHaveAttribute("data-visible", "false");
   await expect(sidebar).toBeVisible();
-  await expect(sidebar.locator('[href="/reading"]')).toHaveAttribute("data-active", "true");
+  await expect(sidebar.locator('[href="/reading"]')).toHaveAttribute(
+    "data-active",
+    "true",
+  );
   await expect(page.getByRole("button", { name: "展开侧栏" })).toBeVisible();
   await expect(reader.getByRole("button", { name: "导入" })).toHaveCount(0);
   await expect(reader.getByRole("button", { name: "收藏" })).toHaveCount(0);
@@ -190,7 +200,9 @@ test("pushes main content when the sidebar expands", async ({ page }) => {
 
   const collapsed = await page.evaluate(() => {
     const sidebarElement = document.querySelector(".desktop-app-sidebar");
-    const viewportElement = document.querySelector(".desktop-app-frame__viewport");
+    const viewportElement = document.querySelector(
+      ".desktop-app-frame__viewport",
+    );
     if (
       !(sidebarElement instanceof HTMLElement) ||
       !(viewportElement instanceof HTMLElement)
@@ -209,6 +221,7 @@ test("pushes main content when the sidebar expands", async ({ page }) => {
   await page.getByRole("button", { name: "展开侧栏" }).click();
 
   await expect(shell).toHaveAttribute("data-sidebar-expanded", "true");
+  await page.waitForTimeout(260);
   await expect(sidebar).toHaveAttribute("data-expanded", "true");
   await expect(sidebar).toHaveAttribute("data-reading-nav", "true");
   await expect(page.getByRole("button", { name: "阅读精选" })).toBeVisible();
@@ -220,7 +233,9 @@ test("pushes main content when the sidebar expands", async ({ page }) => {
 
   const expanded = await page.evaluate(() => {
     const sidebarElement = document.querySelector(".desktop-app-sidebar");
-    const viewportElement = document.querySelector(".desktop-app-frame__viewport");
+    const viewportElement = document.querySelector(
+      ".desktop-app-frame__viewport",
+    );
     if (
       !(sidebarElement instanceof HTMLElement) ||
       !(viewportElement instanceof HTMLElement)
@@ -273,9 +288,7 @@ test("navigates through the floating sidebar without reloading the app shell", a
   expect(routeMarker).toBe("kept-alive");
 });
 
-test("keeps the standalone home rail links clickable", async ({
-  page,
-}) => {
+test("keeps the standalone home rail links clickable", async ({ page }) => {
   await page.goto("/");
 
   const rail = page.locator(".desktop-app-sidebar");
@@ -306,7 +319,10 @@ test("keeps the standalone home rail at the same dimensions as the app rail", as
     const railElement = document.querySelector(".desktop-app-sidebar");
     const buttonElement = document.querySelector(".desktop-app-sidebar__link");
 
-    if (!(railElement instanceof HTMLElement) || !(buttonElement instanceof HTMLElement)) {
+    if (
+      !(railElement instanceof HTMLElement) ||
+      !(buttonElement instanceof HTMLElement)
+    ) {
       throw new Error("Home rail elements are missing");
     }
 
@@ -358,9 +374,13 @@ test("keeps compact sidebar controls stable at home-rail dimensions", async ({
 
   const initialMetrics = await page.evaluate(() => {
     const sidebarElement = document.querySelector(".desktop-app-sidebar");
-    const brandElement = document.querySelector(".desktop-app-sidebar__brand-img");
+    const brandElement = document.querySelector(
+      ".desktop-app-sidebar__brand-img",
+    );
     const linkElement = document.querySelector(".desktop-app-sidebar__link");
-    const linkMarkElement = document.querySelector(".desktop-app-sidebar__link-mark");
+    const linkMarkElement = document.querySelector(
+      ".desktop-app-sidebar__link-mark",
+    );
 
     if (
       !(sidebarElement instanceof HTMLElement) ||
@@ -397,4 +417,45 @@ test("keeps compact sidebar controls stable at home-rail dimensions", async ({
   await expect(brand).toBeVisible();
   await expect(firstLink).toBeVisible();
   await expect(firstLinkMark).toBeVisible();
+});
+
+test("preserves collapsed-rail geometry for top-level navigation when expanded", async ({
+  page,
+}) => {
+  await page.goto("/notes");
+  const shell = page.locator(".desktop-app-shell");
+  const measure = async () =>
+    page.evaluate(() => {
+      const rectFor = (href: string) => {
+        const element = document.querySelector<HTMLAnchorElement>(
+          `.desktop-app-sidebar__link[href="${href}"]`,
+        );
+        if (!element) throw new Error(`Missing navigation link: ${href}`);
+        const rect = element.getBoundingClientRect();
+        return { height: rect.height, top: rect.top };
+      };
+      const home = rectFor("/");
+      const notes = rectFor("/notes");
+      return {
+        gap: notes.top - (home.top + home.height),
+        home,
+        notes,
+      };
+    });
+
+  await expect(shell).toHaveAttribute("data-sidebar-expanded", "false");
+  const collapsed = await measure();
+  await page.getByRole("button", { name: "展开侧栏" }).click();
+  await expect(shell).toHaveAttribute("data-sidebar-expanded", "true");
+  await page.waitForTimeout(260);
+  const expanded = await measure();
+
+  expect(collapsed.home.height).toBeCloseTo(36, 1);
+  expect(collapsed.notes.height).toBeCloseTo(36, 1);
+  expect(collapsed.gap).toBeCloseTo(4, 1);
+  expect(expanded.home.height).toBeCloseTo(collapsed.home.height, 1);
+  expect(expanded.notes.height).toBeCloseTo(collapsed.notes.height, 1);
+  expect(expanded.home.top).toBeCloseTo(collapsed.home.top, 1);
+  expect(expanded.notes.top).toBeCloseTo(collapsed.notes.top, 1);
+  expect(expanded.gap).toBeCloseTo(collapsed.gap, 1);
 });
