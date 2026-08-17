@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AurisSettings } from "@/components/settings/auris-settings";
+import { UPDATE_SETTINGS_NAVIGATION_EVENT } from "@/features/updates/update-navigation";
 import type { DesktopUpdateSnapshot } from "@/platform/desktop/desktop-bridge";
 import { resetHydratedDesktopBridgeCacheForTests } from "@/platform/desktop/use-hydrated-desktop-bridge";
 import { __resetAppUpdateStoreForTests } from "@/features/updates/update-store";
@@ -22,7 +23,9 @@ function installUpdatesBridge(snapshot: Partial<DesktopUpdateSnapshot> = {}) {
     errorCode: null,
     lastCheckedAt: null,
     releasesUrl: "https://example.test/releases",
+    stalledOperation: null,
     status: "idle" as const,
+    supported: true,
     updateInfo: null,
     ...snapshot,
   };
@@ -36,6 +39,7 @@ function installUpdatesBridge(snapshot: Partial<DesktopUpdateSnapshot> = {}) {
       onStateChange: vi.fn(() => () => undefined),
       openReleases: vi.fn(async () => ({ ok: true })),
       quitAndInstall: vi.fn(async () => ({ ok: true })),
+      recover: vi.fn(async () => ({ ok: true, snapshot: state })),
       reset: vi.fn(async () => state),
     },
   });
@@ -47,9 +51,35 @@ describe("AurisSettings feature truthfulness", () => {
   afterEach(() => {
     delete window.shadowingDesktop;
     window.localStorage.clear();
+    window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/");
     resetHydratedDesktopBridgeCacheForTests();
     __resetUpdateSubscriptionForTests();
     __resetAppUpdateStoreForTests();
+  });
+
+  it("switches an already-mounted settings page to About on an update navigation request", async () => {
+    render(<AurisSettings />);
+    expect(screen.getByRole("heading", { name: "外观" })).toBeInTheDocument();
+
+    window.dispatchEvent(
+      new CustomEvent(UPDATE_SETTINGS_NAVIGATION_EVENT, {
+        detail: { section: "about" },
+      }),
+    );
+
+    expect(await screen.findByRole("heading", { name: "关于" })).toBeInTheDocument();
+  });
+
+  it("opens the About update center and checks immediately from the update-button deep link", async () => {
+    window.history.replaceState(null, "", "/settings?section=about&check=1#updates");
+    const { check } = installUpdatesBridge();
+
+    render(<AurisSettings />);
+
+    expect(await screen.findByRole("heading", { name: "关于" })).toBeInTheDocument();
+    await waitFor(() => expect(check).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: "立即检查" })).toBeInTheDocument();
   });
 
   it("describes the active byte-based large-file policy without inert toggles", async () => {

@@ -142,6 +142,19 @@ const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
+const AURIS_APP_VERSION = (() => {
+  if (app.isPackaged) return app.getVersion();
+  try {
+    const manifest = JSON.parse(
+      fsSync.readFileSync(path.join(PROJECT_ROOT, "package.json"), "utf8"),
+    );
+    return typeof manifest.version === "string" && manifest.version
+      ? manifest.version
+      : app.getVersion();
+  } catch {
+    return app.getVersion();
+  }
+})();
 const AI_LIBRARY_DB_FILE = "shadowing-ai-library.db";
 const DESKTOP_CONFIG_FILE = "shadowing-desktop-config.json";
 const DESKTOP_PLUGIN_DIR = path.join(".shadowing", "plugins");
@@ -1866,11 +1879,14 @@ async function getAppUpdater() {
   appUpdater = createAppUpdater({
     autoUpdater,
     canInstallInPlace: await canInstallUpdateInPlace(),
-    getCurrentVersion: () => app.getVersion(),
+    getCurrentVersion: () => AURIS_APP_VERSION,
     log: (message, detail) =>
       writeStartupLog(`${message}${detail === undefined ? "" : ` ${String(detail)}`}`),
     openExternal: (targetUrl) => shell.openExternal(targetUrl),
     releasesUrl: getUpgradeUrl() ?? "https://github.com/xhslam/auris/releases",
+    // electron-updater 在 dev 中会 skip 检查却不一定 settle promise。将能力
+    // 显式交给状态机，让 renderer 展示“开发模式”而不是假的红色错误。
+    supported: app.isPackaged,
   });
 
   appUpdater.onStateChange(pushUpdateState);
@@ -3246,6 +3262,9 @@ async function createMainWindow() {
   const initialUrl = new URL(initialRoutePath, `${targetUrl}/`).toString();
   await mainWindow.loadURL(initialUrl);
   writeStartupLog(`createMainWindow:loaded ${initialUrl}`);
+  if (browserWindowManager?.attachEmbeddedHost) {
+    await browserWindowManager.attachEmbeddedHost({ hostWindow: mainWindow });
+  }
 }
 
 async function ensureMainWindow() {
@@ -3937,7 +3956,7 @@ function registerDesktopHandlers() {
     const updater = await getAppUpdater();
     return {
       ...updater.getSnapshot(),
-      currentVersion: app.getVersion(),
+      currentVersion: AURIS_APP_VERSION,
     };
   });
 
@@ -4088,6 +4107,7 @@ app.whenReady().then(async () => {
   }
   await ensureMainWindow();
   initializeBrowserSubsystem(nextServerUrl);
+  await browserWindowManager?.attachEmbeddedHost?.({ hostWindow: mainWindow });
   initializeNiaSubsystem();
   initializeWorkflowSubsystem();
   initializeBrowserStatusSubsystem();

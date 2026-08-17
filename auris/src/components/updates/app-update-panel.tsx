@@ -15,7 +15,7 @@
  * - 未签名构建：不显示"重启安装"，而是显式说明并给"打开发布页"
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useAppUpdateStore,
   selectUpdateSnapshot,
@@ -29,6 +29,7 @@ import {
   UPDATE_CHECK_FREQUENCIES,
   type UpdateCheckFrequency,
 } from "@/features/updates/update-settings";
+import { UPDATE_CHECK_REQUEST_KEY } from "@/features/updates/update-navigation";
 
 const FREQUENCY_LABELS: Record<UpdateCheckFrequency, string> = {
   daily: "每天一次",
@@ -129,8 +130,30 @@ export function AppUpdatePanel() {
     useAppUpdateOperations();
   const { settings, update: updateSetting } = useAppUpdateSettings();
   const [isRestarting, setIsRestarting] = useState(false);
+  const handledDeepLinkCheck = useRef(false);
 
-  const { canInstallInPlace, downloadProgress, error, errorCode, stalledOperation, status, updateInfo } = snapshot;
+  const { canInstallInPlace, downloadProgress, error, errorCode, stalledOperation, status, supported, updateInfo } = snapshot;
+
+  const runManualCheck = useCallback(async () => {
+    if (status === "stalled") {
+      await recoverStalledUpdate();
+    }
+    await checkForUpdates({ manual: true });
+  }, [checkForUpdates, recoverStalledUpdate, status]);
+
+  // 指示器是一键入口：打开更新中心后立即开始检查。开发
+  // 构建只展示说明和发布页，不会误连生产更新源。
+  useEffect(() => {
+    if (!available || handledDeepLinkCheck.current) return;
+    const requestedByUrl = new URLSearchParams(window.location.search).get("check") === "1";
+    const requestedByNavigation =
+      window.sessionStorage.getItem(UPDATE_CHECK_REQUEST_KEY) === "1";
+    if (!requestedByUrl && !requestedByNavigation) return;
+    handledDeepLinkCheck.current = true;
+    window.sessionStorage.removeItem(UPDATE_CHECK_REQUEST_KEY);
+    if (!supported) return;
+    void runManualCheck();
+  }, [available, runManualCheck, supported]);
 
   useEffect(() => {
     if (status !== "installing") {
@@ -145,23 +168,35 @@ export function AppUpdatePanel() {
 
   const frequencyIndex = UPDATE_CHECK_FREQUENCIES.indexOf(settings.checkFrequency);
 
-  if (!available) {
+  if (!available || !supported) {
     return (
-      <div className="auris-update">
+      <div className="auris-update" id="updates">
         <div className="auris-update__row">
           <div className="auris-update__label">自动更新</div>
-          <div className="auris-update__value">当前环境不可用</div>
+          <div className="auris-update__value">
+            {available ? "开发模式" : "当前环境不可用"}
+          </div>
         </div>
         <p className="auris-update__note">
           自动更新只在打包后的桌面端可用。开发模式（<code>npm run desktop:dev</code>）下不会
-          连接发布源，因此这里不显示会失败的检查按钮。
+          连接发布源，避免把正常的调试会话误报成更新卡死。
         </p>
+        {available && snapshot.releasesUrl ? (
+          <button
+            className="auris-update__btn"
+            onClick={() => void openReleasesPage()}
+            type="button"
+          >
+            打开发布页
+          </button>
+        ) : null}
+        <style>{UPDATE_PANEL_CSS}</style>
       </div>
     );
   }
 
   return (
-    <div className="auris-update" data-status={status}>
+    <div className="auris-update" data-status={status} id="updates">
       <div className="auris-update__row">
         <div>
           <div className="auris-update__label">当前状态</div>
@@ -177,11 +212,7 @@ export function AppUpdatePanel() {
             className="auris-update__btn"
             disabled={busy}
             onClick={() => {
-              if (status === "stalled") {
-                void recoverStalledUpdate();
-                return;
-              }
-              void checkForUpdates({ manual: true });
+              void runManualCheck();
             }}
             type="button"
           >

@@ -17,6 +17,7 @@ import type { NotesEditorMode } from "@/features/notes/editor/editor-types";
 type CommandInfrastructureInput = {
   editorMode: NotesEditorMode;
   hasActiveDocument: boolean;
+  onOpenBrowser?: () => void;
   onOpenNiaPicker?: () => void;
   onOpenPalette?: () => void;
   onSave?: () => void;
@@ -109,6 +110,11 @@ export function useNotesCommandInfrastructure(
         handler: () => inputRef.current.onToggleTerminal?.(),
         id: "notes.terminal",
         title: "Toggle terminal",
+      }),
+      bus.register({
+        handler: () => inputRef.current.onOpenBrowser?.(),
+        id: "notes.browser",
+        title: "Open embedded browser",
       }),
       bus.register({
         handler: () => inputRef.current.onOpenNiaPicker?.(),

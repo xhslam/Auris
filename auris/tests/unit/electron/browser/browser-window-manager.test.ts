@@ -80,6 +80,63 @@ describe("browser window manager", () => {
     expect(fixture.manager.getControllerForWebContents({ id: 999 })).toBeNull();
   });
 
+  it("projects native page title updates into browser chrome", async () => {
+    const fixture = createFixture();
+    const opened = await fixture.manager.openBrowser({
+      localFixture: true,
+      url: "https://example.com/docs",
+    });
+
+    fixture.manager.handleSurfaceEvent({
+      tabId: opened.tabs[0].tabId,
+      title: "Example documentation",
+      type: "title-updated",
+      windowId: opened.windowId,
+    });
+
+    expect(fixture.registry.getTab(opened.windowId, opened.tabs[0].tabId).title)
+      .toBe("Example documentation");
+  });
+
+  it("attaches an embedded browser workspace to the trusted main window without owning its lifecycle", async () => {
+    const fixture = createFixture();
+    const attached = await fixture.manager.attachEmbeddedHost({
+      hostWindow: fixture.mainWindow,
+    });
+    const controller = fixture.manager.getControllerForWebContents(
+      fixture.mainWindow.webContents,
+    );
+
+    expect(attached).toMatchObject({ activeTabId: null, tabs: [] });
+    expect(fixture.windows).toHaveLength(0);
+    expect(controller).not.toBeNull();
+
+    const tab = await controller.createTab({ url: "https://example.com/notes" });
+    await controller.setViewport({
+      height: 520,
+      visible: true,
+      width: 800,
+      x: 220,
+      y: 118,
+    });
+
+    expect(fixture.surfaceManager.createSurface).toHaveBeenCalledWith(expect.objectContaining({
+      hostWindow: fixture.mainWindow,
+      tabId: tab.tabId,
+      windowId: attached.windowId,
+    }));
+    expect(fixture.surfaceManager.setWindowViewport).toHaveBeenCalledWith(
+      attached.windowId,
+      { height: 520, visible: true, width: 800, x: 220, y: 118 },
+    );
+
+    await expect(controller.closeTab({ tabId: tab.tabId })).resolves.toBe(false);
+    expect(fixture.mainWindow.close).not.toHaveBeenCalled();
+    expect(fixture.registry.getTab(attached.windowId, tab.tabId)).not.toBeNull();
+    expect(fixture.manager.closeAll()).toBe(0);
+    expect(fixture.mainWindow.close).not.toHaveBeenCalled();
+  });
+
   it("focuses explicit targets and keeps browser/main window lifecycles independent", async () => {
     const fixture = createFixture();
     const first = await fixture.manager.openBrowser({ localFixture: true });
@@ -290,9 +347,11 @@ function createFixture({
     getSurface: vi.fn((windowId, tabId) =>
       surfaceManager.surfaces.get(`${windowId}:${tabId}`) ?? null),
     layoutWindow: vi.fn(),
+    setWindowViewport: vi.fn((_windowId, viewport) => viewport),
   };
   const registry = createBrowserRegistry();
-  const mainWindow = { close: vi.fn() };
+  const mainWindow = new FakeBrowserWindow({ embedded: true });
+  windows.pop();
   const securityGates = createBrowserSecurityGates(
     securityVerified
       ? undefined
@@ -345,6 +404,7 @@ type FakeWindow = {
   emit(name: string, ...args: unknown[]): void;
   focus: ReturnType<typeof vi.fn>;
   getBounds: ReturnType<typeof vi.fn>;
+  getContentBounds?: ReturnType<typeof vi.fn>;
   isDestroyed: ReturnType<typeof vi.fn>;
   loadedUrl: string;
   options: Record<string, unknown>;

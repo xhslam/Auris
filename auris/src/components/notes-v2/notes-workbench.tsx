@@ -19,6 +19,7 @@ import {
 import {
   NotesWorkbenchCenter,
 } from "@/components/notes-v2/notes-workbench-center";
+import { NotesEmbeddedBrowser } from "@/components/notes-v2/notes-embedded-browser";
 import {
   NotesWriteConflictDialog,
 } from "@/components/notes-v2/notes-write-conflict-dialog";
@@ -319,6 +320,9 @@ export function NotesWorkbench({
     null,
   );
   const [isTerminalSplitOpen, setIsTerminalSplitOpen] = useState(false);
+  const [activeWorkspaceSurface, setActiveWorkspaceSurface] = useState<
+    "browser" | "note"
+  >("note");
   const [isTerminalResizing, setIsTerminalResizing] = useState(false);
   // 打开选择器那一刻的内容快照。不在渲染时现取：用户打开选择器后光标可能移动
   // （点击列表就会移出编辑器），现取会让「改进选区」拿到一段空选区。
@@ -489,6 +493,7 @@ export function NotesWorkbench({
   const commandInfrastructure = useNotesCommandInfrastructure({
     editorMode,
     hasActiveDocument: Boolean(activeDocument),
+    onOpenBrowser: () => setActiveWorkspaceSurface("browser"),
     onOpenNiaPicker: handleOpenNiaPicker,
     onOpenPalette: () => onOpenCommandPaletteChange?.(true),
     onSave: onSaveActiveDocument,
@@ -520,6 +525,16 @@ export function NotesWorkbench({
     () => clampRightSidebarWidth(terminalWidth, shellWidth, "terminal"),
     [shellWidth, terminalWidth],
   );
+
+  const browserLayoutVersion = [
+    shellWidth,
+    activeWorkspaceSurface === "note" && isTerminalSplitOpen
+      ? resolvedTerminalWidth
+      : 0,
+    activeWorkspaceSurface === "browser" || rightSidebarCollapsed
+      ? "collapsed"
+      : rightSidebarMode,
+  ].join(":");
 
   const updateTerminalWidth = useCallback(
     (nextWidth: number) => {
@@ -662,7 +677,10 @@ export function NotesWorkbench({
         data-typewriter-mode={viewPreferences.typewriterMode ? "true" : "false"}
         lang={notesLocale}
         data-shortcut-conflicts={commandInfrastructure.conflicts.length}
-        data-terminal-open={isTerminalSplitOpen ? "true" : "false"}
+        data-active-surface={activeWorkspaceSurface}
+        data-terminal-open={
+          activeWorkspaceSurface === "note" && isTerminalSplitOpen ? "true" : "false"
+        }
         ref={shellRef}
         style={
           {
@@ -675,31 +693,43 @@ export function NotesWorkbench({
         <div className="notes-v2__minimal-workspace">
           {/* 最左侧、在画布之前：rail 是工作区级导航，层级高于当前笔记。
               非桌面环境（没有 vault bridge）它自己返回 null，不占位。 */}
-          <NotesWorkspaceRail />
+          <NotesWorkspaceRail enabled={activeWorkspaceSurface === "note"} />
           <main className="notes-v2__minimal-canvas">
-            <NotesBreadcrumbBar path={activeDocument?.path ?? null} />
-            <NotesWorkbenchCenter
-              activeDocument={activeDocument}
-              activePath={activePath}
-              editorMode={editorMode}
-              documents={documents}
-              errorMessage={errorMessage}
-              isLoading={isLoading}
-              minimalChrome
-              onClosePath={onClosePath}
-              onDocumentChange={onDocumentChange}
-              onEditorActiveLineChange={onEditorActiveLineChange}
-              onEditorBridgeReady={handleBridgeReady}
-              onEditorSelectionStateChange={setSelectionState}
-              onEnsureWikiLinkNote={onEnsureWikiLinkNote}
-              onOpenPath={onOpenPath}
-              onOpenWikiLink={onOpenWikiLink}
-              openDocuments={openDocuments}
-              rightToolbarActions={null}
-              viewPreferences={viewPreferences}
-            />
+            {activeWorkspaceSurface === "browser" ? (
+              <NotesEmbeddedBrowser
+                layoutVersion={browserLayoutVersion}
+                onReturnToNotes={() => setActiveWorkspaceSurface("note")}
+                theme={readingTheme}
+              />
+            ) : (
+              <>
+                <NotesBreadcrumbBar path={activeDocument?.path ?? null} />
+                <NotesWorkbenchCenter
+                  activeDocument={activeDocument}
+                  activePath={activePath}
+                  editorMode={editorMode}
+                  documents={documents}
+                  errorMessage={errorMessage}
+                  isLoading={isLoading}
+                  minimalChrome
+                  onClosePath={onClosePath}
+                  onDocumentChange={onDocumentChange}
+                  onEditorActiveLineChange={onEditorActiveLineChange}
+                  onEditorBridgeReady={handleBridgeReady}
+                  onEditorSelectionStateChange={setSelectionState}
+                  onEnsureWikiLinkNote={onEnsureWikiLinkNote}
+                  onOpenPath={onOpenPath}
+                  onOpenWikiLink={onOpenWikiLink}
+                  openDocuments={openDocuments}
+                  rightToolbarActions={null}
+                  viewPreferences={viewPreferences}
+                />
+              </>
+            )}
           </main>
-          {!rightSidebarCollapsed && rightSidebarMode === "properties" ? (
+          {activeWorkspaceSurface === "note"
+          && !rightSidebarCollapsed
+          && rightSidebarMode === "properties" ? (
             <aside
               aria-label={NOTES_UI_COPY.rightDock.properties.label}
               className="notes-v2__minimal-properties-pane"
@@ -709,7 +739,7 @@ export function NotesWorkbench({
             </aside>
           ) : null}
 
-          {isTerminalSplitOpen ? (
+          {activeWorkspaceSurface === "note" && isTerminalSplitOpen ? (
             <>
               <div
                 aria-label="调整终端宽度"
@@ -761,7 +791,14 @@ export function NotesWorkbench({
           onRenamePath={onRenamePath}
           onRevealPath={onRevealPath}
           onMovePath={onMovePath}
-          onOpenPath={onOpenPath}
+          onOpenBrowser={() => {
+            setOpenLeftPopover(null);
+            setActiveWorkspaceSurface("browser");
+          }}
+          onOpenPath={(path) => {
+            setActiveWorkspaceSurface("note");
+            onOpenPath(path);
+          }}
           onPickDirectory={onPickDirectory}
           openPopover={openLeftPopover}
           setOpenPopover={setOpenLeftPopover}

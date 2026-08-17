@@ -268,6 +268,7 @@ export function useAppUpdateChecker() {
   const { checkForUpdates, downloadUpdate } = useAppUpdateOperations();
 
   const { status, updateInfo } = snapshot;
+  const supported = snapshot.supported;
 
   const hasChecked = useRef(false);
   const hasAutoDownloaded = useRef(false);
@@ -281,7 +282,7 @@ export function useAppUpdateChecker() {
   const lastCheckTimestamp = settings.lastCheckTimestamp;
 
   useEffect(() => {
-    if (!available || hasChecked.current) return undefined;
+    if (!available || !supported || hasChecked.current) return undefined;
     if (!shouldCheckNow(autoCheckEnabled, checkFrequency, lastCheckTimestamp)) {
       return undefined;
     }
@@ -298,7 +299,7 @@ export function useAppUpdateChecker() {
     }, STARTUP_CHECK_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [available, autoCheckEnabled, checkFrequency, checkForUpdates, lastCheckTimestamp]);
+  }, [available, autoCheckEnabled, checkFrequency, checkForUpdates, lastCheckTimestamp, supported]);
 
   useEffect(() => {
     const prevStatus = prevStatusForToastRef.current;

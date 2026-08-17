@@ -5,11 +5,10 @@
  *
  * 对齐 vmark `src/components/StatusBar/UpdateIndicator.tsx` 的可见性规则：
  *
- * - idle / up-to-date 不渲染（没消息就不占位）
- * - checking 渲染但不可点（正在做事，点了也没有别的动作）
- * - available 在开启自动下载时不渲染——它会立刻转入 downloading，
- *   闪一下再消失比不显示更糟（vmark 同样的判断）
- * - ready / error / available(手动) 可点：分别是重启安装、重试、去设置
+ * - idle / up-to-date 仍保留一个可点入口，它是更新中心而不只是告警灯
+ * - checking / downloading 也可点开详情，不让进度只藏在 tooltip 里
+ * - available / ready / error 用点和色彩表达状态，但入口本身始终保留
+ * - 所有状态都进入「设置 → 关于 → 更新」，并在需要时自动检查
  *
  * 与 vmark 的差异：Auris 的设置是同一个窗口内的一条路由，所以"去设置"用
  * router.push 而不是 openSettingsWindow。
@@ -20,11 +19,11 @@ import {
   useAppUpdateStore,
   selectUpdateSnapshot,
 } from "@/features/updates/update-store";
+import { useAppUpdateSubscription } from "@/features/updates/use-app-updates";
 import {
-  useAppUpdateOperations,
-  useAppUpdateSettings,
-  useAppUpdateSubscription,
-} from "@/features/updates/use-app-updates";
+  UPDATE_CHECK_REQUEST_KEY,
+  UPDATE_SETTINGS_NAVIGATION_EVENT,
+} from "@/features/updates/update-navigation";
 
 type IndicatorConfig = {
   clickable: boolean;
@@ -36,10 +35,10 @@ type IndicatorConfig = {
 function getIndicatorConfig(status: string): IndicatorConfig | null {
   switch (status) {
     case "checking":
-      return { clickable: false, glyph: "⟳", showDot: false, tone: "neutral" };
+      return { clickable: true, glyph: "⟳", showDot: false, tone: "neutral" };
     case "downloading":
     case "installing":
-      return { clickable: false, glyph: "↓", showDot: false, tone: "accent" };
+      return { clickable: true, glyph: "↓", showDot: false, tone: "accent" };
     case "available":
     case "manual-download":
       return { clickable: true, glyph: "↓", showDot: true, tone: "accent" };
@@ -49,7 +48,7 @@ function getIndicatorConfig(status: string): IndicatorConfig | null {
     case "stalled":
       return { clickable: true, glyph: "!", showDot: false, tone: "danger" };
     default:
-      return null;
+      return { clickable: true, glyph: "⟳", showDot: false, tone: "neutral" };
   }
 }
 
@@ -60,18 +59,11 @@ export function AppUpdateIndicator() {
   const router = useRouter();
   const snapshot = useAppUpdateStore(selectUpdateSnapshot);
   const available = useAppUpdateStore((state) => state.available);
-  const { checkForUpdates, recoverStalledUpdate, restartToInstall } = useAppUpdateOperations();
-  const { settings } = useAppUpdateSettings();
 
-  const { downloadProgress, status, updateInfo } = snapshot;
+  const { downloadProgress, status, supported, updateInfo } = snapshot;
   const config = getIndicatorConfig(status);
 
   if (!available || !config) {
-    return null;
-  }
-
-  // 自动下载会立刻把 available 推进到 downloading——闪一下再消失不如不显示。
-  if (status === "available" && settings.autoDownload && snapshot.canInstallInPlace) {
     return null;
   }
 
@@ -80,8 +72,8 @@ export function AppUpdateIndicator() {
       ? Math.round((downloadProgress.downloaded / downloadProgress.total) * 100)
       : null;
 
-  let title = "应用更新";
-  if (status === "checking") {
+  let title = supported ? "检查应用更新" : "更新中心（开发模式）";
+  if (supported && status === "checking") {
     title = "正在检查更新…";
   } else if (status === "available" && updateInfo) {
     title = `有可用更新：${updateInfo.version}`;
@@ -92,7 +84,7 @@ export function AppUpdateIndicator() {
   } else if (status === "installing") {
     title = "正在安装更新…";
   } else if (status === "ready" && updateInfo) {
-    title = `更新 ${updateInfo.version} 已就绪，点击重启安装`;
+    title = `更新 ${updateInfo.version} 已就绪，点击查看并安装`;
   } else if (status === "error") {
     title = "更新检查失败，点击重试";
   } else if (status === "stalled") {
@@ -100,22 +92,16 @@ export function AppUpdateIndicator() {
   }
 
   const handleClick = () => {
-    if (!config.clickable) {
-      return;
-    }
-    if (status === "ready") {
-      void restartToInstall();
-      return;
-    }
-    if (status === "error") {
-      void checkForUpdates({ manual: true });
-      return;
-    }
-    if (status === "stalled") {
-      void recoverStalledUpdate();
-      return;
-    }
-    router.push("/settings");
+    // 路由跨页时 query 会在新页触发检查；已在设置页时 Next
+    // 可能复用组件，因此另发一个同页切换信号，并用 sessionStorage
+    // 保留一次性检查意图，直到更新面板真正挂载。
+    window.sessionStorage.setItem(UPDATE_CHECK_REQUEST_KEY, "1");
+    window.dispatchEvent(
+      new CustomEvent(UPDATE_SETTINGS_NAVIGATION_EVENT, {
+        detail: { section: "about" },
+      }),
+    );
+    router.push("/settings?section=about&check=1#updates");
   };
 
   return (

@@ -19,6 +19,11 @@ const {
   BROWSER_STATUS_EVENT_CHANNEL,
 } = require("./browser/browser-status-ipc.cjs");
 const {
+  BROWSER_CHROME_COMMANDS,
+  BROWSER_COMMAND_CHANNEL,
+  BROWSER_SNAPSHOT_CHANNEL,
+} = require("./browser/browser-ipc.cjs");
+const {
   NOTES_RECOVERY_COMMAND_CHANNEL,
 } = require("./notes/notes-recovery-ipc.cjs");
 
@@ -26,6 +31,9 @@ const NIA_ALLOWED = new Set(
   NIA_IPC_COMMANDS.filter((command) => command !== "subscribe" && command !== "unsubscribe"),
 );
 const WORKFLOW_ALLOWED = new Set(WORKFLOW_COMMANDS);
+const BROWSER_CHROME_ALLOWED = new Set(BROWSER_CHROME_COMMANDS.filter(
+  (command) => command !== "subscribe" && command !== "unsubscribe",
+));
 
 function invoke(channel, ...args) {
   return ipcRenderer.invoke(channel, ...args);
@@ -141,7 +149,49 @@ const workflowBridge = Object.freeze({
   },
 });
 
+const browserChromeWrappers = new Map();
+let browserChromeMainSubscribed = false;
+let browserChromeSync = Promise.resolve();
+
+function syncBrowserChromeSubscription() {
+  browserChromeSync = browserChromeSync.then(async () => {
+    const wantsSubscription = browserChromeWrappers.size > 0;
+    if (wantsSubscription === browserChromeMainSubscribed) return;
+    const command = wantsSubscription ? "subscribe" : "unsubscribe";
+    await invoke(BROWSER_COMMAND_CHANNEL, { command, payload: {} });
+    browserChromeMainSubscribed = wantsSubscription;
+  }).catch(() => {
+    // Main remains authoritative; a later listener change will retry the sync.
+  });
+}
+
+const browserChromeBridge = Object.freeze({
+  invoke(command, payload = {}) {
+    if (!BROWSER_CHROME_ALLOWED.has(command)) {
+      return Promise.reject(new TypeError("Unsupported browser command"));
+    }
+    return invoke(BROWSER_COMMAND_CHANNEL, { command, payload });
+  },
+  subscribe(listener) {
+    if (typeof listener !== "function" || browserChromeWrappers.has(listener)) return false;
+    const wrapper = (_event, snapshot) => listener(snapshot);
+    browserChromeWrappers.set(listener, wrapper);
+    ipcRenderer.on(BROWSER_SNAPSHOT_CHANNEL, wrapper);
+    syncBrowserChromeSubscription();
+    return true;
+  },
+  unsubscribe(listener) {
+    const wrapper = browserChromeWrappers.get(listener);
+    if (!wrapper) return false;
+    browserChromeWrappers.delete(listener);
+    ipcRenderer.removeListener(BROWSER_SNAPSHOT_CHANNEL, wrapper);
+    syncBrowserChromeSubscription();
+    return true;
+  },
+});
+
 contextBridge.exposeInMainWorld("aurisWorkflows", workflowBridge);
+contextBridge.exposeInMainWorld("aurisBrowser", browserChromeBridge);
 
 contextBridge.exposeInMainWorld("shadowingDesktop", {
   menu: {

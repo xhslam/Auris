@@ -27,6 +27,7 @@ const BROWSER_CHROME_COMMANDS = Object.freeze([
   "resolveApproval",
   "setChromeTheme",
   "setSideInset",
+  "setViewport",
   "subscribe",
   "unsubscribe",
 ]);
@@ -175,6 +176,26 @@ function parsePayload(command, value) {
         throw new TypeError("Invalid browser side inset width");
       }
       return { width: Math.min(480, Math.max(0, Math.round(payload.width))) };
+    }
+    case "setViewport": {
+      const payload = strictObject(value, ["x", "y", "width", "height", "visible"]);
+      const bounds = [payload.x, payload.y, payload.width, payload.height];
+      if (!bounds.every((entry) => typeof entry === "number" && Number.isFinite(entry))) {
+        throw new TypeError("Browser viewport bounds must be finite numbers");
+      }
+      if (payload.width < 0 || payload.height < 0) {
+        throw new TypeError("Browser viewport bounds cannot have a negative extent");
+      }
+      if (typeof payload.visible !== "boolean") {
+        throw new TypeError("Browser viewport visibility must be a boolean");
+      }
+      return {
+        height: Math.round(payload.height),
+        visible: payload.visible,
+        width: Math.round(payload.width),
+        x: Math.round(payload.x),
+        y: Math.round(payload.y),
+      };
     }
     default:
       throw new TypeError(`Unsupported browser chrome command: ${command}`);

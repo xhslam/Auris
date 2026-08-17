@@ -32,6 +32,7 @@ describe("browser chrome IPC", () => {
       "resolveApproval",
       "setChromeTheme",
       "setSideInset",
+      "setViewport",
       "subscribe",
       "unsubscribe",
     ]);

@@ -3,7 +3,7 @@ export type BrowserChromeCommand =
   | "goBack" | "goForward" | "reload" | "stop" | "bookmark"
   | "removeBookmark" | "find" | "setZoom" | "resolveApproval"
   | "createWindow" | "focusWindow" | "closeWindow" | "createTabInWindow"
-  | "setChromeTheme" | "setSideInset";
+  | "setChromeTheme" | "setSideInset" | "setViewport";
 
 export type BrowserApprovalDecision =
   | "deny"
@@ -92,6 +92,13 @@ export function createBrowserBridge(native: BrowserNativeBridge) {
     setZoom: (payload: { factor: number; tabId?: string }) => invoke("setZoom", payload),
     setChromeTheme: (payload: { backgroundColor: string }) => invoke("setChromeTheme", payload),
     setSideInset: (payload: { width: number }) => invoke("setSideInset", payload),
+    setViewport: (payload: {
+      height: number;
+      visible: boolean;
+      width: number;
+      x: number;
+      y: number;
+    }) => invoke("setViewport", payload),
     stop: (payload: { tabId?: string } = {}) => invoke("stop", payload),
     subscribe(listener: (snapshot: BrowserChromeSnapshot) => void) {
       native.subscribe(listener);

@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const niaIpc = require("../../../../electron/nia/nia-ipc.cjs");
 const workflowIpc = require("../../../../electron/workflows/workflow-ipc.cjs");
 const browserStatusIpc = require("../../../../electron/browser/browser-status-ipc.cjs");
+const browserIpc = require("../../../../electron/browser/browser-ipc.cjs");
 const notesRecoveryIpc = require("../../../../electron/notes/notes-recovery-ipc.cjs");
 
 type NiaPreload = {
@@ -16,8 +17,10 @@ type NiaPreload = {
   unsubscribe(listener: (event: unknown) => void): boolean;
 };
 
+type BrowserPreload = NiaPreload;
+
 function loadMainPreload() {
-  const exposed: Record<string, { nia?: NiaPreload }> = {};
+  const exposed: Record<string, { nia?: NiaPreload } | BrowserPreload> = {};
   const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
   const invoke = vi.fn(async () => true);
   const ipcRenderer = {
@@ -43,7 +46,7 @@ function loadMainPreload() {
       if (id === "electron") {
         return {
           contextBridge: {
-            exposeInMainWorld: (name: string, value: { nia?: NiaPreload }) => {
+            exposeInMainWorld: (name: string, value: { nia?: NiaPreload } | BrowserPreload) => {
               exposed[name] = value;
             },
           },
@@ -52,13 +55,19 @@ function loadMainPreload() {
       }
       if (String(id).includes("nia-ipc")) return niaIpc;
       if (String(id).includes("workflow-ipc")) return workflowIpc;
+      if (String(id).includes("browser-ipc")) return browserIpc;
       if (String(id).includes("browser-status-ipc")) return browserStatusIpc;
       if (String(id).includes("notes-recovery-ipc")) return notesRecoveryIpc;
       throw new Error(`Unexpected require: ${id}`);
     },
     setTimeout,
   });
-  return { api: exposed.shadowingDesktop!.nia!, invoke, listeners };
+  return {
+    api: (exposed.shadowingDesktop as { nia: NiaPreload }).nia,
+    browserApi: exposed.aurisBrowser as BrowserPreload,
+    invoke,
+    listeners,
+  };
 }
 
 describe("main Notes preload Nia bridge", () => {
@@ -85,5 +94,24 @@ describe("main Notes preload Nia bridge", () => {
     wrapper({}, { type: "delta", runId: "r", text: "x" });
     expect(listener).toHaveBeenCalledWith({ type: "delta", runId: "r", text: "x" });
     expect(fixture.api.unsubscribe(listener)).toBe(true);
+  });
+
+  it("exposes the bounded browser bridge in the trusted Note renderer", async () => {
+    const fixture = loadMainPreload();
+
+    await fixture.browserApi.invoke("setViewport", {
+      height: 480,
+      visible: true,
+      width: 760,
+      x: 200,
+      y: 120,
+    });
+    expect(fixture.invoke).toHaveBeenCalledWith(browserIpc.BROWSER_COMMAND_CHANNEL, {
+      command: "setViewport",
+      payload: { height: 480, visible: true, width: 760, x: 200, y: 120 },
+    });
+    await expect(fixture.browserApi.invoke("subscribe")).rejects.toThrow(
+      /Unsupported browser command/u,
+    );
   });
 });

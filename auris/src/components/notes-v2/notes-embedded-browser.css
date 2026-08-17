@@ -1,0 +1,39 @@
+.notes-v2__embedded-browser {
+  height: 100%;
+  min-height: 0;
+}
+
+.notes-v2__embedded-browser .browser-tab-strip {
+  padding-left: 50px;
+}
+
+.notes-v2__embedded-browser-back {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 18px;
+  height: 32px;
+  justify-content: center;
+  left: 10px;
+  position: absolute;
+  top: 8px;
+  width: 32px;
+  z-index: 4;
+}
+
+.notes-v2__embedded-browser-back:hover,
+.notes-v2__embedded-browser-back:focus-visible {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.notes-v2__embedded-browser .browser-window-stage {
+  /* Electron's native page cannot sit underneath renderer controls. Keep only
+     the exact bottom-control strip, so the page otherwise fills the workspace. */
+  bottom: 26px;
+  right: 0;
+}
