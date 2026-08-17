@@ -136,6 +136,7 @@ const {
   normalizeKnownVaultRoots,
   rememberVaultRoot: rememberKnownVaultRoot,
 } = require("./vault/vault-roots.cjs");
+const { walkVaultFiles } = require("./vault/vault-file-walker.cjs");
 const { createAppUpdater } = require("./updates/app-updater.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
@@ -2339,43 +2340,6 @@ async function resolveVaultTarget(relativePath) {
     safeRelativePath,
     vaultPath,
   };
-}
-
-async function walkVaultFiles(vaultPath, relativeDirectory = "") {
-  const currentDirectory = path.join(vaultPath, relativeDirectory);
-  const entries = await fs.readdir(currentDirectory, { withFileTypes: true });
-  const records = [];
-
-  for (const entry of entries) {
-    if (relativeDirectory === "" && entry.name === ".shadowing") {
-      continue;
-    }
-
-    const relativePath = relativeDirectory
-      ? path.posix.join(relativeDirectory.replace(/\\/g, "/"), entry.name)
-      : entry.name;
-    const absolutePath = path.join(vaultPath, relativePath);
-
-    if (entry.isDirectory()) {
-      // Emit the directory itself so empty folders are visible in the file tree
-      records.push({
-        absolutePath,
-        fileName: entry.name,
-        isDirectory: true,
-        relativePath: relativePath.replace(/\\/g, "/"),
-      });
-      records.push(...(await walkVaultFiles(vaultPath, relativePath)));
-      continue;
-    }
-
-    records.push({
-      absolutePath,
-      fileName: entry.name,
-      relativePath: relativePath.replace(/\\/g, "/"),
-    });
-  }
-
-  return records.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
 async function clearPluginRuntime() {
