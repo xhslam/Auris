@@ -40,12 +40,25 @@ afterEach(() => {
 });
 
 describe("DesktopNotesVaultNav", () => {
-  it("keeps the collapsed sidebar to a compact add-vault entry", async () => {
+  it("shows configured vault glyph squares and preserves the compact add square", async () => {
     installVaultBridge();
     render(<DesktopNotesVaultNav isSidebarExpanded={false} />);
-    await screen.findByRole("button", {
+
+    const personal = await screen.findByRole("button", {
+      name: NOTES_UI_COPY.workspaceRail.activate("个人笔记"),
+    });
+    const course = screen.getByRole("button", {
+      name: NOTES_UI_COPY.workspaceRail.activate("课程笔记"),
+    });
+    const add = screen.getByRole("button", {
       name: NOTES_UI_COPY.workspaceRail.add,
     });
+
+    expect(personal).toHaveTextContent("个");
+    expect(personal).toHaveAttribute("title", "个人笔记");
+    expect(course).toHaveTextContent("课");
+    expect(course).toHaveAttribute("title", "课程笔记");
+    expect(add).toHaveTextContent("+");
     expect(screen.queryByText("个人笔记")).not.toBeInTheDocument();
     expect(screen.queryByText("课程笔记")).not.toBeInTheDocument();
   });
@@ -58,17 +71,21 @@ describe("DesktopNotesVaultNav", () => {
     expect(screen.getByText("添加笔记库")).toBeInTheDocument();
   });
 
-  it("uses the native picker to add a vault and switches selected vaults", async () => {
+  it("uses the compact glyph square to switch vaults and keeps native add", async () => {
     const { pickDirectory, setRoot } = installVaultBridge();
     const user = userEvent.setup();
-    render(<DesktopNotesVaultNav isSidebarExpanded />);
-    await user.click(await screen.findByRole("button", { name: "添加笔记库" }));
-    await waitFor(() => expect(pickDirectory).toHaveBeenCalledOnce());
+    render(<DesktopNotesVaultNav isSidebarExpanded={false} />);
+
     await user.click(
-      screen.getByRole("button", {
+      await screen.findByRole("button", {
         name: NOTES_UI_COPY.workspaceRail.activate("课程笔记"),
       }),
     );
     await waitFor(() => expect(setRoot).toHaveBeenCalledWith("/vaults/course"));
+
+    await user.click(
+      screen.getByRole("button", { name: NOTES_UI_COPY.workspaceRail.add }),
+    );
+    await waitFor(() => expect(pickDirectory).toHaveBeenCalledOnce());
   });
 });

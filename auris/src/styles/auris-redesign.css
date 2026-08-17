@@ -3146,42 +3146,73 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 /* Notes vaults live under the Notes navigation item instead of consuming a
-   separate editor-side column. */
+   separate editor-side column. The compact rail mirrors VMark: each configured
+   vault keeps one stable, name-derived glyph and the add control remains a square. */
 .desktop-notes-vault-nav {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 3px;
   width: 100%;
   padding: 1px 0 4px;
 }
 
 .desktop-notes-vault-nav__roots {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
 }
 
 .desktop-notes-vault-nav__add,
 .desktop-notes-vault-nav__root {
-  border: 0;
+  box-sizing: border-box;
+  border: 1px solid transparent;
   color: var(--app-muted, var(--muted));
   background: transparent;
   cursor: pointer;
   font: inherit;
 }
 
+.desktop-notes-vault-nav__root,
 .desktop-notes-vault-nav__add {
-  display: inline-flex;
+  display: grid;
   width: 32px;
   height: 32px;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  border: 1px solid var(--app-line, var(--border));
+  min-height: 32px;
+  place-items: center;
+  margin: 0;
   border-radius: 8px;
+}
+
+.desktop-notes-vault-nav__root {
   color: var(--app-text, var(--text));
-  font-size: 18px;
+}
+
+.desktop-notes-vault-nav__root-mark {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1;
 }
 
+.desktop-notes-vault-nav__root[data-active="true"] {
+  color: var(--accent);
+  border-color: var(--accent-16);
+  background: var(--accent-10);
+}
+
+.desktop-notes-vault-nav__root[data-unavailable="true"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.desktop-notes-vault-nav__root:hover:not(:disabled),
+.desktop-notes-vault-nav__root:focus-visible:not(:disabled),
 .desktop-notes-vault-nav__add:hover,
 .desktop-notes-vault-nav__add:focus-visible {
   color: var(--accent);
@@ -3190,9 +3221,16 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   outline: none;
 }
 
+.desktop-notes-vault-nav__add {
+  border-color: var(--app-line, var(--border));
+  color: var(--app-text, var(--text));
+  font-size: 18px;
+  line-height: 1;
+}
+
 .desktop-notes-vault-nav__error {
   width: 32px;
-  margin: 0 auto;
+  margin: 0;
   color: var(--danger, #c45b5b);
   font-size: 10px;
   line-height: 1.25;
@@ -3201,14 +3239,14 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-notes-vault-nav {
+  align-items: stretch;
   gap: 2px;
   padding: 2px 0 6px 26px;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-notes-vault-nav__roots {
-  display: flex;
-  flex-direction: column;
+  align-items: stretch;
   gap: 2px;
 }
 
@@ -3223,7 +3261,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   align-items: center;
   justify-content: flex-start;
   gap: 7px;
-  margin: 0;
   padding: 5px 7px;
   border: 0;
   border-radius: 7px;
@@ -3233,9 +3270,24 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__root:hover,
+  .desktop-notes-vault-nav__root-mark {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  font-size: 11px;
+}
+
+.desktop-notes-vault-nav__root-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__root:focus-visible,
+  .desktop-notes-vault-nav__root:hover:not(:disabled),
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root:focus-visible:not(:disabled),
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-notes-vault-nav__add:hover,
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
@@ -3244,7 +3296,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   background: var(--accent-10);
   outline: none;
 }
-
 /* Sidebar geometry baseline: expanded navigation must retain the collapsed
    rail's vertical anchor (36px brand content + 8px padding + 12px measured gap) and 36px / 4px rhythm. */
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
