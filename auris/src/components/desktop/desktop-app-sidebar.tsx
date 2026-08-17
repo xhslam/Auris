@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  Fragment,
   Suspense,
+  useCallback,
   useEffect,
   startTransition,
   useRef,
@@ -24,6 +26,7 @@ import {
   type DesktopNavGroupId,
 } from "@/components/desktop/desktop-shell-fixtures";
 import { DesktopReadingSidebarNav } from "@/components/desktop/desktop-reading-sidebar-nav";
+import { DesktopNotesVaultNav } from "@/components/desktop/desktop-notes-vault-nav";
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import "@/components/auris-ui/auris-ui.css";
 
@@ -51,6 +54,29 @@ const NAV_GROUP_ORDER: DesktopNavGroupId[] = ["primary", "library", "tools"];
 const NAVIGATION_BURST_DURATION_MS = 520;
 const PREFETCHED_NAVIGATION_COMMIT_DELAY_MS = 0;
 const FALLBACK_NAVIGATION_COMMIT_DELAY_MS = 32;
+const NOTES_VAULT_OPEN_SESSION_KEY = "auris.desktop.notes-vault-open";
+
+function readNotesVaultOpen() {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      window.sessionStorage.getItem(NOTES_VAULT_OPEN_SESSION_KEY) === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function writeNotesVaultOpen(isOpen: boolean) {
+  try {
+    window.sessionStorage.setItem(
+      NOTES_VAULT_OPEN_SESSION_KEY,
+      isOpen ? "true" : "false",
+    );
+  } catch {
+    // Session state remains available when storage is unavailable.
+  }
+}
 const LINK_BURST_PARTICLES = [
   { delay: "0ms", rotate: "-72deg", x: "-18px", y: "-20px" },
   { delay: "34ms", rotate: "-34deg", x: "8px", y: "-24px" },
@@ -67,14 +93,24 @@ function getGroupItems(group: DesktopNavGroupId) {
 }
 
 function shouldUseNativeLinkBehavior(event: MouseEvent<HTMLAnchorElement>) {
-  return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+  return (
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  );
 }
 
 function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
   switch (itemId) {
     case "home":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M5 10.5 12 5l7 5.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-3V20H6a1 1 0 0 1-1-1v-8.5Z"
             fill="none"
@@ -87,7 +123,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "video":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M6 7h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"
             fill="none"
@@ -108,7 +148,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "reading":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M5 5.5h6.5A2.5 2.5 0 0 1 14 8v11a2.5 2.5 0 0 0-2.5-2.5H5V5.5Z"
             fill="none"
@@ -136,7 +180,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "assistant":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M12 4.5 13.8 9l4.7.4-3.6 3 1.2 4.6-4.1-2.5-4.1 2.5 1.2-4.6-3.6-3L10.2 9 12 4.5Z"
             fill="none"
@@ -149,7 +197,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "notes":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M7 5h10a2 2 0 0 1 2 2v10l-3-2.2L13 17l-3-2.2L7 17V7a2 2 0 0 1 2-2Z"
             fill="none"
@@ -162,7 +214,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "flash":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M13 4 6 13.5h5L11 20l7-9.5h-5L13 4Z"
             fill="none"
@@ -175,7 +231,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "review":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <path
             d="M20 12a8 8 0 1 1-2.3-5.6M20 4v3.5h-3.5"
             fill="none"
@@ -188,7 +248,11 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
       );
     case "settings":
       return (
-        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+        <svg
+          aria-hidden="true"
+          className="desktop-app-sidebar__glyph"
+          viewBox="0 0 24 24"
+        >
           <circle
             cx="12"
             cy="12"
@@ -217,12 +281,16 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
 type DesktopSidebarLinkProps = {
   isActive: boolean;
   item: DesktopNavItem;
+  onActiveClick?: () => void;
+  onBeforeNavigate?: () => void;
   onNavigate?: () => void;
 };
 
 function DesktopSidebarLink({
   isActive,
   item,
+  onActiveClick,
+  onBeforeNavigate,
   onNavigate,
 }: DesktopSidebarLinkProps) {
   const router = useRouter();
@@ -262,7 +330,11 @@ function DesktopSidebarLink({
     hasPrefetchedRouteRef.current = true;
   }
 
-  function updateRipplePosition(target: EventTarget & HTMLAnchorElement, clientX: number, clientY: number) {
+  function updateRipplePosition(
+    target: EventTarget & HTMLAnchorElement,
+    clientX: number,
+    clientY: number,
+  ) {
     const bounds = target.getBoundingClientRect();
 
     setRippleState({
@@ -311,7 +383,14 @@ function DesktopSidebarLink({
       return;
     }
 
+    if (isActive && onActiveClick) {
+      event.preventDefault();
+      onActiveClick();
+      return;
+    }
+
     event.preventDefault();
+    onBeforeNavigate?.();
     const hadPrefetchedRoute = hasPrefetchedRouteRef.current;
     prefetchRoute();
 
@@ -324,8 +403,10 @@ function DesktopSidebarLink({
     }
 
     const bounds = event.currentTarget.getBoundingClientRect();
-    const nextX = event.clientX > 0 ? event.clientX - bounds.left : bounds.width * 0.5;
-    const nextY = event.clientY > 0 ? event.clientY - bounds.top : bounds.height * 0.5;
+    const nextX =
+      event.clientX > 0 ? event.clientX - bounds.left : bounds.width * 0.5;
+    const nextY =
+      event.clientY > 0 ? event.clientY - bounds.top : bounds.height * 0.5;
 
     setRippleState({
       isVisible: true,
@@ -342,14 +423,19 @@ function DesktopSidebarLink({
       window.clearTimeout(navigationTimeoutRef.current);
     }
 
-    navigationTimeoutRef.current = window.setTimeout(() => {
-      hasCommittedNavigationRef.current = true;
-      startTransition(() => {
-        onNavigate?.();
-        router.push(item.href);
-      });
-      navigationTimeoutRef.current = null;
-    }, hadPrefetchedRoute ? PREFETCHED_NAVIGATION_COMMIT_DELAY_MS : FALLBACK_NAVIGATION_COMMIT_DELAY_MS);
+    navigationTimeoutRef.current = window.setTimeout(
+      () => {
+        hasCommittedNavigationRef.current = true;
+        startTransition(() => {
+          onNavigate?.();
+          router.push(item.href);
+        });
+        navigationTimeoutRef.current = null;
+      },
+      hadPrefetchedRoute
+        ? PREFETCHED_NAVIGATION_COMMIT_DELAY_MS
+        : FALLBACK_NAVIGATION_COMMIT_DELAY_MS,
+    );
 
     burstTimeoutRef.current = window.setTimeout(() => {
       setIsBursting(false);
@@ -385,7 +471,10 @@ function DesktopSidebarLink({
         <span className="desktop-app-sidebar__link-impact-ring desktop-app-sidebar__link-impact-ring--primary" />
         <span className="desktop-app-sidebar__link-impact-ring desktop-app-sidebar__link-impact-ring--secondary" />
       </span>
-      <span aria-hidden="true" className="desktop-app-sidebar__link-particle-field">
+      <span
+        aria-hidden="true"
+        className="desktop-app-sidebar__link-particle-field"
+      >
         {LINK_BURST_PARTICLES.map((particle, index) => (
           <span
             className="desktop-app-sidebar__link-particle"
@@ -460,6 +549,20 @@ export function DesktopAppSidebar({
     pathname === "/reading" ||
     pathname.startsWith("/reading/");
   const showReadingNav = isExpanded && isReadingRoute;
+  const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(readNotesVaultOpen);
+  const setNotesVaultOpen = useCallback((isOpen: boolean) => {
+    setIsNotesVaultOpen(isOpen);
+    writeNotesVaultOpen(isOpen);
+  }, []);
+  const toggleNotesVaultOpen = useCallback(() => {
+    setIsNotesVaultOpen((current) => {
+      const next = !current;
+      writeNotesVaultOpen(next);
+      return next;
+    });
+  }, []);
+  const showNotesVaultNav =
+    resolvedActiveId === "notes" && (isNotesVaultOpen || isExpanded);
 
   return (
     <aside
@@ -546,6 +649,10 @@ export function DesktopAppSidebar({
           : NAV_GROUP_ORDER
         ).map((group) =>
           renderNavGroup(group, resolvedActiveId, onNavigate, {
+            notesVaultOpen: showNotesVaultNav,
+            onNotesVaultNavigate: () => setNotesVaultOpen(true),
+            onNotesVaultToggle: toggleNotesVaultOpen,
+            sidebarExpanded: isExpanded,
             replaceReadingWithTree: showReadingNav && group === "primary",
           }),
         )}
@@ -562,13 +669,26 @@ function renderNavGroup(
   group: DesktopNavGroupId,
   resolvedActiveId: string,
   onNavigate?: () => void,
-  options: { replaceReadingWithTree?: boolean } = {},
+  options: {
+    notesVaultOpen?: boolean;
+    onNotesVaultNavigate?: () => void;
+    onNotesVaultToggle?: () => void;
+    replaceReadingWithTree?: boolean;
+    sidebarExpanded?: boolean;
+  } = {},
 ) {
   const items = getGroupItems(group);
 
   return (
-    <section className="desktop-app-sidebar__group" data-group={group} key={group}>
-      <nav aria-label={`${group} navigation`} className="desktop-app-sidebar__nav">
+    <section
+      className="desktop-app-sidebar__group"
+      data-group={group}
+      key={group}
+    >
+      <nav
+        aria-label={`${group} navigation`}
+        className="desktop-app-sidebar__nav"
+      >
         {items.map((item) => {
           if (options.replaceReadingWithTree && item.id === "reading") {
             return (
@@ -579,12 +699,24 @@ function renderNavGroup(
           }
 
           return (
-            <DesktopSidebarLink
-              isActive={item.id === resolvedActiveId}
-              key={item.id}
-              item={item}
-              onNavigate={onNavigate}
-            />
+            <Fragment key={item.id}>
+              <DesktopSidebarLink
+                isActive={item.id === resolvedActiveId}
+                item={item}
+                onActiveClick={
+                  item.id === "notes" ? options.onNotesVaultToggle : undefined
+                }
+                onBeforeNavigate={
+                  item.id === "notes" ? options.onNotesVaultNavigate : undefined
+                }
+                onNavigate={onNavigate}
+              />
+              {item.id === "notes" && options.notesVaultOpen ? (
+                <DesktopNotesVaultNav
+                  isSidebarExpanded={Boolean(options.sidebarExpanded)}
+                />
+              ) : null}
+            </Fragment>
           );
         })}
       </nav>

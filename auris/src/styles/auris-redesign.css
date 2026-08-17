@@ -9,8 +9,9 @@
 :root {
   /* 字体栈 */
   --auris-font-serif: "Newsreader", "Noto Serif SC", Georgia, serif;
-  --auris-font-sans: "Hanken Grotesk", "Noto Sans SC", system-ui, -apple-system,
-    "PingFang SC", "Microsoft YaHei", sans-serif;
+  --auris-font-sans:
+    "Hanken Grotesk", "Noto Sans SC", system-ui, -apple-system, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
   --auris-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* 金色 accent + alpha 阶梯 */
@@ -291,7 +292,9 @@ body::-webkit-scrollbar-thumb:hover,
   background: transparent !important;
   color: var(--app-muted) !important;
   transform: none !important;
-  transition: color 0.18s ease, background-color 0.18s ease;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
   position: relative;
   overflow: visible;
 }
@@ -367,7 +370,8 @@ body::-webkit-scrollbar-thumb:hover,
   box-shadow: none !important;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__avatar-mark {
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-sidebar__avatar-mark {
   color: var(--accent) !important;
 }
 
@@ -383,7 +387,8 @@ body::-webkit-scrollbar-thumb:hover,
   color: var(--app-muted) !important;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link:hover {
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-sidebar__link:hover {
   background: rgba(199, 168, 106, 0.12) !important;
   color: var(--accent) !important;
 }
@@ -502,10 +507,14 @@ body::-webkit-scrollbar-thumb:hover,
   min-height: 0 !important;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"] .desktop-app-frame,
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="notes"] .desktop-app-frame,
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="workspace"] .desktop-app-frame,
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="assessment"] .desktop-app-frame {
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="notes"]
+  .desktop-app-frame,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="workspace"]
+  .desktop-app-frame,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="assessment"]
+  .desktop-app-frame {
   padding-left: 0 !important;
 }
 
@@ -582,15 +591,19 @@ body::-webkit-scrollbar-thumb:hover,
   animation: auris-sidebar-flash 520ms ease;
 }
 
-.desktop-app-sidebar__brand-swap:hover .desktop-app-sidebar__brand-swap-face--logo,
-.desktop-app-sidebar__brand-swap:focus-visible .desktop-app-sidebar__brand-swap-face--logo {
+.desktop-app-sidebar__brand-swap:hover
+  .desktop-app-sidebar__brand-swap-face--logo,
+.desktop-app-sidebar__brand-swap:focus-visible
+  .desktop-app-sidebar__brand-swap-face--logo {
   opacity: 0;
   transform: scale(0.72) rotate(8deg);
   filter: blur(1px);
 }
 
-.desktop-app-sidebar__brand-swap:hover .desktop-app-sidebar__brand-swap-face--toggle,
-.desktop-app-sidebar__brand-swap:focus-visible .desktop-app-sidebar__brand-swap-face--toggle {
+.desktop-app-sidebar__brand-swap:hover
+  .desktop-app-sidebar__brand-swap-face--toggle,
+.desktop-app-sidebar__brand-swap:focus-visible
+  .desktop-app-sidebar__brand-swap-face--toggle {
   opacity: 1;
   transform: scale(1) rotate(0deg);
   filter: none;
@@ -662,7 +675,8 @@ body::-webkit-scrollbar-thumb:hover,
     box-shadow 180ms ease !important;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link:hover {
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-sidebar__link:hover {
   transform: translateY(-1px) !important;
   animation: auris-sidebar-flash 520ms ease;
 }
@@ -719,7 +733,8 @@ body::-webkit-scrollbar-thumb:hover,
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__brand-copy strong {
+  .desktop-app-sidebar__brand-copy
+  strong {
   color: var(--app-text, var(--text));
   font-size: 14px;
   font-weight: 700;
@@ -824,7 +839,8 @@ body::-webkit-scrollbar-thumb:hover,
   box-shadow: none !important;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"] .desktop-app-frame {
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame {
   padding-left: 0 !important;
 }
 
@@ -1030,7 +1046,9 @@ body::-webkit-scrollbar-thumb:hover,
   color: #6e6a62;
   font-size: 13.5px;
   cursor: pointer;
-  transition: border-color 0.18s ease, color 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease;
   flex: 0 0 auto;
 }
 
@@ -1440,7 +1458,11 @@ body::-webkit-scrollbar-thumb:hover,
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.1);
   background:
-    radial-gradient(circle at 35% 28%, rgba(216, 188, 126, 0.46), transparent 36%),
+    radial-gradient(
+      circle at 35% 28%,
+      rgba(216, 188, 126, 0.46),
+      transparent 36%
+    ),
     linear-gradient(145deg, #252018 0%, #101112 58%, #080809 100%);
   display: grid;
   place-items: center;
@@ -1579,7 +1601,10 @@ body::-webkit-scrollbar-thumb:hover,
   gap: 10px;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .auris-home__repo-card:hover,
@@ -1895,7 +1920,9 @@ body::-webkit-scrollbar-thumb:hover,
   border: 1px solid var(--app-line);
   border-radius: 14px;
   background: var(--app-fill);
-  transition: border-color 0.18s ease, background-color 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .auris-flash__card:hover {
@@ -1954,7 +1981,9 @@ body::-webkit-scrollbar-thumb:hover,
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: color 0.18s ease, background-color 0.18s ease;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .auris-flash__delete:hover {
@@ -2206,7 +2235,10 @@ body::-webkit-scrollbar-thumb:hover,
   font-size: 14px;
   font-weight: 650;
   cursor: pointer;
-  transition: background-color 0.18s ease, border-color 0.18s ease, gap 0.18s ease;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    gap 0.18s ease;
   position: relative;
 }
 
@@ -2501,7 +2533,9 @@ body::-webkit-scrollbar-thumb:hover,
   color: var(--notes-muted) !important;
 }
 
-.desktop-app-frame .notes-v2--minimal .notes-v2__breadcrumb-item[data-current="true"] {
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__breadcrumb-item[data-current="true"] {
   color: var(--accent) !important;
   font-weight: 600 !important;
 }
@@ -2533,10 +2567,16 @@ body:has(.notes-v2--minimal),
 
 html:has(.notes-v2--minimal)::-webkit-scrollbar,
 body:has(.notes-v2--minimal)::-webkit-scrollbar,
-.desktop-app-shell:has(.notes-v2--minimal) .desktop-app-frame__viewport::-webkit-scrollbar,
+.desktop-app-shell:has(.notes-v2--minimal)
+  .desktop-app-frame__viewport::-webkit-scrollbar,
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane::-webkit-scrollbar,
-.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg::-webkit-scrollbar,
-.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-scroller::-webkit-scrollbar {
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-host--wysiwyg::-webkit-scrollbar,
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-host
+  .cm-scroller::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
 }
@@ -2557,7 +2597,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 /* 文件名胶囊 / 图标按钮纵向填满底栏：高度 == 底栏内高，不再上下各留空隙；
    左右仍由底栏的 6px 内边距形成"嵌套"留白。字数统计文字保持垂直居中、不拉伸。 */
-.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__active-note-pill,
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill,
 .desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
   height: auto !important;
   min-height: 0 !important;
@@ -2772,12 +2815,17 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   padding-bottom: 24px !important;
 }
 
-.desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane[data-mode="reading"] {
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-pane[data-mode="reading"] {
   padding-bottom: 24px !important;
 }
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-scroller,
-.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror,
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-host--wysiwyg
+  .ProseMirror,
 .desktop-app-frame .notes-v2--minimal .notes-v2__reading-pane {
   padding-bottom: 24px !important;
 }
@@ -2795,7 +2843,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   align-items: center !important;
 }
 
-.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__active-note-pill,
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill,
 .desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
   height: 20px !important;
   min-height: 20px !important;
@@ -2803,14 +2854,18 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-stat,
-.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__active-note-pill,
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill,
 .desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
   font-size: 11px !important;
   line-height: 1 !important;
 }
 
 /* 左簇让开桌面侧栏；右簇让开右下角 AI dock 圆钮。 */
-.desktop-app-shell[data-desktop-runtime="true"] .notes-v2__corner-cluster--left {
+.desktop-app-shell[data-desktop-runtime="true"]
+  .notes-v2__corner-cluster--left {
   left: calc(14px + var(--desktop-app-sidebar-width, 74px) + 16px) !important;
 }
 
@@ -2823,7 +2878,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   right: calc(var(--notes-terminal-width, 520px) + 16px) !important;
 }
 
-.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__active-note-pill {
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill {
   background: transparent !important;
   box-shadow: none !important;
 }
@@ -2831,10 +2889,26 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 /* Notes entry surface: keep the shell rail visually deeper than the themed
  * content canvas while sharing the same reading-theme tokens as the workbench. */
 .desktop-app-frame .notes-v2--welcome {
-  --notes-welcome-control: color-mix(in srgb, var(--notes-ink) 3%, var(--notes-bg));
-  --notes-welcome-control-primary: color-mix(in srgb, var(--notes-ink) 5%, var(--notes-bg));
-  --notes-welcome-control-hover: color-mix(in srgb, var(--notes-ink) 7%, var(--notes-bg));
-  --notes-welcome-icon: color-mix(in srgb, var(--notes-ink) 6%, var(--notes-bg));
+  --notes-welcome-control: color-mix(
+    in srgb,
+    var(--notes-ink) 3%,
+    var(--notes-bg)
+  );
+  --notes-welcome-control-primary: color-mix(
+    in srgb,
+    var(--notes-ink) 5%,
+    var(--notes-bg)
+  );
+  --notes-welcome-control-hover: color-mix(
+    in srgb,
+    var(--notes-ink) 7%,
+    var(--notes-bg)
+  );
+  --notes-welcome-icon: color-mix(
+    in srgb,
+    var(--notes-ink) 6%,
+    var(--notes-bg)
+  );
   --notes-welcome-focus: color-mix(in srgb, var(--notes-ink) 42%, transparent);
   display: block !important;
   min-height: 100% !important;
@@ -2926,7 +3000,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   box-shadow: none;
   text-align: left;
   cursor: pointer;
-  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
 }
 
 .desktop-app-frame .notes-v2--welcome .notes-welcome__action:hover,
@@ -2937,7 +3014,9 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-v2--welcome .notes-welcome__action:focus-visible,
-.desktop-app-frame .notes-v2--welcome .notes-welcome__recent-item:focus-visible {
+.desktop-app-frame
+  .notes-v2--welcome
+  .notes-welcome__recent-item:focus-visible {
   outline: 2px solid var(--notes-welcome-focus);
   outline-offset: 2px;
 }
@@ -3024,11 +3103,15 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   text-align: left;
   cursor: pointer;
   transform: none;
-  transition: border-color 140ms ease, background 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
 }
 
 .desktop-app-frame .notes-v2--welcome .notes-welcome__recent-item:hover,
-.desktop-app-frame .notes-v2--welcome .notes-welcome__recent-item:focus-visible {
+.desktop-app-frame
+  .notes-v2--welcome
+  .notes-welcome__recent-item:focus-visible {
   border-color: var(--notes-line);
   background: var(--notes-welcome-control);
   transform: none;
@@ -3060,4 +3143,104 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   .notes-welcome__recent-list {
     grid-template-columns: 1fr;
   }
+}
+
+/* Notes vaults live under the Notes navigation item instead of consuming a
+   separate editor-side column. */
+.desktop-notes-vault-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 1px 0 4px;
+}
+
+.desktop-notes-vault-nav__roots {
+  display: none;
+}
+
+.desktop-notes-vault-nav__add,
+.desktop-notes-vault-nav__root {
+  border: 0;
+  color: var(--app-muted, var(--muted));
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.desktop-notes-vault-nav__add {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  border: 1px solid var(--app-line, var(--border));
+  border-radius: 8px;
+  color: var(--app-text, var(--text));
+  font-size: 18px;
+  line-height: 1;
+}
+
+.desktop-notes-vault-nav__add:hover,
+.desktop-notes-vault-nav__add:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-10);
+  outline: none;
+}
+
+.desktop-notes-vault-nav__error {
+  width: 32px;
+  margin: 0 auto;
+  color: var(--danger, #c45b5b);
+  font-size: 10px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav {
+  gap: 2px;
+  padding: 2px 0 6px 26px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__roots {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__add {
+  display: flex;
+  width: 100%;
+  min-height: 28px;
+  height: auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  margin: 0;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root:hover,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root:focus-visible,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__add:hover,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__add:focus-visible {
+  color: var(--accent);
+  background: var(--accent-10);
+  outline: none;
 }

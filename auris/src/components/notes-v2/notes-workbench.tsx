@@ -9,31 +9,19 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
-import {
-  NotesBreadcrumbBar,
-} from "@/components/notes-v2/notes-breadcrumb-bar";
+import { NotesBreadcrumbBar } from "@/components/notes-v2/notes-breadcrumb-bar";
 import {
   NotesCommandPalette,
   type NotesCommandPaletteItem,
 } from "@/components/notes-v2/notes-command-palette";
-import {
-  NotesWorkbenchCenter,
-} from "@/components/notes-v2/notes-workbench-center";
+import { NotesWorkbenchCenter } from "@/components/notes-v2/notes-workbench-center";
 import { NotesEmbeddedBrowser } from "@/components/notes-v2/notes-embedded-browser";
-import {
-  NotesWriteConflictDialog,
-} from "@/components/notes-v2/notes-write-conflict-dialog";
-import {
-  NotesMcpEditReviewDialog,
-} from "@/components/notes-v2/notes-mcp-edit-review-dialog";
+import { NotesWriteConflictDialog } from "@/components/notes-v2/notes-write-conflict-dialog";
+import { NotesMcpEditReviewDialog } from "@/components/notes-v2/notes-mcp-edit-review-dialog";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesCommandInfrastructure } from "@/components/notes-v2/use-notes-command-infrastructure";
-import {
-  NotesWorkbenchBottomLeft,
-} from "@/components/notes-v2/notes-workbench-bottom-left";
-import {
-  NotesWorkbenchBottomRight,
-} from "@/components/notes-v2/notes-workbench-bottom-right";
+import { NotesWorkbenchBottomLeft } from "@/components/notes-v2/notes-workbench-bottom-left";
+import { NotesWorkbenchBottomRight } from "@/components/notes-v2/notes-workbench-bottom-right";
 import { getNotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
 import {
   DEFAULT_NOTES_READING_THEME,
@@ -56,9 +44,7 @@ import {
   notesMarkdownLayoutCssVars,
   type NotesMarkdownLayout,
 } from "@/features/notes/formatting/notes-markdown-layout";
-import {
-  NotesTerminalPanel,
-} from "@/components/notes-v2/notes-terminal-panel";
+import { NotesTerminalPanel } from "@/components/notes-v2/notes-terminal-panel";
 import {
   clampRightSidebarWidth,
   getDefaultRightSidebarWidth,
@@ -98,7 +84,6 @@ import type {
 import { NiaPanel, type NiaContextRequest } from "@/components/nia/nia-panel";
 import type { NiaApplyProposal, NiaContext } from "@/features/nia/nia-context";
 import { useNotesLocale } from "@/features/notes/i18n/notes-locale";
-import { NotesWorkspaceRail } from "@/components/notes-v2/notes-workspace-rail";
 import { NotesNiaPicker } from "@/components/notes-v2/notes-nia-picker";
 import { useNiaPickerStore } from "@/features/nia/nia-picker-store";
 
@@ -145,7 +130,9 @@ export type NotesWorkbenchProps = {
   onEditorModeChange?: (mode: NotesEditorMode) => void;
   onInsertSnippet?: (snippet: string) => void;
   onRequestNiaContext?: (kind: NiaContextRequest) => NiaContext | null;
-  onApplyNiaProposal?: (proposal: NiaApplyProposal) => { ok: boolean; reason?: string } | void;
+  onApplyNiaProposal?: (
+    proposal: NiaApplyProposal,
+  ) => { ok: boolean; reason?: string } | void;
   onLeftSidebarCollapsedChange?: (collapsed: boolean) => void;
   onLeftSidebarModeChange?: (mode: NotesLeftSidebarMode) => void;
   onLearningQueryChange?: (value: string) => void;
@@ -287,8 +274,9 @@ export function NotesWorkbench({
   } | null>(null);
   const [selectionState, setSelectionState] =
     useState<NotesEditorSelectionState | null>(null);
-  const [viewPreferences, setViewPreferences] =
-    useState<NotesViewPreferences>(DEFAULT_NOTES_VIEW_PREFERENCES);
+  const [viewPreferences, setViewPreferences] = useState<NotesViewPreferences>(
+    DEFAULT_NOTES_VIEW_PREFERENCES,
+  );
   useEffect(() => {
     setViewPreferences(loadNotesViewPreferences());
   }, []);
@@ -300,7 +288,8 @@ export function NotesWorkbench({
   );
   useEffect(() => {
     const onViewKeyDown = (event: KeyboardEvent) => {
-      if (!event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      if (!event.altKey || event.metaKey || event.ctrlKey || event.shiftKey)
+        return;
       const key = event.key.toLowerCase();
       if (!["f", "r", "t"].includes(key)) return;
       event.preventDefault();
@@ -448,11 +437,7 @@ export function NotesWorkbench({
     return () => {
       cancelled = true;
     };
-  }, [
-    activeDocumentPath,
-    activeDocumentSaveState,
-    directoryInfo?.vaultPath,
-  ]);
+  }, [activeDocumentPath, activeDocumentSaveState, directoryInfo?.vaultPath]);
 
   const handleRestoreHistoryVersion = useCallback(
     (version: NotesHistoryVersion) => {
@@ -486,7 +471,10 @@ export function NotesWorkbench({
     // content 与 hasSelection 成对走 prop：它们是同一个快照的两半。默认范围由
     // 选择器从 hasSelection 推导，不再额外经由 store 传一次——那会把这一对拆成
     // 两条通道，然后在某次改动里悄悄发散。
-    setNiaPickerContent({ content: text, hasSelection: Boolean(selectionContext) });
+    setNiaPickerContent({
+      content: text,
+      hasSelection: Boolean(selectionContext),
+    });
     useNiaPickerStore.getState().openPicker();
   }, [onRequestNiaContext, setNiaPickerContent]);
 
@@ -538,7 +526,9 @@ export function NotesWorkbench({
 
   const updateTerminalWidth = useCallback(
     (nextWidth: number) => {
-      setTerminalWidth(clampRightSidebarWidth(nextWidth, shellWidth, "terminal"));
+      setTerminalWidth(
+        clampRightSidebarWidth(nextWidth, shellWidth, "terminal"),
+      );
     },
     [setTerminalWidth, shellWidth],
   );
@@ -602,7 +592,9 @@ export function NotesWorkbench({
         return;
       }
 
-      updateTerminalWidth(dragState.startWidth + (dragState.startX - event.clientX));
+      updateTerminalWidth(
+        dragState.startWidth + (dragState.startX - event.clientX),
+      );
     };
 
     const handleMouseUp = () => {
@@ -656,12 +648,16 @@ export function NotesWorkbench({
     (event: ReactKeyboardEvent<HTMLDivElement>) => {
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        updateTerminalWidth(resolvedTerminalWidth + NOTES_SPLITTER_KEYBOARD_STEP);
+        updateTerminalWidth(
+          resolvedTerminalWidth + NOTES_SPLITTER_KEYBOARD_STEP,
+        );
       }
 
       if (event.key === "ArrowRight") {
         event.preventDefault();
-        updateTerminalWidth(resolvedTerminalWidth - NOTES_SPLITTER_KEYBOARD_STEP);
+        updateTerminalWidth(
+          resolvedTerminalWidth - NOTES_SPLITTER_KEYBOARD_STEP,
+        );
       }
     },
     [resolvedTerminalWidth, updateTerminalWidth],
@@ -679,7 +675,9 @@ export function NotesWorkbench({
         data-shortcut-conflicts={commandInfrastructure.conflicts.length}
         data-active-surface={activeWorkspaceSurface}
         data-terminal-open={
-          activeWorkspaceSurface === "note" && isTerminalSplitOpen ? "true" : "false"
+          activeWorkspaceSurface === "note" && isTerminalSplitOpen
+            ? "true"
+            : "false"
         }
         ref={shellRef}
         style={
@@ -691,9 +689,6 @@ export function NotesWorkbench({
         }
       >
         <div className="notes-v2__minimal-workspace">
-          {/* 最左侧、在画布之前：rail 是工作区级导航，层级高于当前笔记。
-              非桌面环境（没有 vault bridge）它自己返回 null，不占位。 */}
-          <NotesWorkspaceRail enabled={activeWorkspaceSurface === "note"} />
           <main className="notes-v2__minimal-canvas">
             {activeWorkspaceSurface === "browser" ? (
               <NotesEmbeddedBrowser
@@ -727,9 +722,9 @@ export function NotesWorkbench({
               </>
             )}
           </main>
-          {activeWorkspaceSurface === "note"
-          && !rightSidebarCollapsed
-          && rightSidebarMode === "properties" ? (
+          {activeWorkspaceSurface === "note" &&
+          !rightSidebarCollapsed &&
+          rightSidebarMode === "properties" ? (
             <aside
               aria-label={NOTES_UI_COPY.rightDock.properties.label}
               className="notes-v2__minimal-properties-pane"
