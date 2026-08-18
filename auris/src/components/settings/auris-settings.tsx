@@ -382,6 +382,56 @@ const INITIAL_TEXTS: Texts = {
   vscodePath: "/Applications/Visual Studio Code.app",
 };
 
+/** 仅导入导出已接通持久化与运行时消费者的偏好。 */
+const SETTINGS_EXPORT_TOGGLE_KEYS = [
+  "autoPair",
+  "showInvisibles",
+  "removeSlashSpacing",
+  "collapseSpaces",
+  "convertDashes",
+  "fixEmDashSpacing",
+  "convertStraightQuotes",
+  "contextAwareQuotes",
+  "fixDoubleQuoteSpacing",
+  "fixSingleQuoteSpacing",
+  "cjkCornerQuotes",
+  "nestedCornerQuotes",
+  "removeTrailingSpaces",
+  "normalizeEllipsis",
+  "collapseNewlines",
+  "skipReferenceSections",
+] as const;
+
+const SETTINGS_EXPORT_SELECT_KEYS = [
+  "latinFont",
+  "cjkFont",
+  "monoFont",
+  "fontSize",
+  "lineHeightEd",
+  "blockSpacing",
+  "cjkLetterSpacing",
+  "editorWidth",
+  "tabSize",
+  "quoteStyle",
+  "quoteToggleBehavior",
+  "limitConsecutivePunct",
+  "blockFontSize",
+  "headingAlign",
+  "imageBorder",
+] as const;
+
+function pickKnownSettings<T extends Record<string, unknown>>(
+  values: Partial<T> | undefined,
+  keys: readonly string[],
+): Partial<T> {
+  if (!values) return {};
+  return Object.fromEntries(
+    keys
+      .filter((key) => Object.prototype.hasOwnProperty.call(values, key))
+      .map((key) => [key, values[key]]),
+  ) as Partial<T>;
+}
+
 /* ------------------------------------------------------------------ */
 /* Row descriptors (data only — styling happens at render time)        */
 /* ------------------------------------------------------------------ */
@@ -868,41 +918,65 @@ export function AurisSettings({ accent }: { accent?: string }) {
 
   const exportSettings = useCallback(() => {
     if (typeof window === "undefined") return;
-    const payload = { version: 1, theme, toggles, selects, radios, texts };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const payload = {
+      version: 2,
+      theme,
+      toggles: pickKnownSettings<Toggles>(toggles, SETTINGS_EXPORT_TOGGLE_KEYS),
+      selects: pickKnownSettings<Selects>(selects, SETTINGS_EXPORT_SELECT_KEYS),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = "auris-settings.json";
     link.click();
     URL.revokeObjectURL(url);
-  }, [theme, toggles, selects, radios, texts]);
+  }, [theme, toggles, selects]);
 
-  const onImportFile = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(String(reader.result)) as Partial<{
-          theme: string;
-          toggles: Toggles;
-          selects: Selects;
-          radios: Radios;
-          texts: Texts;
-        }>;
-        if (data.theme) handleSetTheme(data.theme);
-        if (data.toggles) setToggles((prev) => ({ ...prev, ...data.toggles }));
-        if (data.selects) setSelects((prev) => ({ ...prev, ...data.selects }));
-        if (data.radios) setRadios((prev) => ({ ...prev, ...data.radios }));
-        if (data.texts) setTexts((prev) => ({ ...prev, ...data.texts }));
-      } catch {
-        if (typeof window !== "undefined") window.alert("无法解析所选文件，请选择有效的设置 JSON。");
-      }
-    };
-    reader.readAsText(file);
-  }, [handleSetTheme]);
+  const onImportFile = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result ?? "")) as Partial<{
+            theme: string;
+            toggles: Partial<Toggles>;
+            selects: Partial<Selects>;
+          }>;
+          if (data.theme) handleSetTheme(data.theme);
+          if (data.toggles) {
+            setToggles((prev) => ({
+              ...prev,
+              ...pickKnownSettings<Toggles>(
+                data.toggles,
+                SETTINGS_EXPORT_TOGGLE_KEYS,
+              ),
+            } as Toggles));
+          }
+          if (data.selects) {
+            setSelects((prev) => ({
+              ...prev,
+              ...pickKnownSettings<Selects>(
+                data.selects,
+                SETTINGS_EXPORT_SELECT_KEYS,
+              ),
+            } as Selects));
+          }
+        } catch {
+          if (typeof window !== "undefined") {
+            window.alert("无法解析所选文件，请选择有效的设置 JSON。");
+          }
+        }
+      };
+      reader.readAsText(file);
+    },
+    [handleSetTheme],
+  );
 
   const onBrowseFile = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1545,6 +1619,10 @@ function buildPanel(
         title: "编辑器",
         sections: [
           {
+            title: "作用范围",
+            rows: [{ kind: "note", text: "自动配对、Tab 宽度和不可见字符仅作用于笔记的源码模式；所见即所得编辑器不使用这套配置。" }],
+          },
+          {
             title: "排版",
             rows: [
               { kind: "select", key: "latinFont", label: "拉丁字体", options: ["系统默认（无衬线）", "Athelas", "Georgia", "Charter", "Times"] },
@@ -1599,53 +1677,21 @@ function buildPanel(
         title: "文件与图片",
         sections: [
           {
-            title: "文件浏览器",
-            rows: [
-              { kind: "toggle", key: "showHidden", label: "显示隐藏文件", desc: "在文件浏览器中包含隐藏文件和系统隐藏项" },
-              { kind: "toggle", key: "showAllFiles", label: "显示所有文件", desc: "在文件浏览器中显示非 Markdown 文件（用系统默认应用打开）" },
-            ],
-          },
-          {
-            title: "退出行为",
-            rows: [{ kind: "toggle", key: "confirmQuit", label: "确认退出", desc: "按 ⌘Q 两次退出 — 防止意外退出" }],
-          },
-          {
-            title: "保存",
-            rows: [
-              { kind: "toggle", key: "autoSave", label: "启用自动保存", desc: "编辑时自动保存文件" },
-              { kind: "select", key: "saveInterval", label: "保存间隔", desc: "自动保存之间的时间", options: ["10 秒", "30 秒", "60 秒"] },
-            ],
-          },
-          {
-            title: "历史记录",
-            rows: [
-              { kind: "note", text: "已启用：成功保存时为不超过 512 KB 的文档生成去重版本，最多保留 50 个；右下角“历史版本”可恢复。Hot Exit 捕获不超过 2 MB 的未保存草稿，重启后恢复为脏稿并继续走冲突保护。" },
-            ],
-          },
-          {
-            title: "图片",
-            rows: [
-              { kind: "select", key: "pasteResize", label: "粘贴时自动调整大小", desc: "在保存到资源文件夹前自动调整大的图片大小", options: ["关闭", "> 1080p", "> 1440p"] },
-              { kind: "toggle", key: "copyToAssets", label: "复制到资源文件夹", desc: "将粘贴/拖放的图片复制到文档的资源文件夹" },
-              { kind: "toggle", key: "cleanUnusedImages", label: "关闭时清理未使用的图片", desc: "自动删除资源文件夹中文档中不再引用的图片" },
-            ],
-          },
-          {
-            title: "文档工具",
+            title: "文件浏览与资源管理",
             rows: [
               {
-                kind: "button",
-                label: "Pandoc",
-                desc: "仅检测本机 Pandoc 是否可用；DOCX、EPUB、LaTeX 等导出链路尚未接通",
-                btnText: "检测",
-                variant: "default",
-                align: "right",
-                icon: "refresh-cw",
-                statusText: ctx.pandocStatus.text,
-                statusColor: ctx.pandocStatus.color,
-                action: "detectPandoc",
+                kind: "note",
+                text: "当前版本尚未提供隐藏文件过滤、全部文件显示、图片自动归档或未引用资源清理的可配置实现。为避免保存无效偏好，相关开关已从设置中移除。",
               },
-              { kind: "note", text: "检测成功只代表运行环境就绪，不代表 Auris 已支持 Pandoc 格式导出。" },
+            ],
+          },
+          {
+            title: "数据安全",
+            rows: [
+              {
+                kind: "note",
+                text: "当前版本不提供“确认退出”或“自动保存策略”的切换。相关能力将在具备完整桌面端持久化与退出确认链路后再开放。",
+              },
             ],
           },
         ],
@@ -1656,10 +1702,26 @@ function buildPanel(
         title: "Formats",
         sections: [
           {
+            title: "导出工具",
+            rows: [
+              {
+                kind: "button",
+                label: "Pandoc",
+                desc: "检测本机 Pandoc 是否可用；DOCX、EPUB、LaTeX 等导出会在对应能力开放后显示。",
+                btnText: "检测",
+                statusText: ctx.pandocStatus.text,
+                statusColor: ctx.pandocStatus.color,
+                action: "detectPandoc",
+              },
+            ],
+          },
+          {
             title: "外部编辑器",
             rows: [
-              { kind: "note", text: "设置用于“在外部编辑器中打开”命令的应用程序。" },
-              { kind: "text", key: "vscodePath", withBrowse: true },
+              {
+                kind: "note",
+                text: "“在外部编辑器中打开”命令尚未接入桌面端，因此不再提供不会被读取的应用路径配置。",
+              },
             ],
           },
         ],
@@ -1749,18 +1811,17 @@ function buildPanel(
             ],
           },
           {
-            title: "AI 提供商",
-            rows: [
+            title: "AI 提供商", rows: [{ kind: "note", text: "当前桌面端尚未提供全局 AI 提供商切换。模型选择由具体功能的连接与运行时能力决定，以下目录仅作只读展示。" },
               { kind: "button", label: "检测 CLI 提供商", desc: "扫描已安装的 AI CLI（claude、codex、gemini、ollama）", btnText: ctx.cliBusy ? "检测中…" : "检测", variant: "default", align: "right", icon: "refresh-cw", action: "detectCli" },
               { kind: "subhead", text: "CLI 提供商" },
               { kind: "radio", group: "ai", id: "claude", name: "Claude", status: ctx.cliStatus.claude.status, statusColor: ctx.cliStatus.claude.color, disabled: ctx.cliStatus.claude.disabled },
               { kind: "radio", group: "ai", id: "codex", name: "Codex", status: ctx.cliStatus.codex.status, statusColor: ctx.cliStatus.codex.color, disabled: ctx.cliStatus.codex.disabled },
               { kind: "radio", group: "ai", id: "gemini", name: "Gemini", status: ctx.cliStatus.gemini.status, statusColor: ctx.cliStatus.gemini.color, disabled: ctx.cliStatus.gemini.disabled },
               { kind: "subhead", text: "REST API 提供商" },
-              { kind: "radio", group: "ai", id: "anthropic", name: "Anthropic" },
-              { kind: "radio", group: "ai", id: "openai", name: "OpenAI" },
-              { kind: "radio", group: "ai", id: "googleai", name: "Google AI" },
-              { kind: "radio", group: "ai", id: "ollama", name: "Ollama (API)" },
+              { kind: "radio", group: "ai", id: "anthropic", name: "Anthropic", disabled: true, status: "暂不可用", statusColor: "#65615A" },
+              { kind: "radio", group: "ai", id: "openai", name: "OpenAI", disabled: true, status: "暂不可用", statusColor: "#65615A" },
+              { kind: "radio", group: "ai", id: "googleai", name: "Google AI", disabled: true, status: "暂不可用", statusColor: "#65615A" },
+              { kind: "radio", group: "ai", id: "ollama", name: "Ollama (API)", disabled: true, status: "暂不可用", statusColor: "#65615A" },
             ],
           },
         ],
@@ -1770,6 +1831,10 @@ function buildPanel(
       return {
         title: "语言",
         sections: [
+          {
+            title: "作用范围",
+            rows: [{ kind: "note", text: "以下排版规则供“一键中文排版”命令读取；保存设置本身不会立即改写当前文档。" }],
+          },
           {
             title: "界面",
             rows: [{ kind: "notesLocale" }],
@@ -1817,32 +1882,39 @@ function buildPanel(
         title: "Markdown",
         sections: [
           {
-            title: "粘贴与输入",
+            title: "渲染布局",
             rows: [
-              { kind: "toggle", key: "enableRegexSearch", label: "启用搜索中的正则表达式", desc: "在查找和替换栏中显示正则表达式切换按钮" },
-              { kind: "select", key: "smartPasteMarkdown", label: "智能粘贴 Markdown", desc: "将粘贴的 Markdown 文本转换为所见即所得中的富文本", options: ["自动（检测 Markdown）", "总是", "从不"] },
-              { kind: "select", key: "clipboardPasteHandling", label: "剪贴板粘贴处理", desc: "粘贴时如何处理来自剪贴板的内容", options: ["智能（转换 HTML，检测 Markdown）", "纯文本", "保留格式"] },
+              {
+                kind: "select",
+                key: "blockFontSize",
+                label: "正文大小",
+                desc: "调整笔记正文的相对字号",
+                options: ["较小", "标准", "较大"],
+              },
+              {
+                kind: "select",
+                key: "headingAlign",
+                label: "标题对齐",
+                desc: "设置 Markdown 标题的对齐方式",
+                options: ["左对齐", "居中", "右对齐"],
+              },
+              {
+                kind: "select",
+                key: "imageBorder",
+                label: "图片边框",
+                desc: "设置笔记中图片的边框样式",
+                options: ["无边框", "细边框", "粗边框"],
+              },
             ],
           },
           {
-            title: "布局",
+            title: "输入与检查",
             rows: [
-              { kind: "select", key: "blockFontSize", label: "块元素字体大小", desc: "列表、引用块、表格、警告和详情的字体大小", options: ["90%", "100%（默认）", "110%"] },
-              { kind: "select", key: "headingAlign", label: "标题对齐", desc: "标题的文本对齐方式", options: ["左对齐", "居中", "右对齐"] },
-              { kind: "select", key: "imageBorder", label: "图片和图表边框", desc: "在图片、Mermaid 图表和数学块周围显示边框", options: ["无", "细", "粗"] },
-              { kind: "select", key: "imageTableAlign", label: "图片和表格对齐", desc: "块图片和表格的水平对齐方式", options: ["左对齐", "居中", "右对齐"] },
-              { kind: "toggle", key: "tableFitWidth", label: "表格适应宽度", desc: "将所有表格约束到编辑器宽度，而不是允许水平滚动" },
+              {
+                kind: "note",
+                text: "智能粘贴、原始 HTML、表格适宽、图片粘贴缩放、正则搜索和 Markdown 检查尚未形成完整的编辑器实现；相关开关已移除，避免保存无效配置。",
+              },
             ],
-          },
-          {
-            title: "HTML 渲染",
-            rows: [
-              { kind: "select", key: "rawHtmlRender", label: "富文本中的原始 HTML", desc: "控制原始 HTML 是否隐藏或渲染（已清理）", options: ["已清理", "隐藏", "原样渲染"] },
-            ],
-          },
-          {
-            title: "Markdown 检查",
-            rows: [{ kind: "toggle", key: "enableMarkdownLint", label: "启用 Markdown 检查", desc: "检查常见的 Markdown 问题（链接损坏、缺少替代文本、标题层级等）" }],
           },
         ],
       };
@@ -1869,28 +1941,12 @@ function buildPanel(
         title: "终端",
         sections: [
           {
-            title: "终端",
+            title: "终端偏好",
             rows: [
-              { kind: "select", key: "termShell", label: "Shell", desc: "使用哪个 shell。需要终端重启。", options: ["系统默认（zsh）", "bash", "fish"] },
-              { kind: "select", key: "panelPosition", label: "面板位置", desc: "终端面板的位置。根据窗口宽高比自动切换。", options: ["自动（基于窗口形状）", "底部", "右侧"] },
-              { kind: "select", key: "panelSize", label: "面板大小", desc: "可用空间的比例。拖动调整面板大小也会更新此值。", options: ["25%", "35%", "45%", "55%"] },
-              { kind: "select", key: "termFontSize", label: "字体大小", desc: "终端中的文本大小", options: ["12px", "13px", "14px"] },
-              { kind: "select", key: "termLineHeight", label: "行高", desc: "终端行之间的间距", options: ["1.0", "1.2（紧凑）", "1.5"] },
-              { kind: "select", key: "cursorStyle", label: "光标样式", desc: "终端光标的形状", options: ["竖线 |", "方块 █", "下划线 _"] },
-              { kind: "toggle", key: "cursorBlink", label: "光标闪烁", desc: "终端光标是否闪烁" },
-              { kind: "toggle", key: "copyOnSelectTerm", label: "选中时复制", desc: "自动将选中的文本复制到剪贴板" },
-              { kind: "toggle", key: "webgl", label: "WebGL 渲染器", desc: "使用 GPU 加速渲染。如果遇到 IME 输入问题，请禁用。需要终端重启。" },
-              { kind: "toggle", key: "optionAsMeta", label: "将 Option 用作 Meta 键", desc: "将 macOS Option 键作为 Meta 键使用，以启用 Alt+Arrow 按词导航。如果需要通过死键输入重音符号（Option+E/N/U），请禁用此选项。需要终端重启。" },
-              { kind: "toggle", key: "shellIntegration", label: "Shell Integration", desc: "注入命令标记（zsh），让终端可提供提示符导航、退出状态指示和当前目录跟踪。需要终端重启。" },
-              { kind: "select", key: "scrollback", label: "Scrollback", desc: "终端在滚动历史中保留的输出行数。更高的值会占用更多内存。", options: ["1,000", "5,000", "10,000"] },
-              { kind: "toggle", key: "screenReaderMode", label: "Screen Reader Mode", desc: "向辅助技术（VoiceOver）暴露终端输出。默认关闭以保证性能。" },
-            ],
-          },
-          {
-            title: "无障碍",
-            rows: [
-              { kind: "select", key: "terminalBell", label: "终端响铃", desc: "终端响铃 (BEL) 的提示方式", options: ["关闭", "视觉（背景活动）", "声音"] },
-              { kind: "select", key: "minContrast", label: "最小对比度", desc: "将暗淡文本提升到相对其背景的最小对比度", options: ["关闭", "WCAG AA (4.5:1)", "WCAG AAA (7:1)"] },
+              {
+                kind: "note",
+                text: "终端会话目前使用经过验证的内置配置。Shell、布局、字体、渲染、响铃和无障碍偏好尚未形成完整的持久化与运行时映射，因此暂不显示可切换控件，以避免产生无效配置。",
+              },
             ],
           },
         ],
