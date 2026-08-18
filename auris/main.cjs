@@ -41,6 +41,7 @@ const {
 const { createNotesMcpBridge } = require("./notes-mcp-bridge.cjs");
 const {
   createDefaultMcpPolicy,
+  getMcpClientCredentialsPath,
   getNotesMcpDiscoveryPath: resolveNotesMcpDiscoveryPath,
   normalizeMcpPolicy,
   parseMcpDiscovery,
@@ -50,6 +51,9 @@ const {
   listMcpClients,
   removeMcpClient,
 } = require("./auris-mcp-installer.cjs");
+const {
+  createMcpClientCredentialStore,
+} = require("./mcp/client-credential-store.cjs");
 const {
   MEDIA_PROTOCOL_SCHEME,
   createVideoStreamResponse,
@@ -108,6 +112,7 @@ const { createNiaProviderStore } = require("./nia/nia-provider-store.cjs");
 const { createNiaProviderRuntime } = require("./nia/nia-provider-runtime.cjs");
 const { createNiaIpc } = require("./nia/nia-ipc.cjs");
 const { createNiaDefinitionStore } = require("./nia/nia-definition-store.cjs");
+const { BUILT_IN_NIA_DEFINITIONS } = require("./shared/nia-builtin-definitions.cjs");
 const { createNiaWorkflowRuntime } = require("./workflows/nia-workflow-runtime.cjs");
 const { createBrowserWorkflowApiService } = require("./workflows/browser-workflow-api-service.cjs");
 const { createBrowserWorkflowRuntime } = require("./workflows/browser-workflow-runtime.cjs");
@@ -118,9 +123,39 @@ const {
 const { createWorkflowFacade } = require("./workflows/workflow-facade.cjs");
 const { createWorkflowIpc } = require("./workflows/workflow-ipc.cjs");
 const { createWorkflowRunRegistry } = require("./workflows/workflow-run-registry.cjs");
+const { createNotesRecoveryStore } = require("./notes/notes-recovery-store.cjs");
+const { createNotesRecoveryIpc } = require("./notes/notes-recovery-ipc.cjs");
+const {
+  createVaultFileOperations,
+} = require("./notes/vault-file-operations.cjs");
+// 换根的授权判定。别名导入：本文件里已有一个读 desktopConfig 的同名薄封装
+// `rememberVaultRoot`，模块导出的是它的纯函数内核。
+const {
+  AUTHORIZATION_ERRORS: VAULT_ROOT_ERRORS,
+  authorizeVaultRoot,
+  normalizeKnownVaultRoots,
+  rememberVaultRoot: rememberKnownVaultRoot,
+} = require("./vault/vault-roots.cjs");
+const { walkVaultFiles } = require("./vault/vault-file-walker.cjs");
+const { createAppUpdater } = require("./updates/app-updater.cjs");
+const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
+const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
+const AURIS_APP_VERSION = (() => {
+  if (app.isPackaged) return app.getVersion();
+  try {
+    const manifest = JSON.parse(
+      fsSync.readFileSync(path.join(PROJECT_ROOT, "package.json"), "utf8"),
+    );
+    return typeof manifest.version === "string" && manifest.version
+      ? manifest.version
+      : app.getVersion();
+  } catch {
+    return app.getVersion();
+  }
+})();
 const AI_LIBRARY_DB_FILE = "shadowing-ai-library.db";
 const DESKTOP_CONFIG_FILE = "shadowing-desktop-config.json";
 const DESKTOP_PLUGIN_DIR = path.join(".shadowing", "plugins");
@@ -129,6 +164,7 @@ const LOCAL_HISTORY_DB_FILE = "shadowing-local-history.db";
 const BROWSER_STATE_DB_FILE = "auris-browser-state.db";
 const RUNTIME_STATE_DB_FILE = "shadowing-runtime-state.db";
 const TRAINING_AUDIO_DIR = "training-audio";
+const TERMINAL_RECOVERY_FILE = "terminal-session-recovery.json";
 const VIDEO_LIBRARY_DATA_DIR = "video-libraries";
 const VIDEO_LIBRARY_DB_FILE = "shadowing-video-library.db";
 const VIDEO_LIBRARY_EXTENSIONS = new Set([
@@ -153,7 +189,15 @@ const VIDEO_LIBRARY_MANAGED_DIRS = new Set([
 const DEV_SERVER_TIMEOUT_MS = 90_000;
 const DEFAULT_WINDOW_HEIGHT = 900;
 const DEFAULT_WINDOW_WIDTH = 1400;
+const MAX_RICH_CLIPBOARD_HTML_BYTES = 40 * 1024 * 1024;
+const MAX_RICH_CLIPBOARD_TEXT_BYTES = 4 * 1024 * 1024;
 const isDevMode = process.argv.includes("--dev");
+const packagedSmokeUserData = process.env.AURIS_PACKAGED_SMOKE_USER_DATA;
+if (process.env.AURIS_PACKAGED_SMOKE === "1" && packagedSmokeUserData) {
+  const resolvedSmokeUserData = path.resolve(packagedSmokeUserData);
+  fsSync.mkdirSync(resolvedSmokeUserData, { recursive: true });
+  app.setPath("userData", resolvedSmokeUserData);
+}
 // app.asar is read-only. Keep packaged diagnostics beside the user's other
 // desktop state so renderer launch failures remain observable after release.
 const DESKTOP_LOG_ROOT = app.isPackaged ? app.getPath("userData") : PROJECT_ROOT;
@@ -163,6 +207,7 @@ const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
 
 let mainWindow = null;
+let niaStandaloneWindow = null;
 let mainWindowCreationPromise = null;
 let nextProcess = null;
 let nextProcessReady = false;
@@ -178,11 +223,14 @@ let localHistoryRepository = null;
 let videoLibraryRepository = null;
 let videoLibraryRepositoryPath = null;
 let vaultWatcher = null;
+let vaultMutationChain = Promise.resolve();
 let terminalSessionManager = null;
+let notesRecoveryStore = null;
 let terminalSessionUnsubscribers = [];
 let voiceEngineRuntime = null;
 let aiViewManager = null;
 let notesMcpBridge = null;
+let mcpClientCredentialStore = null;
 let browserMcpDispatcher = null;
 let browserCapabilities = null;
 let browserSecurityGates = null;
@@ -210,12 +258,33 @@ let browserGrantsIpc = null;
 let browserStateRepository = null;
 let niaIpc = null;
 let niaProviderRuntime = null;
+let niaDefinitions = null;
 let browserOperationGuard = null;
 let workflowIpc = null;
 let browserWorkflowRuntime = null;
 let workflowFacade = null;
 let workflowCapabilities = null;
 let browserWorkflowRunRegistry = null;
+
+/**
+ * 唯一的 Nia 定义存储。
+ *
+ * 两处需要它：nia IPC（列出/读取定义，供 Nia Picker 用）与 workflow 子系统
+ * （把定义当作 step 仓库）。它们的初始化顺序不固定，所以这里做成惰性单例，
+ * 而不是在任一个子系统内部创建——后者会让先初始化的那个持有一份、另一个再建
+ * 一份，同一批定义出现两个实例。
+ *
+ * `builtins` 传入真实内置定义。此前 workflow 子系统用 `builtins: []` 创建它，
+ * 于是 `BUILT_IN_NIA_DEFINITIONS` 里的两个定义从未真正装载过——只有测试读到它们。
+ */
+function getNiaDefinitionStore() {
+  if (niaDefinitions) return niaDefinitions;
+  niaDefinitions = createNiaDefinitionStore({
+    baseDir: path.join(app.getPath("userData"), "nia", "definitions"),
+    builtins: BUILT_IN_NIA_DEFINITIONS,
+  });
+  return niaDefinitions;
+}
 
 function createNiaSecretPersistence(baseDir) {
   const secretsDir = path.join(baseDir, "secrets");
@@ -285,6 +354,7 @@ function initializeNiaSubsystem() {
     },
   });
   niaIpc = createNiaIpc({
+    definitionStore: getNiaDefinitionStore(),
     ipcMain,
     providerStore,
     runtime: niaProviderRuntime,
@@ -301,9 +371,52 @@ function resolveTrustedAssistantCaller(event) {
     getSenderUrl(event),
   )) return "notes";
   if (sender && browserWindowManager?.getControllerForWebContents(sender)) return "browser-chrome";
+  if (sender && sender === niaStandaloneWindow?.webContents && isTrustedDesktopOrigin(
+    event?.senderFrame?.url,
+    getSenderUrl(event),
+  )) return "nia-standalone";
   return null;
 }
 
+function normalizeNiaStandaloneLaunch(input) {
+  const value = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+  const origin = ["browser", "command", "home", "note", "reading", "video", "voice"].includes(value.origin) ? value.origin : "home";
+  const browserTarget = value.browserTarget && typeof value.browserTarget === "object"
+    && typeof value.browserTarget.windowId === "string" && typeof value.browserTarget.tabId === "string"
+    ? Object.freeze({ windowId: value.browserTarget.windowId, tabId: value.browserTarget.tabId }) : null;
+  const context = value.context && typeof value.context === "object" && typeof value.context.kind === "string"
+    ? value.context : null;
+  return Object.freeze({ browserTarget, context, origin });
+}
+function isTrustedNiaStandaloneLauncher(event) {
+  const sender = event?.sender;
+  return Boolean(
+    (sender === mainWindow?.webContents && isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event)))
+    || (browserWindowManager?.getControllerForWebContents(sender)
+      && isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event))),
+  );
+}
+async function openNiaStandaloneWindow(event, launch) {
+  if (!isTrustedNiaStandaloneLauncher(event)) throw new Error("Untrusted Nia launcher.");
+  const payload = normalizeNiaStandaloneLaunch(launch);
+  const targetUrl = await startNextServer();
+  if (!niaStandaloneWindow || niaStandaloneWindow.isDestroyed()) {
+    niaStandaloneWindow = new BrowserWindow({
+      width: 520, height: 780, minWidth: 400, minHeight: 560, show: false, title: "Nia · Auris",
+      ...(process.platform === "darwin" ? { titleBarStyle: "hiddenInset" } : {}),
+      webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs"), sandbox: false },
+    });
+    niaStandaloneWindow.once("ready-to-show", () => niaStandaloneWindow?.show());
+    niaStandaloneWindow.on("closed", () => { niaStandaloneWindow = null; });
+    const url = new URL("/nia", targetUrl + "/").toString();
+    await niaStandaloneWindow.loadURL(url);
+  }
+  if (niaStandaloneWindow.isMinimized?.()) niaStandaloneWindow.restore();
+  niaStandaloneWindow.show();
+  niaStandaloneWindow.focus();
+  niaStandaloneWindow.webContents.send("shadowing:nia-standalone:launch", payload);
+  return true;
+}
 async function reviewImportedBrowserWorkflow(summary) {
   const reviewsPath = path.join(app.getPath("userData"), "nia", "browser-workflow-reviews.json");
   const digest = `sha256:${crypto.createHash("sha256").update(summary.normalizedSource).digest("hex")}`;
@@ -342,11 +455,11 @@ async function reviewImportedBrowserWorkflow(summary) {
 
 function initializeWorkflowSubsystem() {
   if (workflowIpc) return workflowIpc;
-  const niaDefinitions = createNiaDefinitionStore({
-    baseDir: path.join(app.getPath("userData"), "nia", "definitions"),
-    builtins: [],
-  });
-  const executePrompt = ({ input, model, ownerId, signal }) => new Promise((resolve, reject) => {
+  const niaDefinitionStore = getNiaDefinitionStore();
+  // `prompt` 是合约层用 definition.body 合成好的最终提示词；`input` 只是用户原文。
+  // 必须优先用前者——只发 input 等于把定义的指令整条丢掉（见
+  // `electron/shared/nia-prompt-composition.cjs` 的模块注释）。
+  const executePrompt = ({ input, prompt, model, ownerId, signal }) => new Promise((resolve, reject) => {
     const ownerWebContentsId = 0x80000000 + (crypto.createHash("sha256")
       .update(String(ownerId))
       .digest()
@@ -368,13 +481,13 @@ function initializeWorkflowSubsystem() {
     void niaProviderRuntime.startRun({
       ownerWebContentsId,
       modelOverride: model || null,
-      prompt: String(input || ""),
+      prompt: String(prompt || input || ""),
     }).then((started) => { providerRunId = started.runId; }).catch((error) => {
       unsubscribe(); reject(error);
     });
   });
   const niaWorkflowRuntime = createNiaWorkflowRuntime({
-    definitionRepository: niaDefinitions,
+    definitionRepository: niaDefinitionStore,
     executePrompt,
   });
   const apiService = createBrowserWorkflowApiService({
@@ -437,7 +550,7 @@ function initializeWorkflowSubsystem() {
     capabilities: workflowCapabilities,
     definitions: {
       async list() {
-        return (await niaDefinitions.list()).map((definition) => ({
+        return (await niaDefinitionStore.list()).map((definition) => ({
           definitionId: definition.canonicalId,
           family: "nia_yaml",
           label: definition.name,
@@ -445,7 +558,7 @@ function initializeWorkflowSubsystem() {
         }));
       },
       inspect(family, definitionId) {
-        return family === "nia_yaml" ? niaDefinitions.get(definitionId) : null;
+        return family === "nia_yaml" ? niaDefinitionStore.get(definitionId) : null;
       },
     },
     niaRuntime: niaWorkflowRuntime,
@@ -464,7 +577,18 @@ function requireTrustedMainEvent(event) {
     event?.sender !== mainWindow?.webContents
     || !isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event))
   ) {
-    throw new Error("Browser status requests require the trusted main Auris renderer.");
+    throw new Error("This request requires the trusted main Auris renderer.");
+  }
+}
+
+function requireTrustedMainFrameEvent(event) {
+  requireTrustedMainEvent(event);
+
+  if (
+    event?.senderFrame !== event?.sender?.mainFrame
+    || !isTrustedDesktopOrigin(event?.senderFrame?.url)
+  ) {
+    throw new Error("This request requires the trusted top-level Auris renderer.");
   }
 }
 
@@ -760,6 +884,9 @@ process.on("unhandledRejection", (error) => {
 function createDefaultDesktopConfig() {
   return {
     browserAutomationEnabled: false,
+    // 用户历史上通过目录选择器授权过的 vault 根，供 Workspace Rail 免对话框切换。
+    // 它同时是 `vault:set-root` 的白名单——见 setVaultRoot() 的安全说明。
+    knownVaultRoots: [],
     mcp: createDefaultMcpPolicy(),
     pluginsEnabled: {},
     videoLibraryPath: null,
@@ -942,6 +1069,24 @@ function getNodeCommand() {
 
 function getDesktopConfigPath() {
   return path.join(app.getPath("userData"), DESKTOP_CONFIG_FILE);
+}
+
+function getNotesRecoveryStore() {
+  if (!notesRecoveryStore) {
+    notesRecoveryStore = createNotesRecoveryStore({
+      baseDirectory: path.join(app.getPath("userData"), "notes-recovery"),
+    });
+  }
+  return notesRecoveryStore;
+}
+
+function getMcpClientCredentialStore() {
+  if (!mcpClientCredentialStore) {
+    mcpClientCredentialStore = createMcpClientCredentialStore({
+      registryPath: getMcpClientCredentialsPath(),
+    });
+  }
+  return mcpClientCredentialStore;
 }
 
 function getNotesMcpDiscoveryPath() {
@@ -1307,6 +1452,15 @@ function scheduleVaultChanged() {
   }, 120);
 }
 
+function getTerminalRecoveryStore() {
+  return createTerminalSessionRecoveryStore(
+    path.join(app.getPath("userData"), TERMINAL_RECOVERY_FILE),
+  );
+}
+function persistTerminalRecovery() {
+  if (!terminalSessionManager) return [];
+  return getTerminalRecoveryStore().save(terminalSessionManager.listSessions());
+}
 function sendTerminalEvent(channel, payload) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -1341,14 +1495,21 @@ function getTerminalSessionManager() {
     terminalSessionManager.onData((payload) =>
       sendTerminalEvent(TERMINAL_DATA_CHANNEL, payload),
     ),
-    terminalSessionManager.onExit((payload) =>
-      sendTerminalEvent(TERMINAL_EXIT_CHANNEL, payload),
-    ),
+    terminalSessionManager.onExit((payload) => {
+      persistTerminalRecovery();
+      sendTerminalEvent(TERMINAL_EXIT_CHANNEL, payload);
+    }),
   ];
-
+  for (const descriptor of getTerminalRecoveryStore().load()) {
+    try {
+      terminalSessionManager.createSession(descriptor);
+    } catch (error) {
+      writeStartupLog(`terminal:${descriptor.id}:restore-failed ${error?.message ?? error}`);
+    }
+  }
+  persistTerminalRecovery();
   return terminalSessionManager;
 }
-
 function getNotesMcpBridge() {
   if (notesMcpBridge) {
     return notesMcpBridge;
@@ -1365,13 +1526,17 @@ function getNotesMcpBridge() {
       }
       return browserMcpDispatcher.dispatch(request);
     },
-    dispatchWorkflowRequest: ({ connectionId, params }) => {
+    dispatchWorkflowRequest: ({ connectionId, params, principal }) => {
       if (!workflowFacade) {
         throw createBrowserPublicError("CAPABILITY_NOT_VERIFIED", {
           capability: "workflow-facade",
         });
       }
-      return workflowFacade.request({ ownerId: `mcp:${connectionId}`, ...params });
+      return workflowFacade.request({
+        ownerId: connectionId,
+        principal,
+        ...params,
+      });
     },
     getWindow: () => mainWindow,
     logger: writeStartupLog,
@@ -1379,7 +1544,9 @@ function getNotesMcpBridge() {
     releaseBrowserOwnership: (connectionId) =>
       browserMcpDispatcher?.releaseOwnership?.(connectionId),
     releaseWorkflowOwnership: (connectionId) =>
-      workflowFacade?.disconnect?.(`mcp:${connectionId}`),
+      workflowFacade?.disconnect?.(connectionId),
+    verifyClientCredential: ({ clientId, clientToken }) =>
+      getMcpClientCredentialStore().verify(clientId, clientToken),
     writeDiscovery: writeNotesMcpDiscovery,
   });
 
@@ -1395,6 +1562,7 @@ function closeTerminalSessionManager() {
     }
   });
   terminalSessionUnsubscribers = [];
+  persistTerminalRecovery();
   terminalSessionManager?.killAll();
   terminalSessionManager = null;
 }
@@ -1402,12 +1570,14 @@ function closeTerminalSessionManager() {
 async function createTerminalSession(input) {
   const vaultPath = await getVaultPath();
 
-  return getTerminalSessionManager().createSession(
+  const record = getTerminalSessionManager().createSession(
     createTerminalSessionInput(input, {
       homePath: app.getPath("home"),
       vaultPath,
     }),
   );
+  persistTerminalRecovery();
+  return record;
 }
 
 function requireTerminalSessionId(value) {
@@ -1604,6 +1774,133 @@ function getUpgradeUrl() {
   return typeof targetUrl === "string" && targetUrl.trim() ? targetUrl.trim() : null;
 }
 
+/* ------------------------------------------------------------------ */
+/* 自动更新（对齐 vmark updater；底座换成 electron-updater）            */
+/* ------------------------------------------------------------------ */
+
+let appUpdater = null;
+let appUpdaterStallWatchdog = null;
+let closeAttemptTracker = null;
+let cachedInstallCapability = null;
+
+/**
+ * macOS 上 `electron-updater` 就地安装要求 app 带有效代码签名。Auris 当前
+ * `electron-builder.yml` 用 ad-hoc identity("-")，就地安装必然在 apply 阶段
+ * 失败。这里用 `codesign` 真实探测一次（结果缓存），而不是假设成功——否则 UI
+ * 会给出一个永远失败的"重启安装"按钮，正是上一轮审计要求删掉的那类假控件。
+ */
+function detectMacInstallCapability() {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    let child;
+    try {
+      child = spawn("/usr/bin/codesign", ["-dv", "--verbose=2", app.getAppPath().replace(/\/Contents\/Resources\/app(\.asar)?$/, "")], {
+        stdio: ["ignore", "ignore", "pipe"],
+      });
+    } catch {
+      finish(false);
+      return;
+    }
+
+    let stderr = "";
+    child.stderr?.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+    child.on("error", () => finish(false));
+    child.on("close", () => {
+      // ad-hoc 签名的 Authority 行是 "Signature=adhoc"；真实证书会出现
+      // "Authority=Developer ID Application: ..."。
+      const adhoc = /Signature\s*=\s*adhoc/i.test(stderr);
+      const developerId = /Authority=Developer ID Application/i.test(stderr);
+      finish(developerId && !adhoc);
+    });
+
+    setTimeout(() => finish(false), 4000);
+  });
+}
+
+async function canInstallUpdateInPlace() {
+  if (cachedInstallCapability !== null) {
+    return cachedInstallCapability;
+  }
+
+  if (!app.isPackaged) {
+    cachedInstallCapability = false;
+    return cachedInstallCapability;
+  }
+
+  if (process.platform !== "darwin") {
+    cachedInstallCapability = true;
+    return cachedInstallCapability;
+  }
+
+  cachedInstallCapability = await detectMacInstallCapability();
+  writeStartupLog(`updater:can-install-in-place=${cachedInstallCapability}`);
+  return cachedInstallCapability;
+}
+
+function getCloseAttemptTracker() {
+  if (!closeAttemptTracker) {
+    closeAttemptTracker = createCloseAttemptTracker({
+      log: (event, detail) => writeStartupLog(`${event}${detail ? ` ${detail}` : ""}`),
+    });
+  }
+  return closeAttemptTracker;
+}
+function pushUpdateState(snapshot) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+
+  mainWindow.webContents.send("shadowing:updates:state", snapshot);
+}
+
+async function getAppUpdater() {
+  if (appUpdater) {
+    return appUpdater;
+  }
+
+  // electron-updater 只在需要时加载：开发环境下它会立刻抱怨没有 app-update.yml，
+  // 没必要在冷启动路径上付这个代价。
+  const { autoUpdater } = require("electron-updater");
+
+  autoUpdater.logger = {
+    debug: () => {},
+    error: (message) => writeStartupLog(`updater:error ${message}`),
+    info: (message) => writeStartupLog(`updater:info ${message}`),
+    warn: (message) => writeStartupLog(`updater:warn ${message}`),
+  };
+
+  appUpdater = createAppUpdater({
+    autoUpdater,
+    canInstallInPlace: await canInstallUpdateInPlace(),
+    getCurrentVersion: () => AURIS_APP_VERSION,
+    log: (message, detail) =>
+      writeStartupLog(`${message}${detail === undefined ? "" : ` ${String(detail)}`}`),
+    openExternal: (targetUrl) => shell.openExternal(targetUrl),
+    releasesUrl: getUpgradeUrl() ?? "https://github.com/xhslam/auris/releases",
+    // electron-updater 在 dev 中会 skip 检查却不一定 settle promise。将能力
+    // 显式交给状态机，让 renderer 展示“开发模式”而不是假的红色错误。
+    supported: app.isPackaged,
+  });
+
+  appUpdater.onStateChange(pushUpdateState);
+  // electron-updater 的网络 promise 可能永久悬挂；不能只依赖 finally 清理 single-flight。
+  if (!appUpdaterStallWatchdog) {
+    appUpdaterStallWatchdog = setInterval(() => {
+      appUpdater?.checkForStall();
+    }, 15_000);
+    appUpdaterStallWatchdog.unref?.();
+  }
+  return appUpdater;
+}
+
 async function openUpgradeEntry() {
   const targetUrl = getUpgradeUrl();
 
@@ -1711,6 +2008,7 @@ async function readDesktopConfig() {
 
     desktopConfig = {
       browserAutomationEnabled: parsed?.browserAutomationEnabled === true,
+      knownVaultRoots: normalizeKnownVaultRoots(parsed?.knownVaultRoots),
       mcp: normalizeMcpPolicy(parsed?.mcp),
       pluginsEnabled:
         parsed && typeof parsed.pluginsEnabled === "object" && parsed.pluginsEnabled
@@ -1735,6 +2033,7 @@ async function readDesktopConfig() {
 async function writeDesktopConfig(nextConfig) {
   desktopConfig = {
     browserAutomationEnabled: nextConfig.browserAutomationEnabled === true,
+    knownVaultRoots: normalizeKnownVaultRoots(nextConfig.knownVaultRoots),
     mcp: normalizeMcpPolicy(nextConfig.mcp),
     pluginsEnabled: nextConfig.pluginsEnabled ?? {},
     videoLibraryPath: nextConfig.videoLibraryPath ?? null,
@@ -1780,6 +2079,7 @@ async function updateNotesMcpPolicy(policyPatch) {
 // 用哪个可执行文件当 node（Electron 自身），以及 server 脚本的绝对路径。
 function getMcpInstallerOptions() {
   return {
+    credentialStore: getMcpClientCredentialStore(),
     execPath: process.execPath,
     serverScriptPath: path.join(__dirname, "auris-notes-mcp-server.mjs"),
   };
@@ -2001,69 +2301,45 @@ function assertRelativePath(relativePath) {
     throw new Error("A valid relative vault path is required.");
   }
 
-  return relativePath.replace(/\\/g, "/").replace(/^\/+/, "");
+  const normalized = relativePath.replace(/\\/g, "/");
+  if (normalized.startsWith("/")) {
+    throw new Error("The requested file path escapes the current vault.");
+  }
+  return normalized;
 }
 
-async function resolveVaultTarget(relativePath) {
-  const vaultPath = await getVaultPath();
+function getNotesTrashDirectory() {
+  return path.join(app.getPath("userData"), "notes-trash");
+}
 
+function serializeVaultMutation(operation) {
+  const next = vaultMutationChain.then(operation, operation);
+  vaultMutationChain = next.catch(() => undefined);
+  return next;
+}
+
+async function getVaultFileOperations() {
+  const vaultPath = await getVaultPath();
   if (!vaultPath) {
     throw new Error("Please choose a local vault folder first.");
   }
-
-  const safeRelativePath = assertRelativePath(relativePath);
-  const absoluteTarget = path.resolve(vaultPath, safeRelativePath);
-  const normalizedVaultPath = path.resolve(vaultPath);
-  const insideVault =
-    absoluteTarget === normalizedVaultPath ||
-    absoluteTarget.startsWith(`${normalizedVaultPath}${path.sep}`);
-
-  if (!insideVault) {
-    throw new Error("The requested file path escapes the current vault.");
-  }
-
   return {
-    absoluteTarget,
-    safeRelativePath,
+    operations: createVaultFileOperations({
+      trashRoot: getNotesTrashDirectory(),
+      vaultRoot: vaultPath,
+    }),
     vaultPath,
   };
 }
 
-async function walkVaultFiles(vaultPath, relativeDirectory = "") {
-  const currentDirectory = path.join(vaultPath, relativeDirectory);
-  const entries = await fs.readdir(currentDirectory, { withFileTypes: true });
-  const records = [];
-
-  for (const entry of entries) {
-    if (relativeDirectory === "" && entry.name === ".shadowing") {
-      continue;
-    }
-
-    const relativePath = relativeDirectory
-      ? path.posix.join(relativeDirectory.replace(/\\/g, "/"), entry.name)
-      : entry.name;
-    const absolutePath = path.join(vaultPath, relativePath);
-
-    if (entry.isDirectory()) {
-      // Emit the directory itself so empty folders are visible in the file tree
-      records.push({
-        absolutePath,
-        fileName: entry.name,
-        isDirectory: true,
-        relativePath: relativePath.replace(/\\/g, "/"),
-      });
-      records.push(...(await walkVaultFiles(vaultPath, relativePath)));
-      continue;
-    }
-
-    records.push({
-      absolutePath,
-      fileName: entry.name,
-      relativePath: relativePath.replace(/\\/g, "/"),
-    });
-  }
-
-  return records.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+async function resolveVaultTarget(relativePath) {
+  const safeRelativePath = assertRelativePath(relativePath);
+  const { operations, vaultPath } = await getVaultFileOperations();
+  return {
+    absoluteTarget: await operations.resolve(safeRelativePath),
+    safeRelativePath,
+    vaultPath,
+  };
 }
 
 async function clearPluginRuntime() {
@@ -2233,6 +2509,16 @@ async function revealPluginsDirectory() {
   await shell.openPath(pluginsDirectory);
 }
 
+/**
+ * 把一个用户已经通过原生选择器授权过的根记进「已知根」列表（最近使用优先）。
+ *
+ * 这个列表既是 Workspace Rail 的数据源，也是 `vault:set-root` 的白名单。
+ * 判定逻辑在 `electron/vault/vault-roots.cjs`，那里可以直接单测。
+ */
+function rememberVaultRoot(rootPath) {
+  return rememberKnownVaultRoot(desktopConfig.knownVaultRoots ?? [], rootPath);
+}
+
 async function pickVaultDirectory() {
   const result = await dialog.showOpenDialog({
     defaultPath: desktopConfig.vaultPath ?? undefined,
@@ -2248,6 +2534,7 @@ async function pickVaultDirectory() {
   await ensurePluginsDirectory(vaultPath);
   await writeDesktopConfig({
     ...desktopConfig,
+    knownVaultRoots: rememberVaultRoot(vaultPath),
     vaultPath,
   });
   await refreshVaultWatcher();
@@ -2284,6 +2571,79 @@ async function pickVaultFile() {
     ...(await getVaultDirectoryInfo()),
     selectedFilePath: path.relative(vaultPath, selectedFilePath).split(path.sep).join("/"),
   };
+}
+
+/**
+ * 列出已知 vault 根，供 Workspace Rail 渲染。
+ *
+ * 同时报告每个根当前是否可达：外置盘拔了、目录被删、或者仓库被移动过，rail
+ * 需要把它显示成「不可用」而不是假装能切过去。
+ */
+async function listVaultRoots() {
+  const roots = desktopConfig.knownVaultRoots ?? [];
+  const activePath = desktopConfig.vaultPath
+    ? path.resolve(desktopConfig.vaultPath)
+    : null;
+
+  return Promise.all(
+    roots.map(async (rootPath) => ({
+      available: await pathExists(rootPath),
+      isActive: activePath === rootPath,
+      name: path.basename(rootPath),
+      path: rootPath,
+    })),
+  );
+}
+
+/**
+ * 切换当前 vault 根，不弹对话框。
+ *
+ * **安全边界（这是这个 handler 存在的全部难点）**：只接受已经在
+ * `knownVaultRoots` 里的路径，也就是用户此前通过原生目录选择器亲自授权过的
+ * 目录。绝不接受 renderer 传来的任意绝对路径。
+ *
+ * 原因不是洁癖：vault 根一旦可以被 renderer 任意指定，`vault:read-file` /
+ * `list-files` 就成了「读任意目录」的通道——把根指到 `~/.ssh` 或
+ * `~/Library/Application Support`，然后逐个文件读出来。那等于把一个受限的
+ * 笔记读写接口升级成任意文件读取。所以新根必须走 `pick-directory`（用户在
+ * 系统对话框里做出选择），rail 只负责在已授权的根之间切换。
+ */
+async function setVaultRoot(requestedPath) {
+  const decision = authorizeVaultRoot(
+    desktopConfig.knownVaultRoots ?? [],
+    requestedPath,
+  );
+
+  if (!decision.ok) {
+    if (decision.code === VAULT_ROOT_ERRORS.EMPTY) {
+      throw new Error("A vault root path is required.");
+    }
+    // 未授权与「传了个相对路径」都归到同一条用户可行动的提示：调用方（rail）
+    // 据此引导用户走选择器，而不是显示一个会让人以为目录丢了的错误。
+    throw new Error(
+      "This vault root has not been authorized. Choose it with the folder picker first.",
+    );
+  }
+
+  const normalized = decision.rootPath;
+
+  if (!(await pathExists(normalized))) {
+    // 授权过但当前不可达（盘拔了 / 目录被删）。不改当前根，让 rail 把这一项
+    // 标成不可用——静默切到一个空 vault 会看起来像笔记全丢了。
+    throw new Error("This vault root is currently unavailable.");
+  }
+
+  await ensurePluginsDirectory(normalized);
+  await writeDesktopConfig({
+    ...desktopConfig,
+    knownVaultRoots: rememberVaultRoot(normalized),
+    vaultPath: normalized,
+  });
+  await refreshVaultWatcher();
+  await loadPluginRuntime();
+  scheduleVaultChanged();
+
+  return getVaultDirectoryInfo();
 }
 
 async function getVaultDirectoryInfo() {
@@ -2841,13 +3201,19 @@ async function createMainWindow() {
       if (!mainWindow || mainWindow.isDestroyed()) {
         return;
       }
-
-      aiDockStateBuffer.flush();
-      updateRuntimeState({
-        lastRoute: extractRoutePath(mainWindow.webContents.getURL()),
-        windowBounds: mainWindow.getBounds(),
+      writeStartupLog("main-window:close:start");
+      try {
+        aiDockStateBuffer.flush();
+        updateRuntimeState({
+          lastRoute: extractRoutePath(mainWindow.webContents.getURL()),
+          windowBounds: mainWindow.getBounds(),
+        });
+        writeStartupLog("main-window:close:state-persisted");
+      } catch (error) {
+        writeStartupLog(`main-window:close:error ${error?.stack ?? error}`);
+        throw error;
+      }
     });
-  });
 
   mainWindow.on("closed", () => {
     writeStartupLog("createMainWindow:closed");
@@ -2860,6 +3226,9 @@ async function createMainWindow() {
   const initialUrl = new URL(initialRoutePath, `${targetUrl}/`).toString();
   await mainWindow.loadURL(initialUrl);
   writeStartupLog(`createMainWindow:loaded ${initialUrl}`);
+  if (browserWindowManager?.attachEmbeddedHost) {
+    await browserWindowManager.attachEmbeddedHost({ hostWindow: mainWindow });
+  }
 }
 
 async function ensureMainWindow() {
@@ -2889,6 +3258,11 @@ function installApplicationMenu() {
   const browserSurfaceEnabled = browserCapabilities?.snapshot()?.securityVerified === true;
   const template = createApplicationMenuTemplate({
     callbacks: {
+      onNotesCommand: (commandId) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("shadowing:menu:command", commandId);
+        }
+      },
       onCheckForUpdates: () => {
         void openUpgradeEntry();
       },
@@ -2915,7 +3289,8 @@ function installApplicationMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-const hasSingleInstanceLock = app.requestSingleInstanceLock();
+const hasSingleInstanceLock =
+  process.env.AURIS_PACKAGED_SMOKE === "1" || app.requestSingleInstanceLock();
 
 if (!hasSingleInstanceLock) {
   writeStartupLog("app:single-instance-lock-denied");
@@ -2923,6 +3298,12 @@ if (!hasSingleInstanceLock) {
 }
 
 function registerDesktopHandlers() {
+  createNotesRecoveryIpc({
+    ipcMain,
+    requireTrustedSender: requireTrustedMainEvent,
+    store: getNotesRecoveryStore(),
+  });
+
   ipcMain.handle("shadowing:commands:list", async () => {
     await loadPluginRuntime();
     return getDesktopCommands().map((command) => ({
@@ -3016,6 +3397,23 @@ function registerDesktopHandlers() {
     clipboard.writeText(String(text ?? ""));
   });
 
+  ipcMain.handle(
+    "shadowing:clipboard:write-html",
+    async (event, html, text) => {
+      requireTrustedMainFrameEvent(event);
+      if (typeof html !== "string" || typeof text !== "string") {
+        throw new TypeError("Rich clipboard content must be strings.");
+      }
+      if (Buffer.byteLength(html, "utf8") > MAX_RICH_CLIPBOARD_HTML_BYTES) {
+        throw new RangeError("Rich clipboard HTML exceeds the 40 MB limit.");
+      }
+      if (Buffer.byteLength(text, "utf8") > MAX_RICH_CLIPBOARD_TEXT_BYTES) {
+        throw new RangeError("Rich clipboard text exceeds the 4 MB limit.");
+      }
+      clipboard.write({ html, text });
+    },
+  );
+
   ipcMain.handle("shadowing:clipboard:read-text", async (event) => {
     requireTrustedDesktopEvent(event);
     return clipboard.readText();
@@ -3074,6 +3472,12 @@ function registerDesktopHandlers() {
     requireTrustedDesktopEvent(event);
     return getTerminalSessionManager().listSessions();
   });
+  ipcMain.handle("shadowing:terminal:resume", async (event, input) => {
+    requireTrustedDesktopEvent(event);
+    const sessionId = requireTerminalSessionId(input?.sessionId);
+    const existing = getTerminalSessionManager().listSessions().find((item) => item.id === sessionId);
+    return existing ?? createTerminalSession(input);
+  });
 
   ipcMain.handle("shadowing:terminal:write", async (event, sessionId, data) => {
     requireTrustedDesktopEvent(event);
@@ -3091,6 +3495,7 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:terminal:kill", async (event, sessionId) => {
     requireTrustedDesktopEvent(event);
     getTerminalSessionManager().kill(requireTerminalSessionId(sessionId));
+    persistTerminalRecovery();
   });
 
   ipcMain.handle("shadowing:plugins:list", async () => {
@@ -3345,64 +3750,124 @@ function registerDesktopHandlers() {
     return runtime.plugins;
   });
 
-  ipcMain.handle("shadowing:vault:get-directory-info", async () => getVaultDirectoryInfo());
+  ipcMain.handle("shadowing:vault:get-directory-info", async (event) => {
+    requireTrustedMainEvent(event);
+    return getVaultDirectoryInfo();
+  });
 
-  ipcMain.handle("shadowing:vault:list-files", async () => {
+  ipcMain.handle("shadowing:vault:list-files", async (event) => {
+    requireTrustedMainEvent(event);
     const vaultPath = await getVaultPath();
     return vaultPath ? walkVaultFiles(vaultPath) : [];
   });
 
-  ipcMain.handle("shadowing:vault:pick-directory", async () => pickVaultDirectory());
-  ipcMain.handle("shadowing:vault:pick-file", async () => pickVaultFile());
-
-  ipcMain.handle("shadowing:vault:create-directory", async (_event, relativePath) => {
-    const target = await resolveVaultTarget(relativePath);
-    await fs.mkdir(target.absoluteTarget, { recursive: true });
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:pick-directory", async (event) => {
+    requireTrustedMainEvent(event);
+    return pickVaultDirectory();
+  });
+  ipcMain.handle("shadowing:vault:pick-file", async (event) => {
+    requireTrustedMainEvent(event);
+    return pickVaultFile();
   });
 
-  ipcMain.handle("shadowing:vault:read-file", async (_event, relativePath) => {
+  ipcMain.handle("shadowing:vault:list-roots", async (event) => {
+    requireTrustedMainEvent(event);
+    return listVaultRoots();
+  });
+
+  // 换根不弹对话框，但只接受已授权的根——白名单校验在 setVaultRoot 里，理由见
+  // 那里的注释（否则这个 handler 会把受限的笔记读写升级成任意文件读取）。
+  ipcMain.handle("shadowing:vault:set-root", async (event, rootPath) => {
+    requireTrustedMainEvent(event);
+    return setVaultRoot(rootPath);
+  });
+
+  ipcMain.handle("shadowing:vault:create-directory", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
+    const target = await resolveVaultTarget(relativePath);
+    return serializeVaultMutation(async () => {
+      await fs.mkdir(target.absoluteTarget, { recursive: true });
+      scheduleVaultChanged();
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:read-file", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
     const target = await resolveVaultTarget(relativePath);
     return (await pathExists(target.absoluteTarget))
       ? fs.readFile(target.absoluteTarget, "utf8")
       : null;
   });
 
-  ipcMain.handle("shadowing:vault:remove-file", async (_event, relativePath) => {
-    const target = await resolveVaultTarget(relativePath);
-    await fs.rm(target.absoluteTarget, { force: true, recursive: true });
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:remove-file", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.trash(relativePath);
+      scheduleVaultChanged();
+    });
   });
 
-  ipcMain.handle("shadowing:vault:rename-file", async (_event, fromPath, toPath) => {
-    const source = await resolveVaultTarget(fromPath);
-    const target = await resolveVaultTarget(toPath);
-    await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
-    await fs.rename(source.absoluteTarget, target.absoluteTarget);
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:copy-file", async (event, fromPath, toPath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.copy(fromPath, toPath);
+      scheduleVaultChanged();
+    });
   });
 
-  ipcMain.handle("shadowing:vault:move-file", async (_event, fromPath, toPath) => {
-    const source = await resolveVaultTarget(fromPath);
-    const target = await resolveVaultTarget(toPath);
-    await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
-    await fs.rename(source.absoluteTarget, target.absoluteTarget);
-    scheduleVaultChanged();
+  ipcMain.handle("shadowing:vault:reveal-file", async (event, relativePath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    shell.showItemInFolder(await operations.reveal(relativePath));
   });
 
-  ipcMain.handle("shadowing:vault:reveal-plugins-directory", async () => {
+  ipcMain.handle("shadowing:vault:restore-last-deleted", async (event) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      const restoredPath = await operations.restoreLatest();
+      if (restoredPath) scheduleVaultChanged();
+      return restoredPath;
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:rename-file", async (event, fromPath, toPath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.move(fromPath, toPath);
+      scheduleVaultChanged();
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:move-file", async (event, fromPath, toPath) => {
+    requireTrustedMainEvent(event);
+    const { operations } = await getVaultFileOperations();
+    return serializeVaultMutation(async () => {
+      await operations.move(fromPath, toPath);
+      scheduleVaultChanged();
+    });
+  });
+
+  ipcMain.handle("shadowing:vault:reveal-plugins-directory", async (event) => {
+    requireTrustedMainEvent(event);
     await revealPluginsDirectory();
   });
 
-  ipcMain.handle("shadowing:vault:save-file", async (_event, relativePath, content) => {
+  ipcMain.handle("shadowing:vault:save-file", async (event, relativePath, content) => {
+    requireTrustedMainEvent(event);
     const target = await resolveVaultTarget(relativePath);
-    await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
-    if (typeof content === "string") {
-      await writeFileAtomically(target.absoluteTarget, content, "utf8");
-    } else {
-      await writeFileAtomically(target.absoluteTarget, Buffer.from(content));
-    }
-    scheduleVaultChanged();
+    return serializeVaultMutation(async () => {
+      await fs.mkdir(path.dirname(target.absoluteTarget), { recursive: true });
+      if (typeof content === "string") {
+        await writeFileAtomically(target.absoluteTarget, content, "utf8");
+      } else {
+        await writeFileAtomically(target.absoluteTarget, Buffer.from(content));
+      }
+      scheduleVaultChanged();
+    });
   });
 
   ipcMain.handle("shadowing:video-library:get-snapshot", async () => getVideoLibrarySnapshot());
@@ -3435,6 +3900,7 @@ function registerDesktopHandlers() {
     shell.showItemInFolder(targetPath);
   });
 
+  ipcMain.handle("shadowing:nia-standalone:open", async (event, launch) => openNiaStandaloneWindow(event, launch));
   ipcMain.handle("shadowing:system:open-upgrade", async () => openUpgradeEntry());
 
   ipcMain.handle("shadowing:system:detect-binary", async (_event, name) =>
@@ -3444,6 +3910,58 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:system:pick-file", async (_event, options) =>
     pickSystemFile(options),
   );
+
+  /* ---------------------------------------------------------------- */
+  /* 自动更新                                                        */
+  /* ---------------------------------------------------------------- */
+
+  ipcMain.handle("shadowing:updates:get-state", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    return {
+      ...updater.getSnapshot(),
+      currentVersion: AURIS_APP_VERSION,
+    };
+  });
+
+  ipcMain.handle("shadowing:updates:check", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    await updater.check();
+    return updater.getSnapshot();
+  });
+
+  ipcMain.handle("shadowing:updates:download", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    await updater.download();
+    return updater.getSnapshot();
+  });
+
+  ipcMain.handle("shadowing:updates:quit-and-install", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    return updater.quitAndInstall();
+  });
+
+  ipcMain.handle("shadowing:updates:open-releases", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    return updater.openReleasesPage();
+  });
+
+  ipcMain.handle("shadowing:updates:reset", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    updater.reset();
+    return updater.getSnapshot();
+  });
+  ipcMain.handle("shadowing:updates:recover", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const updater = await getAppUpdater();
+    const result = updater.recoverFromStall();
+    return { ...result, snapshot: updater.getSnapshot() };
+  });
 }
 
 // Only these tools may be probed from the renderer — never run an arbitrary
@@ -3553,6 +4071,7 @@ app.whenReady().then(async () => {
   }
   await ensureMainWindow();
   initializeBrowserSubsystem(nextServerUrl);
+  await browserWindowManager?.attachEmbeddedHost?.({ hostWindow: mainWindow });
   initializeNiaSubsystem();
   initializeWorkflowSubsystem();
   initializeBrowserStatusSubsystem();
@@ -3591,11 +4110,18 @@ app.on("window-all-closed", async () => {
 });
 
 app.on("before-quit", async () => {
-  writeStartupLog("app:before-quit");
+  const closeAttempt = getCloseAttemptTracker().begin("before-quit");
+  writeStartupLog("app:before-quit:start");
+  if (appUpdaterStallWatchdog) {
+    clearInterval(appUpdaterStallWatchdog);
+    appUpdaterStallWatchdog = null;
+  }
+  getCloseAttemptTracker().milestone(closeAttempt, "updater-watchdog-cleared");
   aiDockStateBuffer.flush();
   aiDockStateBuffer.dispose();
   browserWindowManager?.closeAll();
   browserWindowManager = null;
+  getCloseAttemptTracker().milestone(closeAttempt, "browser-windows-closed");
   browserIpc?.dispose();
   browserIpc = null;
   browserGrantsIpc?.dispose();
@@ -3634,6 +4160,7 @@ app.on("before-quit", async () => {
   browserRegistry = null;
   browserPartitionSelector = null;
   closeTerminalSessionManager();
+  getCloseAttemptTracker().milestone(closeAttempt, "terminal-closed");
   notesMcpBridge?.close();
   notesMcpBridge = null;
   browserMcpDispatcher = null;
@@ -3644,5 +4171,8 @@ app.on("before-quit", async () => {
   closeVideoLibraryRepository();
   runtimeStateRepository?.close();
   runtimeStateRepository = null;
+  getCloseAttemptTracker().milestone(closeAttempt, "runtime-resources-closed");
   await stopNextServer();
+  getCloseAttemptTracker().complete(closeAttempt);
+  writeStartupLog("app:before-quit:complete");
 });
