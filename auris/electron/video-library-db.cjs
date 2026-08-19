@@ -130,13 +130,14 @@ function filePathToUrl(filePath) {
 
 function createDirectoryInfo(libraryPath, directories) {
   return {
-    analysisDirectory: directories.analysisDirectory,
+    // 当前没有分析或转码产物的读写实现；不提前创建空目录。
+    analysisDirectory: null,
     directoryName: path.basename(libraryPath),
     hasLibrary: true,
     libraryPath,
     storageMode: "reference",
     thumbnailsDirectory: directories.thumbnailsDirectory,
-    transcodesDirectory: directories.transcodesDirectory,
+    transcodesDirectory: null,
   };
 }
 
@@ -166,9 +167,9 @@ function createVideoLibraryRepository({ databasePath, libraryDataPath, libraryPa
     transcodesDirectory: path.join(libraryDataPath, "transcodes"),
   };
 
-  fsSync.mkdirSync(directories.analysisDirectory, { recursive: true });
+  // 缩略图是当前唯一会实际写入的媒体副产物；分析和转码目录按未来
+  // 功能的真实写入动作再懒创建，避免污染用户选择的视频源目录。
   fsSync.mkdirSync(directories.thumbnailsDirectory, { recursive: true });
-  fsSync.mkdirSync(directories.transcodesDirectory, { recursive: true });
 
   const database = new DatabaseSync(databasePath);
   database.exec(SCHEMA_SQL);

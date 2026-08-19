@@ -680,7 +680,7 @@ describe("NotesWorkbench", () => {
     expect(screen.queryByTestId("notes-codemirror-host")).not.toBeInTheDocument();
   });
 
-  it("opens the embedded browser from the Note corner and returns to the editor", async () => {
+  it("opens the embedded browser beside the editor, supports resizing, and can collapse it", async () => {
     const user = userEvent.setup();
     const observer = class {
       disconnect() {}
@@ -713,11 +713,19 @@ describe("NotesWorkbench", () => {
     await user.click(screen.getByRole("button", { name: "打开内置浏览器" }));
     expect(await screen.findByRole("region", { name: "Note 内置浏览器" }))
       .toBeInTheDocument();
-    expect(screen.queryByTestId("notes-prosemirror-host")).not.toBeInTheDocument();
+    expect(screen.getByTestId("notes-prosemirror-host")).toBeInTheDocument();
     expect(document.querySelector(".notes-v2__minimal-properties-pane")).toBeNull();
     expect(document.querySelector(".notes-v2__rail")).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "返回笔记" }));
+    const splitter = screen.getByRole("separator", { name: "调整浏览器宽度" });
+    expect(splitter).toHaveAttribute("aria-valuenow", "520");
+    fireEvent.keyDown(splitter, { key: "ArrowLeft" });
+    await waitFor(() => {
+      expect(splitter).toHaveAttribute("aria-valuenow", "552");
+    });
+
+    await user.click(screen.getByRole("button", { name: "收起浏览器" }));
+    expect(screen.queryByRole("region", { name: "Note 内置浏览器" })).toBeNull();
     expect(screen.getByTestId("notes-prosemirror-host")).toBeInTheDocument();
 
     delete window.aurisBrowser;

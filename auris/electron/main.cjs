@@ -2273,13 +2273,13 @@ async function getVideoLibrarySnapshot() {
 
     return {
       directory: {
-        analysisDirectory: path.join(libraryDataPath, "analysis"),
+        analysisDirectory: null,
         directoryName: path.basename(videoLibraryPath),
         hasLibrary: true,
         libraryPath: videoLibraryPath,
         storageMode: "reference",
         thumbnailsDirectory: path.join(libraryDataPath, "thumbnails"),
-        transcodesDirectory: path.join(libraryDataPath, "transcodes"),
+        transcodesDirectory: null,
       },
       items: [],
     };

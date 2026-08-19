@@ -21,15 +21,20 @@ const HIDDEN_VIEWPORT = Object.freeze({
 
 type NotesEmbeddedBrowserProps = {
   layoutVersion: string;
-  onReturnToNotes(): void;
+  /** SidePane 关闭动作；新调用方使用。 */
+  onClose?: () => void;
+  /** 保留旧调用方的语义，避免浏览器独立组件的既有集成失效。 */
+  onReturnToNotes?: () => void;
   theme?: NotesReadingThemeId;
 };
 
 export function NotesEmbeddedBrowser({
   layoutVersion,
+  onClose,
   onReturnToNotes,
   theme = "mint",
 }: NotesEmbeddedBrowserProps) {
+  const handleClose = onClose ?? onReturnToNotes ?? (() => undefined);
   const model = useBrowserWindow(typeof window === "undefined" ? globalThis : window);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const initialPageRequestedRef = useRef(false);
@@ -122,10 +127,10 @@ export function NotesEmbeddedBrowser({
       <div className="browser-window-shell" data-chrome={browserWindow ? "ready" : "pending"}>
         <BrowserApprovalDialog host={typeof window === "undefined" ? globalThis : window} />
         <button
-          aria-label="返回笔记"
+          aria-label="收起浏览器"
           className="notes-v2__embedded-browser-back"
-          onClick={onReturnToNotes}
-          title="返回笔记"
+          onClick={handleClose}
+          title="收起浏览器"
           type="button"
         >
           ←
@@ -135,7 +140,7 @@ export function NotesEmbeddedBrowser({
           onActivate={(tabId) => void model.activateTab(tabId)}
           onClose={(tabId) => {
             if ((browserWindow?.tabs.length ?? 0) <= 1) {
-              onReturnToNotes();
+              handleClose();
               return;
             }
             void model.closeTab(tabId);

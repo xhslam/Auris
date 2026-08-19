@@ -46,8 +46,10 @@ import {
 } from "@/features/notes/formatting/notes-markdown-layout";
 import { NotesTerminalPanel } from "@/components/notes-v2/notes-terminal-panel";
 import {
+  clampBrowserSidePaneWidth,
   clampRightSidebarWidth,
   getDefaultRightSidebarWidth,
+  NOTES_BROWSER_SIDEPANE_DEFAULT_WIDTH,
   NOTES_CENTER_FALLBACK_WIDTH,
   NOTES_SPLITTER_KEYBOARD_STEP,
 } from "@/components/notes-v2/notes-layout-resize";
@@ -272,6 +274,10 @@ export function NotesWorkbench({
     startWidth: number;
     startX: number;
   } | null>(null);
+  const browserPaneDragStateRef = useRef<{
+    startWidth: number;
+    startX: number;
+  } | null>(null);
   const [selectionState, setSelectionState] =
     useState<NotesEditorSelectionState | null>(null);
   const [viewPreferences, setViewPreferences] = useState<NotesViewPreferences>(
@@ -309,10 +315,9 @@ export function NotesWorkbench({
     null,
   );
   const [isTerminalSplitOpen, setIsTerminalSplitOpen] = useState(false);
-  const [activeWorkspaceSurface, setActiveWorkspaceSurface] = useState<
-    "browser" | "note"
-  >("note");
+  const [isBrowserPaneOpen, setIsBrowserPaneOpen] = useState(false);
   const [isTerminalResizing, setIsTerminalResizing] = useState(false);
+  const [isBrowserPaneResizing, setIsBrowserPaneResizing] = useState(false);
   // 打开选择器那一刻的内容快照。不在渲染时现取：用户打开选择器后光标可能移动
   // （点击列表就会移出编辑器），现取会让「改进选区」拿到一段空选区。
   const [niaPickerContent, setNiaPickerContent] = useState<{
@@ -330,6 +335,9 @@ export function NotesWorkbench({
   const [shellWidth, setShellWidth] = useState(NOTES_CENTER_FALLBACK_WIDTH);
   const [terminalWidth, setTerminalWidth] = useState(
     getDefaultRightSidebarWidth("terminal"),
+  );
+  const [browserPaneWidth, setBrowserPaneWidth] = useState(
+    NOTES_BROWSER_SIDEPANE_DEFAULT_WIDTH,
   );
   // 阅读主题在「设置 → 外观」里选择；这里只负责读取并应用。
   // 初始 state 固定为 default 以避免 SSR/CSR 水合不一致，挂载后再读取本地偏好。
@@ -481,13 +489,19 @@ export function NotesWorkbench({
   const commandInfrastructure = useNotesCommandInfrastructure({
     editorMode,
     hasActiveDocument: Boolean(activeDocument),
-    onOpenBrowser: () => setActiveWorkspaceSurface("browser"),
+    onOpenBrowser: () => {
+      setIsTerminalSplitOpen(false);
+      setIsBrowserPaneOpen(true);
+    },
     onOpenNiaPicker: handleOpenNiaPicker,
     onOpenPalette: () => onOpenCommandPaletteChange?.(true),
     onSave: onSaveActiveDocument,
     onSaveAll: onSaveAllDocuments,
     onSetEditorMode: onEditorModeChange,
-    onToggleTerminal: () => setIsTerminalSplitOpen((current) => !current),
+    onToggleTerminal: () => {
+      setIsBrowserPaneOpen(false);
+      setIsTerminalSplitOpen((current) => !current);
+    },
   });
   const resolvedCommandPaletteItems = useMemo(() => {
     const existingIds = new Set(commandPaletteItems.map((item) => item.id));
@@ -514,14 +528,16 @@ export function NotesWorkbench({
     [shellWidth, terminalWidth],
   );
 
+  const resolvedBrowserPaneWidth = useMemo(
+    () => clampBrowserSidePaneWidth(browserPaneWidth, shellWidth),
+    [browserPaneWidth, shellWidth],
+  );
+
   const browserLayoutVersion = [
     shellWidth,
-    activeWorkspaceSurface === "note" && isTerminalSplitOpen
-      ? resolvedTerminalWidth
-      : 0,
-    activeWorkspaceSurface === "browser" || rightSidebarCollapsed
-      ? "collapsed"
-      : rightSidebarMode,
+    isBrowserPaneOpen ? resolvedBrowserPaneWidth : 0,
+    isBrowserPaneOpen ? "browser" : isTerminalSplitOpen ? resolvedTerminalWidth : 0,
+    rightSidebarCollapsed ? "collapsed" : rightSidebarMode,
   ].join(":");
 
   const updateTerminalWidth = useCallback(
@@ -531,6 +547,13 @@ export function NotesWorkbench({
       );
     },
     [setTerminalWidth, shellWidth],
+  );
+
+  const updateBrowserPaneWidth = useCallback(
+    (nextWidth: number) => {
+      setBrowserPaneWidth(clampBrowserSidePaneWidth(nextWidth, shellWidth));
+    },
+    [setBrowserPaneWidth, shellWidth],
   );
 
   useEffect(() => {
@@ -585,6 +608,16 @@ export function NotesWorkbench({
   }, [isTerminalSplitOpen, resolvedTerminalWidth, terminalWidth]);
 
   useEffect(() => {
+    if (!isBrowserPaneOpen) {
+      return;
+    }
+
+    if (resolvedBrowserPaneWidth !== browserPaneWidth) {
+      setBrowserPaneWidth(resolvedBrowserPaneWidth);
+    }
+  }, [browserPaneWidth, isBrowserPaneOpen, resolvedBrowserPaneWidth]);
+
+  useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       const dragState = terminalDragStateRef.current;
 
@@ -617,6 +650,40 @@ export function NotesWorkbench({
       document.body.style.userSelect = "";
     };
   }, [updateTerminalWidth]);
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      const dragState = browserPaneDragStateRef.current;
+
+      if (!dragState) {
+        return;
+      }
+
+      updateBrowserPaneWidth(
+        dragState.startWidth + (dragState.startX - event.clientX),
+      );
+    };
+
+    const handleMouseUp = () => {
+      if (!browserPaneDragStateRef.current) {
+        return;
+      }
+
+      browserPaneDragStateRef.current = null;
+      setIsBrowserPaneResizing(false);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [updateBrowserPaneWidth]);
 
   const handleBridgeReady = useCallback(
     (bridge: NotesEditorBridge | null) => {
@@ -663,6 +730,38 @@ export function NotesWorkbench({
     [resolvedTerminalWidth, updateTerminalWidth],
   );
 
+  const handleBrowserPaneResizeStart = useCallback(
+    (clientX: number) => {
+      browserPaneDragStateRef.current = {
+        startWidth: resolvedBrowserPaneWidth,
+        startX: clientX,
+      };
+      setIsBrowserPaneResizing(true);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    },
+    [resolvedBrowserPaneWidth, setIsBrowserPaneResizing],
+  );
+
+  const handleBrowserPaneSplitterKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        updateBrowserPaneWidth(
+          resolvedBrowserPaneWidth + NOTES_SPLITTER_KEYBOARD_STEP,
+        );
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        updateBrowserPaneWidth(
+          resolvedBrowserPaneWidth - NOTES_SPLITTER_KEYBOARD_STEP,
+        );
+      }
+    },
+    [resolvedBrowserPaneWidth, updateBrowserPaneWidth],
+  );
+
   return (
     <>
       <section
@@ -673,15 +772,15 @@ export function NotesWorkbench({
         data-typewriter-mode={viewPreferences.typewriterMode ? "true" : "false"}
         lang={notesLocale}
         data-shortcut-conflicts={commandInfrastructure.conflicts.length}
-        data-active-surface={activeWorkspaceSurface}
+        data-active-surface={isBrowserPaneOpen ? "note-browser" : "note"}
+        data-browser-pane-open={isBrowserPaneOpen ? "true" : "false"}
         data-terminal-open={
-          activeWorkspaceSurface === "note" && isTerminalSplitOpen
-            ? "true"
-            : "false"
+          !isBrowserPaneOpen && isTerminalSplitOpen ? "true" : "false"
         }
         ref={shellRef}
         style={
           {
+            "--notes-browser-pane-width": `${resolvedBrowserPaneWidth}px`,
             "--notes-terminal-width": `${resolvedTerminalWidth}px`,
             ...notesTypographyCssVars(typography),
             ...notesMarkdownLayoutCssVars(markdownLayout),
@@ -690,39 +789,59 @@ export function NotesWorkbench({
       >
         <div className="notes-v2__minimal-workspace">
           <main className="notes-v2__minimal-canvas">
-            {activeWorkspaceSurface === "browser" ? (
-              <NotesEmbeddedBrowser
-                layoutVersion={browserLayoutVersion}
-                onReturnToNotes={() => setActiveWorkspaceSurface("note")}
-                theme={readingTheme}
-              />
-            ) : (
-              <>
-                <NotesBreadcrumbBar path={activeDocument?.path ?? null} />
-                <NotesWorkbenchCenter
-                  activeDocument={activeDocument}
-                  activePath={activePath}
-                  editorMode={editorMode}
-                  documents={documents}
-                  errorMessage={errorMessage}
-                  isLoading={isLoading}
-                  minimalChrome
-                  onClosePath={onClosePath}
-                  onDocumentChange={onDocumentChange}
-                  onEditorActiveLineChange={onEditorActiveLineChange}
-                  onEditorBridgeReady={handleBridgeReady}
-                  onEditorSelectionStateChange={setSelectionState}
-                  onEnsureWikiLinkNote={onEnsureWikiLinkNote}
-                  onOpenPath={onOpenPath}
-                  onOpenWikiLink={onOpenWikiLink}
-                  openDocuments={openDocuments}
-                  rightToolbarActions={null}
-                  viewPreferences={viewPreferences}
-                />
-              </>
-            )}
+            <NotesBreadcrumbBar path={activeDocument?.path ?? null} />
+            <NotesWorkbenchCenter
+              activeDocument={activeDocument}
+              activePath={activePath}
+              editorMode={editorMode}
+              documents={documents}
+              errorMessage={errorMessage}
+              isLoading={isLoading}
+              minimalChrome
+              onClosePath={onClosePath}
+              onDocumentChange={onDocumentChange}
+              onEditorActiveLineChange={onEditorActiveLineChange}
+              onEditorBridgeReady={handleBridgeReady}
+              onEditorSelectionStateChange={setSelectionState}
+              onEnsureWikiLinkNote={onEnsureWikiLinkNote}
+              onOpenPath={onOpenPath}
+              onOpenWikiLink={onOpenWikiLink}
+              openDocuments={openDocuments}
+              rightToolbarActions={null}
+              viewPreferences={viewPreferences}
+            />
           </main>
-          {activeWorkspaceSurface === "note" &&
+          {isBrowserPaneOpen ? (
+            <>
+              <div
+                aria-label="调整浏览器宽度"
+                aria-orientation="vertical"
+                aria-valuenow={resolvedBrowserPaneWidth}
+                className="notes-v2__minimal-browser-splitter"
+                data-active={isBrowserPaneResizing ? "true" : "false"}
+                onKeyDown={handleBrowserPaneSplitterKeyDown}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  handleBrowserPaneResizeStart(event.clientX);
+                }}
+                role="separator"
+                tabIndex={0}
+              />
+              <aside
+                aria-label="笔记侧边受管浏览器"
+                className="notes-v2__minimal-browser-pane"
+                role="region"
+                style={{ width: `${resolvedBrowserPaneWidth}px` }}
+              >
+                <NotesEmbeddedBrowser
+                  layoutVersion={browserLayoutVersion}
+                  onClose={() => setIsBrowserPaneOpen(false)}
+                  theme={readingTheme}
+                />
+              </aside>
+            </>
+          ) : null}
+          {!isBrowserPaneOpen &&
           !rightSidebarCollapsed &&
           rightSidebarMode === "properties" ? (
             <aside
@@ -734,7 +853,7 @@ export function NotesWorkbench({
             </aside>
           ) : null}
 
-          {activeWorkspaceSurface === "note" && isTerminalSplitOpen ? (
+          {!isBrowserPaneOpen && isTerminalSplitOpen ? (
             <>
               <div
                 aria-label="调整终端宽度"
@@ -788,12 +907,10 @@ export function NotesWorkbench({
           onMovePath={onMovePath}
           onOpenBrowser={() => {
             setOpenLeftPopover(null);
-            setActiveWorkspaceSurface("browser");
+            setIsTerminalSplitOpen(false);
+            setIsBrowserPaneOpen(true);
           }}
-          onOpenPath={(path) => {
-            setActiveWorkspaceSurface("note");
-            onOpenPath(path);
-          }}
+          onOpenPath={onOpenPath}
           onPickDirectory={onPickDirectory}
           openPopover={openLeftPopover}
           setOpenPopover={setOpenLeftPopover}
@@ -834,6 +951,7 @@ export function NotesWorkbench({
           onUpdateTags={onUpdateTags}
           onTerminalSplitToggle={() => {
             setOpenLeftPopover(null);
+            setIsBrowserPaneOpen(false);
             setIsTerminalSplitOpen((current) => !current);
           }}
           recentDocuments={recentDocuments}

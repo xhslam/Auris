@@ -247,9 +247,11 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   const layoutImportRef = useRef<HTMLInputElement | null>(null);
   const [homeData, setHomeData] = useState<HomeData>(() => createDefaultHomeData());
   const [reviewState, setReviewState] = useState(() => readOutputReviewState(null));
-  const [layout, setLayout] = useState<WorkspaceLayout>(loadCurrentLayout);
-  const [savedLayouts, setSavedLayouts] = useState<SavedLayout[]>(loadSavedLayouts);
-  const [activeLayoutId, setActiveLayoutId] = useState(loadActiveLayoutId);
+  // 首屏必须与 SSR 使用同一份静态布局；浏览器本地布局在水合完成后再读取。
+  const [layout, setLayout] = useState<WorkspaceLayout>(() => cloneLayout(initialLayout));
+  const [savedLayouts, setSavedLayouts] = useState<SavedLayout[]>([]);
+  const [activeLayoutId, setActiveLayoutId] = useState(initialLayoutId);
+  const [isLayoutHydrated, setIsLayoutHydrated] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [isLayoutsOpen, setIsLayoutsOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -276,9 +278,32 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
     window.addEventListener("storage", syncReview);
     return () => { window.removeEventListener(OUTPUT_REVIEW_STORAGE_EVENT, syncReview); window.removeEventListener("storage", syncReview); };
   }, [storage]);
-  useEffect(() => { window.localStorage.setItem(currentStorageKey, JSON.stringify(layout)); }, [layout]);
-  useEffect(() => { window.localStorage.setItem(layoutsStorageKey, JSON.stringify(savedLayouts)); }, [savedLayouts]);
-  useEffect(() => { window.localStorage.setItem(activeLayoutStorageKey, activeLayoutId); }, [activeLayoutId]);
+  useEffect(() => {
+    const nextSavedLayouts = loadSavedLayouts();
+    const requestedActiveLayoutId = loadActiveLayoutId();
+    const nextActiveLayoutId =
+      requestedActiveLayoutId === initialLayoutId ||
+      nextSavedLayouts.some((item) => item.id === requestedActiveLayoutId)
+        ? requestedActiveLayoutId
+        : initialLayoutId;
+
+    setLayout(loadCurrentLayout());
+    setSavedLayouts(nextSavedLayouts);
+    setActiveLayoutId(nextActiveLayoutId);
+    setIsLayoutHydrated(true);
+  }, []);
+  useEffect(() => {
+    if (!isLayoutHydrated) return;
+    window.localStorage.setItem(currentStorageKey, JSON.stringify(layout));
+  }, [isLayoutHydrated, layout]);
+  useEffect(() => {
+    if (!isLayoutHydrated) return;
+    window.localStorage.setItem(layoutsStorageKey, JSON.stringify(savedLayouts));
+  }, [isLayoutHydrated, savedLayouts]);
+  useEffect(() => {
+    if (!isLayoutHydrated) return;
+    window.localStorage.setItem(activeLayoutStorageKey, activeLayoutId);
+  }, [activeLayoutId, isLayoutHydrated]);
   useEffect(() => {
     if (activeLayoutId !== initialLayoutId && !savedLayouts.some((item) => item.id === activeLayoutId)) setActiveLayoutId(initialLayoutId);
   }, [activeLayoutId, savedLayouts]);

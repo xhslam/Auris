@@ -36,7 +36,7 @@ describe("video-library-db", () => {
     };
   }
 
-  it("keeps generated database and cache files outside the selected source directory", async () => {
+  it("keeps generated database and thumbnail cache outside the selected source directory", async () => {
     const { libraryDataPath, libraryPath, repository } = await createRepository();
     const directory = repository.getSnapshot().directory;
 
@@ -44,16 +44,14 @@ describe("video-library-db", () => {
 
     expect(await fs.readdir(libraryPath)).toEqual([]);
     expect(await fs.readdir(libraryDataPath)).toEqual([
-      "analysis",
       "shadowing-video-library.db",
       "thumbnails",
-      "transcodes",
     ]);
     expect(directory).toMatchObject({
-      analysisDirectory: path.join(libraryDataPath, "analysis"),
+      analysisDirectory: null,
       libraryPath,
       thumbnailsDirectory: path.join(libraryDataPath, "thumbnails"),
-      transcodesDirectory: path.join(libraryDataPath, "transcodes"),
+      transcodesDirectory: null,
     });
 
   });

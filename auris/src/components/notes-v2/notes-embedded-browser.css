@@ -1,6 +1,19 @@
 .notes-v2__embedded-browser {
   height: 100%;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.notes-v2__minimal-browser-pane .notes-v2__embedded-browser,
+.notes-v2__minimal-browser-pane .notes-v2__embedded-browser .browser-window-root {
+  height: 100%;
+  min-height: 0;
+}
+
+.notes-v2__minimal-browser-pane .notes-v2__embedded-browser .browser-window-root {
+  border-left: 0;
+  width: 100%;
 }
 
 .notes-v2__embedded-browser .browser-tab-strip {
@@ -32,8 +45,24 @@
 }
 
 .notes-v2__embedded-browser .browser-window-stage {
-  /* Electron's native page cannot sit underneath renderer controls. Keep only
-     the exact bottom-control strip, so the page otherwise fills the workspace. */
-  bottom: 26px;
+  /* Electron 的原生页面必须精确落在 SidePane 内；不为不存在的 Nia 栏预留宽度。 */
+  bottom: 0;
   right: 0;
+}
+
+@container (max-width: 560px) {
+  .browser-status-pill,
+  .browser-toolbar__mode-label {
+    display: none;
+  }
+
+  .browser-toolbar {
+    gap: 4px;
+    padding-inline: 8px;
+  }
+
+  .browser-toolbar__mode-select {
+    max-width: 106px;
+    padding-inline: 7px;
+  }
 }
