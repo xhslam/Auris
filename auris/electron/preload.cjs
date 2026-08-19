@@ -258,6 +258,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     revealDirectory: () => invoke("shadowing:downloads:reveal-directory"),
   },
   assessmentHistory: {
+    delete: (assessmentId) => invoke("shadowing:assessment-history:delete", assessmentId),
     importLegacy: (records) => invoke("shadowing:assessment-history:import-legacy", records),
     list: () => invoke("shadowing:assessment-history:list"),
     save: (record) => invoke("shadowing:assessment-history:save", record),

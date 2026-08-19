@@ -40,6 +40,14 @@ export function createAssessmentRecord(
 }
 
 const localStorageBackend: PronunciationAssessmentStorage = {
+  async deleteAssessment(assessmentId) {
+    const next = (await localStorageBackend.listAssessments()).filter(
+      (item) => item.id !== assessmentId,
+    );
+    getStorage().setItem(STORAGE_KEY, JSON.stringify(next));
+    return next;
+  },
+
   async listAssessments() {
     const rawValue = getStorage().getItem(STORAGE_KEY);
 
@@ -82,6 +90,10 @@ export function createMemoryPronunciationAssessmentStorage(
   let assessments = normalizeAssessments(initialAssessments);
 
   return {
+    async deleteAssessment(assessmentId) {
+      assessments = assessments.filter((item) => item.id !== assessmentId);
+      return assessments;
+    },
     async listAssessments() {
       return assessments;
     },

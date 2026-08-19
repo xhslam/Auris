@@ -1,9 +1,25 @@
+import type { PronunciationAssessmentRecord } from "@/features/assessment/pronunciation-assessment.types";
+
+export type PronunciationAttemptStatus = "idle" | "pending" | "success" | "failed";
+
+/**
+ * IndexedDB 中的一次完整跟读 Attempt。
+ *
+ * `blob` 仍沿用既有本地录音存储，新增字段只为同一条录音绑定稳定的句子、不可变
+ * 练习序号和真实发音评估状态，避免再以临时 audio URL 作为业务实体。
+ */
 export type LocalRecordingRecord = {
+  assessment?: PronunciationAssessmentRecord;
+  assessmentError?: string;
+  assessmentStatus?: PronunciationAttemptStatus;
+  attemptIndex?: number;
   blob: Blob;
   createdAt: string;
   durationMs: number;
   id: string;
   mimeType: string;
+  sentenceId?: string;
+  sourceId?: string;
   title: string;
 };
 

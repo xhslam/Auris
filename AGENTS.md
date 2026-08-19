@@ -107,3 +107,47 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 用户要求清理本机既有的空 `analysis` 与 `transcodes` 目录。新增 `auris/scripts/clean-empty-video-artifact-directories.cjs`：默认 dry-run；仅允许处理 `/Users/apple/Documents/视频区` 与 Auris/Electron 私有 `video-libraries` 数据根；严格要求名称为 `analysis` 或 `transcodes`、真实普通目录且为空；拒绝符号链接、非白名单路径和非空目录。执行删除须同时显式使用 `--apply` 与确认环境变量，并会在检测到本地 Auris Electron 进程时拒绝运行。
 
 预演确认 10 个候选均为空且无阻断项；缺失确认令牌与 Auris 运行中两种场景均已验证脚本拒绝删除。首次实际执行发现对象而非路径传给 `rmdirSync`，未删除任何目录；修复后重新 dry-run 并成功删除全部 10 个目录。最终核验无残留候选目录，视频源根目录的数据库、缩略图与抽样源视频仍存在，脚本 dry-run 返回空目标集。未提交或推送改动。
+
+## Engineering trajectory: 视频工作区与英语陪练模式解耦（2026-08-19）
+
+本次工作严格限定在视频详情/播放模块。原详情页把播放器与 `EnjoyShadowingStudio` 固定为双栏并列；改造后由 `DesktopVideoDetailShell` 持有 `VideoWorkspaceMode = "watch" | "english-practice"`。任何视频详情初始均为 `watch`，仅渲染一个既有 HTML `<video>`；用户点击顶部「英语陪练」才加载并进入增强面板。面板首次打开后在关闭时仍保持挂载，因此当前句、录音选择、评分与倍速等陪练 session 状态可恢复，同时网格收回侧栏空间让播放器真正扩展。
+
+改动涉及 `auris/src/components/desktop/desktop-video-detail-shell.tsx`、`desktop-video-detail-shell.css`，以及新增 `auris/src/components/video/english-practice/english-practice-panel.tsx`。原生播放器、视频源桥接、进度/音量/全屏逻辑没有替换；`EnglishPracticePanel` 只订阅该单一播放器的 ref 和共享状态。英文字幕、翻译、字幕导入、字号、跟读、录音、发音评估、逐句跳转、循环、倍速与设置均复用既有 `EnjoyShadowingStudio`，并被移入陪练面板。窄于 1100px 时，陪练面板改为播放器下方的完整工作区，避免压窄视频画面。
+
+更新 `tests/component/video/desktop-video-detail-shell.test.tsx`，新增默认观看模式、首次按需初始化、面板开合以及同一 video 元素/currentTime/volume/playbackRate 保持的回归覆盖；原有翻译、主题、字号、播放器、全屏和查词覆盖同步迁移到新入口。验证通过：定向 Vitest 共 8 项、定向 ESLint、`git diff --check` 与 `npm run build`（Next 生产构建成功，包含 `/video/[videoId]`）。未提交或推送 Git 改动；未修改首页、阅读、导航、视频源读取或桌面桥接。
+
+剩余风险：本地实机 Electron 视觉巡检未在本次自动化会话中执行；布局逻辑已通过响应式 CSS 和组件测试覆盖，后续如调整桌面壳宽或侧栏尺寸，应在 1100px 临界宽度实机复核。
+
+## Engineering trajectory: 首页 Workspace 目录标题水合修复（2026-08-19）
+
+用户在 Electron 开发预览中看到首页 `Recoverable Error`：服务端渲染 `Workspace`，而客户端首次渲染已读取笔记运行时的浏览器回退目录名「浏览笔记库」。布局状态此前已在 mount 后恢复；这次问题来自 `workspaceBody` 直接输出 `workbench.directoryInfo?.directoryName`，而 `useNotesRuntime` 会依据运行环境给服务器与客户端不同的初始 `directoryInfo`。
+
+修复仅修改 `auris/src/components/home/home-page.tsx`：工作区标题在 `mounted === false` 时固定为 `Workspace`，只在水合完成后的 effect 触发重渲染时读取实际目录名。现有 `isVaultConfigured` 的 mount 门控保持不变，因此目录树与真实目录信息仍会在客户端正常恢复，不会牺牲本地库体验。
+
+验证通过：首页组件测试 8 项、`home-page.tsx` 定向 ESLint（仅保留仓库既有 `<img>` 优化警告）、`git diff --check` 与 `npm run build`。同时用本地 Electron 开发预览的 HTTP 首屏输出检查，首页只出现确定的 `Workspace` 文本、未出现「浏览笔记库」。未提交或推送改动。
+
+## Engineering trajectory: 英语陪练单行头部与可调面板宽度（2026-08-19）
+
+用户反馈英语陪练标题与工具栏占用两行，并希望桌面端面板可由自己左右拖拽调整。改造将 `EnglishPracticePanel` 的标题、字幕/翻译/导入/字号/主题工具和关闭按钮放入同一 54px Header；不改动既有英语练习内容与控制逻辑。
+
+`DesktopVideoDetailShell` 现持有可选的 `practicePanelWidth`，并通过面板左侧的键盘可聚焦分隔条处理 pointer drag。宽度范围按当前工作区动态约束：面板至少 360px、播放器至少 520px，面板最多占工作区约一半；因此不会破坏视频的最小观看空间。桌面默认宽度改为流体 CSS 值而非固定比例，用户拖拽后通过 CSS 自定义属性即时更新。分隔条同时支持方向键微调（左键扩展、右键收窄）。在 1100px 以下仍按原策略将面板堆叠到播放器下方，并隐藏无意义的横向拖拽条。
+
+改动涉及 `auris/src/components/desktop/desktop-video-detail-shell.tsx`、`desktop-video-detail-shell.css`、`src/components/video/english-practice/english-practice-panel.tsx` 与视频详情组件测试。新增分隔条宽度拖拽断言；视频详情回归共 9 项通过，定向 ESLint、`git diff --check` 与 `npm run build` 均通过。未提交或推送 Git 改动。
+
+## Engineering trajectory: 视频详情播放器桥接水合修复（2026-08-19）
+
+用户在 Electron 视频详情页看到 `Recoverable Error`：SSR 输出「正在加载播放器…」，客户端第一帧因直接读取 `window.shadowingDesktop.videoLibrary` 已存在而输出「当前网页环境不提供本地视频播放器」。根因是 `DesktopVideoDetailShell` 用 `useState(() => getDesktopVideoLibraryBridge())` 初始化桥接，导致服务端和客户端首帧分支不同。
+
+修复仅修改 `auris/src/components/desktop/desktop-video-detail-shell.tsx`。`videoLibrary` 现在从确定的 `null` 初始值开始，`isBridgeHydrated` 初始为 `false`；仅在 mount effect 中读取桌面桥接。页面在水合前和等待桥接时固定显示「正在加载播放器…」，之后才根据桥接结果加载详情或呈现不支持提示。现有视频播放、英语陪练、可拖拽面板、详情加载和错误处理均未替换。
+
+验证通过：视频详情组件回归 9 项、定向 ESLint、`git diff --check` 与 `npm run build`。未提交或推送 Git 改动。
+
+## Engineering trajectory: 英语陪练 Attempt 与真实发音评估闭环（2026-08-19）
+
+本次任务严格限定在 English Practice 的 Shadowing / 跟读训练及其既有评估、录音持久化服务。审查确认项目原有 Azure Speech server route 和 `evaluatePronunciationAssessment` 已能返回真实的 PronScore、准确度、流利度、完整度及单词级 ErrorType；录音使用 IndexedDB Blob 存储，但 UI 将录音与评分分开管理，缺失 Attempt 生命周期、删除与清晰的失败状态。
+
+实现保留 WAV Recorder、`/api/assessment/pronunciation`、Azure 服务和 IndexedDB，不创建第二套录音存储，也不暴露密钥。`LocalRecordingRecord` 扩展为单句稳定 Attempt：包含不可变 `attemptIndex`、source/sentence 关联、`idle | pending | success | failed` 评估状态、真实结果及错误。新增浏览器侧 `pronunciation-assessment-client.ts` 只调用应用 server route；Azure Key/Region 继续只在服务端环境变量中读取。每次录音先保存 Attempt，再按 Attempt ID 异步评分；低于 300ms 或空 Blob 不创建记录。评分请求使用 AbortController，删除或卸载后会中止，结果回写前还确认 Attempt 未被删除，避免幽灵数据。
+
+`EnjoyShadowingStudio` 现会在无录音时隐藏空评分框；录音后展示紧凑的 pending、success、failed / 未配置状态。真实结果显示综合、准确度、流利度、完整度和 Provider 返回的低分/异常单词；单词详情只展示真实准确度与 ErrorType，不伪造音素或诊断。练习下拉保留稳定编号、显示真实分数和最佳成绩；可删除当前 Attempt、删除当前句全部记录并确认，删除同步 IndexedDB Blob、内存选中态、浏览器/桌面评分历史及 Object URL 生命周期。失败或未配置的旧录音可重新评估。
+
+为桌面评分历史补齐 `delete` bridge / IPC / SQLite 删除与逐词项级联清理；新增或更新 `enjoy-shadowing-studio` 和 `local-history-db` 回归。验证通过：跟读组件、桌面评分数据库、发音 API route 共 12 项 Vitest；定向 ESLint、`node --check`（main/preload/local-history DB）、`git diff --check` 与 `npm run build` 均通过。未提交或推送 Git 改动。

@@ -403,6 +403,9 @@ function createLocalHistoryRepository({ databasePath, trainingAudioDirectory }) 
   const deleteAssessmentWordItemsStatement = database.prepare(
     "DELETE FROM assessment_word_items WHERE assessment_id = ?;",
   );
+  const deleteAssessmentStatement = database.prepare(
+    "DELETE FROM assessment_records WHERE id = ?;",
+  );
   const insertAssessmentWordItemStatement = database.prepare(`
     INSERT INTO assessment_word_items (
       id,
@@ -623,6 +626,15 @@ function createLocalHistoryRepository({ databasePath, trainingAudioDirectory }) 
     });
   }
 
+  function deleteAssessment(assessmentId) {
+    withTransaction(() => {
+      deleteAssessmentWordItemsStatement.run(assessmentId);
+      deleteAssessmentStatement.run(assessmentId);
+    });
+
+    return listAssessments();
+  }
+
   function saveAssessment(record) {
     const normalizedRecord = normalizeAssessmentRecord(record);
 
@@ -658,6 +670,7 @@ function createLocalHistoryRepository({ databasePath, trainingAudioDirectory }) 
     close() {
       database.close();
     },
+    deleteAssessment,
     deleteTrainingSession,
     getTrainingPlayback,
     importLegacyAssessments,

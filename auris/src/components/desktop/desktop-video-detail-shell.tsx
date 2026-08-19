@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { getDesktopVideoLibraryBridge } from "@/platform/desktop/video-library-adapter";
 import {
@@ -24,7 +31,7 @@ import {
 } from "@/features/reading/reading-word-import";
 import { getBrowserWordbookStorage } from "@/features/wordbook/local-wordbook-store";
 import type { DesktopVideoDetails } from "@/features/video-library/video-library.types";
-import { EnjoyShadowingStudio } from "@/components/player/enjoy-shadowing-studio";
+import { EnglishPracticePanel } from "@/components/video/english-practice/english-practice-panel";
 import "@/components/desktop/desktop-video-detail-shell.css";
 
 type DesktopVideoDetailShellProps = {
@@ -38,6 +45,8 @@ type WordCardState = {
   term: string;
 } | null;
 type ThemeMode = "dark" | "light";
+type VideoWorkspaceMode = "watch" | "english-practice";
+type PracticePanelResizeState = { startPanelWidth: number; startX: number } | null;
 
 // 字号调节范围（与 reading 区一致）。
 const MIN_FONT_SCALE = 0.8;
@@ -61,9 +70,20 @@ function formatClock(seconds: number) {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
+function clampPracticePanelWidth(requestedWidth: number, workspaceWidth: number) {
+  const minWidth = 360;
+  const maxWidth = Math.max(
+    minWidth,
+    Math.min(Math.round(workspaceWidth * 0.5), workspaceWidth - 520),
+  );
+  return Math.min(Math.max(Math.round(requestedWidth), minWidth), maxWidth);
+}
+
 export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProps) {
   const router = useRouter();
-  const [videoLibrary] = useState(() => getDesktopVideoLibraryBridge());
+  // 与 SSR 保持同一份首屏：桌面桥接只能在水合后的 effect 中读取。
+  const [videoLibrary, setVideoLibrary] = useState<ReturnType<typeof getDesktopVideoLibraryBridge>>(null);
+  const [isBridgeHydrated, setIsBridgeHydrated] = useState(false);
   const [detail, setDetail] = useState<DesktopVideoDetails | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,6 +105,8 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   // 播放器状态
   const playerFrameRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const practicePanelResizeRef = useRef<PracticePanelResizeState>(null);
   const controlsHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -93,6 +115,11 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   const [isMuted, setIsMuted] = useState(false);
   const [areControlsVisible, setAreControlsVisible] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // 视频详情默认是通用观看空间；陪练仅在用户主动开启时成为可见增强层。
+  const [workspaceMode, setWorkspaceMode] = useState<VideoWorkspaceMode>("watch");
+  const [hasOpenedPractice, setHasOpenedPractice] = useState(false);
+  const [practicePanelWidth, setPracticePanelWidth] = useState<number | null>(null);
+  const [isPracticePanelResizing, setIsPracticePanelResizing] = useState(false);
 
   // 查词（复用 reading 逻辑）
   const [wordCard, setWordCard] = useState<WordCardState>(null);
@@ -138,6 +165,15 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   }, [scheduleControlsHide]);
 
   useEffect(() => {
+    setVideoLibrary(getDesktopVideoLibraryBridge());
+    setIsBridgeHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isBridgeHydrated) {
+      return;
+    }
+
     let isActive = true;
 
     async function loadDetail() {
@@ -167,7 +203,13 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     return () => {
       isActive = false;
     };
-  }, [videoId, videoLibrary]);
+  }, [isBridgeHydrated, videoId, videoLibrary]);
+
+  useEffect(() => {
+    // 通过详情页进入任意视频时，始终从干净的观看模式开始。
+    setWorkspaceMode("watch");
+    setHasOpenedPractice(false);
+  }, [videoId]);
 
   useEffect(() => {
     const fallbackDuration = selectedVariant?.durationMs
@@ -210,6 +252,38 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   }, [clearControlsHideTimer, isPlaying, scheduleControlsHide]);
 
   useEffect(() => clearControlsHideTimer, [clearControlsHideTimer]);
+
+  useEffect(() => {
+    if (!isPracticePanelResizing) {
+      return;
+    }
+
+    function handlePointerMove(event: PointerEvent) {
+      const activeResize = practicePanelResizeRef.current;
+      const workspace = workspaceRef.current;
+      if (!activeResize || !workspace) {
+        return;
+      }
+      const nextWidth = activeResize.startPanelWidth + activeResize.startX - event.clientX;
+      setPracticePanelWidth(
+        clampPracticePanelWidth(nextWidth, workspace.getBoundingClientRect().width),
+      );
+    }
+
+    function stopResizing() {
+      practicePanelResizeRef.current = null;
+      setIsPracticePanelResizing(false);
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopResizing);
+    window.addEventListener("pointercancel", stopResizing);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopResizing);
+      window.removeEventListener("pointercancel", stopResizing);
+    };
+  }, [isPracticePanelResizing]);
 
   // 字号面板：点击其他地方关闭
   useEffect(() => {
@@ -525,87 +599,132 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
           </div>
         </div>
 
-        <div className="video-study__tools">
-          <button
-            aria-label="字幕字号缩放（预留）"
-            className="video-study__tool-text"
-            type="button"
-          >
-            100%
-          </button>
-          <span className="video-study__tool-divider" />
-          <button
-            aria-label="切换双语翻译"
-            className="video-study__tool-trans"
-            data-active={showTranslation ? "true" : "false"}
-            onClick={() => setShowTranslation((current) => !current)}
-            type="button"
-          >
-            <LanguagesIcon />
-            中译
-          </button>
-          <button
-            aria-label="导入 Word 文档"
-            className="video-study__tool-icon"
-            onClick={openDocxPicker}
-            type="button"
-          >
-            <BookOpenIcon />
-          </button>
-          <div className="video-study__font-control">
-            <button
-              aria-expanded={isFontPanelOpen}
-              aria-label="调节字号"
-              className="video-study__tool-icon"
-              data-active={isFontPanelOpen ? "true" : "false"}
-              onClick={() => setIsFontPanelOpen((open) => !open)}
-              type="button"
-            >
-              Aa
-            </button>
-            {isFontPanelOpen ? (
-              <div className="video-study__font-panel" role="group">
-                <span
-                  aria-hidden="true"
-                  className="video-study__font-hint video-study__font-hint--small"
-                >
-                  A
-                </span>
-                <input
-                  aria-label="调节字号"
-                  className="video-study__font-slider"
-                  max={MAX_FONT_SCALE}
-                  min={MIN_FONT_SCALE}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    if (Number.isFinite(next)) {
-                      setFontScale(next);
-                    }
-                  }}
-                  step={FONT_SCALE_STEP}
-                  type="range"
-                  value={fontScale}
-                />
-                <span
-                  aria-hidden="true"
-                  className="video-study__font-hint video-study__font-hint--large"
-                >
-                  A
-                </span>
-              </div>
-            ) : null}
-          </div>
-          <button
-            aria-label={theme === "dark" ? "切换到白天模式" : "切换到黑夜模式"}
-            className="video-study__tool-icon"
-            data-accent="true"
-            onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-            type="button"
-          >
-            {theme === "dark" ? <MoonIcon /> : <SunIcon />}
-          </button>
-        </div>
+        <button
+          aria-label="打开英语陪练"
+          aria-pressed={workspaceMode === "english-practice"}
+          className="video-study__practice-toggle"
+          onClick={() => {
+            setHasOpenedPractice(true);
+            setWorkspaceMode("english-practice");
+          }}
+          type="button"
+        >
+          <MicrophoneIcon />
+          <span>英语陪练</span>
+        </button>
       </div>
+    );
+  }
+
+  function renderPracticeUtilities() {
+    return (
+      <div className="video-study__tools video-study__tools--practice">
+        <button
+          aria-label="字幕字号缩放（预留）"
+          className="video-study__tool-text"
+          type="button"
+        >
+          100%
+        </button>
+        <span className="video-study__tool-divider" />
+        <button
+          aria-label="切换双语翻译"
+          className="video-study__tool-trans"
+          data-active={showTranslation ? "true" : "false"}
+          onClick={() => setShowTranslation((current) => !current)}
+          type="button"
+        >
+          <LanguagesIcon />
+          中译
+        </button>
+        <button
+          aria-label="导入 Word 文档"
+          className="video-study__tool-icon"
+          onClick={openDocxPicker}
+          type="button"
+        >
+          <BookOpenIcon />
+        </button>
+        <div className="video-study__font-control">
+          <button
+            aria-expanded={isFontPanelOpen}
+            aria-label="调节字号"
+            className="video-study__tool-icon"
+            data-active={isFontPanelOpen ? "true" : "false"}
+            onClick={() => setIsFontPanelOpen((open) => !open)}
+            type="button"
+          >
+            Aa
+          </button>
+          {isFontPanelOpen ? (
+            <div className="video-study__font-panel" role="group">
+              <span
+                aria-hidden="true"
+                className="video-study__font-hint video-study__font-hint--small"
+              >
+                A
+              </span>
+              <input
+                aria-label="调节字号"
+                className="video-study__font-slider"
+                max={MAX_FONT_SCALE}
+                min={MIN_FONT_SCALE}
+                onChange={(event) => {
+                  const next = Number(event.target.value);
+                  if (Number.isFinite(next)) setFontScale(next);
+                }}
+                step={FONT_SCALE_STEP}
+                type="range"
+                value={fontScale}
+              />
+              <span
+                aria-hidden="true"
+                className="video-study__font-hint video-study__font-hint--large"
+              >
+                A
+              </span>
+            </div>
+          ) : null}
+        </div>
+        <button
+          aria-label={theme === "dark" ? "切换到白天模式" : "切换到黑夜模式"}
+          className="video-study__tool-icon"
+          data-accent="true"
+          onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+          type="button"
+        >
+          {theme === "dark" ? <MoonIcon /> : <SunIcon />}
+        </button>
+      </div>
+    );
+  }
+
+  function beginPracticePanelResize(event: ReactPointerEvent<HTMLButtonElement>) {
+    const workspace = workspaceRef.current;
+    const panel = workspace?.querySelector<HTMLElement>(".video-study__practice-panel");
+    if (!workspace || !panel) {
+      return;
+    }
+    event.preventDefault();
+    practicePanelResizeRef.current = {
+      startPanelWidth: panel.getBoundingClientRect().width,
+      startX: event.clientX,
+    };
+    setIsPracticePanelResizing(true);
+  }
+
+  function adjustPracticePanelWidth(direction: "expand" | "shrink") {
+    const workspace = workspaceRef.current;
+    const panel = workspace?.querySelector<HTMLElement>(".video-study__practice-panel");
+    if (!workspace || !panel) {
+      return;
+    }
+    const offset = direction === "expand" ? 24 : -24;
+    setPracticePanelWidth(
+      clampPracticePanelWidth(
+        panel.getBoundingClientRect().width + offset,
+        workspace.getBoundingClientRect().width,
+      ),
     );
   }
 
@@ -737,35 +856,61 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
           </div>
         </div>
 
+        <section className="video-study__video-info" aria-label="视频信息">
+          <div>
+            <h1>{detail?.video.title ?? "本地视频"}</h1>
+            <p>{`本地视频 · ${formatClock(duration)}`}</p>
+          </div>
+          <span>观看模式</span>
+        </section>
         <div className="video-study__spacer" />
       </div>
     );
   }
 
   function renderRight() {
+    if (!hasOpenedPractice) {
+      return null;
+    }
+
     return (
-      <div className="video-study__right">
-        {scriptSource && scriptSource.paragraphs.length > 0 ? (
-          <EnjoyShadowingStudio
-            currentTime={currentTime}
-            duration={duration}
-            fontScale={fontScale}
-            isPlaying={isPlaying}
-            mediaRef={videoRef}
-            onSeek={seekToTime}
-            onTogglePlay={togglePlay}
-            onWordContextMenu={openWordCard}
-            paragraphs={scriptSource.paragraphs}
-            showTranslation={showTranslation}
-            sourceId={detail?.video.id ?? videoId}
-            sourceLabel={detail?.video.title ?? "本地视频"}
+      <EnglishPracticePanel
+        currentTime={currentTime}
+        duration={duration}
+        fontScale={fontScale}
+        isOpen={workspaceMode === "english-practice"}
+        isPlaying={isPlaying}
+        mediaRef={videoRef}
+        onClose={() => setWorkspaceMode("watch")}
+        onSeek={seekToTime}
+        onTogglePlay={togglePlay}
+        onWordContextMenu={openWordCard}
+        paragraphs={scriptSource?.paragraphs ?? null}
+        showTranslation={showTranslation}
+        resizeHandle={
+          <button
+            aria-label="调整英语陪练宽度"
+            className="video-study__practice-resize-handle"
+            data-resizing={isPracticePanelResizing ? "true" : "false"}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                adjustPracticePanelWidth("expand");
+              }
+              if (event.key === "ArrowRight") {
+                event.preventDefault();
+                adjustPracticePanelWidth("shrink");
+              }
+            }}
+            onPointerDown={beginPracticePanelResize}
+            tabIndex={workspaceMode === "english-practice" ? 0 : -1}
+            type="button"
           />
-        ) : (
-          <p className="video-study__script-empty">
-            这个视频还没有对应的台词 / 字幕。导入同名字幕后，这里会显示双语剧本。
-          </p>
-        )}
-      </div>
+        }
+        sourceId={detail?.video.id ?? videoId}
+        sourceLabel={detail?.video.title ?? "本地视频"}
+        toolbar={renderPracticeUtilities()}
+      />
     );
   }
 
@@ -832,14 +977,14 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
           </div>
         ) : null}
 
-        {!videoLibrary ? (
+        {!isBridgeHydrated || isLoading ? (
+          <div className="video-study__state">
+            <strong>正在加载播放器…</strong>
+          </div>
+        ) : !videoLibrary ? (
           <div className="video-study__state">
             <strong>当前网页环境不提供本地视频播放器</strong>
             <p>这块功能会在 Electron 桌面端通过本地桥接启用。</p>
-          </div>
-        ) : isLoading ? (
-          <div className="video-study__state">
-            <strong>正在加载播放器…</strong>
           </div>
         ) : !detail ? (
           <div className="video-study__state">
@@ -850,7 +995,16 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
             </Link>
           </div>
         ) : (
-          <div className="video-study__body">
+          <div
+            className="video-study__body"
+            data-workspace-mode={workspaceMode}
+            ref={workspaceRef}
+            style={
+              practicePanelWidth
+                ? ({ "--vs-practice-panel-width": `${practicePanelWidth}px` } as React.CSSProperties)
+                : undefined
+            }
+          >
             {renderLeft()}
             {renderRight()}
           </div>
@@ -897,6 +1051,17 @@ function LanguagesIcon({ size = 14 }: IconProps) {
       <path d="M7 2h1" />
       <path d="m22 22-5-10-5 10" />
       <path d="M14 18h6" />
+    </svg>
+  );
+}
+
+function MicrophoneIcon({ size = 15 }: IconProps) {
+  return (
+    <svg {...baseProps(size)}>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M6 11a6 6 0 0 0 12 0" />
+      <path d="M12 17v4" />
+      <path d="M8.5 21h7" />
     </svg>
   );
 }

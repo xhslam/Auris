@@ -540,6 +540,7 @@ export type DesktopBridge = {
     ) => Promise<DesktopAiPromptRecord | null>;
   };
   assessmentHistory?: {
+    delete: (assessmentId: string) => Promise<PronunciationAssessmentRecord[]>;
     importLegacy: (
       records: PronunciationAssessmentRecord[],
     ) => Promise<PronunciationAssessmentRecord[]>;

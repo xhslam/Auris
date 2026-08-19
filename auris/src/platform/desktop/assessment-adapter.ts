@@ -28,6 +28,8 @@ export function createDesktopPronunciationAssessmentStorage(bridge: DesktopBridg
   }
 
   return {
+    deleteAssessment: (assessmentId: string) =>
+      bridge.assessmentHistory!.delete(assessmentId),
     listAssessments: () => bridge.assessmentHistory!.list(),
     saveAssessment: (assessment: PronunciationAssessmentRecord) =>
       bridge.assessmentHistory!.save(assessment),

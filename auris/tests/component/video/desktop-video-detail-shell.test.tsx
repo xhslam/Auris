@@ -152,17 +152,91 @@ describe("DesktopVideoDetailShell", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the video title in the breadcrumb and the bilingual script", async () => {
+  it("defaults to a clean watch workspace and opens the bilingual practice panel on demand", async () => {
+    const user = userEvent.setup();
+    const { container } = mountWithBridge();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
+    });
+
+    const firstParagraph = SCRIPT_SOURCE.paragraphs[0]!;
+    const workspace = container.querySelector(".video-study__body");
+    const panel = container.querySelector(".video-study__practice-panel");
+
+    expect(workspace).toHaveAttribute("data-workspace-mode", "watch");
+    expect(panel).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "打开英语陪练" }));
+
+    const openedPanel = container.querySelector(".video-study__practice-panel");
+    expect(workspace).toHaveAttribute("data-workspace-mode", "english-practice");
+    expect(openedPanel).toHaveAttribute("data-open", "true");
+    expect(screen.getByText(firstParagraph.translation)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "关闭英语陪练" })).toBeInTheDocument();
+  });
+
+  it("keeps the single video element and playback state when practice mode is opened or closed", async () => {
+    const user = userEvent.setup();
     mountWithBridge();
 
     await waitFor(() => {
-      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+      expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
+    });
+    const video = getRenderedVideo();
+    setVideoDuration(video, 120);
+
+    fireEvent.change(screen.getByRole("slider", { name: "播放进度" }), {
+      target: { value: "30" },
+    });
+    fireEvent.change(screen.getByRole("slider", { name: "音量" }), {
+      target: { value: "0.35" },
     });
 
-    // 英文原文与中文译文（来自 reading 区素材）都应渲染。
-    const firstParagraph = SCRIPT_SOURCE.paragraphs[0]!;
-    expect(screen.getByText(firstParagraph.translation)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "切换双语翻译" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "打开英语陪练" }));
+    expect(getRenderedVideo()).toBe(video);
+    expect(video.currentTime).toBe(30);
+    expect(video.volume).toBe(0.35);
+
+    await user.click(screen.getByRole("button", { name: "调整播放倍速" }));
+    fireEvent.change(screen.getByRole("slider", { name: "播放倍速" }), {
+      target: { value: "1.5" },
+    });
+    await waitFor(() => expect(video.playbackRate).toBe(1.5));
+
+    await user.click(screen.getByRole("button", { name: "关闭英语陪练" }));
+    expect(getRenderedVideo()).toBe(video);
+    expect(video.currentTime).toBe(30);
+    expect(video.volume).toBe(0.35);
+    expect(video.playbackRate).toBe(1.5);
+
+    await user.click(screen.getByRole("button", { name: "打开英语陪练" }));
+    expect(getRenderedVideo()).toBe(video);
+    expect(video.currentTime).toBe(30);
+    expect(video.volume).toBe(0.35);
+    expect(video.playbackRate).toBe(1.5);
+  });
+
+  it("allows the English practice panel width to be adjusted with its divider", async () => {
+    const user = userEvent.setup();
+    const { container } = mountWithBridge();
+
+    await screen.findByRole("button", { name: "打开英语陪练" });
+    await user.click(screen.getByRole("button", { name: "打开英语陪练" }));
+
+    const workspace = container.querySelector(".video-study__body") as HTMLDivElement;
+    const panel = container.querySelector(".video-study__practice-panel") as HTMLElement;
+    workspace.getBoundingClientRect = () => ({ width: 1200 } as DOMRect);
+    panel.getBoundingClientRect = () => ({ width: 420 } as DOMRect);
+
+    const divider = screen.getByRole("button", { name: "调整英语陪练宽度" });
+    fireEvent.pointerDown(divider, { clientX: 900 });
+    fireEvent.pointerMove(window, { clientX: 840 });
+    fireEvent.pointerUp(window);
+
+    await waitFor(() => {
+      expect(workspace.style.getPropertyValue("--vs-practice-panel-width")).toBe("480px");
+    });
   });
 
   it("hides the Chinese translation when 中译 is toggled off", async () => {
@@ -170,6 +244,7 @@ describe("DesktopVideoDetailShell", () => {
     mountWithBridge();
 
     const firstTranslation = SCRIPT_SOURCE.paragraphs[0]!.translation;
+    await user.click(await screen.findByRole("button", { name: "打开英语陪练" }));
     await waitFor(() => {
       expect(screen.getByText(firstTranslation)).toBeInTheDocument();
     });
@@ -186,13 +261,14 @@ describe("DesktopVideoDetailShell", () => {
     const { container } = mountWithBridge();
 
     await waitFor(() => {
-      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+      expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
     });
 
-    // 默认跟随全局主题，初始为 light；右上角按钮可手动切到夜读深色。
+    // 默认跟随全局主题，初始为 light；夜读控制属于英语陪练的显示设置。
     const root = container.querySelector(".video-study");
     expect(root).toHaveAttribute("data-theme", "light");
 
+    await user.click(screen.getByRole("button", { name: "打开英语陪练" }));
     await user.click(screen.getByRole("button", { name: "切换到黑夜模式" }));
     expect(root).toHaveAttribute("data-theme", "dark");
 
@@ -204,6 +280,7 @@ describe("DesktopVideoDetailShell", () => {
     const user = userEvent.setup();
     mountWithBridge();
 
+    await user.click(await screen.findByRole("button", { name: "打开英语陪练" }));
     const aaButton = await screen.findByRole("button", { name: "调节字号" });
     expect(screen.queryByRole("slider", { name: "调节字号" })).not.toBeInTheDocument();
 
@@ -215,7 +292,7 @@ describe("DesktopVideoDetailShell", () => {
     mountWithBridge();
 
     await waitFor(() => {
-      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+      expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
     });
 
     const player = document.querySelector(".video-study__player-frame") as HTMLElement;
@@ -256,7 +333,7 @@ describe("DesktopVideoDetailShell", () => {
     mountWithBridge();
 
     await waitFor(() => {
-      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+      expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
     });
 
     const player = document.querySelector(".video-study__player-frame") as HTMLElement & {
@@ -327,8 +404,9 @@ describe("DesktopVideoDetailShell", () => {
     mountWithBridge();
 
     await waitFor(() => {
-      expect(screen.getByText("Lesson One")).toBeInTheDocument();
+      expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
     });
+    await userEvent.click(screen.getByRole("button", { name: "打开英语陪练" }));
 
     // 取当前跟读台中的 "momentum" 单词按钮。
     const vocabWord = screen.getAllByRole("button", { name: /momentum/i })[0];

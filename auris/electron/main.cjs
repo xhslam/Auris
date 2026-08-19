@@ -1389,6 +1389,21 @@ function listAssessmentHistory() {
   }
 }
 
+function deleteAssessmentHistory(assessmentId) {
+  const repository = getLocalHistoryRepository();
+
+  if (!repository) {
+    return [];
+  }
+
+  try {
+    return repository.deleteAssessment(assessmentId);
+  } catch (error) {
+    writeStartupLog(`localHistoryRepository:delete-assessment-error ${error?.stack ?? error}`);
+    return [];
+  }
+}
+
 function saveAssessmentHistory(record) {
   const repository = getLocalHistoryRepository();
 
@@ -3369,6 +3384,10 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:training-history:delete-session", async (_event, sessionId) => {
     deleteTrainingSession(sessionId);
   });
+
+  ipcMain.handle("shadowing:assessment-history:delete", async (_event, assessmentId) =>
+    deleteAssessmentHistory(assessmentId),
+  );
 
   ipcMain.handle("shadowing:assessment-history:list", async () => listAssessmentHistory());
 

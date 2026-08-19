@@ -138,6 +138,30 @@ describe("local-history-db", () => {
     repository.close();
   });
 
+  it("deletes an assessment together with its word-level feedback", async () => {
+    const repository = await createRepository();
+
+    repository.saveAssessment(createAssessment("assessment-1", "2026-03-26T01:00:00.000Z"));
+    repository.saveAssessment(createAssessment("assessment-2", "2026-03-26T02:00:00.000Z"));
+
+    const remaining = repository.deleteAssessment("assessment-2");
+
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]).toMatchObject({ id: "assessment-1" });
+    expect(repository.listAssessments()).toEqual([
+      expect.objectContaining({
+        id: "assessment-1",
+        wordAssessments: [expect.objectContaining({
+          accuracyScore: 90,
+          errorType: "None",
+          word: "Desktop",
+        })],
+      }),
+    ]);
+
+    repository.close();
+  });
+
   it("imports legacy assessment history only once", async () => {
     const repository = await createRepository();
 

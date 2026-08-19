@@ -11,6 +11,7 @@ import {
   SkipBack,
   SkipForward,
   Stop,
+  Trash,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -22,15 +23,20 @@ import {
   type MouseEvent as ReactMouseEvent,
   type RefObject,
 } from "react";
+import {
+  evaluatePronunciationAttempt,
+} from "@/features/assessment/pronunciation-assessment-client";
 import { startWavRecording, type ActiveWavRecorder } from "@/features/assessment/wav-recorder";
 import {
   getBrowserPronunciationAssessmentStorage,
 } from "@/features/assessment/local-pronunciation-assessment-store";
 import type { PronunciationAssessmentRecord } from "@/features/assessment/pronunciation-assessment.types";
 import {
+  deleteLocalRecording,
   listLocalRecordings,
   saveLocalRecording,
   type LocalRecordingRecord,
+  type PronunciationAttemptStatus,
 } from "@/features/recordings/local-recording-store";
 import {
   READING_WORD_CHAINS,
@@ -51,6 +57,8 @@ type ShadowSegment = {
 };
 
 type RecordingState = "idle" | "recording" | "assessing" | "ready" | "error";
+
+const MIN_RECORDING_DURATION_MS = 300;
 
 type EnjoyShadowingStudioProps = {
   currentTime: number;
@@ -165,6 +173,10 @@ function scoreTone(score: number) {
   return "weak";
 }
 
+function getAttemptLabel(recording: LocalRecordingRecord, index: number, total: number) {
+  return `练习 ${recording.attemptIndex ?? total - index}`;
+}
+
 function setAudioCurrentTime(audio: HTMLAudioElement, time: number) {
   audio.currentTime = time;
 }
@@ -187,6 +199,8 @@ export function EnjoyShadowingStudio({
   const recordingAudioRef = useRef<HTMLAudioElement | null>(null);
   const recordingUrlRef = useRef<string | null>(null);
   const autoplayRecordingRef = useRef(false);
+  const assessmentAbortControllersRef = useRef(new Map<string, AbortController>());
+  const recordingsRef = useRef<LocalRecordingRecord[]>([]);
   const selectedSegmentRef = useRef<HTMLDivElement | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLooping, setIsLooping] = useState(false);
@@ -209,6 +223,11 @@ export function EnjoyShadowingStudio({
   const [recordingNotice, setRecordingNotice] = useState<string | null>(null);
   const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
+  const [selectedWordAssessment, setSelectedWordAssessment] = useState<{
+    accuracyScore: number;
+    errorType: string;
+    word: string;
+  } | null>(null);
 
   const segments = useMemo(() => buildSegments(paragraphs, duration), [duration, paragraphs]);
   const activeIndex = useMemo(() => {
@@ -224,10 +243,20 @@ export function EnjoyShadowingStudio({
   const selectedRecordingIndex = selectedRecording
     ? recordings.findIndex((item) => item.id === selectedRecording.id)
     : -1;
-  const selectedAssessment = selectedRecording
-    ? assessments.find((item) => item.id === selectedRecording.id)
-      ?? (selectedRecordingIndex === 0 ? assessments[0] : null)
-    : null;
+  const selectedAssessment = selectedRecording?.assessment
+    ?? (selectedRecording
+      ? assessments.find((item) => item.id === selectedRecording.id)
+        ?? (selectedRecordingIndex === 0 ? assessments[0] : null)
+      : null);
+  const selectedAssessmentStatus: PronunciationAttemptStatus = selectedRecording?.assessmentStatus
+    ?? (selectedAssessment ? "success" : "idle");
+  const bestAttemptId = useMemo(() => recordings.reduce<string | null>((bestId, attempt) => {
+    if (!attempt.assessment || !bestId) return attempt.assessment ? attempt.id : bestId;
+    const best = recordings.find((item) => item.id === bestId);
+    return (best?.assessment?.overallScore ?? -1) >= attempt.assessment.overallScore
+      ? bestId
+      : attempt.id;
+  }, null), [recordings]);
 
   const replaceRecordingUrl = useCallback((nextUrl: string | null) => {
     const previousUrl = recordingUrlRef.current;
@@ -248,6 +277,10 @@ export function EnjoyShadowingStudio({
     recordingAudioRef.current = audio;
     return audio;
   }, []);
+
+  useEffect(() => {
+    recordingsRef.current = recordings;
+  }, [recordings]);
 
   useEffect(() => {
     if (!isLooping) setSelectedIndex(activeIndex);
@@ -348,6 +381,10 @@ export function EnjoyShadowingStudio({
   }, [selectedSegment, sourceId]);
 
   useEffect(() => {
+    setSelectedWordAssessment(null);
+  }, [selectedRecordingId]);
+
+  useEffect(() => {
     recordingAudioRef.current?.pause();
     recordingAudioRef.current = null;
     setIsRecordingPlaying(false);
@@ -380,8 +417,11 @@ export function EnjoyShadowingStudio({
   }, [isAssessmentOpen]);
 
   useEffect(() => {
+    const assessmentControllers = assessmentAbortControllersRef.current;
     return () => {
       void recorderRef.current?.cleanup().catch(() => undefined);
+      assessmentControllers.forEach((controller) => controller.abort());
+      assessmentControllers.clear();
       recordingAudioRef.current?.pause();
       if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
     };
@@ -427,99 +467,207 @@ export function EnjoyShadowingStudio({
     setRecordingSeconds(selectedRecording ? selectedRecording.durationMs / 1000 : 0);
   }
 
-  async function stopAndAssess() {
-    const recorder = recorderRef.current;
-    if (!recorder || !selectedSegment) return;
-    recorderRef.current = null;
-    setRecordingState("assessing");
-    setRecordingError(null);
+  function getAssessmentStorage() {
+    const desktopStorage = createDesktopPronunciationAssessmentStorage(getDesktopBridge());
+    return desktopStorage ?? getBrowserPronunciationAssessmentStorage();
+  }
+
+  async function persistAttempt(nextAttempt: LocalRecordingRecord) {
+    try {
+      await saveLocalRecording(nextAttempt);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function evaluateAttempt(recordingRecord: LocalRecordingRecord, segment: ShadowSegment) {
+    const controller = new AbortController();
+    assessmentAbortControllersRef.current.set(recordingRecord.id, controller);
+    const updateAttempt = (patch: Partial<LocalRecordingRecord>) => {
+      const next = recordingsRef.current.map((item) =>
+        item.id === recordingRecord.id ? { ...item, ...patch } : item,
+      );
+      recordingsRef.current = next;
+      setRecordings(next);
+    };
 
     try {
-      const recording = await recorder.stop();
-      const createdAt = new Date().toISOString();
-      const recordingRecord: LocalRecordingRecord = {
-        blob: recording.blob,
-        createdAt,
-        durationMs: recording.durationMs,
-        id: createRecordingId(sourceId, selectedSegment.id),
-        mimeType: recording.mimeType,
-        title: getPracticeKey(sourceId, selectedSegment.id),
-      };
-      let recordingWasSaved = true;
+      const { payload, success } = await evaluatePronunciationAttempt({
+        audio: recordingRecord.blob,
+        locale: "en-US",
+        referenceText: segment.paragraph.english,
+        signal: controller.signal,
+        sourceLabel,
+      });
 
-      try {
-        await saveLocalRecording(recordingRecord);
-      } catch {
-        recordingWasSaved = false;
+      if (!success || !payload.assessment) {
+        const error = payload.code === "AZURE_PRONUNCIATION_ASSESSMENT_NOT_CONFIGURED"
+          ? "发音评估服务尚未配置。录音已保留，可在配置后重新评估。"
+          : payload.message ?? "录音已保留，但本次发音评估失败。";
+        throw new Error(error);
       }
 
-      autoplayRecordingRef.current = true;
-      setRecordings((current) => [
-        recordingRecord,
-        ...current.filter((item) => item.id !== recordingRecord.id),
-      ]);
-      setSelectedRecordingId(recordingRecord.id);
-      setRecordingSeconds(recording.durationMs / 1000);
-      setRecordingState("ready");
-      setRecordingNotice(
-        recordingWasSaved
-          ? "录音已保存在本机，正在生成发音评估…"
-          : "录音仅保留在当前页面，关闭后不会保存。",
-      );
-
-      const form = new FormData();
-      form.set("referenceText", selectedSegment.paragraph.english);
-      form.set("locale", "en-US");
-      form.set("sourceLabel", sourceLabel);
-      form.set("audio", recording.blob, `shadow-${selectedSegment.id}.wav`);
-      const response = await fetch("/api/assessment/pronunciation", {
-        body: form,
-        method: "POST",
-      });
-      const payload = (await response.json()) as {
-        assessment?: PronunciationAssessmentRecord;
-        code?: string;
-        message?: string;
-      };
-
-      if (!response.ok || !payload.assessment) {
-        if (payload.code === "AZURE_PRONUNCIATION_ASSESSMENT_NOT_CONFIGURED") {
-          setRecordingNotice("录音已保存在本机；配置 Azure Speech 后可显示发音评分。");
-        } else {
-          setRecordingError(payload.message ?? "录音已保留，但本次评分不可用。");
-        }
+      if (!recordingsRef.current.some((item) => item.id === recordingRecord.id)) {
         return;
       }
 
       const assessment: PronunciationAssessmentRecord = {
         ...payload.assessment,
-        endMs: Math.round(selectedSegment.end * 1000),
+        endMs: Math.round(segment.end * 1000),
         id: recordingRecord.id,
-        referenceText: selectedSegment.paragraph.english,
-        sentenceId: selectedSegment.id,
+        referenceText: segment.paragraph.english,
+        sentenceId: segment.id,
         sourceId,
         sourceLabel,
-        startMs: Math.round(selectedSegment.start * 1000),
+        startMs: Math.round(segment.start * 1000),
       };
+      const completedAttempt: LocalRecordingRecord = {
+        ...recordingRecord,
+        assessment,
+        assessmentError: undefined,
+        assessmentStatus: "success",
+      };
+
+      updateAttempt(completedAttempt);
       setAssessments((current) => [
         assessment,
         ...current.filter((item) => item.id !== assessment.id),
       ]);
-
+      await persistAttempt(completedAttempt);
       try {
-        const desktopStorage = createDesktopPronunciationAssessmentStorage(getDesktopBridge());
-        const storage = desktopStorage ?? getBrowserPronunciationAssessmentStorage();
-        await storage?.saveAssessment(assessment);
+        await getAssessmentStorage()?.saveAssessment(assessment);
       } catch {
-        setRecordingNotice("评分已生成，但历史记录暂时无法保存。");
+        setRecordingNotice("评分已生成，但旧版评分历史暂时无法同步。");
+      }
+      setRecordingNotice("发音评估已完成，点击分数查看逐词详情。");
+    } catch (error) {
+      if (controller.signal.aborted || !recordingsRef.current.some((item) => item.id === recordingRecord.id)) {
+        return;
+      }
+      const failedAttempt: LocalRecordingRecord = {
+        ...recordingRecord,
+        assessmentError: error instanceof Error ? error.message : "录音已保留，但本次发音评估失败。",
+        assessmentStatus: "failed",
+      };
+      updateAttempt(failedAttempt);
+      await persistAttempt(failedAttempt);
+    } finally {
+      assessmentAbortControllersRef.current.delete(recordingRecord.id);
+    }
+  }
+
+  async function stopAndAssess() {
+    const recorder = recorderRef.current;
+    const segment = selectedSegment;
+    if (!recorder || !segment) return;
+    recorderRef.current = null;
+    setRecordingError(null);
+
+    try {
+      const recording = await recorder.stop();
+      if (recording.blob.size === 0 || recording.durationMs < MIN_RECORDING_DURATION_MS) {
+        setRecordingState(recordingsRef.current.length > 0 ? "ready" : "idle");
+        setRecordingError("录音时间太短，请重新跟读。");
         return;
       }
 
-      setRecordingNotice("发音评估已完成，点击分数查看逐词详情。");
+      const sameSentenceAttempts = recordingsRef.current.filter(
+        (item) => item.title === getPracticeKey(sourceId, segment.id),
+      );
+      const nextAttemptIndex = sameSentenceAttempts.reduce(
+        (largest, item, index) => Math.max(largest, item.attemptIndex ?? sameSentenceAttempts.length - index),
+        0,
+      ) + 1;
+      const recordingRecord: LocalRecordingRecord = {
+        assessmentStatus: "pending",
+        attemptIndex: nextAttemptIndex,
+        blob: recording.blob,
+        createdAt: new Date().toISOString(),
+        durationMs: recording.durationMs,
+        id: createRecordingId(sourceId, segment.id),
+        mimeType: recording.mimeType,
+        sentenceId: segment.id,
+        sourceId,
+        title: getPracticeKey(sourceId, segment.id),
+      };
+      const recordingWasSaved = await persistAttempt(recordingRecord);
+
+      autoplayRecordingRef.current = true;
+      recordingsRef.current = [recordingRecord, ...recordingsRef.current];
+      setRecordings(recordingsRef.current);
+      setSelectedRecordingId(recordingRecord.id);
+      setRecordingSeconds(recording.durationMs / 1000);
+      setRecordingState("ready");
+      setRecordingNotice(
+        recordingWasSaved
+          ? "录音已保存在本机，正在分析发音…"
+          : "录音仅保留在当前页面，正在分析发音。",
+      );
+      void evaluateAttempt(recordingRecord, segment);
     } catch {
-      setRecordingState(recordings.length > 0 ? "ready" : "error");
+      setRecordingState(recordingsRef.current.length > 0 ? "ready" : "error");
       setRecordingError("录音处理失败，请重新录制。");
     }
+  }
+
+  async function deleteAttempt(recordingId: string) {
+    const target = recordingsRef.current.find((item) => item.id === recordingId);
+    if (!target) return;
+    if (!window.confirm("删除这次练习？删除后该录音和对应发音评分将被移除。")) return;
+
+    assessmentAbortControllersRef.current.get(recordingId)?.abort();
+    assessmentAbortControllersRef.current.delete(recordingId);
+    try {
+      await deleteLocalRecording(recordingId);
+      await getAssessmentStorage()?.deleteAssessment(recordingId);
+    } catch {
+      setRecordingError("删除录音失败，请稍后重试。");
+      return;
+    }
+
+    setAssessments((current) => current.filter((item) => item.id !== recordingId));
+    const next = recordingsRef.current.filter((item) => item.id !== recordingId);
+    recordingsRef.current = next;
+    setRecordings(next);
+    if (selectedRecordingId === recordingId) {
+      setSelectedRecordingId(next[0]?.id ?? null);
+    }
+    setRecordingNotice("录音和对应发音评分已删除。");
+  }
+
+  async function deleteAllAttempts() {
+    if (!recordingsRef.current.length) return;
+    if (!window.confirm(`将删除 ${recordingsRef.current.length} 条录音以及对应的发音评估结果。此操作无法恢复。`)) return;
+    const ids = recordingsRef.current.map((item) => item.id);
+    await Promise.all(ids.map((id) => {
+      assessmentAbortControllersRef.current.get(id)?.abort();
+      return Promise.allSettled([
+        deleteLocalRecording(id),
+        getAssessmentStorage()?.deleteAssessment(id) ?? Promise.resolve(),
+      ]);
+    }));
+    setAssessments([]);
+    recordingsRef.current = [];
+    setRecordings([]);
+    setSelectedRecordingId(null);
+    setRecordingNotice("本句的练习记录已全部删除。");
+  }
+
+  async function retryAssessment() {
+    if (!selectedRecording || !selectedSegment || selectedAssessmentStatus === "pending") return;
+    const pendingAttempt: LocalRecordingRecord = {
+      ...selectedRecording,
+      assessmentError: undefined,
+      assessmentStatus: "pending",
+    };
+    recordingsRef.current = recordingsRef.current.map((item) =>
+      item.id === pendingAttempt.id ? pendingAttempt : item,
+    );
+    setRecordings(recordingsRef.current);
+    await persistAttempt(pendingAttempt);
+    setRecordingNotice("正在分析发音…");
+    void evaluateAttempt(pendingAttempt, selectedSegment);
   }
 
   function toggleRecordingPlayback() {
@@ -559,9 +707,9 @@ export function EnjoyShadowingStudio({
   const recordingDuration = selectedRecording
     ? selectedRecording.durationMs / 1000
     : recordingSeconds;
-  const attemptNumber = selectedRecordingIndex >= 0
-    ? recordings.length - selectedRecordingIndex
-    : recordings.length;
+  const attemptLabel = selectedRecording && selectedRecordingIndex >= 0
+    ? getAttemptLabel(selectedRecording, selectedRecordingIndex, recordings.length)
+    : `练习 ${recordings.length}`;
 
   return (
     <section className="enjoy-shadow" aria-label="完整跟读练习台">
@@ -643,60 +791,91 @@ export function EnjoyShadowingStudio({
                     朗读结束后自动回放本次录音。按 <kbd>R</kbd> 开始或停止。
                   </p>
 
-                  <div className="enjoy-shadow__analysis">
-                    <button
-                      aria-expanded={isAnalysisExpanded}
-                      className="enjoy-shadow__analysis-toggle"
-                      onClick={() => setIsAnalysisExpanded((value) => !value)}
-                      type="button"
-                    >
-                      <span>发音评估</span>
-                      {isAnalysisExpanded ? <CaretUp size={14} /> : <CaretDown size={14} />}
-                    </button>
-                    {isAnalysisExpanded ? (
-                      <div className="enjoy-shadow__analysis-content">
-                        {selectedAssessment?.wordAssessments.length ? (
-                          <div
-                            aria-label="逐词准确度"
-                            className="enjoy-shadow__word-chart"
-                            role="img"
-                          >
-                            {selectedAssessment.wordAssessments.map((word, index) => (
-                              <span
-                                data-tone={scoreTone(word.accuracyScore)}
-                                key={`${word.word}-${index}`}
-                                style={{ "--word-score": `${Math.max(8, word.accuracyScore)}%` } as React.CSSProperties}
-                                title={`${word.word} ${Math.round(word.accuracyScore)}`}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="enjoy-shadow__analysis-empty">
-                            {selectedRecording
-                              ? "本次录音暂无可用评分"
-                              : "完成一次录音后显示逐词准确度"}
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-                  </div>
+                  {selectedRecording ? (
+                    <div className="enjoy-shadow__analysis" data-status={selectedAssessmentStatus}>
+                      <button
+                        aria-expanded={isAnalysisExpanded}
+                        className="enjoy-shadow__analysis-toggle"
+                        onClick={() => setIsAnalysisExpanded((value) => !value)}
+                        type="button"
+                      >
+                        <span>发音评估</span>
+                        {isAnalysisExpanded ? <CaretUp size={14} /> : <CaretDown size={14} />}
+                      </button>
+                      {isAnalysisExpanded ? (
+                        <div className="enjoy-shadow__analysis-content">
+                          {selectedAssessmentStatus === "pending" ? (
+                            <div className="enjoy-shadow__assessment-status" role="status">正在分析发音…</div>
+                          ) : selectedAssessment ? (
+                            <>
+                              <div className="enjoy-shadow__assessment-summary">
+                                <div><strong>{Math.round(selectedAssessment.overallScore)}</strong><span>综合</span></div>
+                                <dl>
+                                  <div><dt>准确度</dt><dd>{Math.round(selectedAssessment.accuracyScore)}</dd></div>
+                                  <div><dt>流利度</dt><dd>{Math.round(selectedAssessment.fluencyScore)}</dd></div>
+                                  <div><dt>完整度</dt><dd>{Math.round(selectedAssessment.completenessScore)}</dd></div>
+                                </dl>
+                              </div>
+                              {selectedAssessment.wordAssessments.length ? (
+                                <div className="enjoy-shadow__assessment-words" aria-label="问题词">
+                                  {selectedAssessment.wordAssessments
+                                    .filter((word) => word.accuracyScore < 75 || word.errorType.toLowerCase() !== "none")
+                                    .slice(0, 4)
+                                    .map((word, index) => (
+                                      <button
+                                        data-tone={scoreTone(word.accuracyScore)}
+                                        key={`${word.word}-${index}`}
+                                        onClick={() => setSelectedWordAssessment(word)}
+                                        type="button"
+                                      >
+                                        {word.word} <span>{Math.round(word.accuracyScore)}</span>
+                                      </button>
+                                    ))}
+                                </div>
+                              ) : null}
+                            </>
+                          ) : (
+                            <div className="enjoy-shadow__assessment-status" data-tone={selectedAssessmentStatus} role="status">
+                              <p>{selectedRecording.assessmentError ?? "发音评估暂不可用。配置语音服务后可以分析发音。"}</p>
+                              <button onClick={() => void retryAssessment()} type="button">重新评估</button>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   <div className="enjoy-shadow__recording-list">
                     <span>已有录音</span>
                     {recordings.length > 0 ? (
-                      <select
-                        aria-label="选择练习录音"
-                        onChange={(event) => setSelectedRecordingId(event.target.value)}
-                        value={selectedRecordingId ?? ""}
-                      >
-                        {recordings.map((recording, index) => (
-                          <option key={recording.id} value={recording.id}>
-                            {`练习 ${recordings.length - index}`}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="enjoy-shadow__recording-list-actions">
+                        <select
+                          aria-label="选择练习录音"
+                          onChange={(event) => setSelectedRecordingId(event.target.value)}
+                          value={selectedRecordingId ?? ""}
+                        >
+                          {recordings.map((recording, index) => {
+                            const assessment = recording.assessment ?? assessments.find((item) => item.id === recording.id);
+                            const suffix = assessment ? ` · ${Math.round(assessment.overallScore)}` : "";
+                            const best = recording.id === bestAttemptId ? " · 最佳" : "";
+                            return (
+                              <option key={recording.id} value={recording.id}>
+                                {`${getAttemptLabel(recording, index, recordings.length)}${suffix}${best}`}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <button
+                          aria-label="删除当前练习录音"
+                          className="enjoy-shadow__attempt-delete"
+                          onClick={() => selectedRecording && void deleteAttempt(selectedRecording.id)}
+                          type="button"
+                        >
+                          <Trash size={13} />
+                        </button>
+                      </div>
                     ) : (
-                      <small>还没有录音</small>
+                      <small>跟读结束后自动回放并进行发音分析。</small>
                     )}
                   </div>
 
@@ -737,6 +916,12 @@ export function EnjoyShadowingStudio({
                     <span>{formatClock(recordingDuration)}</span>
                   </div>
 
+                  {recordings.length > 1 ? (
+                    <div className="enjoy-shadow__attempt-bulk-action">
+                      <button onClick={() => void deleteAllAttempts()} type="button">删除本句全部练习记录</button>
+                    </div>
+                  ) : null}
+
                   <div className="enjoy-shadow__recording-action">
                     {recordingState === "recording" ? (
                       <>
@@ -767,7 +952,7 @@ export function EnjoyShadowingStudio({
                         type="button"
                       >
                         <Microphone size={17} weight="fill" />
-                        <span>{recordingState === "assessing" ? "评分中…" : "录音"}</span>
+                        <span>{recordingState === "assessing" ? "正在分析…" : selectedRecording ? "再练一次" : "开始跟读"}</span>
                       </button>
                     )}
                   </div>
@@ -905,7 +1090,7 @@ export function EnjoyShadowingStudio({
             <header>
               <div>
                 <h3>发音评估</h3>
-                <p>{`练习 ${attemptNumber} · 详细发音评估结果`}</p>
+                <p>{`${attemptLabel} · 详细发音评估结果`}</p>
               </div>
               <button
                 aria-label="关闭发音评估"
@@ -951,16 +1136,28 @@ export function EnjoyShadowingStudio({
               <span>发音分析</span>
               <div>
                 {selectedAssessment.wordAssessments.map((word, index) => (
-                  <span
+                  <button
                     data-tone={scoreTone(word.accuracyScore)}
                     key={`${word.word}-${index}`}
+                    onClick={() => setSelectedWordAssessment(word)}
                     title={`准确度 ${Math.round(word.accuracyScore)}`}
+                    type="button"
                   >
                     {word.word}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
+            {selectedWordAssessment ? (
+              <section className="enjoy-shadow__word-detail" role="status">
+                <strong>{selectedWordAssessment.word}</strong>
+                <span>准确度 {Math.round(selectedWordAssessment.accuracyScore)}</span>
+                {selectedWordAssessment.errorType.toLowerCase() !== "none" ? (
+                  <small>{selectedWordAssessment.errorType}</small>
+                ) : null}
+                <p>建议再次练习这个单词。</p>
+              </section>
+            ) : null}
           </section>
         </div>
       ) : null}

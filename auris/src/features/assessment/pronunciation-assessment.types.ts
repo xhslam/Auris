@@ -22,6 +22,7 @@ export type PronunciationAssessmentRecord = {
 };
 
 export type PronunciationAssessmentStorage = {
+  deleteAssessment: (assessmentId: string) => Promise<PronunciationAssessmentRecord[]>;
   listAssessments: () => Promise<PronunciationAssessmentRecord[]>;
   saveAssessment: (
     assessment: PronunciationAssessmentRecord,
