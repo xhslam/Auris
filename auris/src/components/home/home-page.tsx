@@ -15,6 +15,7 @@ import {
   PlusIcon,
   RotateCcwIcon,
   SettingsIcon,
+  Trash2Icon,
 } from "@/components/auris-ui/auris-icons";
 import { BrowserStatusCenter } from "@/components/desktop/browser-status-center";
 import { CalendarHeatmap } from "@/components/home/calendar-heatmap";
@@ -434,6 +435,14 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
       return { ...current, widgets: reordered };
     });
   }, [updateLayout]);
+  const deleteWidget = useCallback(async (id: string) => {
+    const widget = getWidget(id);
+    if (!widget) return;
+    const definition = widgetDefinitionByType.get(widget.type);
+    if (!(await confirmFn(`删除组件「${definition?.name ?? "未命名组件"}」？可通过恢复初始布局重新添加默认组件。`, "删除组件"))) return;
+    updateLayout((current) => ({ ...current, widgets: current.widgets.filter((item) => item.id !== id) }));
+    setLayoutNotice(`已删除 ${definition?.name ?? "组件"}`);
+  }, [confirmFn, getWidget, updateLayout]);
   const addWidget = useCallback((type: WidgetType) => {
     const definition = widgetDefinitionByType.get(type)!;
     updateLayout((current) => ({ ...current, widgets: [...current.widgets, { id: createId(type), type, zone: "center", order: orderedWidgets(current.widgets, "center").length, height: definition.defaultHeight, size: "medium", centerSpan: definition.defaultSpan, pinned: false, hidden: false }] }));
@@ -569,7 +578,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
         <button className="demo-widget__grip" aria-label={`拖动 ${definition.name}`} onPointerDown={(event) => beginDrag(event, widget.id)} type="button"><ActivityIcon size={14} /></button>
         {widget.type === "workspace" ? <h2 className="demo-widget__title">{definition.name}</h2> : <strong>{definition.name}</strong>}
         {widget.pinned ? <BookmarkIcon aria-label="已固定" size={12} /> : null}
-        <div className="demo-widget__actions"><button aria-label="专注查看" onClick={() => setFocusId(widget.id)} type="button"><ArrowUpRightIcon size={13} /></button></div>
+        <div className="demo-widget__actions"><button aria-label="专注查看" onClick={() => setFocusId(widget.id)} type="button"><ArrowUpRightIcon size={13} /></button><button aria-label={`删除组件 ${definition.name}`} className="demo-widget__delete" onClick={() => void deleteWidget(widget.id)} title={`删除 ${definition.name}`} type="button"><Trash2Icon size={13} /></button></div>
       </header>
       <div className="demo-widget__body">{content(widget)}</div>
       {editMode ? <button aria-label={`调整 ${definition.name} 高度`} className="demo-widget__resize demo-widget__resize--height" onPointerDown={(event) => beginWidgetResize(event, widget.id, "height")} type="button" /> : null}

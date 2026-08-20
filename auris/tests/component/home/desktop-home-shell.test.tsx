@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { DesktopHomeShell } from "@/components/desktop/desktop-home-shell";
 import {
   DEFAULT_CURRENT_AGE,
@@ -83,6 +83,20 @@ describe("DesktopHomeShell (Home v3)", () => {
 
     fireEvent.click(addWidgetButton);
     expect(screen.getByRole("complementary", { name: "添加组件" })).toBeInTheDocument();
+  });
+
+  it("deletes a Widget only after explicit confirmation", async () => {
+    render(<DesktopHomeShell notesStorage={null} />);
+
+    fireEvent.click(screen.getAllByRole("button", { name: /^删除组件 / })[0]);
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog).toHaveTextContent("删除组件「记录日历」？");
+    fireEvent.click(within(dialog).getByRole("button", { name: "删除组件" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: "记录日历" })).not.toBeInTheDocument();
+    });
+    expect(screen.queryByRole("button", { name: "更多操作" })).not.toBeInTheDocument();
   });
 
   it("persists daily quote edits", () => {

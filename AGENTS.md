@@ -283,3 +283,10 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 用户确认无需每张卡片的设置面板，希望自行决定内容，因此要求删除 Widget 设置按钮及相关逻辑，而不改动其他首页内容。实现仅修改 `auris/src/components/home/home-page.tsx`：移除了每张 Widget 标题栏中的“更多操作”按钮、菜单渲染、菜单状态 `menuId`，以及由该菜单独占的高度预设、固定标记切换、复制、菜单内跨栏移动、隐藏与删除回调。保留了 Widget 内容、今日任务的新增/编辑/完成/删除、笔记与学习恢复入口、全局布局管理、组件库、全局编辑模式、标题栏拖动、专注查看、布局持久化与既有已隐藏组件的恢复入口；拖拽跨栏与编辑模式的高度把手也保持不变。
 
 同步更新 `tests/component/home/desktop-home-shell.test.tsx`：显式断言不再存在“更多操作”按钮或 `.demo-widget__menu`，并保留任务工作流回归。2 个定向测试文件共 13 项通过；定向 ESLint 无 error（仍有既有 `<img>` 优化 warning）；`npm run build` 与 `git diff --check` 通过。未提交或推送 Git 改动。
+
+
+## Engineering trajectory: Widget 单一删除入口恢复（2026-08-20）
+
+用户在移除完整 Widget 设置菜单后发现无法删除组件，要求仅恢复删除键。`auris/src/components/home/home-page.tsx` 现为每张 Widget 标题栏增加单一垃圾桶图标按钮，`aria-label` 为“删除组件 {名称}”；按钮使用既有 `useNotesDialog` 的确认流程，确认文案明确提示默认组件可通过“恢复初始布局”重新添加。确认后仅从当前 Workspace Layout 中移除对应实例并更新布局状态提示；取消不会改变布局。没有恢复“更多操作”菜单、尺寸预设、固定、复制、菜单内移动或隐藏逻辑，任务自身的删除操作也未受影响。
+
+`tests/component/home/desktop-home-shell.test.tsx` 新增完整确认回归：点击第一张卡片的删除按钮会打开 `alertdialog`，确认后记录日历从页面消失，且仍无“更多操作”菜单。首页与学习摘要两个测试文件共 14 项通过；定向 ESLint 无 error（仍有既有 `<img>` warning），`npm run build` 与 `git diff --check` 通过。未提交或推送 Git 改动。
