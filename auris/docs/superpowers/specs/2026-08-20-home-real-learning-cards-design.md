@@ -21,6 +21,7 @@
 | 决策 | 结论 |
 | --- | --- |
 | 卡片结构 | 保留三张独立卡片，不合并成单一学习中心。 |
+| Widget 身份 | 保留现有 `review`、`progress`、`current-study` type 和实例 ID；只把 `current-study` 的显示名称与内容改为“继续学习”，因此不迁移或丢失已保存布局与复制实例。 |
 | 今日复习来源 | 只读取 `/review` 已有内容；不从笔记、单词、句子或陪练记录自动生成复习任务。 |
 | 每日新增提醒 | 以知识点 `createdAt` 的本地日期判断。当天没有新建知识点就显示提醒，即使当天已完成旧复习。 |
 | 学习进度来源 | Reading 最近实际打开的文章；进度读取现有 Reading progress map。 |
@@ -36,7 +37,7 @@
 
 `home-page.tsx` 已通过 `readOutputReviewState`、`getReviewQueue` 和 `getDashboardMetrics` 读取真实 Review 数据，并订阅 `OUTPUT_REVIEW_STORAGE_EVENT`。现有模型包含知识点 `createdAt`、复习事件完成时间、逾期、今日到期和掌握状态，因此不需要新的 Review 数据库。
 
-差距是首页没有计算“今天是否新建知识点”，且空队列只显示“暂时没有待复习条目”，不能满足每日添加提醒。Review 页面也需要支持从首页直接进入新建知识点流程。
+差距是首页没有计算“今天是否新建知识点”，且空队列只显示“暂时没有待复习条目”，不能满足每日添加提醒。Review 页面也需要支持从首页直接进入新建知识点流程。现有 `readOutputReviewState()` 会把缺失、损坏和不支持的数据统一折叠为空状态，因此还需要一个保留读取结果的兼容 API，让首页能区分“第一次使用”和“读取失败”。
 
 ### 3.2 Reading
 
@@ -52,9 +53,9 @@ Reading 已通过 `auris-reading-progress` 保存 `sourceId -> progress`，正�
 
 ### 3.4 Notes
 
-NotesStorage 能列出笔记摘要，包含 `relativePath`、标题和 `updatedAt`，桌面 Vault 还支持变更订阅。现有数据足以按目录前缀过滤并找到最近更新的笔记。
+NotesStorage 能列出笔记摘要，包含 `relativePath`、标题和 `updatedAt`；`VaultClient.listEntries()` 能枚举目录和文件，`VaultClient.subscribeToChanges()` 能订阅 Vault 变化。两者结合后才能区分“有效但为空的学习目录”和“已被移动或删除的学习目录”。
 
-差距是用户尚未选择哪些目录属于学习目录。系统不得使用标题关键词或 AI 猜测笔记类型。
+差距是用户尚未选择哪些目录属于学习目录。系统不得使用标题关键词或 AI 猜测笔记类型。目录选择器与目录有效性检查依赖 `VaultClient`；笔记标题、路径和更新时间仍依赖 `NotesStorage`。
 
 ## 4. 轻量学习摘要架构
 
@@ -76,17 +77,58 @@ type HomeLearningSummary = {
 };
 ```
 
+每个摘要的计划字段固定如下，实施计划不得另行发明第二套展示模型：
+
+```ts
+type HomeReviewSummary = {
+  status: LearningSourceStatus;
+  actionableCount: number; // 只含 overdue + dueToday
+  completedToday: number;
+  createdToday: number;
+  progressPercent: number | null;
+  nextKnowledgePoint: { id: string; title: string } | null;
+};
+
+type HomeReadingSummary = {
+  status: LearningSourceStatus;
+  sourceId: string | null;
+  title: string | null;
+  category: ReadingSourceCategory | null;
+  format: ReadingSourceFormat | null;
+  progressPercent: number | null;
+  positionLabel: string | null;
+  lastOpenedAt: string | null;
+};
+
+type HomeVideoSummary = {
+  status: LearningSourceStatus;
+  videoId: string | null;
+  title: string | null;
+  currentTimeSeconds: number | null;
+  durationSeconds: number | null;
+  completed: boolean;
+  lastOpenedAt: string | null;
+};
+
+type HomeLearningNoteSummary = {
+  status: LearningSourceStatus;
+  note: NotePageSummary | null;
+  configuredFolders: string[];
+  missingFolders: string[];
+};
+```
+
 建议拆分：
 
 | 单元 | 职责 | 依赖 |
 | --- | --- | --- |
-| `home-review-summary.ts` | 读取 Review、计算今日队列、完成数和今日新增数。 | Output Review model/storage。 |
+| `home-review-summary.ts` | 读取 Review、计算今日可执行队列、完成数和今日新增数。 | Output Review model/storage。 |
 | `reading-resume-store.ts` | 校验并保存最近文章及恢复位置；不保存文章内容或权威百分比。 | localStorage。 |
 | `home-reading-summary.ts` | 合并 Reading source、progress map 与 resume 指针。 | Reading source loader、progress store、resume store。 |
 | `video-resume-store.ts` | 校验并节流保存最近视频和播放秒数。 | localStorage 或既有桌面 runtime 存储。 |
 | `home-video-summary.ts` | 用 resume 视频 ID 查询视频库，返回标题、时长和恢复位置。 | Desktop video library bridge。 |
 | `learning-note-folders-store.ts` | 保存用户选择的 Vault 相对目录路径。 | localStorage。 |
-| `home-learning-note-summary.ts` | 从已选目录中过滤笔记并选取最近更新项。 | NotesStorage。 |
+| `home-learning-note-summary.ts` | 验证已选目录、过滤笔记并选取最近更新项。 | NotesStorage + VaultClient。 |
 | `use-home-learning-summary.ts` | 独立加载、订阅、错误隔离和聚合。 | 上述适配器。 |
 
 `HomePage` 只接收 `HomeLearningSummary` 并将相应部分传给三张卡片。适配器保持无 UI 或尽量纯函数化，以便使用假存储和假时间测试。
@@ -111,6 +153,7 @@ type VideoResumeState = {
   videoId: string;
   currentTimeSeconds: number;
   lastOpenedAt: string;
+  completedAt: string | null;
 };
 
 type LearningNoteFoldersState = {
@@ -127,6 +170,19 @@ type LearningNoteFoldersState = {
 
 Reading 百分比继续读取 `auris-reading-progress`；Video 标题与总时长继续读取视频库；Notes 标题和更新时间继续读取 Vault；Review 完全读取现有 Output Review 状态。任何适配器不得用恢复存储中的旧展示字段兜底。
 
+Review 存储新增兼容读取函数，不替换现有调用方：
+
+```ts
+type OutputReviewReadResult =
+  | { status: "ready"; state: OutputReviewState }
+  | { status: "empty"; state: OutputReviewState }
+  | { status: "invalid" | "unavailable"; state: null };
+
+readOutputReviewStateResult(storage): OutputReviewReadResult;
+```
+
+存储键不存在为 `empty`；合法 v1 数据为 `ready`；JSON 损坏或版本/结构不支持为 `invalid`；Storage 访问抛错为 `unavailable`。既有 `readOutputReviewState()` 保持兼容空状态行为，首页摘要使用 result-bearing API，避免把损坏数据展示成“0 个知识点”。
+
 ## 5. 卡片设计
 
 ### 5.1 今日复习
@@ -135,16 +191,16 @@ Reading 百分比继续读取 `auris-reading-progress`；Video 标题与总时�
 
 正常内容：
 
-- 待复习总数：逾期 + 今日到期。
+- 待复习总数：逾期 + 今日到期。未来 `upcoming` 项不算作今日可执行内容。
 - 今日完成数。
 - 执行进度：`completedToday / (completedToday + overdue + dueToday)`。
-- 下一项真实知识点标题。
+- 下一项真实知识点标题，只从 `urgency === "overdue" | "today"` 的可执行队列选择。
 - 主动作：有待办时为“继续复习”；无待办时为“打开 Review”。
 
 每日新增提醒：
 
 - `createdTodayCount === 0` 时始终显示“今天还没有添加新知识点”。
-- 提供独立“去添加”动作，进入 `/review` 并直接打开新建知识点流程。
+- 提供独立“去添加”动作，进入 `/review?intent=create-knowledge-point`。若已有项目，直接打开新建知识点表单；若还没有项目，先打开项目表单，项目保存后继续打开知识点表单并预选刚创建的项目。取消任一步会清除本次 intent，不强制创建。
 - 当天已完成全部旧复习时，卡片可同时显示“今日复习已完成”和新增提醒。
 
 状态：
@@ -177,7 +233,7 @@ Reading 百分比继续读取 `auris-reading-progress`；Video 标题与总时�
 2. 视频：显示真实标题、`currentTime / duration` 和继续动作；播放结束后显示“已看完”，仍可重新打开，直到用户播放另一视频。
 3. 学习笔记：显示选定目录中 `updatedAt` 最新的笔记、相对目录和更新时间；点击打开笔记。
 
-学习目录配置通过卡片菜单或空态动作打开。目录选择器支持多选 Vault 目录，保存相对路径；目录被移动或删除后显示“学习目录已不可用”，允许重新选择。未配置目录时显示“选择学习目录”，不回退到整个 Vault 的最近笔记。
+学习目录配置通过卡片菜单或空态动作打开。目录选择器使用 `VaultClient.listEntries()` 的 `kind === "directory"` 条目并支持多选，保存相对路径；笔记摘要仍由 NotesStorage 提供。目录存在但没有匹配笔记时显示“该学习目录还没有笔记”；已保存路径不在最新目录条目中时显示“学习目录已不可用”。若 VaultClient 或 NotesStorage 任一不可用，该笔记槽位为 `unavailable`，目录选择器禁用并引导用户先配置/恢复 Notes Vault；不得仅凭现有笔记路径猜测目录仍然存在。未配置目录时显示“选择学习目录”，不回退到整个 Vault 的最近笔记。
 
 ## 6. 数据流与更新机制
 
@@ -185,26 +241,29 @@ Reading 百分比继续读取 `auris-reading-progress`；Video 标题与总时�
 
 继续订阅 `OUTPUT_REVIEW_STORAGE_EVENT` 与浏览器 `storage` 事件。摘要计算使用本地日期键，避免 UTC 跨日错误。首页挂载、窗口重新获得焦点以及本地零点跨日时重新计算，保证“今日新增”不会停留在前一天。
 
+首页先通过 `readOutputReviewStateResult()` 判定来源状态，再对合法 state 调用现有 model。`actionableQueue` 明确定义为 `getReviewQueue(...).filter(item => item.urgency !== "upcoming")`；未来计划只可作为辅助提示，不进入今日数量、进度或下一项。
+
 ### 6.2 Reading
 
 - 用户从 Reading 内容库打开文章时立即更新 `sourceId` 与 `lastOpenedAt`。
 - 正文活动段落变化或 PDF 页码变化时更新 resume position。
-- 现有 `saveReadingProgressFor` 成功提高百分比后派发 Reading progress 变更事件。
+- 现有 `saveReadingProgressFor` 成功提高百分比后派发 `auris:reading-progress-changed`；resume 变化派发 `auris:reading-resume-changed`。
 - 首页同时订阅 resume 与 progress 事件。
 - 从首页返回 Reading 时，Reading Screen 接受稳定的 source/position 参数或等价恢复输入，等待内容加载后再滚动到段落或页码。
 
 ### 6.3 Video
 
-- 视频详情加载成功后把当前视频设为最近视频。
+- 视频详情加载成功后把当前视频设为最近视频；resume 变化派发 `auris:video-resume-changed`。
 - 播放中每 10–15 秒节流保存；暂停、结束、页面隐藏和卸载时立即刷新一次。
 - `currentTime` 必须限制在 `[0, duration]`；损坏 JSON、非有限数值和负数恢复为无记录。
 - 首页订阅 resume 事件，并用视频库确认视频仍存在且可播放。
-- 返回视频详情后在媒体 metadata 就绪时应用恢复时间，不能在 duration 未知时盲目 seek。
+- `ended` 事件或 `duration > 0 && currentTime / duration >= 0.98` 将记录标记为完成并写入 `completedAt`。用户从接近结尾的位置重新播放到低于 98% 时清除完成标记。
+- “继续播放”只用于未完成视频，在 metadata 就绪后 seek 到 `min(savedTime, max(0, duration - 2))`；完成视频显示“重新播放”，从 `0` 开始，不能恢复到结尾帧。
 
 ### 6.4 Notes
 
 - 目录设置变化时立即重新查询。
-- NotesStorage 提供变更订阅时使用订阅；不支持时在首页重新获得焦点时刷新。
+- 目录选择与有效性使用 `VaultClient.listEntries()`；笔记摘要使用 NotesStorage。两者的变更订阅任一触发时重新加载；不支持订阅时在首页重新获得焦点时刷新。
 - 使用目录边界感知的相对路径判断，避免 `math` 错误匹配 `mathematics`。
 - 多目录结果统一按 `updatedAt` 降序，选择最新一项。
 
@@ -212,14 +271,23 @@ Reading 百分比继续读取 `auris-reading-progress`；Video 标题与总时�
 
 `useHomeLearningSummary()` 使用独立状态或 `Promise.allSettled` 等等价方式加载来源。Video bridge 不存在、Vault 未配置或某个 localStorage JSON 损坏时，只将对应摘要标记为 `empty` 或 `unavailable`，不清空其他来源，也不让三张卡片一起进入错误状态。
 
+稳定事件名与配置事件固定为：
+
+- `auris:reading-progress-changed`
+- `auris:reading-resume-changed`
+- `auris:video-resume-changed`
+- `auris:learning-note-folders-changed`
+
+事件只表示“重新读取来源”，不携带文章标题、视频标题或笔记内容作为权威 payload。
+
 ## 7. 路由与动作契约
 
 | 动作 | 目标 |
 | --- | --- |
 | 继续复习 | `/review`，队列按现有优先级打开。 |
-| 去添加复习 | `/review` 携带明确 create intent，Review Client 挂载后打开新建知识点流程。 |
-| 继续阅读 | `/reading` 携带 source ID 与位置；Reading Screen 恢复文章。 |
-| 继续播放 | `/video/[videoId]`，播放器根据 resume store 恢复时间。 |
+| 去添加复习 | `/review?intent=create-knowledge-point`；无项目时先建项目，再继续建知识点。 |
+| 继续阅读 | `/reading?sourceId=<id>`；位置以 reading resume store 为准，Reading Screen 恢复文章。 |
+| 继续播放 | `/video/[videoId]`；未完成时按 video resume store 恢复，已完成时从 0 重新播放。 |
 | 打开笔记 | `/notes?resumeNoteId=<id>`，复用现有笔记恢复契约。 |
 | 选择学习目录 | 打开只列出当前 Vault 目录的多选配置界面。 |
 
@@ -264,8 +332,10 @@ Night、Paper、Mint、Sepia、Solarized、White 各主题下正文和关键操�
 | `src/features/home-learning/home-learning-note-summary.ts` | Vault 目录过滤与最近笔记。 |
 | `src/features/home-learning/use-home-learning-summary.ts` | 加载、订阅、跨日与错误隔离。 |
 | `src/components/home/learning/*` | 三张卡片的可测试展示组件与目录选择界面。 |
-| `src/components/home/home-page.tsx` | 注册卡片并消费摘要；移除硬编码学习数据。 |
+| `src/components/home/home-page.tsx` | 保留 `review`、`progress`、`current-study` type/实例 ID，更新显示名称并消费摘要；移除硬编码学习数据。 |
 | Reading、Video、Review 现有入口 | 写入恢复指针、派发更新事件、支持深链接恢复。 |
+| Output Review storage | 新增 result-bearing 兼容读取 API，既有 reader 不破坏。 |
+| `VaultClient` + `NotesStorage` | 前者提供目录枚举/有效性，后者提供笔记摘要；两者共同支撑学习笔记槽位。 |
 
 不在本需求中重构其他无关 Home Widget，也不迁移现有业务存储。
 
@@ -273,18 +343,18 @@ Night、Paper、Mint、Sepia、Solarized、White 各主题下正文和关键操�
 
 ### 11.1 单元测试
 
-- Review：本地日期边界、当天新建计数、完成旧复习但未新增、资料库为空。
+- Review：本地日期边界、当天新建计数、完成旧复习但未新增、资料库为空、损坏/不支持存储、未来 upcoming 不计入今日可执行数量。
 - Reading resume：非法 JSON、失效 source ID、段落/PDF position 校验、100% 完成状态。
 - Reading summary：progress map 为权威，不读取示例 progress 冒充用户数据。
-- Video resume：负数、超出 duration、非有限数、节流边界和完成状态。
-- Notes：多目录、路径边界、无配置、目录删除、`updatedAt` 排序。
+- Video resume：负数、超出 duration、非有限数、节流边界、98% 完成阈值、完成后从 0 重新播放。
+- Notes：多目录、路径边界、有效空目录、目录删除、VaultClient/NotesStorage 缺失、`updatedAt` 排序。
 - 聚合 Hook：单来源失败不影响其他来源、跨日刷新和事件更新。
 
 ### 11.2 组件与集成测试
 
 - 三张卡片的 ready、empty、completed、unavailable 状态。
 - Review 同时显示“今日完成”和“当天未新增”提醒。
-- “去添加”直接打开 Review 新建流程。
+- “去添加”在已有项目时直接打开知识点表单；无项目时完成“先建项目、再建知识点”的引导链。
 - Reading 打开文章、推进段落/PDF 后首页百分比更新，并可恢复位置。
 - Video 播放、暂停、离开后首页显示真实位置，并可继续播放。
 - 学习目录配置、Vault 笔记更新与点击恢复。
@@ -308,12 +378,12 @@ Night、Paper、Mint、Sepia、Solarized、White 各主题下正文和关键操�
 | AC-04 | 学习进度显示最近实际打开的 Reading 文章和现有 progress map 的真实百分比。 |
 | AC-05 | 点击继续阅读能回到对应文章和段落/PDF 页；删除来源后不继续显示旧内容。 |
 | AC-06 | 继续学习固定显示文章、视频、学习笔记三行，缺失项显示明确空态。 |
-| AC-07 | 视频进度来自真实播放器位置，点击后恢复到合理时间点。 |
-| AC-08 | 学习笔记只来自用户选择的 Vault 目录，且显示最近更新项。 |
+| AC-07 | 视频进度来自真实播放器位置；未完成视频恢复到合理时间点，完成视频从 0 重新播放。 |
+| AC-08 | 学习笔记只来自用户选择且仍存在的 Vault 目录，能区分有效空目录与失效目录，并显示最近更新项。 |
 | AC-09 | 任一来源不可用时，其他卡片仍显示自身真实状态；错误不伪装为 0。 |
 | AC-10 | 全部全局主题中内容与背景对比清晰，卡片窄栏无横向溢出。 |
 | AC-11 | 刷新应用后恢复元数据仍有效，并且首屏没有水合错误。 |
-| AC-12 | 原首页布局、拖拽、尺寸、隐藏和命名布局行为不回退。 |
+| AC-12 | `review`、`progress`、`current-study` Widget type/实例 ID 保持兼容，原首页布局、复制实例、拖拽、尺寸、隐藏和命名布局行为不回退。 |
 
 ## 13. 非目标与后续可能性
 
