@@ -83,10 +83,17 @@ type HomeLearningSummary = {
 type HomeReviewSummary = {
   status: LearningSourceStatus;
   actionableCount: number; // 只含 overdue + dueToday
+  overdueCount: number;
+  dueTodayCount: number;
   completedToday: number;
   createdToday: number;
   progressPercent: number | null;
-  nextKnowledgePoint: { id: string; title: string } | null;
+  nextKnowledgePoint: {
+    id: string;
+    title: string;
+    urgency: "overdue" | "today";
+    overdueDays: number;
+  } | null;
 };
 
 type HomeReadingSummary = {
@@ -181,7 +188,7 @@ type OutputReviewReadResult =
 readOutputReviewStateResult(storage): OutputReviewReadResult;
 ```
 
-存储键不存在为 `empty`；合法 v1 数据为 `ready`；JSON 损坏或版本/结构不支持为 `invalid`；Storage 访问抛错为 `unavailable`。既有 `readOutputReviewState()` 保持兼容空状态行为，首页摘要使用 result-bearing API，避免把损坏数据展示成“0 个知识点”。
+存储键不存在为 `empty`；合法 v1 数据为 `ready`；JSON 损坏或版本/结构不支持为 `invalid`；Storage 访问抛错为 `unavailable`。既有 `readOutputReviewState()` 保持兼容空状态行为，首页摘要使用 result-bearing API，避免把损坏数据展示成“0 个知识点”。`invalid` 与 `unavailable` 都映射为卡片级 `status: "unavailable"`；卡片不向用户暴露存储实现细节。
 
 ## 5. 卡片设计
 
@@ -192,6 +199,7 @@ readOutputReviewStateResult(storage): OutputReviewReadResult;
 正常内容：
 
 - 待复习总数：逾期 + 今日到期。未来 `upcoming` 项不算作今日可执行内容。
+- 逾期数和今日到期数分别保留；逾期大于 0 时显示明确的“逾期 N 项”，不能只显示合计。
 - 今日完成数。
 - 执行进度：`completedToday / (completedToday + overdue + dueToday)`。
 - 下一项真实知识点标题，只从 `urgency === "overdue" | "today"` 的可执行队列选择。
@@ -233,7 +241,7 @@ readOutputReviewStateResult(storage): OutputReviewReadResult;
 2. 视频：显示真实标题、`currentTime / duration` 和继续动作；播放结束后显示“已看完”，仍可重新打开，直到用户播放另一视频。
 3. 学习笔记：显示选定目录中 `updatedAt` 最新的笔记、相对目录和更新时间；点击打开笔记。
 
-学习目录配置通过卡片菜单或空态动作打开。目录选择器使用 `VaultClient.listEntries()` 的 `kind === "directory"` 条目并支持多选，保存相对路径；笔记摘要仍由 NotesStorage 提供。目录存在但没有匹配笔记时显示“该学习目录还没有笔记”；已保存路径不在最新目录条目中时显示“学习目录已不可用”。若 VaultClient 或 NotesStorage 任一不可用，该笔记槽位为 `unavailable`，目录选择器禁用并引导用户先配置/恢复 Notes Vault；不得仅凭现有笔记路径猜测目录仍然存在。未配置目录时显示“选择学习目录”，不回退到整个 Vault 的最近笔记。
+学习目录配置通过卡片菜单或空态动作打开。目录选择器使用 `VaultClient.listEntries()` 的 `kind === "directory"` 条目并支持多选，保存相对路径；笔记摘要仍由 NotesStorage 提供。目录存在但没有匹配笔记时显示“该学习目录还没有笔记”；已保存路径不在最新目录条目中时显示“学习目录已不可用”。若部分目录有效、部分目录失效，摘要仍从有效目录选择最近笔记，同时在 `missingFolders` 中保留失效路径，卡片显示非阻塞的“有 N 个学习目录需要重新选择”提示；只有全部已选目录均失效时，笔记槽位才为 `unavailable`。若 VaultClient 或 NotesStorage 任一整体不可用，该笔记槽位也为 `unavailable`，目录选择器禁用并引导用户先配置/恢复 Notes Vault；不得仅凭现有笔记路径猜测目录仍然存在。未配置目录时显示“选择学习目录”，不回退到整个 Vault 的最近笔记。
 
 ## 6. 数据流与更新机制
 
