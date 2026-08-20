@@ -217,6 +217,31 @@ describe("DesktopVideoDetailShell", () => {
     expect(video.playbackRate).toBe(1.5);
   });
 
+  it("keeps the English practice session mounted while immersive playback hides its panel", async () => {
+    const user = userEvent.setup();
+    const { container } = mountWithBridge();
+
+    await user.click(await screen.findByRole("button", { name: "打开英语陪练" }));
+    const workspace = container.querySelector(".video-study__body") as HTMLElement;
+    const panel = container.querySelector(".video-study__practice-panel") as HTMLElement;
+    const video = getRenderedVideo();
+
+    expect(workspace).toHaveAttribute("data-workspace-mode", "english-practice");
+    expect(panel).toHaveAttribute("data-open", "true");
+
+    await user.click(screen.getByRole("button", { name: "沉浸播放" }));
+    expect(workspace).toHaveAttribute("data-immersive", "true");
+    expect(workspace).toHaveAttribute("data-workspace-mode", "english-practice");
+    expect(container.querySelector(".video-study__practice-panel")).toBe(panel);
+    expect(panel).toHaveAttribute("data-open", "true");
+    expect(getRenderedVideo()).toBe(video);
+
+    await user.click(screen.getByRole("button", { name: "退出沉浸播放" }));
+    expect(workspace).toHaveAttribute("data-immersive", "false");
+    expect(workspace).toHaveAttribute("data-workspace-mode", "english-practice");
+    expect(container.querySelector(".video-study__practice-panel")).toBe(panel);
+  });
+
   it("allows the English practice panel width to be adjusted with its divider", async () => {
     const user = userEvent.setup();
     const { container } = mountWithBridge();
@@ -304,7 +329,7 @@ describe("DesktopVideoDetailShell", () => {
       expect(player).toHaveAttribute("data-controls-visible", "true");
 
       act(() => {
-        vi.advanceTimersByTime(2300);
+        vi.advanceTimersByTime(2700);
       });
       expect(player).toHaveAttribute("data-controls-visible", "false");
 
@@ -315,7 +340,7 @@ describe("DesktopVideoDetailShell", () => {
     }
   });
 
-  it("supports play/pause, seeking, volume, mute, and fullscreen controls", async () => {
+  it("supports play/pause, seeking, volume, mute, and immersive controls", async () => {
     const playSpy = vi
       .spyOn(HTMLMediaElement.prototype, "play")
       .mockImplementation(function playMock(this: HTMLMediaElement) {
@@ -336,12 +361,8 @@ describe("DesktopVideoDetailShell", () => {
       expect(screen.getAllByText("Lesson One").length).toBeGreaterThan(0);
     });
 
-    const player = document.querySelector(".video-study__player-frame") as HTMLElement & {
-      requestFullscreen?: () => Promise<void>;
-    };
-    const requestFullscreen = vi.fn(async () => undefined);
-    player.requestFullscreen = requestFullscreen;
-
+    const player = document.querySelector(".video-study__player-frame") as HTMLElement;
+    const page = document.querySelector(".video-study") as HTMLElement;
     const video = getRenderedVideo();
     setVideoDuration(video, 120);
 
@@ -365,8 +386,27 @@ describe("DesktopVideoDetailShell", () => {
     expect(video.muted).toBe(true);
     expect(screen.getByRole("button", { name: "取消静音" })).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "进入全屏" }));
-    expect(requestFullscreen).toHaveBeenCalledTimes(1);
+    video.playbackRate = 1.5;
+    const timeBeforeImmersive = video.currentTime;
+    const volumeBeforeImmersive = video.volume;
+
+    await userEvent.click(screen.getByRole("button", { name: "沉浸播放" }));
+    expect(page).toHaveAttribute("data-immersive", "true");
+    expect(player).toHaveAttribute("data-immersive", "true");
+    expect(getRenderedVideo()).toBe(video);
+    expect(video.currentTime).toBe(timeBeforeImmersive);
+    expect(video.volume).toBe(volumeBeforeImmersive);
+    expect(video.playbackRate).toBe(1.5);
+    expect(screen.getByRole("button", { name: "退出沉浸播放" })).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => {
+      expect(page).toHaveAttribute("data-immersive", "false");
+    });
+    expect(getRenderedVideo()).toBe(video);
+    expect(video.currentTime).toBe(timeBeforeImmersive);
+    expect(video.volume).toBe(volumeBeforeImmersive);
+    expect(video.playbackRate).toBe(1.5);
   });
 
   it("opens a word card with the definition when a vocab word is right-clicked", async () => {

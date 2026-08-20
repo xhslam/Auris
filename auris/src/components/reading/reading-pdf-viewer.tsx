@@ -13,7 +13,9 @@ export type PdfLookupRequest = {
 
 type ReadingPdfViewerProps = {
   pdfBytes: ArrayBuffer;
+  initialPage?: number | null;
   onLookupWord: (request: PdfLookupRequest) => void;
+  onPageChange?: (page: number) => void;
   onProgressChange?: (progress: number) => void;
   scale?: number;
 };
@@ -39,7 +41,9 @@ function extractLookupTerm(raw: string) {
 
 export function ReadingPdfViewer({
   pdfBytes,
+  initialPage = null,
   onLookupWord,
+  onPageChange,
   onProgressChange,
   scale = 1.15,
 }: ReadingPdfViewerProps) {
@@ -48,6 +52,7 @@ export function ReadingPdfViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [pageStates, setPageStates] = useState<PageRenderState[]>([]);
   const pageEls = useRef<Map<number, HTMLElement>>(new Map());
+  const restoredPageRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -172,7 +177,16 @@ export function ReadingPdfViewer({
   }, [pdfBytes, scale]);
 
   useEffect(() => {
-    if (!onProgressChange || pageStates.length === 0) {
+    if (!initialPage || pageStates.length === 0 || restoredPageRef.current === initialPage) {
+      return;
+    }
+    const page = pageEls.current.get(Math.min(Math.max(1, initialPage), pageStates.length));
+    page?.scrollIntoView({ block: "start" });
+    restoredPageRef.current = initialPage;
+  }, [initialPage, pageStates]);
+
+  useEffect(() => {
+    if ((!onProgressChange && !onPageChange) || pageStates.length === 0) {
       return;
     }
 
@@ -204,7 +218,8 @@ export function ReadingPdfViewer({
         }
 
         const progress = Math.round((bestPage / pageStates.length) * 100);
-        onProgressChange(progress);
+        onProgressChange?.(progress);
+        onPageChange?.(bestPage);
       },
       {
         root: containerRef.current?.closest(".reading-minimal__shell") ?? null,
@@ -217,7 +232,7 @@ export function ReadingPdfViewer({
     }
 
     return () => observer.disconnect();
-  }, [onProgressChange, pageStates]);
+  }, [onPageChange, onProgressChange, pageStates]);
 
   function handleContextMenu(event: React.MouseEvent<HTMLDivElement>) {
     const selection = window.getSelection();

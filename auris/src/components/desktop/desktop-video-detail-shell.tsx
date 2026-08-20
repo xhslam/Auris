@@ -31,6 +31,12 @@ import {
 } from "@/features/reading/reading-word-import";
 import { getBrowserWordbookStorage } from "@/features/wordbook/local-wordbook-store";
 import type { DesktopVideoDetails } from "@/features/video-library/video-library.types";
+import {
+  getVideoResumeStartTime,
+  readVideoResume,
+  rememberVideoResume,
+  touchVideoResume,
+} from "@/features/home-learning/video-resume-store";
 import { EnglishPracticePanel } from "@/components/video/english-practice/english-practice-panel";
 import "@/components/desktop/desktop-video-detail-shell.css";
 
@@ -108,13 +114,15 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const practicePanelResizeRef = useRef<PracticePanelResizeState>(null);
   const controlsHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastResumePersistedAtRef = useRef(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [areControlsVisible, setAreControlsVisible] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  // 这是应用内容区的沉浸播放，不使用浏览器或 Electron 的原生全屏。
+  const [isImmersive, setIsImmersive] = useState(false);
   // 视频详情默认是通用观看空间；陪练仅在用户主动开启时成为可见增强层。
   const [workspaceMode, setWorkspaceMode] = useState<VideoWorkspaceMode>("watch");
   const [hasOpenedPractice, setHasOpenedPractice] = useState(false);
@@ -142,6 +150,18 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   const isPending = pendingWords.includes(selectedLookupKey);
   const isSaved = selectedWord ? savedKeys.has(selectedLookupKey) : isPending;
 
+  const persistVideoResume = useCallback((
+    currentTimeSeconds: number,
+    durationSeconds: number,
+    force = false,
+  ) => {
+    const now = Date.now();
+    if (!force && now - lastResumePersistedAtRef.current < 12_000) return;
+    if (rememberVideoResume({ videoId, currentTimeSeconds, durationSeconds })) {
+      lastResumePersistedAtRef.current = now;
+    }
+  }, [videoId]);
+
   const clearControlsHideTimer = useCallback(() => {
     if (controlsHideTimerRef.current) {
       clearTimeout(controlsHideTimerRef.current);
@@ -156,7 +176,7 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     }
     controlsHideTimerRef.current = setTimeout(() => {
       setAreControlsVisible(false);
-    }, 2200);
+    }, 2600);
   }, [clearControlsHideTimer, isPlaying]);
 
   const revealPlayerControls = useCallback(() => {
@@ -219,7 +239,30 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     setDuration(fallbackDuration);
     setIsPlaying(false);
     setAreControlsVisible(true);
+    lastResumePersistedAtRef.current = 0;
   }, [playbackUrl, selectedVariant?.durationMs]);
+
+  // 详情成功加载即记录最近视频；已有完成标记和播放位置必须原样保留。
+  useEffect(() => {
+    if (!detail) return;
+    touchVideoResume(videoId);
+  }, [detail, videoId]);
+
+  useEffect(() => {
+    const videoAtEffectStart = videoRef.current;
+    const flushOnHidden = () => {
+      if (document.visibilityState !== "hidden") return;
+      const video = videoRef.current;
+      if (video) persistVideoResume(video.currentTime, video.duration || duration, true);
+    };
+    document.addEventListener("visibilitychange", flushOnHidden);
+    return () => {
+      document.removeEventListener("visibilitychange", flushOnHidden);
+      if (videoAtEffectStart) {
+        persistVideoResume(videoAtEffectStart.currentTime, videoAtEffectStart.duration || duration, true);
+      }
+    };
+  }, [duration, persistVideoResume]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -231,13 +274,25 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
   }, [isMuted, volume, playbackUrl]);
 
   useEffect(() => {
-    function handleFullscreenChange() {
-      setIsFullscreen(document.fullscreenElement === playerFrameRef.current);
+    // 路由参数变化时不继承上一条视频的沉浸布局；离开页面时组件卸载也会自然清理状态。
+    setIsImmersive(false);
+  }, [videoId]);
+
+  useEffect(() => {
+    if (!isImmersive) {
+      return;
     }
 
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsImmersive(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isImmersive]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -419,6 +474,7 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     const boundedTime = Math.min(Math.max(nextTime, 0), seekableDuration);
     video.currentTime = boundedTime;
     setCurrentTime(video.currentTime);
+    persistVideoResume(boundedTime, seekableDuration, true);
   }
 
   function toggleMute() {
@@ -441,21 +497,9 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
     }
   }
 
-  async function toggleFullscreen() {
-    const frame = playerFrameRef.current;
-    if (!frame) {
-      return;
-    }
-
-    try {
-      if (document.fullscreenElement === frame) {
-        await document.exitFullscreen?.();
-        return;
-      }
-      await frame.requestFullscreen?.();
-    } catch {
-      setErrorMessage("无法进入全屏模式。");
-    }
+  function toggleImmersive() {
+    setIsImmersive((current) => !current);
+    revealPlayerControls();
   }
 
   function handlePlayerKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
@@ -494,8 +538,7 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
 
     if (event.key === "f" || event.key === "F") {
       event.preventDefault();
-      void toggleFullscreen();
-      revealPlayerControls();
+      toggleImmersive();
     }
   }
 
@@ -738,9 +781,9 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
         <div
           className="video-study__player-frame"
           data-controls-visible={areControlsVisible ? "true" : "false"}
-          data-fullscreen={isFullscreen ? "true" : "false"}
+          data-immersive={isImmersive ? "true" : "false"}
           data-playing={isPlaying ? "true" : "false"}
-          onDoubleClick={() => void toggleFullscreen()}
+          onDoubleClick={toggleImmersive}
           onFocus={revealPlayerControls}
           onKeyDown={handlePlayerKeyDown}
           onMouseMove={revealPlayerControls}
@@ -752,16 +795,32 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
             <video
               className="video-study__video"
               onClick={togglePlay}
-              onEnded={() => setIsPlaying(false)}
+              onEnded={(event) => {
+                setIsPlaying(false);
+                persistVideoResume(event.currentTarget.currentTime, event.currentTarget.duration || duration, true);
+              }}
               onLoadedMetadata={(event) => {
                 const nextDuration = event.currentTarget.duration;
                 if (Number.isFinite(nextDuration) && nextDuration > 0) {
                   setDuration(nextDuration);
+                  const saved = readVideoResume();
+                  const startTime = saved?.videoId === videoId
+                    ? getVideoResumeStartTime(saved, nextDuration)
+                    : 0;
+                  event.currentTarget.currentTime = startTime;
+                  setCurrentTime(startTime);
                 }
               }}
-              onPause={() => setIsPlaying(false)}
+              onPause={(event) => {
+                setIsPlaying(false);
+                persistVideoResume(event.currentTarget.currentTime, event.currentTarget.duration || duration, true);
+              }}
               onPlay={() => setIsPlaying(true)}
-              onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+              onTimeUpdate={(event) => {
+                const nextTime = event.currentTarget.currentTime;
+                setCurrentTime(nextTime);
+                persistVideoResume(nextTime, event.currentTarget.duration || duration);
+              }}
               onVolumeChange={(event) => {
                 setVolume(event.currentTarget.volume);
                 setIsMuted(event.currentTarget.muted || event.currentTarget.volume === 0);
@@ -845,12 +904,13 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
               <span className="video-study__control-spacer" />
 
               <button
-                aria-label={isFullscreen ? "退出全屏" : "进入全屏"}
+                aria-label={isImmersive ? "退出沉浸播放" : "沉浸播放"}
                 className="video-study__control-button"
-                onClick={() => void toggleFullscreen()}
+                onClick={toggleImmersive}
+                title={isImmersive ? "退出沉浸播放" : "沉浸播放"}
                 type="button"
               >
-                {isFullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
+                {isImmersive ? <MinimizeIcon /> : <MaximizeIcon />}
               </button>
             </div>
           </div>
@@ -960,7 +1020,11 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
       subtitle="视频"
       title="本地视频库"
     >
-      <main className="video-study" data-theme={theme}>
+      <main
+        className="video-study"
+        data-immersive={isImmersive ? "true" : "false"}
+        data-theme={theme}
+      >
         {renderToolbar(title)}
 
         <input
@@ -997,6 +1061,7 @@ export function DesktopVideoDetailShell({ videoId }: DesktopVideoDetailShellProp
         ) : (
           <div
             className="video-study__body"
+            data-immersive={isImmersive ? "true" : "false"}
             data-workspace-mode={workspaceMode}
             ref={workspaceRef}
             style={

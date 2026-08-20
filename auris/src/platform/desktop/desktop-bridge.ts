@@ -17,6 +17,7 @@ import type {
 } from "@/features/video-library/video-library.types";
 import type { BrowserStatusSnapshot } from "@/features/browser/window-status";
 import type { NiaBridgeCommand } from "@/features/nia/nia-bridge";
+import type { PdfExportOptions } from "@/platform/files/pdf-export-options";
 
 export type DesktopCommandRecord = {
   id: string;
@@ -562,6 +563,7 @@ export type DesktopBridge = {
     exportPdf?: (
       filename: string,
       html: string,
+      options?: PdfExportOptions,
     ) => Promise<DesktopDownloadsExportResult>;
     exportText?: (
       filename: string,

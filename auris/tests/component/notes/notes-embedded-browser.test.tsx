@@ -36,7 +36,7 @@ describe("NotesEmbeddedBrowser", () => {
     vi.unstubAllGlobals();
   });
 
-  it("creates the default-on human page and reports the Note viewport to Electron", async () => {
+  it("creates an empty human tab without implicit navigation and reports the Note viewport", async () => {
     const fixture = installBridge(emptySnapshot());
     const onReturnToNotes = vi.fn();
     const view = render(
@@ -60,15 +60,20 @@ describe("NotesEmbeddedBrowser", () => {
     await waitFor(() => {
       expect(fixture.invoke).toHaveBeenCalledWith("createTab", {
         automationMode: "Human",
-        url: "https://duckduckgo.com/",
       });
+      expect(fixture.invoke).not.toHaveBeenCalledWith(
+        "createTab",
+        expect.objectContaining({ url: expect.any(String) }),
+      );
       expect(fixture.invoke).toHaveBeenCalledWith("setViewport", {
         height: 500,
-        visible: true,
+        visible: false,
         width: 800,
         x: 210,
         y: 120,
       });
+      expect(screen.getByText("在这里打开网页")).toBeVisible();
+      expect(screen.getByText("输入网址或搜索你想查找的内容")).toBeVisible();
     });
 
     view.unmount();

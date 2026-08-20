@@ -46,5 +46,8 @@ describe("note export", () => {
     expect(html).toContain("<table>");
     expect(html).toContain("rhythm");
     expect(html).toContain("katex");
+    expect(html).toContain("@page{size:A4;");
+    expect(html).toContain("break-inside:avoid;");
+    expect(html).toContain('<main aria-label="Daily Review">');
   });
 });

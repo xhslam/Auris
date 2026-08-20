@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildLearningAiContextPrompt } from "@/features/learning-memory/learning-ai-context";
+import { buildLearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-review";
 import { buildLearningNoteMarkdown } from "@/features/learning-memory/learning-note-template";
 import type {
   LearningMemoryNoteRecord,
@@ -183,8 +184,20 @@ export function useWorkspaceLearningMemory({
       const createdPage = await notesStorage.createPage({
         title: noteTitle,
       });
+      const createdAt = new Date().toISOString();
+      const latestNotePages = await loadNotePages(notesStorage);
+      const sourceNote = sourceNotePath
+        ? latestNotePages.find((page) => page.relativePath === sourceNotePath)
+        : undefined;
       const markdown = buildLearningNoteMarkdown({
-        createdAt: new Date().toISOString(),
+        createdAt,
+        dependencySnapshot: buildLearningDependencySnapshot({
+          capturedAt: createdAt,
+          materialText: sourceText,
+          sourceNote: sourceNote
+            ? { content: sourceNote.markdownBody, path: sourceNote.relativePath }
+            : null,
+        }),
         materialText: sourceText,
         recallItems,
         sentences: matchedSentences,

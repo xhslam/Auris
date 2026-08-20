@@ -1,4 +1,5 @@
 import { createNotePage, sanitizeNoteFileName } from "@/features/notes/note-model";
+import { synchronizeLearningDependencyReviews } from "@/features/learning-memory/learning-dependency-sync";
 import type { NotePage, NotesStorage } from "@/features/notes/note-types";
 import type { SavedSentenceRecord } from "@/features/sentencebook/local-sentencebook-store";
 import type { SavedWordRecord } from "@/features/wordbook/local-wordbook-store";
@@ -204,6 +205,7 @@ export async function saveSourceMaterialNote(
     : draftPage;
 
   await notesStorage.savePage(nextPage);
+  await synchronizeLearningDependencyReviews(notesStorage);
   return toSourceMaterialRef(nextPage);
 }
 
@@ -224,6 +226,7 @@ export async function appendSentenceToSourceMaterialNote(
   };
 
   await notesStorage.savePage(nextPage);
+  await synchronizeLearningDependencyReviews(notesStorage);
   return toSourceMaterialRef(nextPage);
 }
 
@@ -244,5 +247,6 @@ export async function appendWordToSourceMaterialNote(
   };
 
   await notesStorage.savePage(nextPage);
+  await synchronizeLearningDependencyReviews(notesStorage);
   return toSourceMaterialRef(nextPage);
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_DESKTOP_RUNTIME_STATE } from "@/features/app-runtime/app-runtime-storage";
+import type { VaultExportManifest } from "@/features/notes/vault/vault-export-manifest";
 import { createDesktopFileExportService } from "@/platform/files/desktop-file-export-service";
 import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
 
@@ -13,6 +14,7 @@ function createBridge(): DesktopBridge {
     },
     downloads: {
       exportJson: vi.fn(async () => ({ path: "C:/Users/test/Downloads/wordbook.json" })),
+      exportPdf: vi.fn(async () => ({ path: "C:/Users/test/Downloads/note.pdf" })),
       exportVaultFolder: vi.fn(async () => ({
         filesCopied: 3,
         manifestPath: "C:/Users/test/Downloads/shadowing-vault/manifest.json",
@@ -76,7 +78,7 @@ function createBridge(): DesktopBridge {
     window: {
       showInFolder: vi.fn(async () => undefined),
     },
-  };
+  } as unknown as DesktopBridge;
 }
 
 describe("desktop file export service", () => {
@@ -91,10 +93,24 @@ describe("desktop file export service", () => {
     ]);
   });
 
+  it("passes bounded PDF presentation options through the desktop bridge", async () => {
+    const bridge = createBridge();
+    const service = createDesktopFileExportService({ bridge });
+    const options = { generateDocumentOutline: true, pageSize: "A4" as const };
+
+    await service.exportPdf("note.pdf", "<main>Note</main>", options);
+
+    expect(bridge.downloads.exportPdf).toHaveBeenCalledWith(
+      "note.pdf",
+      "<main>Note</main>",
+      options,
+    );
+  });
+
   it("exports a complete vault folder through the desktop downloads bridge", async () => {
     const bridge = createBridge();
     const service = createDesktopFileExportService({ bridge });
-    const manifest = {
+    const manifest: VaultExportManifest = {
       documents: {},
       files: [],
       generatedAt: "2026-05-09T00:00:00.000Z",

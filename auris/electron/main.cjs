@@ -125,6 +125,7 @@ const { createWorkflowIpc } = require("./workflows/workflow-ipc.cjs");
 const { createWorkflowRunRegistry } = require("./workflows/workflow-run-registry.cjs");
 const { createNotesRecoveryStore } = require("./notes/notes-recovery-store.cjs");
 const { createNotesRecoveryIpc } = require("./notes/notes-recovery-ipc.cjs");
+const { normalizePdfExportOptions } = require("./pdf-export-options.cjs");
 const {
   createVaultFileOperations,
 } = require("./notes/vault-file-operations.cjs");
@@ -1668,7 +1669,7 @@ async function exportTextToDownloads(filename, content) {
   };
 }
 
-async function exportPdfToDownloads(filename, html) {
+async function exportPdfToDownloads(filename, html, options) {
   const downloadsDirectory = app.getPath("downloads");
   const safeFileName = sanitizeDownloadFileName(filename || "shadowing-export.pdf")
     .replace(/\.(?!.*\.)[^.]*$/, ".pdf");
@@ -1684,10 +1685,9 @@ async function exportPdfToDownloads(filename, html) {
   try {
     await fs.mkdir(downloadsDirectory, { recursive: true });
     await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(String(html))}`);
-    const pdfBuffer = await pdfWindow.webContents.printToPDF({
-      printBackground: true,
-      preferCSSPageSize: true,
-    });
+    const pdfBuffer = await pdfWindow.webContents.printToPDF(
+      normalizePdfExportOptions(options),
+    );
     await fs.writeFile(targetPath, pdfBuffer);
     shell.showItemInFolder(targetPath);
 
@@ -3331,8 +3331,8 @@ function registerDesktopHandlers() {
     exportJsonToDownloads(filename, payload),
   );
 
-  ipcMain.handle("shadowing:downloads:export-pdf", async (_event, filename, html) =>
-    exportPdfToDownloads(filename, html),
+  ipcMain.handle("shadowing:downloads:export-pdf", async (_event, filename, html, options) =>
+    exportPdfToDownloads(filename, html, options),
   );
 
   ipcMain.handle("shadowing:downloads:export-text", async (_event, filename, content) =>

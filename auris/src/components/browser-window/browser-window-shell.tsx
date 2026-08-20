@@ -112,6 +112,8 @@ export function BrowserWindowShell() {
         <BrowserToolbar
           address={model.address}
           bookmarked={model.bookmarked}
+          canGoBack={model.canGoBack}
+          canGoForward={model.canGoForward}
           crashMode={model.activeTab?.crashMode ?? "ok"}
           lifecycle={model.activeTab?.lifecycle ?? "ready"}
           loading={model.activeTab?.loading ?? false}

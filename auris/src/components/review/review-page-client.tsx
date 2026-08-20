@@ -46,7 +46,11 @@ function cloneEmptyState(): OutputReviewState {
   return { ...EMPTY_OUTPUT_REVIEW_STATE, projects: [], knowledgePoints: [], cycles: [] };
 }
 
-export function ReviewPageClient() {
+export function ReviewPageClient({
+  initialIntent = null,
+}: {
+  initialIntent?: "create-knowledge-point" | null;
+}) {
   const today = toLocalDateKey(new Date());
   const [state, setState] = useState<OutputReviewState>(cloneEmptyState);
   const [hydrated, setHydrated] = useState(false);
@@ -56,11 +60,29 @@ export function ReviewPageClient() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [notice, setNotice] = useState("");
+  const [hasHandledCreateIntent, setHasHandledCreateIntent] = useState(false);
+  const [continueKnowledgePointAfterProject, setContinueKnowledgePointAfterProject] = useState(false);
 
   useEffect(() => {
     setState(refreshReviewStatuses(readOutputReviewState(window.localStorage), today));
     setHydrated(true);
   }, [today]);
+
+  useEffect(() => {
+    if (
+      initialIntent !== "create-knowledge-point" ||
+      !hydrated ||
+      hasHandledCreateIntent
+    ) return;
+    setHasHandledCreateIntent(true);
+    if (state.projects.length > 0) {
+      setFormPoint("new");
+      return;
+    }
+    setView("projects");
+    setContinueKnowledgePointAfterProject(true);
+    setProjectFormOpen(true);
+  }, [hasHandledCreateIntent, hydrated, initialIntent, state.projects.length]);
 
   useEffect(() => {
     if (!notice) return;
@@ -144,10 +166,17 @@ export function ReviewPageClient() {
             }
             setFormPoint(null);
           }} projects={state.projects} /> : null}
-        {projectFormOpen ? <ProjectForm onCancel={() => setProjectFormOpen(false)} onSave={(name, description) => {
+        {projectFormOpen ? <ProjectForm onCancel={() => {
+          setProjectFormOpen(false);
+          setContinueKnowledgePointAfterProject(false);
+        }} onSave={(name, description) => {
           commit((current) => createProject(current, { name, description }));
           setProjectFormOpen(false);
           setNotice("项目已创建。");
+          if (continueKnowledgePointAfterProject) {
+            setContinueKnowledgePointAfterProject(false);
+            setFormPoint("new");
+          }
         }} /> : null}
         {detailPoint ? <KnowledgeDetail
           cycles={state.cycles.filter((cycle) => cycle.knowledgePointId === detailPoint.id)}

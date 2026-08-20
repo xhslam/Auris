@@ -34,6 +34,10 @@ describe("browser mode controls", () => {
       />,
     );
 
+    const toolbar = screen.getByRole("toolbar", { name: "浏览器工具栏" });
+    expect(toolbar.querySelector(".browser-toolbar__navigation")?.children).toHaveLength(3);
+    expect(toolbar.querySelector(".browser-toolbar__address .browser-omnibox")).toBeTruthy();
+    expect(toolbar.querySelector(".browser-toolbar__actions .browser-status-pill")).toBeTruthy();
     expect(document.querySelector('.browser-status-pill[data-mode="Human"]')).toBeTruthy();
     await user.selectOptions(screen.getByLabelText("新建标签模式"), "AiSandbox");
     expect(onCreateTab).toHaveBeenCalledWith("AiSandbox");

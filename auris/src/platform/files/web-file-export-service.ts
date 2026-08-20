@@ -1,6 +1,12 @@
+import type { PdfExportOptions } from "@/platform/files/pdf-export-options";
+
 export type WebFileExportService = {
   exportJson: (filename: string, payload: unknown) => Promise<void>;
-  exportPdf: (filename: string, html: string) => Promise<void>;
+  exportPdf: (
+    filename: string,
+    html: string,
+    options?: PdfExportOptions,
+  ) => Promise<void>;
   exportText: (
     filename: string,
     content: string,

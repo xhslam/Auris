@@ -88,6 +88,8 @@ function createBrowserRegistry({ ids = createBrowserIdFactory(), now = Date.now 
     return {
       active: tab.tabId === activeTabId,
       automationMode: tab.automationMode,
+      canGoBack: tab.historyIndex > 0,
+      canGoForward: tab.historyIndex >= 0 && tab.historyIndex < tab.historyEntries.length - 1,
       controlEpoch: tab.controlEpoch,
       crashMode: tab.crashMode,
       crashStreak: tab.crashStreak,

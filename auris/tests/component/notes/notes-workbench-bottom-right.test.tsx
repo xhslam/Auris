@@ -68,6 +68,35 @@ describe("NotesWorkbenchBottomRight", () => {
     expect(screen.getByText("12 字符")).toBeInTheDocument();
   });
 
+  it("shows a dependency review action only when the active learning note is stale", async () => {
+    const user = userEvent.setup();
+    const onResolveLearningDependencyReview = vi.fn();
+
+    render(
+      <NotesWorkbenchBottomRight
+        activeDocument={activeDocument}
+        backlinks={[]}
+        documents={[activeDocument]}
+        editorMode="wysiwyg"
+        isTerminalSplitOpen={false}
+        learningDependencyNeedsReview
+        learningQuery=""
+        learningSnippets={[]}
+        onOpenPath={vi.fn()}
+        onResolveLearningDependencyReview={onResolveLearningDependencyReview}
+        onTerminalSplitToggle={vi.fn()}
+        recentDocuments={[]}
+        searchQuery=""
+        searchResults={[]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "学习依赖待复核" }));
+    await user.click(screen.getByRole("button", { name: "确认已复核" }));
+
+    expect(onResolveLearningDependencyReview).toHaveBeenCalledTimes(1);
+  });
+
   it("lists saved history and restores the selected version", async () => {
     const user = userEvent.setup();
     const onRestoreHistoryVersion = vi.fn();

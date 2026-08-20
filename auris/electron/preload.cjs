@@ -248,8 +248,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
   downloads: {
     exportJson: (filename, payload) =>
       invoke("shadowing:downloads:export-json", filename, payload),
-    exportPdf: (filename, html) =>
-      invoke("shadowing:downloads:export-pdf", filename, html),
+    exportPdf: (filename, html, options) =>
+      invoke("shadowing:downloads:export-pdf", filename, html, options),
     exportText: (filename, content, contentType) =>
       invoke("shadowing:downloads:export-text", filename, content, contentType),
     exportVaultFolder: (folderName, manifest) =>

@@ -32,12 +32,18 @@ import {
   writeHomeData,
   type HomeData,
 } from "@/features/home/home-store";
-import { getDashboardMetrics, getReviewQueue } from "@/features/output-review/output-review-model";
-import { OUTPUT_REVIEW_STORAGE_EVENT, readOutputReviewState } from "@/features/output-review/output-review-storage";
 import type { NotePageSummary } from "@/features/notes/note-types";
+import { useSystemColorScheme } from "@/features/appearance/use-system-color-scheme";
 import { useHydratedDesktopBridge } from "@/platform/desktop/use-hydrated-desktop-bridge";
 import { getNotesStorage } from "@/platform/notes/get-notes-storage";
 import { getVaultClient } from "@/platform/notes/get-vault-client";
+import { useHomeLearningSummary } from "@/features/home-learning/use-home-learning-summary";
+import {
+  HomeContinueLearningCard,
+  HomeReadingCard,
+  HomeReviewCard,
+  LearningNoteFoldersDialog,
+} from "@/components/home/learning/home-learning-cards";
 import "./home-demo-workbench.css";
 import "./home-v3.css";
 
@@ -82,8 +88,8 @@ const columnIds: ColumnId[] = ["left", "center", "right"];
 const widgetDefinitions: WidgetDefinition[] = [
   { type: "reading", name: "Reading", description: "当前阅读与阅读队列。", category: "学习", defaultHeight: 220, defaultSpan: 4 },
   { type: "review", name: "今日复习", description: "今日待复习知识点与进度。", category: "学习", defaultHeight: 192, defaultSpan: 2 },
-  { type: "current-study", name: "当前学习", description: "正在推进的课程与章节。", category: "学习", defaultHeight: 186, defaultSpan: 2 },
-  { type: "progress", name: "学习进度", description: "今日各科目学习时间。", category: "学习", defaultHeight: 192, defaultSpan: 2 },
+  { type: "current-study", name: "继续学习", description: "文章、视频与学习笔记的真实恢复入口。", category: "学习", defaultHeight: 270, defaultSpan: 2 },
+  { type: "progress", name: "学习进度", description: "最近实际打开的 Reading 文章。", category: "学习", defaultHeight: 192, defaultSpan: 2 },
   { type: "calendar", name: "记录日历", description: "最近学习情况热力图。", category: "学习", defaultHeight: 306, defaultSpan: 6 },
   { type: "plans", name: "今日任务", description: "可直接编辑的任务清单。", category: "效率", defaultHeight: 356, defaultSpan: 2 },
   { type: "pomodoro", name: "Pomodoro", description: "专注倒计时入口。", category: "效率", defaultHeight: 176, defaultSpan: 2 },
@@ -103,7 +109,6 @@ const widgetDefinitions: WidgetDefinition[] = [
 ];
 const widgetDefinitionByType = new Map(widgetDefinitions.map((item) => [item.type, item]));
 const widgetTypeSet = new Set<WidgetType>(widgetDefinitions.map((item) => item.type));
-const systemInstanceIds = new Set(["calendar", "workspace", "quote", "life", "review", "capture", "plans", "browser"]);
 
 function makeInitialLayout(): WorkspaceLayout {
   return {
@@ -119,9 +124,11 @@ function makeInitialLayout(): WorkspaceLayout {
       { id: "quote", type: "quote", zone: "center", order: 0, height: 108, size: "small", centerSpan: 3, pinned: true, hidden: false },
       { id: "life", type: "life", zone: "center", order: 1, height: 560, size: "large", centerSpan: 6, pinned: true, hidden: false },
       { id: "review", type: "review", zone: "center", order: 2, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
-      { id: "capture", type: "capture", zone: "center", order: 3, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
+      { id: "progress", type: "progress", zone: "center", order: 3, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
+      { id: "capture", type: "capture", zone: "center", order: 4, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
       { id: "plans", type: "plans", zone: "right", order: 0, height: 356, size: "large", centerSpan: 2, pinned: false, hidden: false },
       { id: "browser", type: "browser", zone: "right", order: 1, height: 184, size: "medium", centerSpan: 2, pinned: true, hidden: false },
+      { id: "current-study", type: "current-study", zone: "right", order: 2, height: 270, size: "large", centerSpan: 2, pinned: false, hidden: false },
     ],
   };
 }
@@ -246,7 +253,6 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   const columnResizeRef = useRef<ColumnResizeState>(null);
   const layoutImportRef = useRef<HTMLInputElement | null>(null);
   const [homeData, setHomeData] = useState<HomeData>(() => createDefaultHomeData());
-  const [reviewState, setReviewState] = useState(() => readOutputReviewState(null));
   // 首屏必须与 SSR 使用同一份静态布局；浏览器本地布局在水合完成后再读取。
   const [layout, setLayout] = useState<WorkspaceLayout>(() => cloneLayout(initialLayout));
   const [savedLayouts, setSavedLayouts] = useState<SavedLayout[]>([]);
@@ -260,23 +266,20 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   const [dropTarget, setDropTarget] = useState<DropTarget>(null);
   const [widgetResize, setWidgetResize] = useState<WidgetResizeState>(null);
   const [columnResize, setColumnResize] = useState<ColumnResizeState>(null);
-  const [menuId, setMenuId] = useState<string | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [pendingLayoutId, setPendingLayoutId] = useState<string | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isLearningFolderDialogOpen, setIsLearningFolderDialogOpen] = useState(false);
+  const systemColorScheme = useSystemColorScheme();
   const { desktopBridge } = useHydratedDesktopBridge();
   const { promptFn, confirmFn, renderDialogs } = useNotesDialog();
   const workbench = useNotesWorkbench({ promptFn, confirmFn });
+  const learningSummary = useHomeLearningSummary();
 
   useEffect(() => {
     setHomeData(readHomeData(storage));
-    setReviewState(readOutputReviewState(window.localStorage));
     setMounted(true);
-    const syncReview = () => setReviewState(readOutputReviewState(window.localStorage));
-    window.addEventListener(OUTPUT_REVIEW_STORAGE_EVENT, syncReview);
-    window.addEventListener("storage", syncReview);
-    return () => { window.removeEventListener(OUTPUT_REVIEW_STORAGE_EVENT, syncReview); window.removeEventListener("storage", syncReview); };
   }, [storage]);
   useEffect(() => {
     const nextSavedLayouts = loadSavedLayouts();
@@ -341,8 +344,6 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   }, [onNavigate, openNote]);
 
   const isVaultConfigured = mounted && Boolean(workbench.directoryInfo?.isConfigured);
-  const queue = useMemo(() => getReviewQueue(reviewState, todayKey), [reviewState, todayKey]);
-  const metrics = useMemo(() => getDashboardMetrics(reviewState, todayKey), [reviewState, todayKey]);
   const availableLayouts = useMemo(() => [{ id: initialLayoutId, name: initialLayoutName, state: initialLayout }, ...savedLayouts], [savedLayouts]);
   const activeLayout = useMemo(() => availableLayouts.find((item) => item.id === activeLayoutId) ?? availableLayouts[0], [activeLayoutId, availableLayouts]);
   const isLayoutDirty = useMemo(() => JSON.stringify(layout) !== JSON.stringify(activeLayout.state), [activeLayout.state, layout]);
@@ -352,7 +353,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   const applyLayout = useCallback((id: string) => {
     const next = id === initialLayoutId ? initialLayout : savedLayouts.find((item) => item.id === id)?.state;
     if (!next) return;
-    setLayout(cloneLayout(next)); setActiveLayoutId(id); setMenuId(null); setFocusId(null);
+    setLayout(cloneLayout(next)); setActiveLayoutId(id); setFocusId(null);
     setLayoutNotice(`已切换至 ${id === initialLayoutId ? initialLayoutName : savedLayouts.find((item) => item.id === id)?.name ?? initialLayoutName}`);
   }, [savedLayouts]);
   const requestLayoutSwitch = useCallback((id: string) => {
@@ -432,36 +433,12 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
       const reordered = columnIds.flatMap((column) => orderedWidgets(next, column).map((item, order) => ({ ...item, order })));
       return { ...current, widgets: reordered };
     });
-    setMenuId(null);
   }, [updateLayout]);
-  const togglePin = useCallback((id: string) => { const widget = getWidget(id); if (widget) updateWidget(id, { pinned: !widget.pinned }); setMenuId(null); }, [getWidget, updateWidget]);
-  const toggleHidden = useCallback((id: string) => { const widget = getWidget(id); if (widget) updateWidget(id, { hidden: !widget.hidden }); setMenuId(null); }, [getWidget, updateWidget]);
-  const removeWidget = useCallback((id: string) => {
-    if (systemInstanceIds.has(id)) { toggleHidden(id); return; }
-    updateLayout((current) => ({ ...current, widgets: current.widgets.filter((item) => item.id !== id) })); setMenuId(null);
-  }, [toggleHidden, updateLayout]);
-  const copyWidget = useCallback((id: string) => {
-    const widget = getWidget(id); if (!widget) return;
-    updateLayout((current) => ({ ...current, widgets: [...current.widgets, { ...widget, id: createId(widget.type), pinned: false, order: orderedWidgets(current.widgets, widget.zone).length }] })); setMenuId(null);
-  }, [getWidget, updateLayout]);
   const addWidget = useCallback((type: WidgetType) => {
     const definition = widgetDefinitionByType.get(type)!;
     updateLayout((current) => ({ ...current, widgets: [...current.widgets, { id: createId(type), type, zone: "center", order: orderedWidgets(current.widgets, "center").length, height: definition.defaultHeight, size: "medium", centerSpan: definition.defaultSpan, pinned: false, hidden: false }] }));
     setIsLibraryOpen(false); setEditMode(true); setLayoutNotice(`已添加 ${definition.name}`);
   }, [updateLayout]);
-  const setWidgetSize = useCallback((id: string, size: WidgetSize) => {
-    const widget = getWidget(id); if (!widget) return;
-    const definition = widgetDefinitionByType.get(widget.type)!;
-    const baseHeight = definition.defaultHeight;
-    const heightBySize: Record<WidgetSize, number> = {
-      small: clamp(Math.round(baseHeight * 0.72), 108, 420),
-      medium: clamp(Math.round(Math.max(baseHeight, 144)), 144, 560),
-      large: clamp(Math.round(baseHeight * 1.38), 180, 680),
-      auto: clamp(Math.round(baseHeight), 108, 680),
-    };
-    updateWidget(id, { size, height: heightBySize[size] });
-    setMenuId(null);
-  }, [getWidget, updateWidget]);
   const toggleColumn = useCallback((id: ColumnId) => updateLayout((current) => ({ ...current, columns: { ...current.columns, [id]: { ...current.columns[id], collapsed: !current.columns[id].collapsed } } })), [updateLayout]);
 
   const getDropTarget = useCallback((x: number, y: number): DropTarget => {
@@ -545,16 +522,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
     if (!editMode) return; event.preventDefault(); const state: ColumnResizeState = { divider }; columnResizeRef.current = state; setColumnResize(state);
   }
   function reviewBody() {
-    const total = metrics.overdueCount + metrics.dueTodayCount;
-    const progress = Math.min(100, metrics.totalActionableToday ? (metrics.completedToday / metrics.totalActionableToday) * 100 : 0);
-    return <div className="demo-review">
-      <div className="demo-review__summary">
-        <div className="demo-review__metric"><strong>{total || 0}</strong><span>个知识点</span></div>
-        <div className="demo-review__status"><small>{metrics.completedToday} 已完成</small><small>{total} 待完成</small></div>
-      </div>
-      <div className="demo-review__progress"><div><span>今日进度</span><small>{Math.round(progress)}%</small></div><i><em style={{ width: `${progress}%` }} /></i></div>
-      <div className="demo-review__action"><button onClick={() => onNavigate("/review")}>继续复习 <ArrowUpRightIcon size={14} /></button>{queue[0] ? <p>{queue[0].knowledgePoint.title}</p> : <p>暂时没有待复习条目</p>}</div>
-    </div>;
+    return <HomeReviewCard onNavigate={onNavigate} summary={learningSummary.review} />;
   }
   function captureBody() { return <div className="demo-capture"><p>把短暂的念头，留在它消失之前。</p><button onClick={() => onNavigate("/flash")}>Open Flash <ArrowUpRightIcon size={14} /></button></div>; }
   function workspaceBody() {
@@ -566,9 +534,9 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
       const days = Math.max(0, Math.ceil((exam.getTime() - now.getTime()) / 86_400_000));
       return <div className="workspace-countdown"><div className="workspace-countdown__eyebrow"><small>考研</small><em>{exam.getFullYear()}.12.26</em></div><div className="workspace-countdown__metric"><strong>{days}</strong><span>DAYS</span></div><p>距离初试还有 <b>{days}</b> 天</p></div>;
     }
-    if (widget.type === "current-study") return <div className="workspace-current-study"><small>数学一</small><strong>线性代数</strong><span>矩阵相似对角化</span><em>42 min</em></div>;
-    if (widget.type === "nia") return <div className="workspace-nia"><strong>Nia</strong><p>今天有 {metrics.overdueCount + metrics.dueTodayCount} 个知识点待复习。</p><button onClick={() => onNavigate("/review")}>开始复习</button><button onClick={() => onNavigate("/nia")}>Ask Nia…</button></div>;
-    if (widget.type === "progress") return <div className="workspace-progress"><strong>今日学习</strong>{[["数学", "2h 10m", 74], ["英语", "1h 20m", 52], ["自控", "1h 05m", 42]].map(([name, time, value]) => <div key={String(name)}><span>{name}</span><em>{time}</em><i><b style={{ width: `${value}%` }} /></i></div>)}</div>;
+    if (widget.type === "current-study") return <HomeContinueLearningCard article={learningSummary.continueLearning.article} note={learningSummary.continueLearning.note} onConfigureFolders={() => setIsLearningFolderDialogOpen(true)} onNavigate={onNavigate} video={learningSummary.continueLearning.video} />;
+    if (widget.type === "nia") return <div className="workspace-nia"><strong>Nia</strong><p>今天有 {learningSummary.review.actionableCount} 个知识点待复习。</p><button onClick={() => onNavigate("/review")}>开始复习</button><button onClick={() => onNavigate("/nia")}>Ask Nia…</button></div>;
+    if (widget.type === "progress") return <HomeReadingCard onNavigate={onNavigate} summary={learningSummary.reading} />;
     if (widget.type === "recent-files") return <div className="workspace-recent">{recentNotes.slice(0, 4).length ? recentNotes.slice(0, 4).map((note) => <button key={note.id} onClick={() => openNote(note.id)}><FolderIcon size={13} /> {note.title || "未命名笔记"}</button>) : <><button onClick={() => onNavigate("/notes")}>Markdown · 我的知识库</button><button onClick={() => onNavigate("/reading")}>Reading · 待读内容</button><button onClick={() => void quickNote()}>Knowledge Card · 快速笔记</button></>}</div>;
     if (widget.type === "reading") return <div className="workspace-reading"><strong>Reading Queue</strong><p>把下一段值得慢读的内容放在这里。</p><button onClick={() => onNavigate("/reading")}>打开阅读队列 <ArrowUpRightIcon size={13} /></button></div>;
     if (widget.type === "pomodoro") return <div className="workspace-pomodoro"><small>专注计时</small><strong>25:00</strong><span>下一段专注，慢一点开始。</span><button onClick={() => onNavigate("/focus")}>开始专注</button></div>;
@@ -593,7 +561,6 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   function renderWidget(widget: WidgetInstance) {
     if (widget.hidden) return null;
     const definition = widgetDefinitionByType.get(widget.type)!;
-    const isMenuOpen = menuId === widget.id;
     const stageHeight = widget.type === "life" && widget.zone === "center" ? Math.max(widget.height, 420) : widget.height;
     const stageSpan = widget.type === "life" && widget.zone === "center" ? 6 : widget.zone === "center" ? widget.centerSpan : 6;
     const style = { height: stageHeight, "--widget-span": stageSpan } as CSSProperties;
@@ -602,30 +569,9 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
         <button className="demo-widget__grip" aria-label={`拖动 ${definition.name}`} onPointerDown={(event) => beginDrag(event, widget.id)} type="button"><ActivityIcon size={14} /></button>
         {widget.type === "workspace" ? <h2 className="demo-widget__title">{definition.name}</h2> : <strong>{definition.name}</strong>}
         {widget.pinned ? <BookmarkIcon aria-label="已固定" size={12} /> : null}
-        <div className="demo-widget__actions"><button aria-label="专注查看" onClick={() => setFocusId(widget.id)} type="button"><ArrowUpRightIcon size={13} /></button><button aria-label="更多操作" onClick={() => setMenuId(isMenuOpen ? null : widget.id)} type="button"><SettingsIcon size={15} /></button></div>
+        <div className="demo-widget__actions"><button aria-label="专注查看" onClick={() => setFocusId(widget.id)} type="button"><ArrowUpRightIcon size={13} /></button></div>
       </header>
       <div className="demo-widget__body">{content(widget)}</div>
-      {isMenuOpen ? (
-        <div className="demo-widget__menu" role="menu">
-          <p>调整高度</p>
-          <div className="demo-widget__menu-row">
-            {(["small", "medium", "large", "auto"] as WidgetSize[]).map((size) => (
-              <button aria-pressed={widget.size === size} key={size} onClick={() => setWidgetSize(widget.id, size)} type="button">
-                {size === "small" ? "Small" : size === "medium" ? "Medium" : size === "large" ? "Large" : "Auto"}
-              </button>
-            ))}
-          </div>
-          <p className="demo-widget__menu-hint">宽度将自动填满所在工作区。</p>
-          <div className="demo-widget__menu-divider" />
-          <button onClick={() => togglePin(widget.id)} type="button">{widget.pinned ? "取消固定标记" : "标记固定"}</button>
-          <button onClick={() => copyWidget(widget.id)} type="button">复制组件</button>
-          <button onClick={() => moveWidget(widget.id, "left")} type="button">移动到左侧</button>
-          <button onClick={() => moveWidget(widget.id, "center")} type="button">移动到中间</button>
-          <button onClick={() => moveWidget(widget.id, "right")} type="button">移动到右侧</button>
-          <button onClick={() => toggleHidden(widget.id)} type="button">隐藏</button>
-          <button className="danger" onClick={() => removeWidget(widget.id)} type="button">{systemInstanceIds.has(widget.id) ? "隐藏" : "删除"}</button>
-        </div>
-      ) : null}
       {editMode ? <button aria-label={`调整 ${definition.name} 高度`} className="demo-widget__resize demo-widget__resize--height" onPointerDown={(event) => beginWidgetResize(event, widget.id, "height")} type="button" /> : null}
     </article>;
   }
@@ -639,14 +585,14 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   const gridTemplateColumns = `${layout.columns.left.collapsed ? "48px" : `${layout.columns.left.width}fr`} 8px ${layout.columns.center.collapsed ? "56px" : `${layout.columns.center.width}fr`} 8px ${layout.columns.right.collapsed ? "48px" : `${layout.columns.right.width}fr`}`;
   const focusWidget = focusId ? getWidget(focusId) : null;
 
-  return <main className={`auris-demo-home ${editMode ? "is-editing" : ""} ${drag ? "is-drag-active" : ""} ${containerWidth < 1040 ? "is-compact" : ""}`}>
+  return <main className={`auris-demo-home home-v3 ${editMode ? "is-editing" : ""} ${drag ? "is-drag-active" : ""} ${containerWidth < 1040 ? "is-compact" : ""}`} data-system-color-scheme={systemColorScheme}>
     <section className="auris-demo-home__main">
       <header className="auris-demo-home__utility">
         <div className="auris-demo-home__product"><img src="/auris-home-demo/auris-mark.webp" alt="" /><strong>Auris</strong><span>Workspace</span></div>
         <div className="auris-demo-home__utility-actions">
           <span className={`auris-demo-home__saved ${isLayoutDirty ? "is-dirty" : ""}`} title={isLayoutDirty ? "布局有未保存修改" : "布局已保存"} />
           <div className="home-layout-picker"><button aria-expanded={isLayoutsOpen} aria-haspopup="dialog" aria-label={`布局：${activeLayout.name}${isLayoutDirty ? "，已修改" : ""}`} className="home-layout-picker__trigger" onClick={() => setIsLayoutsOpen((value) => !value)} type="button"><span aria-hidden="true" className="home-layout-picker__glyph"><i /><i /><i /><i /></span><span>{activeLayout.name}{isLayoutDirty ? " *" : ""}</span><span aria-hidden="true" className="home-layout-picker__chevron">⌄</span></button>{isLayoutsOpen ? <section aria-label="布局管理" className="home-layout-menu"><h2>布局</h2><div className="home-layout-menu__items"><button aria-current={activeLayoutId === initialLayoutId ? "true" : undefined} onClick={() => requestLayoutSwitch(initialLayoutId)} type="button"><CheckIcon aria-hidden="true" size={17} /><span>{initialLayoutName}</span></button>{savedLayouts.length ? <p className="home-layout-menu__label">我的布局</p> : null}{savedLayouts.map((item) => <div className="home-layout-menu__layout" key={item.id}><button aria-current={item.id === activeLayoutId ? "true" : undefined} onClick={() => requestLayoutSwitch(item.id)} type="button"><CheckIcon aria-hidden="true" size={17} /><span>{item.name}{item.id === activeLayoutId && isLayoutDirty ? " · 已修改" : ""}</span></button><div><button aria-label={`重命名 ${item.name}`} onClick={() => void renameLayout(item.id)} type="button">重命名</button><button aria-label={`覆盖保存 ${item.name}`} onClick={saveCurrentOver} type="button">覆盖</button><button aria-label={`删除 ${item.name}`} onClick={() => void deleteLayout(item.id)} type="button">删除</button></div></div>)}</div><div className="home-layout-menu__divider" /><button className="home-layout-menu__save" onClick={() => { void saveCurrentAs(); }} type="button"><PlusIcon size={18} /> 保存当前布局…</button><div className="home-layout-menu__file-actions"><button onClick={exportLayouts} type="button">导出</button><button onClick={() => layoutImportRef.current?.click()} type="button">导入</button></div>{layoutNotice ? <p className="home-layout-menu__notice" role="status">{layoutNotice}</p> : null}</section> : null}</div>
-          <button className="auris-demo-home__library-button" onClick={() => setIsLibraryOpen(true)} type="button"><PlusIcon size={15} /> 添加组件</button>
+          <button aria-label="添加" className="auris-demo-home__library-button" onClick={() => setIsLibraryOpen(true)} title="添加" type="button"><PlusIcon aria-hidden="true" size={15} /></button>
           <button aria-label={editMode ? "完成自定义布局" : "自定义布局"} className={editMode ? "is-active" : ""} onClick={() => setEditMode((value) => !value)} title={editMode ? "完成编辑" : "自定义布局"} type="button"><SettingsIcon size={15} /></button>
           <button aria-label="恢复初始布局" onClick={() => void resetLayout()} title="恢复初始布局" type="button"><RotateCcwIcon size={15} /></button>
         </div>
@@ -663,6 +609,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
     {isLibraryOpen ? <aside aria-label="添加组件" className="workspace-library"><header><div><strong>添加组件</strong><span>新组件会自动注册至统一工作区。</span></div><button aria-label="关闭添加组件" onClick={() => setIsLibraryOpen(false)} type="button">×</button></header><div>{(["学习", "效率", "Auris", "信息", "媒体"] as const).map((category) => <section key={category}><h2>{category}</h2>{widgetDefinitions.filter((item) => item.category === category).map((item) => <button key={item.type} onClick={() => addWidget(item.type)} type="button"><span><ActivityIcon size={15} /><strong>{item.name}</strong><small>{item.description}</small></span><PlusIcon size={16} /></button>)}</section>)}</div></aside> : null}
     {pendingLayoutId ? <div className="workspace-layout-confirm" role="dialog" aria-modal="true"><section><strong>当前布局有未保存的更改</strong><p>切换布局不会更改任何任务、笔记或学习数据。</p><div><button onClick={() => setPendingLayoutId(null)} type="button">取消</button><button onClick={() => void resolvePendingSwitch("discard")} type="button">不保存并切换</button><button className="primary" onClick={() => void resolvePendingSwitch("save")} type="button">保存并切换</button></div></section></div> : null}
     <input accept="application/json" hidden onChange={importLayouts} ref={layoutImportRef} type="file" />
+    <LearningNoteFoldersDialog onClose={() => setIsLearningFolderDialogOpen(false)} open={isLearningFolderDialogOpen} />
     {renderDialogs()}
   </main>;
 }

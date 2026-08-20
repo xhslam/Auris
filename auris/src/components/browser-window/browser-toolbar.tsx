@@ -10,7 +10,10 @@ import { BrowserStatusPill } from "@/components/browser-window/browser-status-pi
 
 type BrowserToolbarProps = {
   address: string;
+  addressInputRef?: React.Ref<HTMLInputElement>;
   bookmarked: boolean;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
   crashMode?: "ok" | "auto" | "manual-only";
   lifecycle?: "creating" | "ready" | "hibernated" | "crashed";
   loading: boolean;
@@ -27,7 +30,10 @@ type BrowserToolbarProps = {
 
 export function BrowserToolbar({
   address,
+  addressInputRef,
   bookmarked,
+  canGoBack = false,
+  canGoForward = false,
   crashMode = "ok",
   lifecycle = "ready",
   loading,
@@ -44,10 +50,10 @@ export function BrowserToolbar({
   return (
     <div aria-label="浏览器工具栏" className="browser-toolbar" role="toolbar">
       <div className="browser-toolbar__navigation">
-        <ChromeButton label="后退" onClick={onBack}>
+        <ChromeButton disabled={!canGoBack} label="后退" onClick={onBack}>
           <ArrowRightIcon aria-hidden="true" className="browser-toolbar__back" size={17} />
         </ChromeButton>
-        <ChromeButton label="前进" onClick={onForward}>
+        <ChromeButton disabled={!canGoForward} label="前进" onClick={onForward}>
           <ArrowRightIcon aria-hidden="true" size={17} />
         </ChromeButton>
         {loading ? (
@@ -60,8 +66,16 @@ export function BrowserToolbar({
           </ChromeButton>
         )}
       </div>
-      <BrowserOmnibox value={address} onChange={onAddressChange} onSubmit={onAddressSubmit} />
-      <ChromeButton
+      <div className="browser-toolbar__address">
+        <BrowserOmnibox
+          inputRef={addressInputRef}
+        value={address}
+        onChange={onAddressChange}
+          onSubmit={onAddressSubmit}
+        />
+      </div>
+      <div className="browser-toolbar__actions">
+        <ChromeButton
         label={bookmarked ? "取消收藏当前页面" : "收藏当前页面"}
         onClick={onBookmark}
         pressed={bookmarked}
@@ -69,27 +83,27 @@ export function BrowserToolbar({
         <BookmarkIcon aria-hidden="true" size={17} />
       </ChromeButton>
       <BrowserStatusPill crashMode={crashMode} lifecycle={lifecycle} mode={mode} />
-      {onCreateTab ? (
-        <label className="browser-toolbar__mode">
-          <span className="browser-toolbar__mode-label">New · 新建</span>
-          <select
-            aria-label="新建标签模式"
-            className="browser-toolbar__mode-select"
-            defaultValue=""
-            onChange={(event) => {
-              const next = event.target.value as "Human" | "AiSandbox" | "AiShared" | "";
-              event.target.value = "";
-              if (!next) return;
-              onCreateTab(next);
-            }}
-          >
-            <option disabled value="">Mode · 模式</option>
-            <option value="Human">Human · 人工</option>
-            <option value="AiSandbox">Sandbox · 沙盒</option>
-            <option value="AiShared">Shared · 共用</option>
-          </select>
-        </label>
-      ) : null}
+        {onCreateTab ? (
+          <label className="browser-toolbar__mode">
+            <select
+              aria-label="新建标签模式"
+              className="browser-toolbar__mode-select"
+              defaultValue=""
+              onChange={(event) => {
+                const next = event.target.value as "Human" | "AiSandbox" | "AiShared" | "";
+                event.target.value = "";
+                if (!next) return;
+                onCreateTab(next);
+              }}
+            >
+              <option disabled value="">Mode · 模式</option>
+              <option value="Human">Human · 人工</option>
+              <option value="AiSandbox">Sandbox · 沙盒</option>
+              <option value="AiShared">Shared · 共用</option>
+            </select>
+          </label>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -97,10 +111,12 @@ export function BrowserToolbar({
 function ChromeButton({
   children,
   label,
+  disabled = false,
   onClick,
   pressed,
 }: {
   children: React.ReactNode;
+  disabled?: boolean;
   label: string;
   onClick(): void;
   pressed?: boolean;
@@ -110,6 +126,7 @@ function ChromeButton({
       aria-label={label}
       aria-pressed={pressed}
       className="browser-chrome-button"
+      disabled={disabled}
       onClick={onClick}
       type="button"
     >

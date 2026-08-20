@@ -17,6 +17,8 @@ export type BrowserWindowModel = {
   activeTab: BrowserChromeTab | null;
   address: string;
   bookmarked: boolean;
+  canGoBack: boolean;
+  canGoForward: boolean;
   message: string;
   setAddress(value: string): void;
   status: BrowserWindowStatus;
@@ -58,7 +60,7 @@ export function resolveOmniboxInput(input: string): string | null {
   }
 
   const query = new URLSearchParams({ q: value });
-  return canonicalizeBrowserUrl(`https://www.google.com/search?${query.toString()}`);
+  return canonicalizeBrowserUrl(`https://duckduckgo.com/?${query.toString()}`);
 }
 
 export function useBrowserWindow(host: unknown = globalThis): BrowserWindowModel {
@@ -175,6 +177,8 @@ export function useBrowserWindow(host: unknown = globalThis): BrowserWindowModel
     activeTab,
     address,
     bookmarked,
+    canGoBack: activeTab?.canGoBack ?? false,
+    canGoForward: activeTab?.canGoForward ?? false,
     message,
     setAddress,
     status,

@@ -26,7 +26,7 @@ describe("BrowserOmnibox", () => {
   it("projects hostnames and search text into safe http(s) destinations", () => {
     expect(resolveOmniboxInput("example.com/notes")).toBe("https://example.com/notes");
     expect(resolveOmniboxInput("active recall 方法")).toBe(
-      "https://www.google.com/search?q=active+recall+%E6%96%B9%E6%B3%95",
+      "https://duckduckgo.com/?q=active+recall+%E6%96%B9%E6%B3%95",
     );
     expect(resolveOmniboxInput("javascript:alert(1)")).toBeNull();
     expect(resolveOmniboxInput("   ")).toBeNull();

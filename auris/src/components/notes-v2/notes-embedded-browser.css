@@ -16,10 +16,6 @@
   width: 100%;
 }
 
-.notes-v2__embedded-browser .browser-tab-strip {
-  padding-left: 50px;
-}
-
 .notes-v2__embedded-browser-back {
   align-items: center;
   background: transparent;
@@ -27,14 +23,11 @@
   color: var(--text-tertiary);
   cursor: pointer;
   display: inline-flex;
-  font-size: 18px;
+  font-size: 16px;
   height: 32px;
   justify-content: center;
-  left: 10px;
-  position: absolute;
-  top: 8px;
+  position: static;
   width: 32px;
-  z-index: 4;
 }
 
 .notes-v2__embedded-browser-back:hover,
@@ -51,18 +44,348 @@
 }
 
 @container (max-width: 560px) {
-  .browser-status-pill,
-  .browser-toolbar__mode-label {
+  .notes-v2__embedded-browser .browser-status-pill,
+  .notes-v2__embedded-browser .browser-toolbar__mode-label {
     display: none;
   }
 
-  .browser-toolbar {
+  .notes-v2__embedded-browser .browser-toolbar {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+
+  .notes-v2__embedded-browser .browser-toolbar__actions {
+    gap: 4px;
+  }
+
+  .notes-v2__embedded-browser .browser-toolbar__mode-select {
+    max-width: 96px;
+    padding-inline: 8px;
+  }
+}
+
+/* Web Workspace inherits the active Notes/Auris palette instead of defining a browser theme. */
+.notes-v2__embedded-browser.browser-window-root {
+  --app-bg: var(--notes-bg);
+  --app-surface: var(--notes-pane);
+  --app-ink: var(--notes-ink);
+  --app-text: var(--notes-text);
+  --app-text-soft: color-mix(in srgb, var(--notes-text) 82%, var(--notes-muted));
+  --app-muted: var(--notes-muted);
+  --app-line: var(--notes-line-strong);
+  --app-line-soft: var(--notes-line);
+  --app-fill: color-mix(in srgb, var(--notes-ink) 5%, transparent);
+  --app-fill-strong: color-mix(in srgb, var(--notes-ink) 10%, transparent);
+  --accent-dot: var(--accent, var(--notes-ink));
+  --browser-tabbar-height: 46px;
+  --browser-toolbar-height: 52px;
+  --browser-control-height: 36px;
+  --browser-icon-button-size: 36px;
+  --browser-tab-height: 34px;
+  --browser-header-padding-x: 16px;
+  --browser-header-gap: 8px;
+  --browser-chrome-height: calc(var(--browser-tabbar-height) + var(--browser-toolbar-height));
+  --radius-sm: 6px;
+  --radius-md: 10px;
+}
+
+.notes-v2__embedded-browser .browser-window-shell {
+  background: var(--app-surface);
+  border-bottom-color: var(--app-line);
+  display: grid;
+  grid-template-rows: var(--browser-tabbar-height) var(--browser-toolbar-height);
+  height: var(--browser-chrome-height);
+}
+
+.notes-v2__embedded-browser .browser-tab-strip {
+  align-items: center;
+  gap: 6px;
+  height: var(--browser-tabbar-height);
+  padding: 0 var(--browser-header-padding-x);
+}
+
+.notes-v2__embedded-browser .browser-tab-strip__leading {
+  display: inline-flex;
+  flex: 0 0 auto;
+  -webkit-app-region: no-drag;
+}
+
+  .notes-v2__embedded-browser .browser-tab-strip__list {
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.notes-v2__embedded-browser .browser-tab {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  height: var(--browser-tab-height);
+  max-width: 220px;
+  min-width: 130px;
+}
+
+.notes-v2__embedded-browser .browser-tab[data-active="true"] {
+  background: color-mix(in srgb, var(--app-bg) 76%, var(--app-ink) 4%);
+  border-color: var(--app-line-soft);
+}
+
+.notes-v2__embedded-browser .browser-tab__target {
+  cursor: pointer;
+  font-size: 12px;
+  padding-inline-start: 10px;
+}
+
+.notes-v2__embedded-browser .browser-tab__close {
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  flex: 0 0 24px;
+  height: 24px;
+  line-height: 1;
+  padding: 0;
+  width: 24px;
+}
+
+.notes-v2__embedded-browser .browser-chrome-button {
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  height: var(--browser-icon-button-size);
+  line-height: 1;
+  width: var(--browser-icon-button-size);
+}
+
+.notes-v2__embedded-browser .browser-tab-strip__add,
+.notes-v2__embedded-browser-back {
+  height: 32px;
+  width: 32px;
+}
+
+.notes-v2__embedded-browser .browser-tab-strip__add {
+  margin: 0;
+}
+
+.notes-v2__embedded-browser .browser-toolbar {
+  background: var(--app-bg);
+  border-top-color: var(--app-line-soft);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  height: var(--browser-toolbar-height);
+  padding: 8px var(--browser-header-padding-x);
+}
+
+.notes-v2__embedded-browser .browser-toolbar__navigation,
+.notes-v2__embedded-browser .browser-toolbar__actions {
+  align-items: center;
+  display: flex;
+}
+
+.notes-v2__embedded-browser .browser-toolbar__navigation {
+  gap: 6px;
+}
+
+.notes-v2__embedded-browser .browser-toolbar__address {
+  max-width: 640px;
+  min-width: 0;
+  width: 100%;
+}
+
+.notes-v2__embedded-browser .browser-toolbar__actions {
+  flex: 0 0 auto;
+  gap: var(--browser-header-gap);
+  min-width: 0;
+}
+
+.notes-v2__embedded-browser .browser-omnibox {
+  background: color-mix(in srgb, var(--app-surface) 90%, var(--app-ink) 5%);
+  border-color: var(--app-line);
+  border-radius: var(--radius-md);
+  height: var(--browser-control-height);
+  padding-inline: 10px;
+}
+
+.notes-v2__embedded-browser .browser-omnibox:focus-within {
+  border-color: var(--accent, var(--app-ink));
+  box-shadow: 0 0 0 2px var(--accent-16, var(--app-fill-strong));
+}
+
+.notes-v2__embedded-browser .browser-status-pill,
+.notes-v2__embedded-browser .browser-toolbar__mode,
+.notes-v2__embedded-browser .browser-toolbar__mode-select {
+  box-sizing: border-box;
+  height: var(--browser-control-height);
+  line-height: 1;
+}
+
+.notes-v2__embedded-browser .browser-status-pill {
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.notes-v2__embedded-browser .browser-toolbar__mode {
+  gap: 6px;
+}
+
+.notes-v2__embedded-browser .browser-toolbar__mode-select {
+  background: var(--app-surface);
+  border-color: var(--app-line);
+  border-radius: var(--radius-sm);
+  padding-inline: 12px;
+}
+
+.notes-v2__embedded-browser .browser-window-stage {
+  background: var(--app-bg);
+}
+
+.notes-v2__embedded-browser .browser-window-stage[data-state="empty"],
+.notes-v2__embedded-browser .browser-window-stage[data-state="error"] {
+  pointer-events: auto;
+}
+
+.notes-v2__web-workspace-state {
+  align-items: center;
+  color: var(--app-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 290px;
+  padding: 24px;
+  text-align: center;
+}
+
+.notes-v2__web-workspace-state-mark {
+  align-items: center;
+  background: var(--app-fill);
+  border: 1px solid var(--app-line-soft);
+  border-radius: var(--radius-pill);
+  color: var(--accent, var(--app-ink));
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 650;
+  height: 32px;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  width: 32px;
+}
+
+.notes-v2__web-workspace-state h2,
+.notes-v2__web-workspace-state p {
+  margin: 0;
+}
+
+.notes-v2__web-workspace-state h2 {
+  color: var(--app-ink);
+  font-size: 14px;
+  font-weight: 620;
+  line-height: 1.4;
+}
+
+.notes-v2__web-workspace-state p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.notes-v2__web-workspace-state-action {
+  background: var(--app-fill);
+  border: 1px solid var(--app-line);
+  border-radius: var(--radius-sm);
+  color: var(--app-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 6px 10px;
+}
+
+.notes-v2__web-workspace-state-action:hover {
+  background: var(--app-fill-strong);
+  color: var(--app-ink);
+}
+
+.notes-v2__web-workspace-state-action:focus-visible,
+.notes-v2__embedded-browser .browser-chrome-button:focus-visible,
+.notes-v2__embedded-browser .browser-tab__target:focus-visible,
+.notes-v2__embedded-browser .browser-tab__close:focus-visible {
+  outline: 2px solid var(--accent, var(--app-ink));
+  outline-offset: 2px;
+}
+
+.notes-v2__embedded-browser .browser-chrome-button:disabled {
+  color: var(--app-muted);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@container (max-width: 460px) {
+  .notes-v2__embedded-browser .browser-toolbar {
     gap: 4px;
     padding-inline: 8px;
   }
 
-  .browser-toolbar__mode-select {
-    max-width: 106px;
-    padding-inline: 7px;
+  .notes-v2__embedded-browser .browser-toolbar__mode {
+    display: none;
   }
+
+  .notes-v2__embedded-browser .browser-tab {
+    min-width: 96px;
+  }
+}
+
+/* Note pane tab integration: keep the close affordance inside the same visual surface. */
+.notes-v2__embedded-browser .browser-tab {
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0;
+}
+
+.notes-v2__embedded-browser .browser-tab__content {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  height: 100%;
+  min-width: 0;
+  padding: 0 6px 0 10px;
+  width: 100%;
+}
+
+.notes-v2__embedded-browser .browser-tab__target {
+  min-width: 0;
+  padding: 0;
+}
+
+.notes-v2__embedded-browser .browser-tab__close {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: var(--radius-pill);
+  box-shadow: none !important;
+  color: var(--text-muted);
+  flex: 0 0 24px;
+  height: 24px;
+  margin: 0 !important;
+  opacity: 0.4;
+  padding: 0;
+  width: 24px;
+}
+
+.notes-v2__embedded-browser .browser-tab[data-active="true"] .browser-tab__close {
+  opacity: 0.68;
+}
+
+.notes-v2__embedded-browser .browser-tab:hover .browser-tab__close {
+  opacity: 0.78;
+}
+
+.notes-v2__embedded-browser .browser-tab__close:hover,
+.notes-v2__embedded-browser .browser-tab__close:focus-visible {
+  background: var(--app-fill-strong) !important;
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.notes-v2__embedded-browser .browser-tab__close:active {
+  background: var(--app-fill) !important;
+}
+
+.notes-v2__embedded-browser .browser-tab__close-icon {
+  font-size: 14px;
+  line-height: 1;
 }

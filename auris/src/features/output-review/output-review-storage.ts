@@ -6,10 +6,25 @@ import {
 export const OUTPUT_REVIEW_STORAGE_KEY = "auris.output-review.v1";
 export const OUTPUT_REVIEW_STORAGE_EVENT = "auris:output-review-changed";
 
-export function readOutputReviewState(storage: Storage | null): OutputReviewState {
-  if (!storage) return EMPTY_OUTPUT_REVIEW_STATE;
+export type OutputReviewReadResult =
+  | { status: "ready"; state: OutputReviewState }
+  | { status: "empty"; state: OutputReviewState }
+  | { status: "invalid" | "unavailable"; state: null };
+
+/**
+ * 在保留既有空状态兜底行为的同时，向首页暴露可判别的读取结果。
+ * 缺失键是第一次使用；损坏或不兼容的数据不能伪装成 0 条复习记录。
+ */
+export function readOutputReviewStateResult(storage: Storage | null): OutputReviewReadResult {
+  if (!storage) return { status: "unavailable", state: null };
+
   try {
-    const parsed = JSON.parse(storage.getItem(OUTPUT_REVIEW_STORAGE_KEY) ?? "null") as Partial<OutputReviewState> | null;
+    const raw = storage.getItem(OUTPUT_REVIEW_STORAGE_KEY);
+    if (raw === null) {
+      return { status: "empty", state: EMPTY_OUTPUT_REVIEW_STATE };
+    }
+
+    const parsed = JSON.parse(raw) as Partial<OutputReviewState> | null;
     if (
       !parsed ||
       parsed.version !== 1 ||
@@ -17,12 +32,17 @@ export function readOutputReviewState(storage: Storage | null): OutputReviewStat
       !Array.isArray(parsed.knowledgePoints) ||
       !Array.isArray(parsed.cycles)
     ) {
-      return EMPTY_OUTPUT_REVIEW_STATE;
+      return { status: "invalid", state: null };
     }
-    return parsed as OutputReviewState;
+
+    return { status: "ready", state: parsed as OutputReviewState };
   } catch {
-    return EMPTY_OUTPUT_REVIEW_STATE;
+    return { status: "invalid", state: null };
   }
+}
+
+export function readOutputReviewState(storage: Storage | null): OutputReviewState {
+  return readOutputReviewStateResult(storage).state ?? EMPTY_OUTPUT_REVIEW_STATE;
 }
 
 export function writeOutputReviewState(storage: Storage | null, state: OutputReviewState) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { BrowserApprovalDialog } from "@/components/browser-window/browser-approval-dialog";
 import { BrowserTabStrip } from "@/components/browser-window/browser-tab-strip";
 import { BrowserToolbar } from "@/components/browser-window/browser-toolbar";
@@ -10,7 +10,6 @@ import type { NotesReadingThemeId } from "@/features/notes/workbench/notes-readi
 import "@/app/browser/browser.css";
 import "./notes-embedded-browser.css";
 
-const DEFAULT_BROWSER_URL = "https://duckduckgo.com/";
 const HIDDEN_VIEWPORT = Object.freeze({
   height: 0,
   visible: false,
@@ -37,8 +36,13 @@ export function NotesEmbeddedBrowser({
   const handleClose = onClose ?? onReturnToNotes ?? (() => undefined);
   const model = useBrowserWindow(typeof window === "undefined" ? globalThis : window);
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
   const initialPageRequestedRef = useRef(false);
   const browserWindow = model.window;
+  const activeTab = model.activeTab;
+  const isEmptyWorkspace = !activeTab?.url;
+  const isErrorWorkspace = !isEmptyWorkspace && activeTab.lifecycle === "crashed";
+  const isNativePageVisible = !isEmptyWorkspace && !isErrorWorkspace;
 
   useEffect(() => {
     if (
@@ -51,7 +55,6 @@ export function NotesEmbeddedBrowser({
     const bridge = getBrowserBridge(window);
     void bridge?.createTab({
       automationMode: "Human",
-      url: DEFAULT_BROWSER_URL,
     }).catch(() => {
       initialPageRequestedRef.current = false;
     });
@@ -66,7 +69,7 @@ export function NotesEmbeddedBrowser({
       const bounds = viewport.getBoundingClientRect();
       void bridge.setViewport({
         height: bounds.height,
-        visible: bounds.width > 0 && bounds.height > 0,
+        visible: isNativePageVisible && bounds.width > 0 && bounds.height > 0,
         width: bounds.width,
         x: bounds.x,
         y: bounds.y,
@@ -81,7 +84,7 @@ export function NotesEmbeddedBrowser({
       window.removeEventListener("resize", report);
       void bridge.setViewport(HIDDEN_VIEWPORT).catch(() => undefined);
     };
-  }, []);
+  }, [isNativePageVisible]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -90,12 +93,21 @@ export function NotesEmbeddedBrowser({
     const bounds = viewport.getBoundingClientRect();
     void bridge.setViewport({
       height: bounds.height,
-      visible: bounds.width > 0 && bounds.height > 0,
+      visible: isNativePageVisible && bounds.width > 0 && bounds.height > 0,
       width: bounds.width,
       x: bounds.x,
       y: bounds.y,
     }).catch(() => undefined);
-  }, [layoutVersion]);
+  }, [isNativePageVisible, layoutVersion]);
+
+  const focusAddressInput = useCallback(() => {
+    window.requestAnimationFrame(() => addressInputRef.current?.focus());
+  }, []);
+
+  const createEmptyTab = () => {
+    void model.createTab({ automationMode: "Human" });
+    focusAddressInput();
+  };
 
   const createTabWithMode = (mode: "Human" | "AiSandbox" | "AiShared") => {
     if (mode === "AiShared") {
@@ -109,13 +121,6 @@ export function NotesEmbeddedBrowser({
     void model.createTab({ automationMode: mode });
   };
 
-  const emptyHint = !model.activeTab?.url
-    ? "正在准备浏览器"
-    : model.activeTab.lifecycle === "creating"
-      ? "正在打开页面"
-      : model.activeTab.crashMode !== "ok"
-        ? "页面已崩溃，请刷新后继续"
-        : null;
 
   return (
     <section
@@ -126,17 +131,19 @@ export function NotesEmbeddedBrowser({
     >
       <div className="browser-window-shell" data-chrome={browserWindow ? "ready" : "pending"}>
         <BrowserApprovalDialog host={typeof window === "undefined" ? globalThis : window} />
-        <button
-          aria-label="收起浏览器"
-          className="notes-v2__embedded-browser-back"
-          onClick={handleClose}
-          title="收起浏览器"
-          type="button"
-        >
-          ←
-        </button>
         <BrowserTabStrip
           activeTabId={browserWindow?.activeTabId ?? null}
+          leadingAction={(
+            <button
+              aria-label="收起浏览器"
+              className="notes-v2__embedded-browser-back"
+              onClick={handleClose}
+              title="收起 Web Workspace"
+              type="button"
+            >
+              ←
+            </button>
+          )}
           onActivate={(tabId) => void model.activateTab(tabId)}
           onClose={(tabId) => {
             if ((browserWindow?.tabs.length ?? 0) <= 1) {
@@ -145,18 +152,21 @@ export function NotesEmbeddedBrowser({
             }
             void model.closeTab(tabId);
           }}
-          onCreate={() => void model.createTab({ automationMode: "Human" })}
+          onCreate={createEmptyTab}
           tabs={browserWindow?.tabs ?? []}
         />
         <BrowserToolbar
           address={model.address}
           bookmarked={model.bookmarked}
+          canGoBack={model.canGoBack}
+          canGoForward={model.canGoForward}
           crashMode={model.activeTab?.crashMode ?? "ok"}
           lifecycle={model.activeTab?.lifecycle ?? "ready"}
           loading={model.activeTab?.loading ?? false}
           mode={model.activeTab?.automationMode ?? "Human"}
           onAddressChange={model.setAddress}
           onAddressSubmit={(value) => void model.submitAddress(value)}
+          addressInputRef={addressInputRef}
           onBack={() => void model.goBack()}
           onBookmark={() => void model.toggleBookmark()}
           onCreateTab={createTabWithMode}
@@ -172,16 +182,32 @@ export function NotesEmbeddedBrowser({
         </p>
       </div>
       <div
-        aria-hidden={emptyHint ? undefined : true}
+        aria-hidden={isNativePageVisible || undefined}
         className="browser-window-stage notes-v2__embedded-browser-viewport"
+        data-state={isErrorWorkspace ? "error" : isEmptyWorkspace ? "empty" : "page"}
         data-testid="notes-embedded-browser-viewport"
         ref={viewportRef}
       >
-        {emptyHint ? (
-          <p className="browser-window-stage__hint">
-            Browser · 浏览
-            <strong>{emptyHint}</strong>
-          </p>
+        {isEmptyWorkspace ? (
+          <div className="notes-v2__web-workspace-state" role="status">
+            <span aria-hidden="true" className="notes-v2__web-workspace-state-mark">Web</span>
+            <h2>在这里打开网页</h2>
+            <p>输入网址或搜索你想查找的内容</p>
+          </div>
+        ) : null}
+        {isErrorWorkspace ? (
+          <div className="notes-v2__web-workspace-state" role="alert">
+            <span aria-hidden="true" className="notes-v2__web-workspace-state-mark">Web</span>
+            <h2>无法打开此网页</h2>
+            <p>检查网址或网络连接</p>
+            <button
+              className="notes-v2__web-workspace-state-action"
+              onClick={() => void model.reload()}
+              type="button"
+            >
+              重新加载
+            </button>
+          </div>
         ) : null}
       </div>
     </section>

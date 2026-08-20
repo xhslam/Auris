@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildLearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-review";
 import { buildLearningNoteMarkdown } from "@/features/learning-memory/learning-note-template";
 
 describe("learning-note-template", () => {
@@ -92,6 +93,11 @@ describe("learning-note-template", () => {
   it("includes deterministic asset lineage for future audit and recall", () => {
     const markdown = buildLearningNoteMarkdown({
       createdAt: "2026-01-01T00:00:00.000Z",
+      dependencySnapshot: buildLearningDependencySnapshot({
+        capturedAt: "2026-01-01T00:00:00.000Z",
+        materialText: "Practice rhythm.",
+        sourceNote: { content: "# Rhythm", path: "sources/rhythm.md" },
+      }),
       materialText: "Practice rhythm.",
       recallItems: [],
       sentences: [],
@@ -103,6 +109,12 @@ describe("learning-note-template", () => {
     expect(markdown).toContain("## Asset Lineage");
     expect(markdown).toContain("- Session: session-1");
     expect(markdown).toContain("- Source note: [[sources/rhythm.md]]");
+    expect(markdown).toContain("aurisDependencySnapshot:");
+    expect(markdown).toContain("  status: current");
+    expect(markdown).toContain("  dependencies:");
+    expect(markdown).toContain("## Dependency Review");
+    expect(markdown).toContain("- Status: current");
+    expect(markdown).toContain("- source-note: [[sources/rhythm.md]]");
   });
 
 });

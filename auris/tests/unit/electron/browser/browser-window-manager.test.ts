@@ -98,6 +98,32 @@ describe("browser window manager", () => {
       .toBe("Example documentation");
   });
 
+  it("creates an embedded empty tab without an initial URL", async () => {
+    const fixture = createFixture();
+    const attached = await fixture.manager.attachEmbeddedHost({
+      hostWindow: fixture.mainWindow,
+    });
+    const controller = fixture.manager.getControllerForWebContents(
+      fixture.mainWindow.webContents,
+    );
+    expect(controller).not.toBeNull();
+
+    const tab = await controller.createTab({ automationMode: "Human" });
+
+    expect(tab).toMatchObject({
+      canGoBack: false,
+      canGoForward: false,
+      title: "",
+      url: "",
+    });
+    expect(fixture.surfaceManager.createSurface).toHaveBeenCalledWith(expect.objectContaining({
+      hostWindow: fixture.mainWindow,
+      initialUrl: undefined,
+      tabId: tab.tabId,
+      windowId: attached.windowId,
+    }));
+  });
+
   it("attaches an embedded browser workspace to the trusted main window without owning its lifecycle", async () => {
     const fixture = createFixture();
     const attached = await fixture.manager.attachEmbeddedHost({

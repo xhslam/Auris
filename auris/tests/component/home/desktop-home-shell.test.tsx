@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { DesktopHomeShell } from "@/components/desktop/desktop-home-shell";
 import {
   DEFAULT_CURRENT_AGE,
@@ -42,6 +42,10 @@ function readStoredHomeData() {
 }
 
 describe("DesktopHomeShell (Home v3)", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     window.localStorage.clear();
     pushMock.mockReset();
@@ -70,6 +74,15 @@ describe("DesktopHomeShell (Home v3)", () => {
     expect(screen.getByRole("heading", { name: "记录日历" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "快速笔记" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "快速闪念" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "更多操作" })).not.toBeInTheDocument();
+    expect(document.querySelector(".demo-widget__menu")).not.toBeInTheDocument();
+
+    const addWidgetButton = screen.getByRole("button", { name: "添加" });
+    expect(addWidgetButton).toHaveAttribute("title", "添加");
+    expect(addWidgetButton.textContent).toBe("");
+
+    fireEvent.click(addWidgetButton);
+    expect(screen.getByRole("complementary", { name: "添加组件" })).toBeInTheDocument();
   });
 
   it("persists daily quote edits", () => {

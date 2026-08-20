@@ -6,8 +6,15 @@
 const PROGRESS_KEY = "auris-reading-progress";
 const FAVORITES_KEY = "auris-reading-favorites";
 const DELETED_SOURCES_KEY = "auris-reading-deleted-sources";
+export const READING_PROGRESS_CHANGED_EVENT = "auris:reading-progress-changed";
 
 type ProgressMap = Record<string, number>;
+
+function dispatchProgressChanged() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(READING_PROGRESS_CHANGED_EVENT));
+  }
+}
 
 function safeStorage(): Storage | null {
   if (typeof window === "undefined") {
@@ -49,6 +56,7 @@ export function saveReadingProgressFor(sourceId: string, progress: number): void
   current[sourceId] = clamped;
   try {
     storage.setItem(PROGRESS_KEY, JSON.stringify(current));
+    dispatchProgressChanged();
   } catch {
     // 写入失败静默忽略
   }

@@ -17,6 +17,11 @@ import {
 } from "@/features/reading/reading-text";
 import { getBrowserWordbookStorage } from "@/features/wordbook/local-wordbook-store";
 import { saveReadingProgressFor } from "@/features/reading/reading-library-store";
+import {
+  rememberReadingResume,
+  readReadingResume,
+} from "@/features/home-learning/reading-resume-store";
+import type { ReadingResumePosition } from "@/features/home-learning/home-learning.types";
 import { loadReadingSourceNotes } from "@/features/reading/reading-source-note";
 import { loadReadingPdfBytes } from "@/features/reading/reading-pdf-store";
 import { FloatingWordCard } from "@/components/workspace/floating-word-card";
@@ -112,6 +117,7 @@ export function ReadingWorkbench({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSpeechPaused, setIsSpeechPaused] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
+  const [resumePosition, setResumePosition] = useState<ReadingResumePosition>({ kind: "unknown" });
   const sourceReloadRequestId = useRef(0);
 
   const allSources = useMemo(() => {
@@ -131,6 +137,8 @@ export function ReadingWorkbench({
   const selectedSource =
     allSources.find((source) => source.id === selectedSourceId) ?? allSources[0]!;
   const isPdfSource = selectedSource.format === "pdf";
+  const isUserSource = userSources.some((source) => source.id === selectedSourceId) ||
+    sessionSources.some((source) => source.id === selectedSourceId);
   const isExamSource = Boolean(
     selectedSource.examSections && selectedSource.examSections.length > 0,
   );
@@ -233,6 +241,36 @@ export function ReadingWorkbench({
   useEffect(() => {
     setPdfProgress(selectedSource.progress || 0);
   }, [selectedSource.id, selectedSource.progress]);
+
+  // 只为真实打开的用户来源保存恢复定位，内置示例不会成为首页“最近阅读”。
+  useEffect(() => {
+    if (!isUserSource) {
+      setResumePosition({ kind: "unknown" });
+      return;
+    }
+    const saved = readReadingResume();
+    const position = saved?.sourceId === selectedSource.id
+      ? saved.position
+      : { kind: "unknown" } as ReadingResumePosition;
+    setResumePosition(position);
+    if (position.kind === "paragraph" && selectedSource.paragraphs.some((paragraph) => paragraph.id === position.paragraphId)) {
+      setActiveParagraphId(position.paragraphId);
+    }
+    rememberReadingResume(selectedSource.id, position);
+  }, [isUserSource, selectedSource]);
+
+  useEffect(() => {
+    if (isPdfSource || resumePosition.kind !== "paragraph") return;
+    const frame = window.requestAnimationFrame(() => {
+      paragraphEls.current.get(resumePosition.paragraphId)?.scrollIntoView({ block: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isPdfSource, resumePosition, selectedSource.id]);
+
+  useEffect(() => {
+    if (!isUserSource || isPdfSource || !activeParagraphId) return;
+    rememberReadingResume(selectedSource.id, { kind: "paragraph", paragraphId: activeParagraphId });
+  }, [activeParagraphId, isPdfSource, isUserSource, selectedSource.id]);
 
   useEffect(() => {
     saveReaderSettings(readerSettings);
@@ -421,6 +459,11 @@ export function ReadingWorkbench({
       }
       return next;
     });
+  }
+
+  function handlePdfPageChange(page: number) {
+    if (!isUserSource) return;
+    rememberReadingResume(selectedSource.id, { kind: "pdf", page });
   }
 
   function speak(text: string) {
@@ -686,7 +729,9 @@ export function ReadingWorkbench({
               <section aria-label="PDF reader" className="reading-minimal__content">
                 {selectedSource.pdfBytes ? (
                   <ReadingPdfViewer
+                    initialPage={resumePosition.kind === "pdf" ? resumePosition.page : null}
                     onLookupWord={openWordCardAt}
+                    onPageChange={handlePdfPageChange}
                     onProgressChange={handlePdfProgressChange}
                     pdfBytes={selectedSource.pdfBytes}
                     scale={1.05 * readerSettings.fontScale}

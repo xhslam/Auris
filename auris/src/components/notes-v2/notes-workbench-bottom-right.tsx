@@ -27,6 +27,7 @@ import {
 
 type RightPopover =
   | "backlinks"
+  | "dependency-review"
   | "graph"
   | "history"
   | "library"
@@ -44,11 +45,13 @@ type NotesWorkbenchBottomRightProps = {
   indexRebuildMessage?: string | null;
   isRebuildingIndex?: boolean;
   isTerminalSplitOpen: boolean;
+  learningDependencyNeedsReview?: boolean;
   learningQuery: string;
   learningSnippets: LearningSnippet[];
   noteOpenStrategy?: NoteOpenStrategy | null;
   historyVersions?: NotesHistoryVersion[];
   onDeleteActiveNote?: () => void;
+  onResolveLearningDependencyReview?: () => void;
   onEditorModeChange?: (mode: NotesEditorMode) => void;
   onExportActiveDocumentHtml?: () => void;
   onExportActiveDocumentPdf?: () => void;
@@ -87,8 +90,10 @@ export function NotesWorkbenchBottomRight({
   isRebuildingIndex = false,
   isTerminalSplitOpen,
   historyVersions = [],
+  learningDependencyNeedsReview = false,
   onDeleteActiveNote,
   onEditorModeChange,
+  onResolveLearningDependencyReview,
   onExportActiveDocumentHtml,
   onExportActiveDocumentPdf,
   onExportVault,
@@ -146,6 +151,19 @@ export function NotesWorkbenchBottomRight({
       </span>
       <span className="notes-v2__corner-stat">{metrics.words} 词</span>
       <span className="notes-v2__corner-stat">{metrics.characters} 字符</span>
+      {learningDependencyNeedsReview ? (
+        <button
+          aria-expanded={openPopover === "dependency-review"}
+          aria-label="学习依赖待复核"
+          className="notes-v2__corner-stat"
+          data-attention="true"
+          onClick={() => togglePopover("dependency-review")}
+          title="来源已变化，学习笔记需要复核"
+          type="button"
+        >
+          待复核
+        </button>
+      ) : null}
 
       <button
         aria-expanded={openPopover === "history"}
@@ -289,6 +307,32 @@ export function NotesWorkbenchBottomRight({
               </button>
             ))
           )}
+        </div>
+      </NotesWorkbenchPopover>
+
+      <NotesWorkbenchPopover
+        anchor="bottom-right"
+        labelledBy="notes-v2-dependency-review-popover-title"
+        onClose={closePopover}
+        open={openPopover === "dependency-review"}
+        size="sm"
+      >
+        <p className="notes-v2__popover-title" id="notes-v2-dependency-review-popover-title">
+          学习依赖待复核
+        </p>
+        <p className="notes-v2__empty-copy">
+          这份学习笔记引用的来源已变化。确认内容已检查后，将以当前来源刷新复核基线。
+        </p>
+        <div className="notes-v2__overflow-menu">
+          <button
+            onClick={() => {
+              onResolveLearningDependencyReview?.();
+              closePopover();
+            }}
+            type="button"
+          >
+            确认已复核
+          </button>
         </div>
       </NotesWorkbenchPopover>
 

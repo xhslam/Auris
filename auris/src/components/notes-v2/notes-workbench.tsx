@@ -23,6 +23,8 @@ import { useNotesCommandInfrastructure } from "@/components/notes-v2/use-notes-c
 import { NotesWorkbenchBottomLeft } from "@/components/notes-v2/notes-workbench-bottom-left";
 import { NotesWorkbenchBottomRight } from "@/components/notes-v2/notes-workbench-bottom-right";
 import { getNotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
+import { applyLearningDependencyReviewToDocument } from "@/features/learning-memory/learning-dependency-note-update";
+import { readLearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-sync";
 import {
   DEFAULT_NOTES_READING_THEME,
   NOTES_READING_THEME_EVENT,
@@ -423,6 +425,8 @@ export function NotesWorkbench({
     writeConflictPath: writeConflict?.path ?? null,
   });
   const activeDocumentPath = activeDocument?.path ?? null;
+  const activeLearningDependencyNeedsReview =
+    readLearningDependencySnapshot(activeDocument?.frontmatter)?.status === "needs-review";
   const [historyVersions, setHistoryVersions] = useState<NotesHistoryVersion[]>(
     [],
   );
@@ -446,6 +450,33 @@ export function NotesWorkbench({
       cancelled = true;
     };
   }, [activeDocumentPath, activeDocumentSaveState, directoryInfo?.vaultPath]);
+
+  const handleResolveLearningDependencyReview = useCallback(() => {
+    if (!activeDocument) {
+      return;
+    }
+
+    const nextSource = applyLearningDependencyReviewToDocument(
+      activeDocument,
+      documents,
+      {
+        at: new Date().toISOString(),
+        decision: "reviewed",
+      },
+    );
+    if (nextSource === activeDocument.rawSource) {
+      return;
+    }
+
+    if (onDocumentChange.length >= 2) {
+      (onDocumentChange as (path: string, nextSource: string) => void)(
+        activeDocument.path,
+        nextSource,
+      );
+      return;
+    }
+    (onDocumentChange as (nextSource: string) => void)(nextSource);
+  }, [activeDocument, documents, onDocumentChange]);
 
   const handleRestoreHistoryVersion = useCallback(
     (version: NotesHistoryVersion) => {
@@ -927,6 +958,7 @@ export function NotesWorkbench({
           isRebuildingIndex={isRebuildingIndex}
           isTerminalSplitOpen={isTerminalSplitOpen}
           historyVersions={historyVersions}
+          learningDependencyNeedsReview={activeLearningDependencyNeedsReview}
           learningQuery={learningQuery}
           learningSnippets={learningSnippets}
           noteOpenStrategy={activeOpenStrategy}
@@ -937,6 +969,7 @@ export function NotesWorkbench({
           onExportVault={onExportVault}
           onFormatCjk={onFormatCjk}
           onInsertSnippet={onInsertSnippet}
+          onResolveLearningDependencyReview={handleResolveLearningDependencyReview}
           onEnsureGraphDocuments={onEnsureGraphDocuments}
           onRestoreHistoryVersion={handleRestoreHistoryVersion}
           onLearningQueryChange={onLearningQueryChange}

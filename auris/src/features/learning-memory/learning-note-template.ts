@@ -2,16 +2,48 @@ import type {
   LearningMemoryContext,
   LearningMemoryRecallItem,
 } from "@/features/learning-memory/learning-memory-types";
+import type { LearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-review";
 import type { SavedSentenceRecord } from "@/features/sentencebook/local-sentencebook-store";
 import type { SavedWordRecord } from "@/features/wordbook/local-wordbook-store";
 import { buildLearningAssetLineageSection } from "@/features/learning-memory/learning-asset-lineage";
 
 export type BuildLearningNoteMarkdownInput = LearningMemoryContext & {
   createdAt: string;
+  dependencySnapshot?: LearningDependencySnapshot;
 };
 
 function escapeYamlString(value: string) {
   return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+function buildDependencySnapshotFrontmatter(snapshot?: LearningDependencySnapshot) {
+  if (!snapshot) {
+    return [];
+  }
+
+  const resolution = snapshot.resolution
+    ? [
+      "  resolution:",
+      `    at: \"${escapeYamlString(snapshot.resolution.at)}\"`,
+      `    decision: ${snapshot.resolution.decision}`,
+      snapshot.resolution.reason
+        ? `    reason: \"${escapeYamlString(snapshot.resolution.reason)}\"`
+        : "    reason: null",
+    ]
+    : ["  resolution: null"];
+
+  return [
+    "aurisDependencySnapshot:",
+    `  capturedAt: \"${escapeYamlString(snapshot.capturedAt)}\"`,
+    `  status: ${snapshot.status}`,
+    "  dependencies:",
+    ...snapshot.dependencies.flatMap((dependency) => [
+      `    - kind: ${dependency.kind}`,
+      `      path: ${dependency.path ? `\"${escapeYamlString(dependency.path)}\"` : "null"}`,
+      `      fingerprint: \"${escapeYamlString(dependency.fingerprint)}\"`,
+    ]),
+    ...resolution,
+  ];
 }
 
 function buildFrontmatter(input: BuildLearningNoteMarkdownInput) {
@@ -21,6 +53,7 @@ function buildFrontmatter(input: BuildLearningNoteMarkdownInput) {
     input.sessionId ? `sourceSessionId: "${escapeYamlString(input.sessionId)}"` : "",
     input.sourceNotePath ? `sourceNote: "${escapeYamlString(input.sourceNotePath)}"` : "",
     `createdAt: "${escapeYamlString(input.createdAt)}"`,
+    ...buildDependencySnapshotFrontmatter(input.dependencySnapshot),
     "tags:",
     "  - english",
     "  - shadowing",
@@ -100,6 +133,31 @@ function buildRelatedMemorySection(recallItems: LearningMemoryRecallItem[]) {
   ];
 }
 
+function buildDependencyReviewSection(snapshot?: LearningDependencySnapshot) {
+  if (!snapshot) {
+    return [];
+  }
+
+  const dependencies = snapshot.dependencies.map((dependency) => {
+    if (dependency.kind === "source-note" && dependency.path) {
+      return `- source-note: [[${dependency.path}]]`;
+    }
+    return "- material: current learning material";
+  });
+  const resolution = snapshot.resolution
+    ? [`- Resolution: ${snapshot.resolution.decision}`, ...(snapshot.resolution.reason ? [`- Reason: ${snapshot.resolution.reason}`] : [])]
+    : [];
+
+  return [
+    "## Dependency Review",
+    "",
+    `- Status: ${snapshot.status}`,
+    `- Captured: ${snapshot.capturedAt}`,
+    ...dependencies,
+    ...resolution,
+  ];
+}
+
 function buildSourceSection(input: BuildLearningNoteMarkdownInput) {
   const lines = [
     `# ${input.title}`,
@@ -137,6 +195,7 @@ export function buildLearningNoteMarkdown(
       sentences: input.sentences,
       words: input.words,
     }),
+    buildDependencyReviewSection(input.dependencySnapshot),
     buildRelatedMemorySection(input.recallItems),
     [
       "## Review",

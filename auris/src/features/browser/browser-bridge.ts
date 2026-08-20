@@ -28,6 +28,8 @@ export type BrowserApprovalDescriptor = Readonly<{
 export type BrowserChromeTab = Readonly<{
   active: boolean;
   automationMode: "Human" | "AiSandbox" | "AiShared";
+  canGoBack?: boolean;
+  canGoForward?: boolean;
   crashMode?: "ok" | "auto" | "manual-only";
   crashStreak?: number;
   lifecycle: "creating" | "ready" | "hibernated" | "crashed";
