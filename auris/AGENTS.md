@@ -134,3 +134,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 改动范围为 `src/components/notes-v2/`、`src/components/desktop/`、`src/app/globals.css` 及定向测试；未修改 `src/features/notes/`、`src/platform/notes/`、`src/platform/files/`、认证、Supabase、Electron 主进程或预加载。新增测试覆盖会话位置、侧边栏文件夹事件、Grid/List、搜索、空状态和真实笔记打开；现有 Notes 页面回归测试明确以恢复笔记参数进入编辑器，以保持其原有编辑器测试范围。
 
 验证完成：定向 ESLint 无错误/警告；Notes、工作台、侧边栏与文件夹浏览定向 Vitest 6 个文件、73 项通过；`git diff --check` 通过；`npm run build` 成功，路由表包含 `/notes`；`npm run desktop:dev` 已启动 Electron 开发进程且本地 `GET /notes` 返回 200。全仓 `npm run lint` 仍因未修改的 CJS `require()` 规则问题等 90 项既有错误失败；`npx tsc --noEmit` 仍有 118 项既有错误，筛查确认新增/修改的 Notes 文件不在错误列表（其中已有 `notes-workbench.test.tsx` 的 `DesktopTerminalBridge.resume` 缺失类型错误仍存在）。未提交或推送 Git 改动；根目录已有未跟踪 `markdown/` 与 `research/vmark-upstream/` 未触及。
+
+
+## Engineering trajectory: Notes Folder Browser 第二轮视觉收敛（2026-08-21）
+
+本轮严格限定在 Folder Browser 的视觉层，未改动 Vault、导航状态、Editor、Electron 主进程或预加载。实际 macOS 截图确认第一轮 List 虽已设为透明背景，但浏览器的原生 button appearance 仍将每行绘制成连续的圆角外框，视觉上仍接近横向卡片；这也是“所有文件像被选中”的主要残留来源。
+
+实现集中在 `src/app/globals.css` 与 `notes-folder-browser.tsx`：Folder 标题改为工作区级别尺寸并压缩 Header；Search、Sort 与 View Toggle 统一为相同高度、边框、圆角和低对比 surface；List 行使用 `appearance: none`、透明默认背景、弱底部分隔线和 58px 密度，仅在 hover 使用 token-derived surface，在最后打开的文档回到文件夹后才使用 `--accent-10` 与 2px indicator。Grid 继续保留独立 card 信息密度，但同样仅使用 Notes/accent tokens。因桌面 vault 文件记录未公开 mtime（`DesktopVaultFileRecord` 仅含路径与名称），未扩大平台桥接范围；缺失时间在 UI 中降级为 `—` 而非重复显示“未记录时间”。页面将现有 `activePath` 传给浏览器，从而不新增选择模型也能表达唯一低调的当前文档状态。
+
+新增 `tests/unit/notes/notes-folder-browser-styles.test.ts`，防回归透明默认行、hover/selected token 状态、无固定灰色、Grid/List 密度差与 white/night/solarized 主题令牌；组件测试补充唯一选中状态和缺失 mtime 文案。定向 ESLint 通过；Folder Browser 样式与组件测试 11 项通过；包含页面与 Workbench 的 Notes 回归组 4 个文件、63 项通过；`npm run build` 成功。全仓既有 lint/TypeScript 基线未在本轮改变。已重新打包 macOS 应用并替换 `/Applications/Auris.app`，保留安装前副本于 `/Applications/Auris.app.backup-1.0.1-before-native-appearance`；由于系统未授权辅助访问，最终包启动后无法通过自动化切回 Notes 进行第二次前台截图，但打包前的 List 截图、编译 CSS 与回归测试均已确认修正被纳入安装包。未提交或推送本轮代码。

@@ -97,6 +97,21 @@ describe("NotesFolderBrowser", () => {
     );
   });
 
+  it("marks only the last opened note with a separate, low-key selected state", async () => {
+    renderBrowser({ activePath: "control-system.md" });
+
+    const activeRow = await screen.findByRole("button", {
+      name: "打开笔记 Control System",
+    });
+    const inactiveRow = screen.getByRole("button", {
+      name: "打开笔记 Linear Algebra",
+    });
+
+    expect(activeRow).toHaveAttribute("data-selected", "true");
+    expect(activeRow).toHaveAttribute("aria-current", "page");
+    expect(inactiveRow).toHaveAttribute("data-selected", "false");
+  });
+
   it("filters the current folder by filename and title without invoking global search", async () => {
     renderBrowser();
     await screen.findByText("Control System");
@@ -108,6 +123,17 @@ describe("NotesFolderBrowser", () => {
 
     expect(screen.getByText("Linear Algebra")).toBeInTheDocument();
     expect(screen.queryByText("Control System")).not.toBeInTheDocument();
+  });
+
+  it("uses an em dash rather than repeated missing-time copy when a filesystem timestamp is unavailable", async () => {
+    const documentWithoutTimestamp = { ...documents[0], mtime: null };
+    renderBrowser({ documents: [documentWithoutTimestamp] });
+
+    await screen.findByRole("button", {
+      name: "打开笔记 Control System",
+    });
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.queryByText("未记录时间")).not.toBeInTheDocument();
   });
 
   it("uses a dedicated empty-folder state with a working new-note action", async () => {

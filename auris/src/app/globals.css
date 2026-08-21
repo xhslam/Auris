@@ -18076,10 +18076,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-frame .notes-folder-browser__inner {
   box-sizing: border-box;
-  width: min(100%, 1480px);
+  width: min(100%, 1360px);
   min-height: 100%;
   margin: 0 auto;
-  padding: clamp(32px, 5vw, 76px) clamp(28px, 6vw, 94px) 72px;
+  padding: clamp(34px, 4vw, 48px) clamp(28px, 6vw, 94px) 56px;
   animation: notes-folder-browser-enter 160ms ease-out both;
 }
 
@@ -18090,10 +18090,10 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-frame .notes-folder-browser__header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 28px;
-  padding-bottom: 26px;
+  gap: 20px;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--notes-line);
 }
 
@@ -18106,28 +18106,30 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-folder-browser__content-heading small {
   margin: 0;
   color: var(--notes-muted);
-  font-size: 12px;
-  font-weight: 650;
   letter-spacing: 0.02em;
 }
 
 .desktop-app-frame .notes-folder-browser__eyebrow {
-  margin-bottom: 7px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
 }
 
 .desktop-app-frame .notes-folder-browser__identity h1 {
   margin: 0;
   color: var(--notes-ink);
-  font-size: clamp(31px, 3vw, 44px);
-  font-weight: 650;
-  letter-spacing: -0.04em;
+  font-size: clamp(32px, 2.2vw, 40px) !important;
+  font-weight: 600;
+  letter-spacing: -0.035em;
   line-height: 1.08;
 }
 
 .desktop-app-frame .notes-folder-browser__breadcrumb {
-  margin-top: 9px;
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .desktop-app-frame .notes-folder-browser__tools {
@@ -18136,7 +18138,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 7px;
 }
 
 .desktop-app-frame .notes-folder-browser__tool-button,
@@ -18145,9 +18147,9 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-folder-browser__search {
   min-height: 34px;
   border: 1px solid var(--notes-line);
-  border-radius: 8px;
-  background: var(--notes-surface);
-  color: var(--notes-text);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--notes-surface) 64%, transparent);
+  color: var(--notes-muted);
 }
 
 .desktop-app-frame .notes-folder-browser__tool-button,
@@ -18166,10 +18168,13 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-folder-browser__tool-button:hover,
-.desktop-app-frame .notes-folder-browser__sort:hover,
-.desktop-app-frame .notes-folder-browser__card:hover,
-.desktop-app-frame .notes-folder-browser__row:hover {
-  background: color-mix(in srgb, var(--notes-accent) 74%, var(--notes-surface));
+.desktop-app-frame .notes-folder-browser__sort:hover {
+  background: color-mix(in srgb, var(--notes-surface) 86%, transparent);
+  color: var(--notes-text);
+}
+
+.desktop-app-frame .notes-folder-browser__card:hover {
+  background: color-mix(in srgb, var(--notes-surface) 92%, var(--notes-bg));
 }
 
 .desktop-app-frame .notes-folder-browser__tool-button:focus-visible,
@@ -18200,8 +18205,9 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-folder-browser__search {
-  width: min(260px, 48vw);
+  width: min(210px, 42vw);
   padding-right: 5px;
+  transition: width 150ms ease-out, background-color 140ms ease-out;
 }
 
 .desktop-app-frame .notes-folder-browser__search input {
@@ -18226,8 +18232,8 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-folder-browser__search button:hover {
-  background: var(--notes-accent);
-  color: var(--notes-text);
+  background: var(--accent-10, var(--notes-accent));
+  color: var(--accent, var(--notes-text));
 }
 
 .desktop-app-frame .notes-folder-browser__view-switcher {
@@ -18249,12 +18255,12 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-folder-browser__view-switcher button[data-active="true"] {
-  background: var(--accent-16, var(--notes-accent));
-  color: var(--accent-strong, var(--notes-ink));
+  background: var(--accent-10, var(--notes-accent));
+  color: var(--accent, var(--notes-ink));
 }
 
 .desktop-app-frame .notes-folder-browser__content {
-  padding-top: 30px;
+  padding-top: 22px;
 }
 
 .desktop-app-frame .notes-folder-browser__content-heading {
@@ -18262,10 +18268,15 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 15px;
-  color: var(--notes-ink);
+  margin-bottom: 10px;
+  color: var(--notes-text);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.desktop-app-frame .notes-folder-browser__content-heading small {
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .desktop-app-frame .notes-folder-browser__grid {
@@ -18277,21 +18288,27 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-folder-browser__card {
   display: grid;
   min-width: 0;
-  min-height: 194px;
-  padding: 17px;
+  min-height: 176px;
+  padding: 16px;
   align-content: start;
-  gap: 15px;
+  gap: 13px;
   border: 1px solid var(--notes-line);
-  border-radius: 10px;
-  background: var(--notes-surface);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--notes-surface) 90%, var(--notes-bg));
   color: var(--notes-text);
   text-align: left;
-  transition: background-color 140ms ease-out, border-color 140ms ease-out;
+  transition: background-color 130ms ease-out, border-color 130ms ease-out;
   cursor: pointer;
 }
 
+.desktop-app-frame .notes-folder-browser__card[data-selected="true"] {
+  border-color: var(--accent-28, var(--notes-line-strong));
+  background: var(--accent-10, var(--notes-surface));
+}
+
 .desktop-app-frame .notes-folder-browser__card > svg {
-  color: var(--notes-muted);
+  color: var(--notes-text);
+  opacity: 0.72;
 }
 
 .desktop-app-frame .notes-folder-browser__card-main,
@@ -18306,11 +18323,16 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   overflow: hidden;
   color: var(--notes-ink);
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.012em;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.desktop-app-frame .notes-folder-browser__card[data-selected="true"] strong,
+.desktop-app-frame .notes-folder-browser__row[data-selected="true"] strong {
+  font-weight: 600;
 }
 
 .desktop-app-frame .notes-folder-browser__card-preview {
@@ -18347,27 +18369,53 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-folder-browser__list-heading {
-  min-height: 34px;
+  min-height: 30px;
   color: var(--notes-muted);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.045em;
 }
 
 .desktop-app-frame .notes-folder-browser__row {
+  position: relative;
   width: 100%;
-  min-height: 64px;
-  padding: 9px 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 58px;
+  padding: 7px 8px;
   border: 0;
-  border-top: 1px solid var(--notes-line);
-  background: transparent;
+  border-bottom: 1px solid var(--notes-line);
+  border-radius: 0;
+  background: transparent !important;
   color: var(--notes-muted);
   font: inherit;
   font-size: 13px;
   text-align: left;
-  transition: background-color 140ms ease-out;
+  transition: background-color 130ms ease-out, border-radius 130ms ease-out;
   cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__row:hover {
+  border-bottom-color: transparent;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--notes-surface) 72%, transparent) !important;
+}
+
+.desktop-app-frame .notes-folder-browser__row[data-selected="true"] {
+  border-bottom-color: transparent;
+  border-radius: 7px;
+  background: var(--accent-10, var(--notes-accent)) !important;
+}
+
+.desktop-app-frame .notes-folder-browser__row[data-selected="true"]::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--accent, var(--notes-ink));
+  content: "";
 }
 
 .desktop-app-frame .notes-folder-browser__row-name {
@@ -18379,13 +18427,21 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-frame .notes-folder-browser__row-name > svg {
   flex: 0 0 auto;
+  color: var(--notes-text);
+  opacity: 0.72;
+}
+
+.desktop-app-frame .notes-folder-browser__row > :not(.notes-folder-browser__row-name) {
   color: var(--notes-muted);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .desktop-app-frame .notes-folder-browser__row small {
   overflow: hidden;
   color: var(--notes-muted);
   font-size: 12px;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
