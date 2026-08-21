@@ -169,7 +169,9 @@ export type NotesWorkbenchProps = {
   onRejectPendingMcpEdit?: () => void;
   onReloadWriteConflict?: () => void;
   onRestoreLastDeleted?: () => void;
+  onReturnToFolder?: () => void;
   openTabs: string[];
+  returnFolderName?: string | null;
   recentFiles?: string[];
   rightSidebarCollapsed?: boolean;
   rightSidebarMode?: NotesRightSidebarMode;
@@ -260,7 +262,9 @@ export function NotesWorkbench({
   onRejectPendingMcpEdit,
   onReloadWriteConflict,
   onRestoreLastDeleted,
+  onReturnToFolder,
   openTabs,
+  returnFolderName = null,
   recentFiles = [],
   rightSidebarCollapsed = false,
   rightSidebarMode = "properties",
@@ -820,7 +824,23 @@ export function NotesWorkbench({
       >
         <div className="notes-v2__minimal-workspace">
           <main className="notes-v2__minimal-canvas">
-            <NotesBreadcrumbBar path={activeDocument?.path ?? null} />
+            <div className="notes-v2__editor-navigation">
+              {onReturnToFolder ? (
+                <button
+                  aria-label={`返回 ${returnFolderName ?? "文件夹"}`}
+                  className="notes-v2__return-to-folder"
+                  onClick={onReturnToFolder}
+                  type="button"
+                >
+                  <span aria-hidden="true">←</span>
+                  <span>返回 {returnFolderName ?? "文件夹"}</span>
+                </button>
+              ) : null}
+              <NotesBreadcrumbBar
+                path={activeDocument?.path ?? null}
+                vaultName={directoryInfo?.directoryName}
+              />
+            </div>
             <NotesWorkbenchCenter
               activeDocument={activeDocument}
               activePath={activePath}

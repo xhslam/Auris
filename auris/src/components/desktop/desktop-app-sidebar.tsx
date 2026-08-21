@@ -27,6 +27,7 @@ import {
 } from "@/components/desktop/desktop-shell-fixtures";
 import { DesktopReadingSidebarNav } from "@/components/desktop/desktop-reading-sidebar-nav";
 import { DesktopNotesVaultNav } from "@/components/desktop/desktop-notes-vault-nav";
+import { createNotesRootNavigateEvent } from "@/components/notes-v2/notes-navigation";
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import "@/components/auris-ui/auris-ui.css";
 
@@ -550,10 +551,6 @@ export function DesktopAppSidebar({
     pathname.startsWith("/reading/");
   const showReadingNav = isExpanded && isReadingRoute;
   const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(readNotesVaultOpen);
-  const setNotesVaultOpen = useCallback((isOpen: boolean) => {
-    setIsNotesVaultOpen(isOpen);
-    writeNotesVaultOpen(isOpen);
-  }, []);
   const toggleNotesVaultOpen = useCallback(() => {
     setIsNotesVaultOpen((current) => {
       const next = !current;
@@ -561,6 +558,10 @@ export function DesktopAppSidebar({
       return next;
     });
   }, []);
+  const handleNotesRootNavigate = useCallback(() => {
+    window.dispatchEvent(createNotesRootNavigateEvent());
+    toggleNotesVaultOpen();
+  }, [toggleNotesVaultOpen]);
   const showNotesVaultNav =
     resolvedActiveId === "notes" && (isNotesVaultOpen || isExpanded);
 
@@ -650,8 +651,8 @@ export function DesktopAppSidebar({
         ).map((group) =>
           renderNavGroup(group, resolvedActiveId, onNavigate, {
             notesVaultOpen: showNotesVaultNav,
-            onNotesVaultNavigate: () => setNotesVaultOpen(true),
-            onNotesVaultToggle: toggleNotesVaultOpen,
+            onNotesVaultNavigate: handleNotesRootNavigate,
+            onNotesVaultToggle: handleNotesRootNavigate,
             sidebarExpanded: isExpanded,
             replaceReadingWithTree: showReadingNav && group === "primary",
           }),

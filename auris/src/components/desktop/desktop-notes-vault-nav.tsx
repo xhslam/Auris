@@ -1,5 +1,8 @@
 "use client";
 
+import {
+  createNotesFolderNavigateEvent,
+} from "@/components/notes-v2/notes-navigation";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useWorkspaceRail } from "@/features/notes/workspace/use-workspace-rail";
 
@@ -22,6 +25,19 @@ export function DesktopNotesVaultNav({
     return null;
   }
 
+  const handleOpenFolder = (entry: (typeof rail.entries)[number]) => {
+    if (!entry.instance.rootPath) return;
+
+    window.dispatchEvent(
+      createNotesFolderNavigateEvent({
+        id: entry.instance.workspaceInstanceId,
+        name: entry.displayName,
+        path: entry.instance.rootPath,
+      }),
+    );
+    void rail.switchTo(entry.instance.workspaceInstanceId);
+  };
+
   return (
     <div
       aria-label="笔记库"
@@ -40,9 +56,7 @@ export function DesktopNotesVaultNav({
             data-unavailable={entry.available ? "false" : "true"}
             disabled={rail.isSwitching || !entry.available}
             key={entry.instance.workspaceInstanceId}
-            onClick={() =>
-              void rail.switchTo(entry.instance.workspaceInstanceId)
-            }
+            onClick={() => handleOpenFolder(entry)}
             title={
               entry.available
                 ? entry.displayName

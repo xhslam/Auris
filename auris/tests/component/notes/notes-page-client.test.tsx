@@ -247,7 +247,7 @@ describe("NotesPageClient", () => {
     vi.useRealTimers();
   });
 
-  it("starts on the welcome page and enters the workbench after choosing a folder", async () => {
+  it("starts on the welcome page and enters the selected folder browser", async () => {
     render(<NotesPageClient />);
 
     await act(async () => {
@@ -263,7 +263,8 @@ describe("NotesPageClient", () => {
       await vi.runAllTimersAsync();
     });
 
-    expect(screen.getByTestId("notes-workbench")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "English Vault" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "打开笔记 Rhythm Drill" })).toBeInTheDocument();
   });
 
   it("loads every vault note before presenting the relationship graph", async () => {
@@ -278,11 +279,6 @@ describe("NotesPageClient", () => {
     await act(async () => {
       await vi.runAllTimersAsync();
     });
-    fireEvent.click(screen.getByRole("button", { name: /打开文件夹/ }));
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
-
     const readFile = vi.mocked(desktopBridge.vault.readFile);
     expect(readFile).toHaveBeenCalledWith("notes/rhythm-drill.md");
     expect(readFile).not.toHaveBeenCalledWith("notes/z-target.md");
@@ -332,7 +328,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -377,7 +373,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -427,7 +423,7 @@ describe("NotesPageClient", () => {
     );
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -485,7 +481,7 @@ describe("NotesPageClient", () => {
     );
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -547,7 +543,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -596,7 +592,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -638,7 +634,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -784,7 +780,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -848,7 +844,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -896,7 +892,7 @@ describe("NotesPageClient", () => {
     ]);
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
 
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();
@@ -922,7 +918,7 @@ describe("NotesPageClient", () => {
   });
 
   it("does not flash the legacy empty editor while the desktop vault is loading", () => {
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     expect(screen.getByText(NOTES_UI_COPY.banners.loading)).toBeInTheDocument();
     expect(
@@ -932,7 +928,7 @@ describe("NotesPageClient", () => {
   });
 
   it("deletes the active note from the vault when the user confirms", async () => {
-    render(<NotesPageClient />);
+    render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
 
     await act(async () => {
       await vi.runAllTimersAsync();

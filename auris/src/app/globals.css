@@ -18063,3 +18063,491 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   gap: 8px;
   color: #8b2d2d;
 }
+
+/* Notes root / folder browser: a quiet, token-driven desktop surface. */
+.desktop-app-frame .notes-v2--folder-browser {
+  display: block;
+  min-height: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--notes-bg);
+  color: var(--notes-text);
+}
+
+.desktop-app-frame .notes-folder-browser__inner {
+  box-sizing: border-box;
+  width: min(100%, 1480px);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: clamp(32px, 5vw, 76px) clamp(28px, 6vw, 94px) 72px;
+  animation: notes-folder-browser-enter 160ms ease-out both;
+}
+
+@keyframes notes-folder-browser-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.desktop-app-frame .notes-folder-browser__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--notes-line);
+}
+
+.desktop-app-frame .notes-folder-browser__identity {
+  min-width: 0;
+}
+
+.desktop-app-frame .notes-folder-browser__eyebrow,
+.desktop-app-frame .notes-folder-browser__breadcrumb,
+.desktop-app-frame .notes-folder-browser__content-heading small {
+  margin: 0;
+  color: var(--notes-muted);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.desktop-app-frame .notes-folder-browser__eyebrow {
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.desktop-app-frame .notes-folder-browser__identity h1 {
+  margin: 0;
+  color: var(--notes-ink);
+  font-size: clamp(31px, 3vw, 44px);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.desktop-app-frame .notes-folder-browser__breadcrumb {
+  margin-top: 9px;
+}
+
+.desktop-app-frame .notes-folder-browser__tools {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.desktop-app-frame .notes-folder-browser__tool-button,
+.desktop-app-frame .notes-folder-browser__sort,
+.desktop-app-frame .notes-folder-browser__view-switcher,
+.desktop-app-frame .notes-folder-browser__search {
+  min-height: 34px;
+  border: 1px solid var(--notes-line);
+  border-radius: 8px;
+  background: var(--notes-surface);
+  color: var(--notes-text);
+}
+
+.desktop-app-frame .notes-folder-browser__tool-button,
+.desktop-app-frame .notes-folder-browser__sort,
+.desktop-app-frame .notes-folder-browser__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.desktop-app-frame .notes-folder-browser__tool-button {
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__tool-button:hover,
+.desktop-app-frame .notes-folder-browser__sort:hover,
+.desktop-app-frame .notes-folder-browser__card:hover,
+.desktop-app-frame .notes-folder-browser__row:hover {
+  background: color-mix(in srgb, var(--notes-accent) 74%, var(--notes-surface));
+}
+
+.desktop-app-frame .notes-folder-browser__tool-button:focus-visible,
+.desktop-app-frame .notes-folder-browser__search:focus-within,
+.desktop-app-frame .notes-folder-browser__sort:focus-within,
+.desktop-app-frame .notes-folder-browser__view-switcher button:focus-visible,
+.desktop-app-frame .notes-folder-browser__card:focus-visible,
+.desktop-app-frame .notes-folder-browser__row:focus-visible,
+.desktop-app-frame .notes-folder-browser__new-note:focus-visible,
+.desktop-app-frame .notes-v2__return-to-folder:focus-visible {
+  outline: 2px solid var(--accent, var(--notes-ink));
+  outline-offset: 2px;
+}
+
+.desktop-app-frame .notes-folder-browser__sort select,
+.desktop-app-frame .notes-folder-browser__search input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+.desktop-app-frame .notes-folder-browser__sort select {
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__search {
+  width: min(260px, 48vw);
+  padding-right: 5px;
+}
+
+.desktop-app-frame .notes-folder-browser__search input {
+  flex: 1;
+}
+
+.desktop-app-frame .notes-folder-browser__search input::placeholder {
+  color: var(--notes-muted);
+}
+
+.desktop-app-frame .notes-folder-browser__search button {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--notes-muted);
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__search button:hover {
+  background: var(--notes-accent);
+  color: var(--notes-text);
+}
+
+.desktop-app-frame .notes-folder-browser__view-switcher {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 32px);
+  padding: 2px;
+  overflow: hidden;
+}
+
+.desktop-app-frame .notes-folder-browser__view-switcher button {
+  display: grid;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--notes-muted);
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__view-switcher button[data-active="true"] {
+  background: var(--accent-16, var(--notes-accent));
+  color: var(--accent-strong, var(--notes-ink));
+}
+
+.desktop-app-frame .notes-folder-browser__content {
+  padding-top: 30px;
+}
+
+.desktop-app-frame .notes-folder-browser__content-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+  color: var(--notes-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.desktop-app-frame .notes-folder-browser__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.desktop-app-frame .notes-folder-browser__card {
+  display: grid;
+  min-width: 0;
+  min-height: 194px;
+  padding: 17px;
+  align-content: start;
+  gap: 15px;
+  border: 1px solid var(--notes-line);
+  border-radius: 10px;
+  background: var(--notes-surface);
+  color: var(--notes-text);
+  text-align: left;
+  transition: background-color 140ms ease-out, border-color 140ms ease-out;
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__card > svg {
+  color: var(--notes-muted);
+}
+
+.desktop-app-frame .notes-folder-browser__card-main,
+.desktop-app-frame .notes-folder-browser__row-name > span {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.desktop-app-frame .notes-folder-browser__card strong,
+.desktop-app-frame .notes-folder-browser__row strong {
+  overflow: hidden;
+  color: var(--notes-ink);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.012em;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-app-frame .notes-folder-browser__card-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--notes-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.desktop-app-frame .notes-folder-browser__card-meta {
+  display: flex;
+  align-self: end;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--notes-line);
+  color: var(--notes-muted);
+  font-size: 12px;
+}
+
+.desktop-app-frame .notes-folder-browser__list {
+  border-top: 1px solid var(--notes-line);
+}
+
+.desktop-app-frame .notes-folder-browser__list-heading,
+.desktop-app-frame .notes-folder-browser__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 0.24fr) minmax(78px, 0.16fr);
+  align-items: center;
+  column-gap: 20px;
+}
+
+.desktop-app-frame .notes-folder-browser__list-heading {
+  min-height: 34px;
+  color: var(--notes-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.desktop-app-frame .notes-folder-browser__row {
+  width: 100%;
+  min-height: 64px;
+  padding: 9px 8px;
+  border: 0;
+  border-top: 1px solid var(--notes-line);
+  background: transparent;
+  color: var(--notes-muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  transition: background-color 140ms ease-out;
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__row-name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.desktop-app-frame .notes-folder-browser__row-name > svg {
+  flex: 0 0 auto;
+  color: var(--notes-muted);
+}
+
+.desktop-app-frame .notes-folder-browser__row small {
+  overflow: hidden;
+  color: var(--notes-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-app-frame .notes-folder-browser__state {
+  display: grid;
+  justify-items: start;
+  max-width: 450px;
+  padding: clamp(74px, 15vh, 158px) 0 0;
+  gap: 10px;
+  color: var(--notes-muted);
+}
+
+.desktop-app-frame .notes-folder-browser__state > svg {
+  color: var(--notes-muted);
+}
+
+.desktop-app-frame .notes-folder-browser__state h2 {
+  margin: 7px 0 0;
+  color: var(--notes-ink);
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.desktop-app-frame .notes-folder-browser__state p {
+  max-width: 390px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.desktop-app-frame .notes-folder-browser__new-note {
+  display: inline-flex;
+  min-height: 34px;
+  margin-top: 8px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--accent-28, var(--notes-line-strong));
+  border-radius: 8px;
+  background: var(--accent-16, var(--notes-accent));
+  color: var(--accent-strong, var(--notes-ink));
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-folder-browser__new-note:hover {
+  background: var(--accent-28, var(--notes-accent));
+}
+
+.desktop-app-frame .notes-folder-browser__skeleton {
+  display: grid;
+  padding-top: 30px;
+  gap: 11px;
+}
+
+.desktop-app-frame .notes-folder-browser__skeleton-line,
+.desktop-app-frame .notes-folder-browser__skeleton-card {
+  display: block;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--notes-line-strong) 70%, var(--notes-surface));
+  animation: notes-folder-browser-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.desktop-app-frame .notes-folder-browser__skeleton-line--wide { width: min(230px, 44%); height: 15px; }
+.desktop-app-frame .notes-folder-browser__skeleton-line--short { width: min(124px, 28%); height: 11px; }
+
+.desktop-app-frame .notes-folder-browser__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.desktop-app-frame .notes-folder-browser__skeleton-card { min-height: 194px; }
+
+@keyframes notes-folder-browser-pulse {
+  from { opacity: 0.42; }
+  to { opacity: 0.82; }
+}
+
+.desktop-app-frame .notes-folder-browser__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.desktop-app-frame .notes-v2__editor-navigation {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px 0;
+}
+
+.desktop-app-frame .notes-v2__editor-navigation .notes-v2__breadcrumb {
+  margin: 0;
+}
+
+.desktop-app-frame .notes-v2__return-to-folder {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 8px;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--notes-line);
+  border-radius: 7px;
+  background: var(--notes-surface);
+  color: var(--notes-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.desktop-app-frame .notes-v2__return-to-folder:hover {
+  background: var(--notes-accent);
+}
+
+@media (max-width: 860px) {
+  .desktop-app-frame .notes-folder-browser__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .desktop-app-frame .notes-folder-browser__tools {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 620px) {
+  .desktop-app-frame .notes-folder-browser__inner {
+    padding: 28px 20px 48px;
+  }
+
+  .desktop-app-frame .notes-folder-browser__search {
+    width: min(100%, 260px);
+  }
+
+  .desktop-app-frame .notes-folder-browser__list-heading,
+  .desktop-app-frame .notes-folder-browser__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .desktop-app-frame .notes-folder-browser__list-heading > :last-child,
+  .desktop-app-frame .notes-folder-browser__row > :last-child {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-app-frame .notes-folder-browser__inner,
+  .desktop-app-frame .notes-folder-browser__skeleton-line,
+  .desktop-app-frame .notes-folder-browser__skeleton-card {
+    animation: none;
+  }
+}

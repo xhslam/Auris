@@ -123,3 +123,14 @@ npm run build         # Next.js 构建（桌面端生产依赖）
 Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `autoUpdater` 已是主进程单例），而采用等价且适合 Electron 的发布边界：新增 `electron/release-tag-preparer.cjs`，桌面开发模式的「创建标签并发布」只会在当前源码已与 `origin/<branch>` 一致时创建并推送 `vX.Y.Z` 标签；远端同名标签或不指向当前提交的本地标签均失败，推送中断后再次点击只重试标签推送。新增 `.github/workflows/release-desktop.yml`：标签先经 package 版本和最新正式 Release 的严格比较，创建草稿；macOS Apple Silicon 与 Windows x64 分别构建并上传资产，检查 `latest-mac.yml`/`latest.yml`；最终作业确认安装包与更新元数据均已在草稿中，再发布正式 Release。`electron-builder.yml` 改为草稿发布类型，且取消硬编码 ad-hoc macOS identity；工作流要求 `MAC_CSC_LINK` 与 `MAC_CSC_KEY_PASSWORD`，以允许 Developer ID 签名的 macOS App 就地更新。
 
 桌面入口保持受限 IPC：renderer 不可指定路径、命令、分支或发布凭据；已打包 App 拒绝源码/标签操作。`desktop:release` 现为安全的标签准备命令；`desktop:release:build:mac` 与 `desktop:release:build:win` 由 GitHub Actions 调用，旧的直接本机构建发布入口保留为 `desktop:release:local`。新增发布标签服务与工作流契约测试。验证：发布相关 10 项测试通过；此前更新与 UI 回归合计 54 项通过；桌面 IPC 合约 106 invokes / 108 handlers 通过；定向 ESLint 与 `git diff --check` 通过。没有创建标签、触发工作流或发布 GitHub Release；这些动作需由用户点击按钮或执行 `npm run desktop:release` 后进行。
+
+
+## Engineering trajectory: Notes 根入口与文件夹浏览分层（2026-08-21）
+
+本次按“Notes Landing 是入口、Folder Browser 是空间、Editor 是内容”的边界重构桌面端 Notes 导航。`/notes` 不再以单一 `hasEnteredWorkbench` 布尔值在欢迎页与编辑器之间切换；新增 `notes-navigation.ts`，用 `landing | folder | note` 位置模型以及 sessionStorage 中的 Landing 已访问和最后活跃文件夹信息表达会话级规则。首次进入 Notes 保留 Welcome / Landing；同一会话后再次点击 Notes 一级入口会恢复最后文件夹；没有可恢复文件夹时仍回到 Landing。
+
+新增 `notes-folder-browser.tsx` 和其 token-only 全局样式：文件夹点击会由 `desktop-notes-vault-nav.tsx` 发出直接文件夹导航事件，并与既有 vault root 切换并行，页面先渲染 Folder Browser skeleton，因此不会闪出 Landing。浏览页以现有 vault/文档数据提供 Grid（默认）与 List、session 内视图保存、文件名/路径搜索、最近修改/最早修改/名称排序、独立空文件夹状态、受控错误状态和新建笔记入口；预览重用现有全量文档加载能力，不改 vault 核心或编辑器。`desktop-app-sidebar.tsx` 还为 Notes 一级入口增加根导航事件；`notes-workbench.tsx` 仅增轻量“返回文件夹”入口，继续使用既有编辑器与文档打开逻辑。
+
+改动范围为 `src/components/notes-v2/`、`src/components/desktop/`、`src/app/globals.css` 及定向测试；未修改 `src/features/notes/`、`src/platform/notes/`、`src/platform/files/`、认证、Supabase、Electron 主进程或预加载。新增测试覆盖会话位置、侧边栏文件夹事件、Grid/List、搜索、空状态和真实笔记打开；现有 Notes 页面回归测试明确以恢复笔记参数进入编辑器，以保持其原有编辑器测试范围。
+
+验证完成：定向 ESLint 无错误/警告；Notes、工作台、侧边栏与文件夹浏览定向 Vitest 6 个文件、73 项通过；`git diff --check` 通过；`npm run build` 成功，路由表包含 `/notes`；`npm run desktop:dev` 已启动 Electron 开发进程且本地 `GET /notes` 返回 200。全仓 `npm run lint` 仍因未修改的 CJS `require()` 规则问题等 90 项既有错误失败；`npx tsc --noEmit` 仍有 118 项既有错误，筛查确认新增/修改的 Notes 文件不在错误列表（其中已有 `notes-workbench.test.tsx` 的 `DesktopTerminalBridge.resume` 缺失类型错误仍存在）。未提交或推送 Git 改动；根目录已有未跟踪 `markdown/` 与 `research/vmark-upstream/` 未触及。
