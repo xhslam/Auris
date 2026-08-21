@@ -18301,11 +18301,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   cursor: pointer;
 }
 
-.desktop-app-frame .notes-folder-browser__card[data-selected="true"] {
-  border-color: var(--accent-28, var(--notes-line-strong));
-  background: var(--accent-10, var(--notes-surface));
-}
-
 .desktop-app-frame .notes-folder-browser__card > svg {
   color: var(--notes-text);
   opacity: 0.72;
@@ -18328,11 +18323,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.desktop-app-frame .notes-folder-browser__card[data-selected="true"] strong,
-.desktop-app-frame .notes-folder-browser__row[data-selected="true"] strong {
-  font-weight: 600;
 }
 
 .desktop-app-frame .notes-folder-browser__card-preview {
@@ -18399,23 +18389,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   border-bottom-color: transparent;
   border-radius: 7px;
   background: color-mix(in srgb, var(--notes-surface) 72%, transparent) !important;
-}
-
-.desktop-app-frame .notes-folder-browser__row[data-selected="true"] {
-  border-bottom-color: transparent;
-  border-radius: 7px;
-  background: var(--accent-10, var(--notes-accent)) !important;
-}
-
-.desktop-app-frame .notes-folder-browser__row[data-selected="true"]::before {
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 0;
-  width: 2px;
-  border-radius: 999px;
-  background: var(--accent, var(--notes-ink));
-  content: "";
 }
 
 .desktop-app-frame .notes-folder-browser__row-name {
@@ -18632,11 +18605,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   background: color-mix(in srgb, var(--notes-surface) 96%, var(--notes-bg)) !important;
 }
 
-.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card[data-selected="true"] {
-  border-color: color-mix(in srgb, var(--accent) 20%, var(--notes-line)) !important;
-  background: color-mix(in srgb, var(--accent) 6%, var(--notes-bg)) !important;
-}
-
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row {
   border-color: var(--notes-line) !important;
   background: transparent !important;
@@ -18645,11 +18613,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row:hover {
   border-bottom-color: transparent !important;
   background: color-mix(in srgb, var(--notes-surface) 72%, transparent) !important;
-}
-
-.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row[data-selected="true"] {
-  border-bottom-color: transparent !important;
-  background: color-mix(in srgb, var(--accent) 6%, var(--notes-bg)) !important;
 }
 
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__tool-button,

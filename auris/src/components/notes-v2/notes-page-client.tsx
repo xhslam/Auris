@@ -159,7 +159,6 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
           />
         ) : location.type === "folder" ? (
           <NotesFolderBrowser
-            activePath={workbench.activePath}
             documents={workbench.graphDocuments}
             errorMessage={workbench.errorMessage}
             folder={location.folder}

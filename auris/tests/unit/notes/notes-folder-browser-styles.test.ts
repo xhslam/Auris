@@ -11,7 +11,7 @@ function rule(css: string, selector: string, containing = "") {
 }
 
 describe("Notes folder browser styles", () => {
-  it("keeps default list rows transparent and reserves surfaces for hover or selection", () => {
+  it("keeps default list rows transparent and reserves surfaces for hover only", () => {
     const css = readFileSync(globalsCssPath, "utf-8");
     const rowRule = rule(
       css,
@@ -22,16 +22,11 @@ describe("Notes folder browser styles", () => {
       css,
       "\\.desktop-app-frame \\.notes-folder-browser__row:hover",
     );
-    const selectedRule = rule(
-      css,
-      "\\.desktop-app-frame \\.notes-folder-browser__row\\[data-selected=\\\"true\\\"\\]",
-    );
-
     expect(rowRule).toContain("background: transparent !important");
     expect(rowRule).toContain("border-radius: 0");
     expect(rowRule).toContain("border-bottom: 1px solid var(--notes-line)");
     expect(hoverRule).toContain("color-mix(in srgb, var(--notes-surface)");
-    expect(selectedRule).toContain("var(--accent-10, var(--notes-accent))");
+    expect(css).not.toMatch(/notes-folder-browser__(?:card|row)\[data-selected/);
   });
 
   it("uses Notes and accent tokens rather than fixed gray values for browser surfaces", () => {
@@ -42,7 +37,7 @@ describe("Notes folder browser styles", () => {
     expect(browserStyles).not.toMatch(/(?:bg-)?(?:gray|zinc|neutral|slate)-/iu);
     expect(browserStyles).toContain("var(--notes-surface)");
     expect(browserStyles).toContain("var(--notes-line)");
-    expect(browserStyles).toContain("var(--accent-10");
+    expect(browserStyles).toContain("var(--notes-bg)");
   });
 
   it("isolates file cards and rows from the generic Notes button fill", () => {
@@ -57,18 +52,12 @@ describe("Notes folder browser styles", () => {
       "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__row",
       "background:",
     );
-    const selectedRule = rule(
-      css,
-      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__row\\[data-selected=\\\"true\\\"\\]",
-      "background:",
-    );
-
     expect(cardRule).toContain("background: color-mix(in srgb, var(--notes-surface) 90%, var(--notes-bg)) !important");
     expect(css).toMatch(
       /notes-v2--folder-browser\s+\.notes-folder-browser__card,[\s\S]*?appearance: none !important/,
     );
     expect(rowRule).toContain("background: transparent !important");
-    expect(selectedRule).toContain("color-mix(in srgb, var(--accent) 6%, var(--notes-bg)) !important");
+    expect(css).not.toMatch(/notes-folder-browser__(?:card|row)\[data-selected/);
   });
 
   it.each(["white", "night", "solarized"])(

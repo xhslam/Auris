@@ -22,7 +22,6 @@ type NotesBrowserView = "grid" | "list";
 type NotesBrowserSort = "modified-desc" | "modified-asc" | "name-asc" | "name-desc";
 
 type NotesFolderBrowserProps = {
-  activePath?: string | null;
   documents: NoteDocument[];
   errorMessage?: string | null;
   folder: NotesFolderLocation;
@@ -140,19 +139,15 @@ function NotesFolderSkeleton() {
 
 function NotesDocumentCard({
   document,
-  isSelected,
   onOpen,
 }: {
   document: NoteDocument;
-  isSelected: boolean;
   onOpen: () => void;
 }) {
   return (
     <button
       aria-label={`打开笔记 ${titleFor(document)}`}
-      aria-current={isSelected ? "page" : undefined}
       className="notes-folder-browser__card"
-      data-selected={isSelected ? "true" : "false"}
       onClick={onOpen}
       type="button"
     >
@@ -171,19 +166,15 @@ function NotesDocumentCard({
 
 function NotesDocumentRow({
   document,
-  isSelected,
   onOpen,
 }: {
   document: NoteDocument;
-  isSelected: boolean;
   onOpen: () => void;
 }) {
   return (
     <button
       aria-label={`打开笔记 ${titleFor(document)}`}
-      aria-current={isSelected ? "page" : undefined}
       className="notes-folder-browser__row"
-      data-selected={isSelected ? "true" : "false"}
       onClick={onOpen}
       type="button"
     >
@@ -201,7 +192,6 @@ function NotesDocumentRow({
 }
 
 export function NotesFolderBrowser({
-  activePath = null,
   documents,
   errorMessage = null,
   folder,
@@ -359,7 +349,6 @@ export function NotesFolderBrowser({
                 {filteredDocuments.map((document) => (
                   <NotesDocumentCard
                     document={document}
-                    isSelected={document.path === activePath}
                     key={document.path}
                     onOpen={() => onOpenNote(document.path)}
                   />
@@ -373,7 +362,6 @@ export function NotesFolderBrowser({
                 {filteredDocuments.map((document) => (
                   <NotesDocumentRow
                     document={document}
-                    isSelected={document.path === activePath}
                     key={document.path}
                     onOpen={() => onOpenNote(document.path)}
                   />

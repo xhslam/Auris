@@ -152,3 +152,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 修复在 `globals.css` 末尾新增只作用于 `.notes-v2--folder-browser` 的高优先级颜色隔离层。它对 card、row、工具栏、搜索关闭按钮、视图切换与空状态按钮统一重置 native appearance、阴影和 transform；Grid 默认用 `color-mix(var(--notes-surface), var(--notes-bg))`，List 默认强制透明；hover 仅用 Notes surface；selected 改为以 accent 6% 混合背景和最多 20% 的弱边框，彻底避免 `--notes-accent` 作为整块填充。该层不修改通用 Editor/Vault 样式或全局主题令牌。
 
 扩展样式回归测试，验证专属 card/row 覆盖携带 `!important`、默认透明行、6% accent selected 与原生外观重置；Folder Browser 组件和样式测试共 12 项通过，定向 ESLint 与 `git diff --check` 通过，`npm run build` 成功。重新组装、打包并替换了 `/Applications/Auris.app`；从已安装包的编译 CSS 中提取并确认 Grid 默认、List 默认和 selected 规则均已进入产物。旧安装包保留在 `/Applications/Auris.app.backup-1.0.1-before-color-isolation`。未提交或推送本次补丁。
+
+
+## Engineering trajectory: Folder Browser 点击后持久选中状态移除（2026-08-21）
+
+用户在浅色主题截图中进一步确认：点击任一文件并从编辑器返回后，该文件会获得整行/整卡 Accent 综合色，即使 6% 混合也不符合浏览器应有的中性文件清单。原因不是新的全局样式泄漏，而是上一轮为表达“最后打开文件”而显式从 `NotesPageClient` 传入 `workbench.activePath`，组件随之添加 `data-selected` 与 `aria-current`，CSS 通过该属性持久绘制选择表面。
+
+修复选择完全去除 Folder Browser 的持久选择概念，而非继续微调色值：`notes-folder-browser.tsx` 不再接受 `activePath`，DocumentCard/DocumentRow 不再写入 `data-selected` 或 `aria-current`，页面也不再传递活动路径；对应的 card/row selected、粗字体和 2px 指示条 CSS 一并移除。点击仍会正常进入编辑器；返回文件夹后，文件列表全部回到相同的中性默认态，只有鼠标 hover 保留瞬态 surface 反馈。
+
+组件回归测试改为断言点击后不存在任何 `data-selected` 或 `aria-current`；样式测试改为禁止 Folder Browser card/row 定义 data-selected 规则。Folder Browser、Notes 页面与样式测试 3 个文件共 30 项通过；定向 ESLint、`git diff --check` 与 `npm run build` 通过。最新安装包已替换 `/Applications/Auris.app`，安装前副本保留于 `/Applications/Auris.app.backup-1.0.1-before-no-selection`；从安装包编译 CSS 验证不存在 card/row 的持久选中选择器。未提交或推送本轮补丁。

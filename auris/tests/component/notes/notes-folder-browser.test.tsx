@@ -97,19 +97,18 @@ describe("NotesFolderBrowser", () => {
     );
   });
 
-  it("marks only the last opened note with a separate, low-key selected state", async () => {
-    renderBrowser({ activePath: "control-system.md" });
+  it("does not retain a file selection surface after opening a note", async () => {
+    const { onOpenNote } = renderBrowser();
 
-    const activeRow = await screen.findByRole("button", {
+    const openedFile = await screen.findByRole("button", {
       name: "打开笔记 Control System",
     });
-    const inactiveRow = screen.getByRole("button", {
-      name: "打开笔记 Linear Algebra",
-    });
+    fireEvent.click(openedFile);
 
-    expect(activeRow).toHaveAttribute("data-selected", "true");
-    expect(activeRow).toHaveAttribute("aria-current", "page");
-    expect(inactiveRow).toHaveAttribute("data-selected", "false");
+    expect(onOpenNote).toHaveBeenCalledWith("control-system.md");
+    expect(openedFile).not.toHaveAttribute("data-selected");
+    expect(openedFile).not.toHaveAttribute("aria-current");
+    expect(document.querySelectorAll("[data-selected]")).toHaveLength(0);
   });
 
   it("filters the current folder by filename and title without invoking global search", async () => {
