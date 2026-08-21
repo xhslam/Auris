@@ -139,6 +139,14 @@ const {
 } = require("./vault/vault-roots.cjs");
 const { walkVaultFiles } = require("./vault/vault-file-walker.cjs");
 const { createAppUpdater } = require("./updates/app-updater.cjs");
+const {
+  RepositorySyncError,
+  createRepositorySync,
+} = require("./development-repository-sync.cjs");
+const {
+  ReleaseTagPreparationError,
+  createReleaseTagPreparer,
+} = require("./release-tag-preparer.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 
@@ -1795,6 +1803,8 @@ function getUpgradeUrl() {
 
 let appUpdater = null;
 let appUpdaterStallWatchdog = null;
+let repositorySyncInFlight = null;
+let desktopReleaseInFlight = null;
 let closeAttemptTracker = null;
 let cachedInstallCapability = null;
 
@@ -3969,6 +3979,66 @@ function registerDesktopHandlers() {
     return updater.openReleasesPage();
   });
 
+  ipcMain.handle("shadowing:updates:publish-release", async (event) => {
+    requireTrustedDesktopEvent(event);
+    // 已安装版本不应携带发布凭据，也不是一个可控的源码工作副本。
+    if (app.isPackaged) {
+      return {
+        error: "桌面版发布仅在从本地源码工作副本启动的开发模式可用。",
+        ok: false,
+      };
+    }
+    if (!desktopReleaseInFlight) {
+      const preparer = createReleaseTagPreparer({
+        appDirectory: PROJECT_ROOT,
+        log: (message, detail) =>
+          writeStartupLog(`${message}${detail === undefined ? "" : ` ${JSON.stringify(detail)}`}`),
+      });
+      desktopReleaseInFlight = preparer.prepare().finally(() => {
+        desktopReleaseInFlight = null;
+      });
+    }
+    try {
+      const result = await desktopReleaseInFlight;
+      return { ok: true, ...result };
+    } catch (cause) {
+      const error = cause instanceof ReleaseTagPreparationError
+        ? cause.message
+        : "发布标签准备失败，请检查 Git 状态和网络后重试。";
+      writeStartupLog(`desktop-release:error ${error}`);
+      return { error, ok: false };
+    }
+  });
+  ipcMain.handle("shadowing:updates:sync-repository", async (event) => {
+    requireTrustedDesktopEvent(event);
+    // 已安装版本的目录不是开发工作树，不能也不应执行 Git 操作。
+    if (app.isPackaged) {
+      return {
+        error: "源码仓库同步仅在从本地工作副本启动的开发模式可用。",
+        ok: false,
+      };
+    }
+    if (!repositorySyncInFlight) {
+      const repositorySync = createRepositorySync({
+        appDirectory: PROJECT_ROOT,
+        log: (message, detail) =>
+          writeStartupLog(`${message}${detail === undefined ? "" : ` ${JSON.stringify(detail)}`}`),
+      });
+      repositorySyncInFlight = repositorySync.syncAndPush().finally(() => {
+        repositorySyncInFlight = null;
+      });
+    }
+    try {
+      const result = await repositorySyncInFlight;
+      return { ok: true, ...result };
+    } catch (cause) {
+      const error = cause instanceof RepositorySyncError
+        ? cause.message
+        : "仓库同步失败，请检查 Git 状态、网络和提交身份后重试。";
+      writeStartupLog(`repository-sync:error ${error}`);
+      return { error, ok: false };
+    }
+  });
   ipcMain.handle("shadowing:updates:reset", async (event) => {
     requireTrustedDesktopEvent(event);
     const updater = await getAppUpdater();

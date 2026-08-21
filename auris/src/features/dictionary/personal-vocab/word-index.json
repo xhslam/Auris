@@ -1,5 +1,5 @@
 {
-  "entryCount": 4659,
+  "entryCount": 4751,
   "entries": [
     {
       "definition": "重要的；基本的",
@@ -2117,7 +2117,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Executive"
     },
     {
@@ -6209,8 +6211,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Commission"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Commission",
+      "contextualMeaning": "委员会（commission on ... 关于……的委员会）",
+      "example": "the American Academy formed the Commission on the Humanities and Social Sciences. (2014 T4)"
     },
     {
       "definition": "冲突；矛盾",
@@ -10683,8 +10687,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Address"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Address",
+      "contextualMeaning": "处理、应对（address the true nature of the crisis 应对危机的真正本质）",
+      "example": "the report's failure to address the true nature of the crisis facing liberal education. (2014 T4)"
     },
     {
       "definition": "黏附；遵守",
@@ -11126,10 +11132,10 @@
           ]
         }
       ],
-      "source": {
-        "note": "考研英语一 2011 Text 1"
-      },
-      "word": "Advocate"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Advocate",
+      "contextualMeaning": "主张、提倡（advocate greater study of ... 主张加强学习）",
+      "example": "The report also advocates greater study of foreign languages, international affairs. (2014 T4)"
     },
     {
       "definition": "审美的；美学的；审美风格",
@@ -11226,8 +11232,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Affirm"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Affirm",
+      "contextualMeaning": "肯定、确认（affirm the importance of ... 肯定……的重要性）",
+      "example": "the just-released report deserves praise for affirming the importance of the humanities and social sciences. (2014 T4)"
     },
     {
       "definition": "加重；使恶化；激怒",
@@ -11769,7 +11777,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Alter"
     },
     {
@@ -13734,7 +13744,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Assert"
     },
     {
@@ -16037,8 +16049,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Coherent"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Coherent",
+      "contextualMeaning": "连贯的、一致的（coherent curricula 连贯的课程）",
+      "example": "the crafting of coherent curricula that improve students' ability to solve problems and communicate effectively. (2014 T4)"
     },
     {
       "definition": "硬币,创造新词",
@@ -16380,7 +16394,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Comply"
     },
     {
@@ -20066,8 +20082,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Deprive"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Deprive",
+      "contextualMeaning": "剥夺、使丧失（be deprived of its benefits 失去其益处）",
+      "example": "graduates ... are thus deprived of its benefits. (2014 T4)"
     },
     {
       "definition": "来源于,获得,推导出",
@@ -20950,7 +20968,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Discard"
     },
     {
@@ -22569,7 +22589,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Entitle"
     },
     {
@@ -22667,7 +22689,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Erase"
     },
     {
@@ -23455,7 +23479,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Explicit"
     },
     {
@@ -27782,10 +27808,10 @@
           ]
         }
       ],
-      "source": {
-        "note": "考研英语一 2013 Text 3"
-      },
-      "word": "Identify"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Identify",
+      "contextualMeaning": "识别、提出（identify actions 提出行动方案）",
+      "example": "asking that it identify actions that could be taken by 'federal, state and local governments ...' (2014 T4)"
     },
     {
       "definition": "闲置的,无所事事的,空转",
@@ -27931,8 +27957,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Illuminate"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Illuminate",
+      "contextualMeaning": "照亮、阐明（ask ... to illuminate 要求……阐明）",
+      "example": "the challenge that Congress asked it to illuminate. (2014 T4)"
     },
     {
       "definition": "说明,举例说明,配图",
@@ -30537,8 +30565,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Maintain"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Maintain",
+      "contextualMeaning": "维持、保持（maintain national excellence 保持国家卓越）",
+      "example": "to 'maintain national excellence in humanities and social scientific scholarship and education.' (2014 T4)"
     },
     {
       "definition": "故障,功能失常",
@@ -30978,9 +31008,18 @@
           "lines": [
             "\"Merit is value that deserves recognition on its own grounds. Merit 是凭自身理由值得被承认的价值。\""
           ]
+        },
+        {
+          "title": "2015 Text 3 语境",
+          "lines": [
+            "Vaux says that Science's idea to pass some papers to statisticians \"has some merit, but a weakness is that...\" Vaux 认为《科学》将部分论文交给统计学家的想法有一定优点，但弱点在于...",
+            "Has some merit = 有可取之处/有一定价值。Merit 在此为可数名词，表示「优点/价值」。Merit but weakness 的并列结构是 balanced criticism（平衡批评）的典型标志。"
+          ]
         }
       ],
-      "source": {},
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
       "word": "Merit"
     },
     {
@@ -32016,7 +32055,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Necessity"
     },
     {
@@ -36548,7 +36589,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：默认语境下，privilege 可作名词，指某人或某群体因身份、地位、制度而拥有的特殊权利；也可表示“荣幸”。",
-            "展开解析：默认语境下，privilege 可作名词，指某人或某群体因身份、地位、制度而拥有的特殊权利；也可表示“荣幸”；作动词表示给予特权。词性线索是noun/verb。例如：Education should be a right, not a privilege. 这里 privilege 指只有部分人能享有的特殊好处。"
+            "展开解析：默认语境下，privilege 可作名词，指某人或某群体因身份、地位、制度而拥有的特殊权利；也可表示“荣幸”；作动词表示给予特权。词性线索是noun/verb。例如：Education should be a right, not a privilege. 这里 privilege 指只有部分人能享有的特殊好处。",
+            "考研英语一 2015 Text 1：...their very history embodies outdated and indefensible privileges and inequalities.（特权；文中指君主历史体现的过时且不可辩护的特权）"
           ]
         },
         {
@@ -36581,7 +36623,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Privilege"
     },
     {
@@ -37126,8 +37170,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Prominent"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Prominent",
+      "contextualMeaning": "杰出的、显著的（prominent figures 杰出人士）",
+      "example": "as well as prominent figures from diplomacy, filmmaking, music and journalism. (2014 T4)"
     },
     {
       "definition": "迅速的,提示,促使",
@@ -46643,7 +46689,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：默认语境下，strive 表示为了困难目标持续努力，常带正式和长期奋斗感。",
-            "展开解析：默认语境下，strive 表示为了困难目标持续努力，常带正式和长期奋斗感。词性线索是verb。例如：We strive to improve the quality of our service. 这里是持续努力改进服务质量。"
+            "展开解析：默认语境下，strive 表示为了困难目标持续努力，常带正式和长期奋斗感。词性线索是verb。例如：We strive to improve the quality of our service. 这里是持续努力改进服务质量。",
+            "考研英语一 2015 Text 1：The most successful monarchies strive to abandon or hide their old aristocratic ways.（努力、力争；文中指最成功的君主制努力抛弃旧贵族做派）"
           ]
         },
         {
@@ -46676,7 +46723,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Strive"
     },
     {
@@ -47872,7 +47921,8 @@
           "lines": [
             "折叠摘要：默认语境下，survive 表示经历危险、困难或时间流逝后仍然活着、存在或运转。",
             "展开解析：默认语境下，survive 表示经历危险、困难或时间流逝后仍然活着、存在或运转。词性线索是verb。例如：Only a few plants survived the frost. 这里是只有少数植物熬过霜冻仍存活。",
-            "考研英语一 2013 Text 3：an excellent chance of surviving for tens ... of thousands of years（存活/存续数万年）。"
+            "考研英语一 2013 Text 3：an excellent chance of surviving for tens ... of thousands of years（存活/存续数万年）。",
+            "考研英语一 2015 Text 1：He has failed to understand that monarchies have largely survived because they provide a service.（存续、幸存；文中多次出现，指欧洲王室/君主制能够存续下来的原因）"
           ]
         },
         {
@@ -47906,7 +47956,7 @@
         }
       ],
       "source": {
-        "note": "考研英语一 2013 Text 3"
+        "note": "考研英语一 2013 Text 3；2015 Text 1"
       },
       "word": "Survive"
     },
@@ -52697,7 +52747,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Urgent"
     },
     {
@@ -53244,7 +53296,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Verify"
     },
     {
@@ -53594,7 +53648,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Violate"
     },
     {
@@ -53644,7 +53700,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Virtual"
     },
     {
@@ -54355,7 +54413,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Warrant"
     },
     {
@@ -62932,7 +62992,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：默认语境是景观、建筑、表现或事物极其壮观、华美、令人赞叹。词性线索是adjective。",
-            "展开解析：默认语境是景观、建筑、表现或事物极其壮观、华美、令人赞叹。词性线索是adjective。例如 The mountains looked magnificent at sunrise 表示山景在日出时达到令人震撼的美。"
+            "展开解析：默认语境是景观、建筑、表现或事物极其壮观、华美、令人赞叹。词性线索是adjective。例如 The mountains looked magnificent at sunrise 表示山景在日出时达到令人震撼的美。",
+            "考研英语一 2015 Text 1：...all European royals, with their magnificent uniforms and majestic lifestyles?（华丽的、宏伟的；文中形容欧洲王室华丽的制服，带轻微反讽）"
           ]
         },
         {
@@ -62965,7 +63026,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Magnificent"
     },
     {
@@ -82176,8 +82239,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Curriculum"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Curriculum",
+      "contextualMeaning": "课程（复数 curricula；coherent curricula 连贯课程）",
+      "example": "the crafting of coherent curricula that improve students' ability to solve problems. (2014 T4)"
     },
     {
       "definition": "学期",
@@ -83743,8 +83808,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Scholarship"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Scholarship",
+      "contextualMeaning": "学术、学问（humanities and social scientific scholarship 人文与社科学术）",
+      "example": "maintain national excellence in humanities and social scientific scholarship and education. (2014 T4)"
     },
     {
       "definition": "奖励",
@@ -96322,8 +96389,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Propaganda"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Propaganda",
+      "contextualMeaning": "宣传（贬义；left-liberal propaganda 左翼自由派宣传）",
+      "example": "as vehicles for publicizing 'progressive,' or left-liberal propaganda. (2014 T4)"
     },
     {
       "definition": "出版；发表；公开",
@@ -108987,7 +109056,8 @@
           "lines": [
             "折叠摘要：在潮流语境里，popularity 作 noun，指某人、物、风格或观点“受欢迎、流行”的程度。",
             "展开解析：在潮流语境里，popularity 作 noun，指某人、物、风格或观点“受欢迎、流行”的程度。例句: The popularity of sneakers has grown. 它强调被大众接受或喜爱。",
-            "新语境（考研英语一 2010 Text 3）：popularity 是考研阅读和写作中描述'走红、流行'的高频词。展开解析：the sudden and unexpected popularity of certain looks, brands, or neighborhoods popularity 是考研阅读和写作中描述'走红、流行'的高频词。本文用 sudden and unexpected popularity 强调流行的爆发性与不可预测性，是社会流行（social epidemic）的典型特征。 来源：考研英语一 2010 Text 3。"
+            "新语境（考研英语一 2010 Text 3）：popularity 是考研阅读和写作中描述'走红、流行'的高频词。展开解析：the sudden and unexpected popularity of certain looks, brands, or neighborhoods popularity 是考研阅读和写作中描述'走红、流行'的高频词。本文用 sudden and unexpected popularity 强调流行的爆发性与不可预测性，是社会流行（social epidemic）的典型特征。 来源：考研英语一 2010 Text 3。",
+            "考研英语一 2015 Text 1：...the popularity of the republican left in the recent Euro-elections have forced him to eat his words and stand down.（受欢迎程度、人气；文中指共和派左翼在欧洲选举中获得高人气，也指君主作为国家元首持续受欢迎）"
           ]
         },
         {
@@ -109021,7 +109091,7 @@
         }
       ],
       "source": {
-        "note": "考研英语一 2010 Text 3"
+        "note": "考研英语一 2010 Text 3；2015 Text 1"
       },
       "word": "Popularity"
     },
@@ -113092,7 +113162,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Provision"
     },
     {
@@ -125433,7 +125505,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：无具体句子时, helicopter 作 noun, 指靠顶部旋翼产生升力、能够垂直起降和悬停的飞行器。",
-            "展开解析：无具体句子时, helicopter 作 noun, 指靠顶部旋翼产生升力、能够垂直起降和悬停的飞行器。例句: A rescue helicopter landed on the roof. 它和固定翼飞机不同, 不需要长跑道。"
+            "展开解析：无具体句子时, helicopter 作 noun, 指靠顶部旋翼产生升力、能够垂直起降和悬停的飞行器。例句: A rescue helicopter landed on the roof. 它和固定翼飞机不同, 不需要长跑道。",
+            "考研英语一 2015 Text 1：Princes and princesses have day-jobs and ride bicycles, not horses (or helicopters).（直升机；文中与骑马并列，代表王室旧有的奢华做派）"
           ]
         },
         {
@@ -125467,7 +125540,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Helicopter"
     },
     {
@@ -126571,8 +126646,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Vehicle"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Vehicle",
+      "contextualMeaning": "工具、手段（vehicles for publicizing ... 宣传……的工具）",
+      "example": "the use of the humanities and social sciences as vehicles for publicizing 'progressive' propaganda. (2014 T4)"
     },
     {
       "definition": "汽车；自动的",
@@ -130028,10 +130105,10 @@
           ]
         }
       ],
-      "source": {
-        "note": "考研英语一 2014 Text 2"
-      },
-      "word": "Conservative"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Conservative",
+      "contextualMeaning": "保守的、保守主义的（conservative ideas 保守主义思想）",
+      "example": "portraying conservative or classical liberal ideas as falling outside the boundaries. (2014 T4)"
     },
     {
       "definition": "政治的",
@@ -130433,7 +130510,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Administration"
     },
     {
@@ -131641,9 +131720,18 @@
           "lines": [
             "\"A flag makes belonging visible from a distance. Flag 是让归属在远处也看得见的符号。\""
           ]
+        },
+        {
+          "title": "2015 Text 3 语境",
+          "lines": [
+            "Manuscripts will be flagged up for additional scrutiny by the journal's internal editors. 稿件将由该刊内部编辑标记出来接受进一步审查。",
+            "Flagged up = marked（被标出/被标记）。Flag 作动词时意为「标记以引起注意」，flagged up 为其短语形式，语义相当于 mark for attention。"
+          ]
         }
       ],
-      "source": {},
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
       "word": "Flag"
     },
     {
@@ -137010,10 +137098,10 @@
           ]
         }
       ],
-      "source": {
-        "note": "考研英语一 2011 Text 1"
-      },
-      "word": "Crisis"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Crisis",
+      "contextualMeaning": "危机（facing a crisis 面临危机）",
+      "example": "the true nature of the crisis facing liberal education. (2014 T4)"
     },
     {
       "definition": "通货膨胀",
@@ -141714,7 +141802,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Reject"
     },
     {
@@ -144068,7 +144158,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Explosion"
     },
     {
@@ -146076,7 +146168,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Intrude"
     },
     {
@@ -149619,7 +149713,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Reckless"
     },
     {
@@ -149668,8 +149764,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Boundary"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Boundary",
+      "contextualMeaning": "边界、界限（boundaries of routine investigation 常规研究的边界）",
+      "example": "as falling outside the boundaries of routine, and sometimes legitimate, intellectual investigation. (2014 T4)"
     },
     {
       "definition": "缰绳；控制",
@@ -168302,7 +168400,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "考研英语一 2015 Text 2"
+      },
       "word": "Lame"
     },
     {
@@ -172736,7 +172836,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "2013 Text 4"
+      },
       "word": "Robust"
     },
     {
@@ -182640,8 +182742,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Expansion"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Expansion",
+      "contextualMeaning": "扩张、扩大（the expansion of ... ……的扩大）",
+      "example": "the expansion of study abroad programs. (2014 T4)"
     },
     {
       "definition": "处于危险中；有风险",
@@ -183978,7 +184082,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：默认语境里，kingdom 作 noun，指由国王或女王统治的国家，也可指某个领域，生物分类中还指“界”。",
-            "展开解析：默认语境里，kingdom 作 noun，指由国王或女王统治的国家，也可指某个领域，生物分类中还指“界”。例句：Fungi belong to their own kingdom. 这里 kingdom 是生物分类层级。"
+            "展开解析：默认语境里，kingdom 作 noun，指由国王或女王统治的国家，也可指某个领域，生物分类中还指“界”。例句：Fungi belong to their own kingdom. 这里 kingdom 是生物分类层级。",
+            "考研英语一 2015 Text 1：Europe is the most monarch-infested region in the world, with 10 kingdoms.（王国；文中指欧洲仍有 10 个王国（不算梵蒂冈和安道尔））"
           ]
         },
         {
@@ -184011,7 +184116,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Kingdom"
     },
     {
@@ -190181,7 +190288,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：Lifestyle 在本条完整句子中展示“生活方式”这一含义，需要结合上下文理解其具体作用。",
-            "展开解析：文中：\"...marking a lifestyle transition from 'basic sufficiency' to 'quality living.'\""
+            "展开解析：文中：\"...marking a lifestyle transition from 'basic sufficiency' to 'quality living.'\"",
+            "考研英语一 2015 Text 1：...who has both an expensive taste of lifestyle and a pretty hierarchical view of the world.（生活方式；文中指欧洲王室奢华的生活方式，也指查尔斯昂贵的生活方式品味）"
           ]
         },
         {
@@ -190213,7 +190321,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Lifestyle"
     },
     {
@@ -196363,7 +196473,8 @@
           "title": "当前语境",
           "lines": [
             "折叠摘要：Embody 在这里对应句中的具体用法：在本句中，embodies 是第三人称单数动词，词性线索是动词。",
-            "展开解析：Embody 在这里对应句中的具体用法：在 \"the sport itself embodies the spirit of teamwork\" 中，embodies 是第三人称单数动词，词性线索是动词，表示龙舟运动用可见行动具体呈现团队精神。"
+            "展开解析：Embody 在这里对应句中的具体用法：在 \"the sport itself embodies the spirit of teamwork\" 中，embodies 是第三人称单数动词，词性线索是动词，表示龙舟运动用可见行动具体呈现团队精神。",
+            "考研英语一 2015 Text 1：...monarchs can rise above 'mere' politics and 'embody' a spirit of national unity.（体现、使具体化；文中指君主超越政治、体现国家团结精神，也指历史体现特权与不平等）"
           ]
         },
         {
@@ -196395,7 +196506,9 @@
           ]
         }
       ],
-      "source": {},
+      "source": {
+        "note": "；2015 Text 1"
+      },
       "word": "Embody"
     },
     {
@@ -202805,8 +202918,10 @@
           ]
         }
       ],
-      "source": {},
-      "word": "Enthusiasm"
+      "source": "考研英语一 2014 Text 4",
+      "word": "Enthusiasm",
+      "contextualMeaning": "热情、热忱（enthusiasm for liberal education 对通识教育的热忱）",
+      "example": "The AAAS displays great enthusiasm for liberal education. (2014 T4)"
     },
     {
       "definition": "面对；脸",
@@ -219370,9 +219485,9 @@
           ]
         }
       ],
-      "source": {
-        "note": "考研英语一 2012 Text 2"
-      }
+      "source": "考研英语一 2014 Text 4",
+      "contextualMeaning": "掩盖、使模糊（obscure the depth and breadth 掩盖深度与广度）",
+      "example": "its report may well set back reform by obscuring the depth and breadth of the challenge. (2014 T4)"
     },
     {
       "word": "authority",
@@ -220096,10 +220211,19 @@
           "lines": [
             "\"Scrutiny is attention with judgment attached. 审查，是带着判断的注意力。\""
           ]
+        },
+        {
+          "title": "2015 Text 3 语境",
+          "lines": [
+            "Manuscripts will be flagged up for additional scrutiny by the journal's internal editors. 稿件将被标记出来接受进一步仔细审查。",
+            "...it relies on the board of reviewing editors to identify 'the papers that need scrutiny' in the first place. 它首先依赖审稿编辑委员会来识别'需要审查的论文'。",
+            "Scrutiny 在文中指统计学家对论文数据和方法的逐行细致检查。Scrutiny 比 review/inspection 语气更强，暗示「找错」的目的性。"
+          ]
         }
       ],
       "source": {
-        "note": "考研英语一 2012 Text 3"
+        "note": "考研英语一 2012 Text 3",
+        "2015-Text3": "考研英语一 2015 Text 3"
       }
     },
     {
@@ -226405,21 +226529,6 @@
       "createdAt": "2026-08-12"
     },
     {
-      "word": "provision",
-      "phonetic": "/prəˈvɪʒn/",
-      "pos": "n.",
-      "coreMeaning": "条款；规定",
-      "contextualMeaning": "(法律)条款；规定",
-      "phrase": "contested provisions / statutory provision",
-      "example": "Three of the four contested provisions were overturned.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5081-provision.md",
-      "lookupKey": "provision",
-      "createdAt": "2026-08-12"
-    },
-    {
       "word": "naturalization",
       "phonetic": "/ˌnætʃrəlaɪˈzeɪʃn/",
       "pos": "n.",
@@ -226450,21 +226559,6 @@
       "createdAt": "2026-08-12"
     },
     {
-      "word": "intrude",
-      "phonetic": "/ɪnˈtruːd/",
-      "pos": "v.",
-      "coreMeaning": "侵入；干涉",
-      "contextualMeaning": "侵犯(他人的领域/权利)",
-      "phrase": "intrude on/upon sth.",
-      "example": "Arizona had thus intruded on the federal's privileged powers.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5084-intrude.md",
-      "lookupKey": "intrude",
-      "createdAt": "2026-08-12"
-    },
-    {
       "word": "privileged",
       "phonetic": "/ˈprɪvəlɪdʒd/",
       "pos": "adj.",
@@ -226477,21 +226571,6 @@
       "textNumber": "Text 4",
       "fileName": "5085-privileged.md",
       "lookupKey": "privileged",
-      "createdAt": "2026-08-12"
-    },
-    {
-      "word": "verify",
-      "phonetic": "/ˈverɪfaɪ/",
-      "pos": "v.",
-      "coreMeaning": "核实；查证",
-      "contextualMeaning": "确认(身份/事实)的真实性",
-      "phrase": "verify the legal status",
-      "example": "Arizona police would be allowed to verify the legal status of people.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5086-verify.md",
-      "lookupKey": "verify",
       "createdAt": "2026-08-12"
     },
     {
@@ -226510,21 +226589,6 @@
       "createdAt": "2026-08-12"
     },
     {
-      "word": "explicit",
-      "phonetic": "/ɪkˈsplɪsɪt/",
-      "pos": "adj.",
-      "coreMeaning": "明确的；直白的",
-      "contextualMeaning": "(表述)清楚明白的、不含糊的",
-      "phrase": "explicitly encourage",
-      "example": "Congress explicitly encourages state officers to share information.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5088-explicit.md",
-      "lookupKey": "explicit",
-      "createdAt": "2026-08-12"
-    },
-    {
       "word": "statute",
       "phonetic": "/ˈstætʃuːt/",
       "pos": "n.",
@@ -226537,21 +226601,6 @@
       "textNumber": "Text 4",
       "fileName": "5089-statute.md",
       "lookupKey": "statute",
-      "createdAt": "2026-08-12"
-    },
-    {
-      "word": "robust",
-      "phonetic": "/rəʊˈbʌst/",
-      "pos": "adj.",
-      "coreMeaning": "强有力的；坚定的",
-      "contextualMeaning": "(论点/辩护)强有力且经得起检验的",
-      "phrase": "robust defense",
-      "example": "Scalia offered an even more robust defense of state privileges.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5090-robust.md",
-      "lookupKey": "robust",
       "createdAt": "2026-08-12"
     },
     {
@@ -226570,36 +226619,6 @@
       "createdAt": "2026-08-12"
     },
     {
-      "word": "executive",
-      "phonetic": "/ɪɡˈzekjətɪv/",
-      "pos": "adj./n.",
-      "coreMeaning": "行政的；执行官",
-      "contextualMeaning": "(政府)行政分支的；n.高管/执行官",
-      "phrase": "federal executive power / executive branch",
-      "example": "a shocking assertion of federal executive power.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5092-executive.md",
-      "lookupKey": "executive",
-      "createdAt": "2026-08-12"
-    },
-    {
-      "word": "comply",
-      "phonetic": "/kəmˈplaɪ/",
-      "pos": "v.",
-      "coreMeaning": "遵守；服从",
-      "contextualMeaning": "(按规定/要求)照做",
-      "phrase": "comply with sth.",
-      "example": "state laws complied with federal statutes to the letter.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5093-comply.md",
-      "lookupKey": "comply",
-      "createdAt": "2026-08-12"
-    },
-    {
       "word": "invalidate",
       "phonetic": "/ɪnˈvælɪdeɪt/",
       "pos": "v.",
@@ -226607,7 +226626,9 @@
       "contextualMeaning": "宣布(法律/合同等)无效",
       "phrase": "invalidate a law",
       "example": "the White House claimed that it could invalidate any otherwise legitimate state law.",
-      "source": "考研英语一 2013 Text 4",
+      "source": {
+        "note": "考研英语一 2013 Text 4；考研英语一 2015 Text 2"
+      },
       "year": "2013",
       "textNumber": "Text 4",
       "fileName": "5094-invalidate.md",
@@ -226619,10 +226640,10 @@
       "phonetic": "/lɪˈdʒɪtɪmət/",
       "pos": "adj.",
       "coreMeaning": "合法的；正当的",
-      "contextualMeaning": "符合法律/道德标准的",
+      "contextualMeaning": "符合法律/道德标准的 | 合法的、正当的（legitimate intellectual investigation 合法的学术研究）",
       "phrase": "otherwise legitimate state law",
-      "example": "invalidate any otherwise legitimate state law that it disagrees with.",
-      "source": "考研英语一 2013 Text 4; 考研英语一 2014 Text 3",
+      "example": "invalidate any otherwise legitimate state law that it disagrees with. | as falling outside the boundaries of routine, and sometimes legitimate, intellectual investigation. (2014 T4)",
+      "source": "考研英语一 2014 Text 4",
       "year": "2013",
       "textNumber": "Text 4",
       "fileName": "5095-legitimate.md",
@@ -226642,51 +226663,6 @@
       "textNumber": "Text 4",
       "fileName": "5096-exclusively.md",
       "lookupKey": "exclusively",
-      "createdAt": "2026-08-12"
-    },
-    {
-      "word": "administration",
-      "phonetic": "/ədˌmɪnɪˈstreɪʃn/",
-      "pos": "n.",
-      "coreMeaning": "行政当局；政府",
-      "contextualMeaning": "(本届)政府/行政部门",
-      "phrase": "the Administration / Obama Administration",
-      "example": "The Administration was in essence asserting that...",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5097-administration.md",
-      "lookupKey": "administration",
-      "createdAt": "2026-08-12"
-    },
-    {
-      "word": "assert",
-      "phonetic": "/əˈsɜːt/",
-      "pos": "v.",
-      "coreMeaning": "断言；主张",
-      "contextualMeaning": "坚定地宣称(某事为真)",
-      "phrase": "assert that... / assert one's authority",
-      "example": "The Administration was asserting that because it didn't want to...",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5098-assert.md",
-      "lookupKey": "assert",
-      "createdAt": "2026-08-12"
-    },
-    {
-      "word": "reject",
-      "phonetic": "/rɪˈdʒekt/",
-      "pos": "v.",
-      "coreMeaning": "拒绝；驳回",
-      "contextualMeaning": "(正式地)不接受/否决",
-      "phrase": "reject a claim / argument / appeal",
-      "example": "Every Justice rightly rejected this remarkable claim.",
-      "source": "考研英语一 2013 Text 4",
-      "year": "2013",
-      "textNumber": "Text 4",
-      "fileName": "5099-reject.md",
-      "lookupKey": "reject",
       "createdAt": "2026-08-12"
     },
     {
@@ -227091,7 +227067,9 @@
       "example": "The prize is one of many lucrative awards for researchers.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "lucrative",
+      "fileName": "5128-lucrative.md"
     },
     {
       "word": "entrepreneur",
@@ -227103,19 +227081,23 @@
       "example": "Many awards are funded by Internet entrepreneurs.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "entrepreneur",
+      "fileName": "5129-entrepreneur.md"
     },
     {
       "word": "benefactor",
       "pronunciation": "",
       "pos": "n.",
       "coreMeaning": "捐赠者，恩人",
-      "contextualMeaning": "捐资帮助他人或机构的人",
+      "contextualMeaning": "捐资帮助他人或机构的人 | 捐赠者、赞助人（individual benefactors 个人捐赠者）",
       "phrase": "benefactor of the museum",
-      "example": "These benefactors want to use their wealth to draw attention to scientists.",
-      "source": "考研英语一 2014 Text 3",
+      "example": "These benefactors want to use their wealth to draw attention to scientists. | federal, state and local governments, universities, foundations, educators, individual benefactors and others. (2014 T4)",
+      "source": "考研英语一 2014 Text 4",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "benefactor",
+      "fileName": "5130-benefactor.md"
     },
     {
       "word": "upstart",
@@ -227127,7 +227109,9 @@
       "example": "These upstart entrepreneurs cannot buy class.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "upstart",
+      "fileName": "5131-upstart.md"
     },
     {
       "word": "status-quo",
@@ -227139,7 +227123,9 @@
       "example": "They could cement the status quo of peer-reviewed research.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "status-quo",
+      "fileName": "5132-status-quo.md"
     },
     {
       "word": "perpetuate",
@@ -227151,7 +227137,9 @@
       "example": "They perpetuate the myth of the lone genius.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "perpetuate",
+      "fileName": "5133-perpetuate.md"
     },
     {
       "word": "legitimacy",
@@ -227163,7 +227151,9 @@
       "example": "Time, rather than intention, has given them legitimacy.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "legitimacy",
+      "fileName": "5134-legitimacy.md"
     },
     {
       "word": "outgrow",
@@ -227175,7 +227165,9 @@
       "example": "Nobel's limit has been outgrown by collaborative modern research.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "outgrow",
+      "fileName": "5135-outgrow.md"
     },
     {
       "word": "collaborative",
@@ -227187,7 +227179,9 @@
       "example": "The collaborative nature of modern research has outgrown Nobel's limit.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "collaborative",
+      "fileName": "5136-collaborative.md"
     },
     {
       "word": "acknowledge",
@@ -227199,7 +227193,9 @@
       "example": "Acknowledging the discovery of the Higgs boson.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "acknowledge",
+      "fileName": "4400-acknowledge.md"
     },
     {
       "word": "unrepresentative",
@@ -227211,7 +227207,2649 @@
       "example": "Takes an unrepresentative view of what life sciences include.",
       "source": "考研英语一 2014 Text 3",
       "year": "2014",
-      "textNumber": "Text 3"
+      "textNumber": "Text 3",
+      "lookupKey": "unrepresentative",
+      "fileName": "5137-unrepresentative.md"
+    },
+    {
+      "word": "just-released",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "刚发布的，刚出炉的",
+      "contextualMeaning": "刚出厂般新鲜的",
+      "phrase": "just-released report/album",
+      "example": "The just-released report by the American Academy of Arts and Sciences (AAAS), deserves praise.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "just-released",
+      "fileName": "5138-just-released.md"
+    },
+    {
+      "word": "prosperity",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "繁荣，昌盛",
+      "contextualMeaning": "国家或经济体的兴盛状态",
+      "phrase": "economic prosperity",
+      "example": "the importance of the humanities and social sciences to the prosperity and security of liberal democracy.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "prosperity",
+      "fileName": "5139-prosperity.md"
+    },
+    {
+      "word": "liberal democracy",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "自由民主（制度）",
+      "contextualMeaning": "以个人自由与代议制为核心的民主制度",
+      "phrase": "constitutional liberal democracy",
+      "example": "the prosperity and security of liberal democracy in America.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "liberal-democracy",
+      "fileName": "5140-liberal-democracy.md"
+    },
+    {
+      "word": "congressional",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "国会的，国会议员的",
+      "contextualMeaning": "与国会相关的",
+      "phrase": "congressional hearing/representative",
+      "example": "leading congressional Democrats and Republicans sent letters to the AAAS.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "congressional",
+      "fileName": "5141-congressional.md"
+    },
+    {
+      "word": "excellence",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "卓越，杰出",
+      "contextualMeaning": "顶尖水平",
+      "phrase": "academic excellence / national excellence",
+      "example": "to 'maintain national excellence in humanities and social scientific scholarship and education.'",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "excellence",
+      "fileName": "5142-excellence.md"
+    },
+    {
+      "word": "top-tier",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "顶级的，第一流的",
+      "contextualMeaning": "处于最高梯队的",
+      "phrase": "top-tier university/player",
+      "example": "Among the commission's 51 members are top-tier-university presidents.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "top-tier",
+      "fileName": "5143-top-tier.md"
+    },
+    {
+      "word": "admirable",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "值得称道的，令人钦佩的",
+      "contextualMeaning": "值得赞扬的",
+      "phrase": "an admirable quality",
+      "example": "The goals identified in the report are generally admirable.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "admirable",
+      "fileName": "5144-admirable.md"
+    },
+    {
+      "word": "presuppose",
+      "pronunciation": "",
+      "pos": "v.",
+      "coreMeaning": "以……为前提，预先假定",
+      "contextualMeaning": "作为先决条件",
+      "phrase": "presuppose that ...",
+      "example": "Because representative government presupposes an informed citizenry.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "presuppose",
+      "fileName": "5145-presuppose.md"
+    },
+    {
+      "word": "informed",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "知情的，见多识广的",
+      "contextualMeaning": "信息充足而成熟的",
+      "phrase": "informed citizen / well-informed",
+      "example": "representative government presupposes an informed citizenry.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "informed",
+      "fileName": "5146-informed.md"
+    },
+    {
+      "word": "citizenry",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "（全体）公民",
+      "contextualMeaning": "公民的集合名词",
+      "phrase": "informed citizenry",
+      "example": "representative government presupposes an informed citizenry.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "citizenry",
+      "fileName": "5147-citizenry.md"
+    },
+    {
+      "word": "literacy",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "读写能力，文化素养",
+      "contextualMeaning": "具备阅读书写能力",
+      "phrase": "full literacy / cultural literacy",
+      "example": "the report supports full literacy.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "literacy",
+      "fileName": "5148-literacy.md"
+    },
+    {
+      "word": "international affairs",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "国际事务",
+      "contextualMeaning": "跨国层面的事务",
+      "phrase": "international affairs / foreign affairs",
+      "example": "The report also advocates greater study of foreign languages, international affairs.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "international-affairs",
+      "fileName": "5149-international-affairs.md"
+    },
+    {
+      "word": "illiberal",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "反自由的，狭隘的",
+      "contextualMeaning": "排斥异见的、不宽容的",
+      "phrase": "illiberal education",
+      "example": "the illiberal nature of liberal education at our leading colleges and universities.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "illiberal",
+      "fileName": "5150-illiberal.md"
+    },
+    {
+      "word": "inquiry",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "探究，调查",
+      "contextualMeaning": "主动追问的精神",
+      "phrase": "spirit of inquiry / scientific inquiry",
+      "example": "the spirit of inquiry once at home on campus has been replaced by the use of the humanities and social sciences as vehicles for publicizing propaganda.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "inquiry",
+      "fileName": "5151-inquiry.md"
+    },
+    {
+      "word": "publicize",
+      "pronunciation": "",
+      "pos": "v.",
+      "coreMeaning": "宣传，公开宣扬",
+      "contextualMeaning": "把信息公之于众",
+      "phrase": "publicize a product/event",
+      "example": "as vehicles for publicizing 'progressive,' or left-liberal propaganda.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "publicize",
+      "fileName": "5152-publicize.md"
+    },
+    {
+      "word": "progressive",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "进步主义的；渐进的",
+      "contextualMeaning": "主张革新与政府干预的",
+      "phrase": "progressive policy/education",
+      "example": "professors routinely treat the progressive interpretation of history and progressive public policy as the proper subject of study.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "progressive",
+      "fileName": "5153-progressive.md"
+    },
+    {
+      "word": "left-liberal",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "左翼自由的",
+      "contextualMeaning": "左翼+自由派立场的",
+      "phrase": "left-liberal politics",
+      "example": "as vehicles for publicizing 'progressive,' or left-liberal propaganda.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "left-liberal",
+      "fileName": "5154-left-liberal.md"
+    },
+    {
+      "word": "routinely",
+      "pronunciation": "",
+      "pos": "adv.",
+      "coreMeaning": "惯常地，通常地",
+      "contextualMeaning": "作为常规地",
+      "phrase": "routinely do sth.",
+      "example": "Today, professors routinely treat the progressive interpretation of history and progressive public policy as the proper subject of study.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "routinely",
+      "fileName": "5155-routinely.md"
+    },
+    {
+      "word": "portray",
+      "pronunciation": "",
+      "pos": "v.",
+      "coreMeaning": "描绘，刻画",
+      "contextualMeaning": "用文字/形象呈现",
+      "phrase": "portray sb./sth. as ...",
+      "example": "while portraying conservative or classical liberal ideas as falling outside the boundaries of routine intellectual investigation.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "portray",
+      "fileName": "5156-portray.md"
+    },
+    {
+      "word": "classical liberal",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "古典自由主义的",
+      "contextualMeaning": "强调个人自由与有限政府的",
+      "phrase": "classical liberal ideas/tradition",
+      "example": "portraying conservative or classical liberal ideas – such as free markets and self-reliance.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "classical-liberal",
+      "fileName": "5157-classical-liberal.md"
+    },
+    {
+      "word": "free markets",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "自由市场",
+      "contextualMeaning": "由供需自由调节的市场",
+      "phrase": "free-market capitalism",
+      "example": "such as free markets and self-reliance.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "free-markets",
+      "fileName": "5158-free-markets.md"
+    },
+    {
+      "word": "self-reliance",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "自立，自力更生",
+      "contextualMeaning": "不依赖他人的独立精神",
+      "phrase": "cultivate self-reliance",
+      "example": "such as free markets and self-reliance.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "self-reliance",
+      "fileName": "5159-self-reliance.md"
+    },
+    {
+      "word": "intellectual",
+      "pronunciation": "",
+      "pos": "adj.",
+      "coreMeaning": "智力的，学术的",
+      "contextualMeaning": "与智力/学术相关的",
+      "phrase": "intellectual property / intellectual investigation",
+      "example": "as falling outside the boundaries of routine, and sometimes legitimate, intellectual investigation.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "intellectual",
+      "fileName": "5160-intellectual.md"
+    },
+    {
+      "word": "investigation",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "调查，研究",
+      "contextualMeaning": "系统性的探究",
+      "phrase": "scientific investigation / intellectual investigation",
+      "example": "as falling outside the boundaries of routine, and sometimes legitimate, intellectual investigation.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "investigation",
+      "fileName": "5161-investigation.md"
+    },
+    {
+      "word": "set back",
+      "pronunciation": "",
+      "pos": "phr. v.",
+      "coreMeaning": "阻碍，使倒退",
+      "contextualMeaning": "使进展受阻",
+      "phrase": "set back progress/reform",
+      "example": "its report may well set back reform by obscuring the depth and breadth of the challenge.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "set-back",
+      "fileName": "5162-set-back.md"
+    },
+    {
+      "word": "breadth",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "广度，宽广",
+      "contextualMeaning": "范围或领域的宽广",
+      "phrase": "depth and breadth",
+      "example": "obscuring the depth and breadth of the challenge that Congress asked it to illuminate.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "breadth",
+      "fileName": "5163-breadth.md"
+    },
+    {
+      "word": "depth",
+      "pronunciation": "",
+      "pos": "n.",
+      "coreMeaning": "深度",
+      "contextualMeaning": "深层的程度",
+      "phrase": "depth and breadth",
+      "example": "obscuring the depth and breadth of the challenge that Congress asked it to illuminate.",
+      "source": "考研英语一 2014 Text 4",
+      "year": "2014",
+      "textNumber": "Text 4",
+      "lookupKey": "depth",
+      "fileName": "4490-depth.md"
+    },
+    {
+      "word": "abdicate",
+      "pronunciation": "/ˈæbdɪkeɪt/",
+      "pos": "动词",
+      "coreMeaning": "退位；放弃（职责、权利）",
+      "contextualMeaning": "西班牙国王胡安·卡洛斯最终被迫退位（stand down），abdicate 即国王放弃王位",
+      "phrase": "abdicate the throne; abdicate responsibility",
+      "example": "King Juan Carlos of Spain once insisted kings don't abdicate, but scandals eventually forced him to do so.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5164-abdicate.md",
+      "lookupKey": "abdicate"
+    },
+    {
+      "word": "scandal",
+      "pronunciation": "/ˈskændl/",
+      "pos": "名词",
+      "coreMeaning": "丑闻；丑行",
+      "contextualMeaning": "令人尴尬的丑闻是卡洛斯退位的直接原因之一",
+      "phrase": "political scandal; embarrassing scandal; cause a scandal",
+      "example": "Embarrassing scandals and the popularity of the republican left forced him to eat his words and stand down.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5165-scandal.md",
+      "lookupKey": "scandal"
+    },
+    {
+      "word": "republican",
+      "pronunciation": "/rɪˈpʌblɪkən/",
+      "pos": "形容词/名词",
+      "coreMeaning": "共和派的；共和党人",
+      "contextualMeaning": "文中指主张共和制、反对君主制的左翼力量 the republican left",
+      "phrase": "republican left; republican government; Republican Party",
+      "example": "The popularity of the republican left in the recent Euro-elections forced the king to stand down.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5166-republican.md",
+      "lookupKey": "republican"
+    },
+    {
+      "word": "Euro-elections",
+      "pronunciation": "/ˈjʊərəʊ ɪˈlekʃnz/",
+      "pos": "名词（复数）",
+      "coreMeaning": "欧洲议会选举",
+      "contextualMeaning": "近年的欧洲议会选举中共和派左翼获得高人气",
+      "phrase": "in the recent Euro-elections; win Euro-elections",
+      "example": "The popularity of the republican left in the recent Euro-elections have forced him to eat his words.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5167-euro-elections.md",
+      "lookupKey": "euro-elections"
+    },
+    {
+      "word": "eat one's words",
+      "pronunciation": "/iːt wʌnz wɜːdz/",
+      "pos": "习语",
+      "coreMeaning": "收回前言；承认说错",
+      "contextualMeaning": "卡洛斯曾坚称国王不会退位，最终却不得不承认自己说错话",
+      "phrase": "force sb. to eat one's words; have to eat one's words",
+      "example": "Embarrassing scandals have forced him to eat his words and stand down.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5168-eat-one's-words.md",
+      "lookupKey": "eat-one's-words"
+    },
+    {
+      "word": "stand down",
+      "pronunciation": "/stænd daʊn/",
+      "pos": "动词短语",
+      "coreMeaning": "退位；辞职；下台",
+      "contextualMeaning": "卡洛斯被迫退位、离开王位",
+      "phrase": "force sb. to stand down; stand down from office",
+      "example": "The king was forced to eat his words and stand down.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5169-stand-down.md",
+      "lookupKey": "stand-down"
+    },
+    {
+      "word": "monarchy",
+      "pronunciation": "/ˈmɒnəki/",
+      "pos": "名词",
+      "coreMeaning": "君主制；君主政体",
+      "contextualMeaning": "文章讨论的核心对象：以世袭君主为国家元首的政治制度",
+      "phrase": "constitutional monarchy; absolute monarchy; the future of monarchy",
+      "example": "Does the Spanish crisis suggest that monarchy is seeing its last days?",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5170-monarchy.md",
+      "lookupKey": "monarchy"
+    },
+    {
+      "word": "royal",
+      "pronunciation": "/ˈrɔɪəl/",
+      "pos": "形容词/名词",
+      "coreMeaning": "王室的；王室成员",
+      "contextualMeaning": "royals 指王室成员；文中 European royals 指欧洲各王室",
+      "phrase": "European royals; royal family; royal lifestyle",
+      "example": "Does that mean the writing is on the wall for all European royals?",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5171-royal.md",
+      "lookupKey": "royal"
+    },
+    {
+      "word": "the writing is on the wall",
+      "pronunciation": "/ðə ˈraɪtɪŋ ɪz ɒn ðə wɔːl/",
+      "pos": "习语",
+      "coreMeaning": "末日将至；不祥之兆",
+      "contextualMeaning": "比喻某事物即将终结的征兆已经十分明显",
+      "phrase": "the writing is on the wall for...; see the writing on the wall",
+      "example": "Does that mean the writing is on the wall for all European royals?",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5172-the-writing-is-on-the-wall.md",
+      "lookupKey": "the-writing-is-on-the-wall"
+    },
+    {
+      "word": "majestic",
+      "pronunciation": "/məˈdʒestɪk/",
+      "pos": "形容词",
+      "coreMeaning": "威严的；宏伟的；壮丽的",
+      "contextualMeaning": "形容欧洲王室成员奢华威严的生活方式",
+      "phrase": "majestic lifestyle; majestic mountains; majestic appearance",
+      "example": "...all European royals, with their magnificent uniforms and majestic lifestyles?",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5173-majestic.md",
+      "lookupKey": "majestic"
+    },
+    {
+      "word": "polarised",
+      "pronunciation": "/ˈpəʊləraɪzd/",
+      "pos": "形容词",
+      "coreMeaning": "两极分化的；对立的",
+      "contextualMeaning": "舆论严重分裂时，君主可作为国家统一的象征",
+      "phrase": "public opinion is polarised; highly polarised society",
+      "example": "When public opinion is particularly polarised, monarchs can rise above mere politics.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5174-polarised.md",
+      "lookupKey": "polarised"
+    },
+    {
+      "word": "Franco regime",
+      "pronunciation": "/ˈfræŋkəʊ reɪˈʒiːm/",
+      "pos": "名词",
+      "coreMeaning": "佛朗哥政权",
+      "contextualMeaning": "西班牙法西斯独裁者佛朗哥建立的政权；其终结后西班牙社会舆论极化",
+      "phrase": "the end of the Franco regime; during the Franco regime",
+      "example": "When public opinion is particularly polarised, as it was following the end of the Franco regime...",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5175-franco-regime.md",
+      "lookupKey": "franco-regime"
+    },
+    {
+      "word": "transcendence",
+      "pronunciation": "/trænˈsendəns/",
+      "pos": "名词",
+      "coreMeaning": "超越；超然",
+      "contextualMeaning": "君主制支持者认为君主能够'超越政治'，成为国家团结象征",
+      "phrase": "transcendence of politics; spiritual transcendence",
+      "example": "It is this apparent transcendence of politics that explains monarchs' continuing popularity.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5176-transcendence.md",
+      "lookupKey": "transcendence"
+    },
+    {
+      "word": "monarch-infested",
+      "pronunciation": "/ˈmɒnək ɪnˈfestɪd/",
+      "pos": "形容词",
+      "coreMeaning": "君主制密集的（带贬义）",
+      "contextualMeaning": "infested 原指害虫侵扰，此处讽刺欧洲君主制国家众多",
+      "phrase": "the most monarch-infested region",
+      "example": "Europe is the most monarch-infested region in the world, with 10 kingdoms.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5177-monarch-infested.md",
+      "lookupKey": "monarch-infested"
+    },
+    {
+      "word": "Vatican",
+      "pronunciation": "/ˈvætɪkən/",
+      "pos": "名词",
+      "coreMeaning": "梵蒂冈",
+      "contextualMeaning": "梵蒂冈城国；文中 10 kingdoms 不包括梵蒂冈",
+      "phrase": "Vatican City; the Vatican",
+      "example": "...with 10 kingdoms (not counting Vatican city and Andorra).",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5178-vatican.md",
+      "lookupKey": "vatican"
+    },
+    {
+      "word": "Andorra",
+      "pronunciation": "/ænˈdɔːrə/",
+      "pos": "名词",
+      "coreMeaning": "安道尔",
+      "contextualMeaning": "欧洲袖珍国家；文中 10 kingdoms 不包括安道尔",
+      "phrase": "the principality of Andorra",
+      "example": "...with 10 kingdoms (not counting Vatican city and Andorra).",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5179-andorra.md",
+      "lookupKey": "andorra"
+    },
+    {
+      "word": "absolutist",
+      "pronunciation": "/ˈæbsəluːtɪst/",
+      "pos": "形容词/名词",
+      "coreMeaning": "专制主义的；专制主义者",
+      "contextualMeaning": "absolutist monarchies 指君主拥有绝对权力的专制君主制",
+      "phrase": "absolutist counterparts; absolutist regime",
+      "example": "Unlike their absolutist counterparts in the Gulf and Asia, most royal families have survived because...",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5180-absolutist.md",
+      "lookupKey": "absolutist"
+    },
+    {
+      "word": "counterpart",
+      "pronunciation": "/ˈkaʊntəpɑːt/",
+      "pos": "名词",
+      "coreMeaning": "对应的人/物； counterpart",
+      "contextualMeaning": "文中指海湾和亚洲的专制君主与欧洲君主的对应比较",
+      "phrase": "counterpart in...; Chinese counterpart; overseas counterpart",
+      "example": "Unlike their absolutist counterparts in the Gulf and Asia...",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5181-counterpart.md",
+      "lookupKey": "counterpart"
+    },
+    {
+      "word": "non-controversial",
+      "pronunciation": "/ˌnɒnˈkɒntrəvɜːʃl/",
+      "pos": "形容词",
+      "coreMeaning": "无争议的",
+      "contextualMeaning": "欧洲君主让选民免去寻找无争议且受尊敬公众人物的麻烦",
+      "phrase": "non-controversial figure; non-controversial decision",
+      "example": "...they allow voters to avoid the difficult search for a non-controversial but respected public figure.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5182-non-controversial.md",
+      "lookupKey": "non-controversial"
+    },
+    {
+      "word": "public figure",
+      "pronunciation": "/ˈpʌblɪk ˈfɪɡə(r)/",
+      "pos": "名词",
+      "coreMeaning": "公众人物",
+      "contextualMeaning": "受公众关注、具有社会影响力的人物",
+      "phrase": "a respected public figure; become a public figure",
+      "example": "...a non-controversial but respected public figure.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5183-public-figure.md",
+      "lookupKey": "public-figure"
+    },
+    {
+      "word": "downside",
+      "pronunciation": "/ˈdaʊnsaɪd/",
+      "pos": "名词",
+      "coreMeaning": "缺点；负面；不利一面",
+      "contextualMeaning": "国王王后尽管有象征功能，但也有弊端",
+      "phrase": "have a downside; the downside of...; upside and downside",
+      "example": "Even so, kings and queens undoubtedly have a downside.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5184-downside.md",
+      "lookupKey": "downside"
+    },
+    {
+      "word": "indefensible",
+      "pronunciation": "/ˌɪndɪˈfensəbl/",
+      "pos": "形容词",
+      "coreMeaning": "不可辩护的；站不住脚的",
+      "contextualMeaning": "贵族历史体现了过时且无法辩护的特权与不平等",
+      "phrase": "indefensible privileges; indefensible position",
+      "example": "...their very history embodies outdated and indefensible privileges and inequalities.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5185-indefensible.md",
+      "lookupKey": "indefensible"
+    },
+    {
+      "word": "inherited wealth",
+      "pronunciation": "/ɪnˈherɪtɪd welθ/",
+      "pos": "名词短语",
+      "coreMeaning": "继承的财富；世袭财富",
+      "contextualMeaning": "经济学家警告世袭财富权力日益增强",
+      "phrase": "the increasing power of inherited wealth; family inherited wealth",
+      "example": "...the increasing power of inherited wealth, it is bizarre that wealthy aristocratic families should still be...",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5186-inherited-wealth.md",
+      "lookupKey": "inherited-wealth"
+    },
+    {
+      "word": "bizarre",
+      "pronunciation": "/bɪˈzɑː(r)/",
+      "pos": "形容词",
+      "coreMeaning": "怪诞的；奇异的",
+      "contextualMeaning": "在强调平等的时代，贵族仍是民主国家象征性核心，这很怪诞",
+      "phrase": "it is bizarre that...; bizarre situation; bizarre behavior",
+      "example": "...it is bizarre that wealthy aristocratic families should still be the symbolic heart of modern democratic states.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5187-bizarre.md",
+      "lookupKey": "bizarre"
+    },
+    {
+      "word": "aristocratic",
+      "pronunciation": "/ˌærɪstəˈkrætɪk/",
+      "pos": "形容词",
+      "coreMeaning": "贵族的；贵族式的",
+      "contextualMeaning": "富有的贵族家庭；aristocratic ways 指贵族做派",
+      "phrase": "aristocratic family; aristocratic ways; aristocratic privilege",
+      "example": "The most successful monarchies strive to abandon or hide their old aristocratic ways.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5188-aristocratic.md",
+      "lookupKey": "aristocratic"
+    },
+    {
+      "word": "day-job",
+      "pronunciation": "/ˈdeɪ dʒɒb/",
+      "pos": "名词",
+      "coreMeaning": "日常工作；本职",
+      "contextualMeaning": "王室成员努力平民化，拥有普通日常工作",
+      "phrase": "have a day-job; day-job and royal duties",
+      "example": "Princes and princesses have day-jobs and ride bicycles, not horses.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5189-day-job.md",
+      "lookupKey": "day-job"
+    },
+    {
+      "word": "well-heeled",
+      "pronunciation": "/ˌwel ˈhiːld/",
+      "pos": "形容词",
+      "coreMeaning": "富裕的；穿着考究的",
+      "contextualMeaning": "文中形容女王虽普通但实则富有的老奶奶风格",
+      "phrase": "well-heeled family; a well-heeled granny",
+      "example": "It is only the Queen who has preserved the monarchy's reputation with her rather ordinary (if well-heeled) granny style.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5190-well-heeled.md",
+      "lookupKey": "well-heeled"
+    },
+    {
+      "word": "hierarchical",
+      "pronunciation": "/ˌhaɪəˈrɑːkɪkl/",
+      "pos": "形容词",
+      "coreMeaning": "等级制的；等级森严的",
+      "contextualMeaning": "查尔斯等级观念强，与君主制所需的非政治化角色相冲突",
+      "phrase": "hierarchical view of the world; hierarchical structure",
+      "example": "...who has both an expensive taste of lifestyle and a pretty hierarchical view of the world.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5191-hierarchical.md",
+      "lookupKey": "hierarchical"
+    },
+    {
+      "word": "non-political",
+      "pronunciation": "/ˌnɒnpəˈlɪtɪkl/",
+      "pos": "形容词",
+      "coreMeaning": "非政治化的",
+      "contextualMeaning": "君主制存续的关键：作为国家元首保持非政治化、无争议",
+      "phrase": "non-political heads of state; non-political role",
+      "example": "...because they provide a service – as non-controversial and non-political heads of state.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5192-non-political.md",
+      "lookupKey": "non-political"
+    },
+    {
+      "word": "provide a service",
+      "pronunciation": "/prəˈvaɪd ə ˈsɜːvɪs/",
+      "pos": "动词短语",
+      "coreMeaning": "提供服务；发挥服务性作用",
+      "contextualMeaning": "君主制存续的真正原因：以无争议、非政治的国家元首身份提供公共服务",
+      "phrase": "provide a service as...; provide a public service",
+      "example": "He has failed to understand that monarchies have largely survived because they provide a service.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5193-provide-a-service.md",
+      "lookupKey": "provide-a-service"
+    },
+    {
+      "word": "symbolic",
+      "pronunciation": "/sɪmˈbɒlɪk/",
+      "pos": "形容词",
+      "coreMeaning": "象征性的",
+      "contextualMeaning": "王室声称是国家团结的象征；贵族家庭成为民主国家的象征性核心",
+      "phrase": "symbolic of national unity; symbolic heart; symbolic role",
+      "example": "Symbolic of national unity as they claim to be, their very history embodies privileges and inequalities.",
+      "source": "考研英语一 2015 Text 1",
+      "year": 2015,
+      "text": 1,
+      "fileName": "5194-symbolic.md",
+      "lookupKey": "symbolic"
+    },
+    {
+      "word": "constitution",
+      "pronunciation": "/ˌkɒnstɪˈtjuːʃn/",
+      "pos": "n.",
+      "coreMeaning": "宪法；章程；构造",
+      "contextualMeaning": "（美）宪法——本文指美国宪法及其第四修正案（禁止无理搜查扣押）",
+      "phrase": "the Constitution's prohibition on unreasonable searches",
+      "example": "The Constitution protects citizens' right to privacy.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "constitution",
+      "fileName": "5195-constitution.md",
+      "id": "5195"
+    },
+    {
+      "word": "refrain",
+      "pronunciation": "/rɪˈfreɪn/",
+      "pos": "v.",
+      "coreMeaning": "克制；避免；忍住",
+      "contextualMeaning": "克制/避免——加州请求法院不要做出一刀切的裁决",
+      "phrase": "refrain from (doing) sth.",
+      "example": "Please refrain from smoking in public areas.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "refrain",
+      "fileName": "5197-refrain.md",
+      "id": "5197"
+    },
+    {
+      "word": "sweeping",
+      "pronunciation": "/ˈswiːpɪŋ/",
+      "pos": "adj.",
+      "coreMeaning": "全面的；笼统的；影响广泛的",
+      "contextualMeaning": "影响广泛/一刀切的——加州希望避免的裁决类型",
+      "phrase": "a sweeping ruling / sweeping changes",
+      "example": "The government announced sweeping reforms to the tax system.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "sweeping",
+      "fileName": "5198-sweeping.md",
+      "id": "5198"
+    },
+    {
+      "word": "assumption",
+      "pronunciation": "/əˈsʌmpʃn/",
+      "pos": "n.",
+      "coreMeaning": "假设；假定；承担",
+      "contextualMeaning": "旧有假设/惯例——当局可在逮捕时搜查嫌疑人随身物品这一传统做法",
+      "phrase": "upset the old assumption / a basic assumption",
+      "example": "Their plan is based on the assumption that prices will rise.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "assumption",
+      "fileName": "5199-assumption.md",
+      "id": "5199"
+    },
+    {
+      "word": "discernable",
+      "pronunciation": "/dɪˈsɜːnəbl/",
+      "pos": "adj.",
+      "coreMeaning": "可辨别的；可识别的；看得出的",
+      "contextualMeaning": "可辨别的/显而易见的——技术变化的影响并非无法评估，而是足够清晰",
+      "phrase": "discernable / discernible (两种拼写均可)",
+      "example": "There was no discernable change in his condition.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "discernable",
+      "fileName": "5201-discernable.md",
+      "id": "5201"
+    },
+    {
+      "word": "prohibition",
+      "pronunciation": "/ˌprəʊɪˈbɪʃn/",
+      "pos": "n.",
+      "coreMeaning": "禁止；禁令；禁酒令",
+      "contextualMeaning": "禁令——宪法第四修正案对'无理搜查'的禁止条款",
+      "phrase": "prohibition on/of sth.",
+      "example": "The prohibition of smoking in restaurants is widely accepted.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "prohibition",
+      "fileName": "5205-prohibition.md",
+      "id": "5205"
+    },
+    {
+      "word": "burdensome",
+      "pronunciation": "/ˈbɜːdnsəm/",
+      "pos": "adj.",
+      "coreMeaning": "繁重的；麻烦的；难以承担的",
+      "contextualMeaning": "过于繁琐的——作者认为获取搜查令并不会过于繁琐",
+      "phrase": "overly burdensome / burdensome task",
+      "example": "The regulatory requirements have become overly burdensome for small businesses.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "burdensome",
+      "fileName": "5206-burdensome.md",
+      "id": "5206"
+    },
+    {
+      "word": "disruptive",
+      "pronunciation": "/dɪsˈrʌptɪv/",
+      "pos": "adj.",
+      "coreMeaning": "颠覆性的；破坏性的；搅乱的",
+      "contextualMeaning": "颠覆性的——新技术有时需要宪法的创新性应用来应对",
+      "phrase": "disruptive technology / disruptive innovation",
+      "example": "AI is considered one of the most disruptive technologies of our time.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "disruptive",
+      "fileName": "5212-disruptive.md",
+      "id": "5212"
+    },
+    {
+      "word": "novel",
+      "pronunciation": "/ˈnɒvl/",
+      "pos": "adj.",
+      "coreMeaning": "新颖的；新奇的；小说（n.）",
+      "contextualMeaning": "新颖的/创新性的——针对数字信息需要制定新的宪法适用规则",
+      "phrase": "novel approach / novel application / novel idea",
+      "example": "Scientists have proposed a novel method for detecting cancer early.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "novel",
+      "fileName": "5213-novel.md",
+      "id": "5213"
+    },
+    {
+      "word": "accessibility",
+      "pronunciation": "/əkˌsesəˈbɪləti/",
+      "pos": "n.",
+      "coreMeaning": "可获取性；易得性；无障碍（设计）",
+      "contextualMeaning": "可获取性/易得性——数字信息不仅量大而且极易被获取",
+      "phrase": "explosion and accessibility of information",
+      "example": "The accessibility of online education has transformed learning.",
+      "source": "考研英语一 2015 Text 2",
+      "year": 2015,
+      "textNumber": "Text 2",
+      "lookupKey": "accessibility",
+      "fileName": "5215-accessibility.md",
+      "id": "5215"
+    },
+    {
+      "id": "5218",
+      "word": "Statistical",
+      "lookupKey": "statistical",
+      "definition": "统计的；统计学的",
+      "pronunciations": [
+        "/stəˈtɪstɪkl/"
+      ],
+      "partOfSpeech": "adj.",
+      "fileName": "5218-statistical.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "在本文中 statistical 修饰 checks（核查），指对论文中的数据分析方法、样本量、显著性检验等进行统计学层面的审查。",
+            "在 2015 Text 3 中，Science 杂志增设 SBoRE 委员会的核心动作就是 statistical checks——不是重新做实验，而是检查数据是否被正确分析。这是应对 reproducibility crisis（可重复性危机）的关键措施。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "来自 statistics（统计学）+ -ical（形容词后缀）。Statistics 源自拉丁语 status（政治体/国家状态）。",
+            "原始画面: 一堆数字被整理成有意义的模式，像把散落的珠子串成项链。",
+            "核心意象: 数据 + 规律 + 量化推断 = statistical。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: statistical analysis/significance/error/review; statistically significant/literate.",
+            "近义词区别: numeric 仅指「数字的」；statistical 强调用统计方法处理数据并得出概率性结论。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Statistical 是现代科学的「度量衡」。没有统计分析，实验数据只是一堆数字；有了它，数据才能变成证据。",
+            "考研阅读中 statistical 常与 review/analysis/checks/error 连用，表示对研究方法科学性的审视。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Statistics is the grammar of science. Statistical 是科学的语法——没有它，数据只是噪音。\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5219",
+      "word": "Statistician",
+      "lookupKey": "statistician",
+      "definition": "统计学家",
+      "pronunciations": [
+        "/ˌstætɪˈstɪʃn/"
+      ],
+      "partOfSpeech": "n.",
+      "fileName": "5219-statistician.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "本文中 statistician 指 SBoRE 聘请的独立于期刊之外的统计学专家，负责审查投稿论文的数据分析方法是否正确。",
+            "SBoRE 的运作模式是：编辑标记问题稿件 -> 外部 statistician 审查 -> 反馈意见。Statistician 在这里扮演的是「第三方质量把关人」的角色。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "statistic(s)（统计）+ -ian（指人后缀，如 physician, librarian）。",
+            "原始画面: 一个坐在数据海洋前的人，手里拿着放大镜和计算器，从混乱中找出规律。",
+            "核心意象: 数字 + 专业分析 + 独立判断 = statistician。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: external/biomedical/professional statistician; consult a statistician.",
+            "近义词区别: data analyst 更偏向商业/技术领域；statistician 更偏向学术研究和理论统计。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Statistician 的出现标志着学术出版从「同行信任」向「数据验证」的范式转变。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"A statistician turns noise into signal. Statistician 把噪音变成信号。\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5220",
+      "word": "Irreproducibility",
+      "lookupKey": "irreproducibility",
+      "definition": "不可重复性；（实验结果）无法复现",
+      "pronunciations": [
+        "/ˌɪriːprəˌdjuːsəˈbɪləti/"
+      ],
+      "partOfSpeech": "n.",
+      "fileName": "5220-irreproducibility.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "irreproducibility 是当代科研诚信危机的核心术语——已发表论文的结果无法被其他研究者按照相同方法复现。",
+            "本文 P1 明确指出 irreproducibility 的原因：basic mistakes in data analysis（数据分析中的基础性错误）。这正是 Science 设立 SBoRE 要解决的问题。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "ir-(不) + re-(再) + pro-(向前) + duc(引导) + -ibility(名词后缀)。即「不能再引导出相同结果的性质」。",
+            "原始画面: 两个人按同一份菜谱做菜，却做出完全不同的味道——食谱有问题。",
+            "核心意象: 相同输入 + 不同输出 = irreproducibility（系统有 bug）。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: crisis of irreproducibility; contribute to irreproducibility; reproducibility crisis.",
+            "反义词: reproducibility（可重复性）——科学研究的黄金标准。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Irreproducibility 是 2010 年代学术界最头疼的问题之一。Nature、Science 等顶刊多次发文讨论。根本原因包括：p-hacking、样本量过小、统计方法误用等。",
+            "本文中 irreproducibility 是全文的逻辑起点——所有措施都围绕解决这个问题展开。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Irreproducibility is science's silent crisis. Irreproducibility 是科学界那场沉默的危机。\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5221",
+      "word": "Impel",
+      "lookupKey": "impel",
+      "definition": "推动；促使；驱使",
+      "pronunciations": [
+        "/ɪmˈpel/"
+      ],
+      "partOfSpeech": "v.",
+      "fileName": "5221-impel.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "impel 在此意为「促使/推动」（某事发生），McNutt 否定了任何单篇论文 impelled the change（推动了这次改革）。",
+            "McNutt 用 impel 来描述一种潜在的因果动力——有人可能以为某篇「问题论文」触发了改革，但她明确否认了这种单一归因。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "im-(向内/加强) + pel(驱动，同 propel 中的 pel)。词根 pel- 意为「推/驱动」。",
+            "原始画面: 一只手在背后轻轻推了一把，让原本静止的东西开始动起来。",
+            "核心意象: 外力 + 方向 + 启动 = impel。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: impel sb. to do sth.; impel change/reform/action.",
+            "近义词区别: propel 更强调物理推进或持续前进；impel 更强调内在或心理驱动；drive 最通用；push 最口语。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Impel 是考研高频动词，常出现在因果推理题中。注意 impel 的主语可以是具体的人/物，也可以是抽象概念（concern, necessity, sense of duty）。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Impel is the invisible hand that starts motion. Impel 是那只启动运动的看不见的手。\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5222",
+      "word": "Foresight",
+      "lookupKey": "foresight",
+      "definition": "远见；前瞻性；深谋远虑",
+      "pronunciations": [
+        "/ˈfɔːsaɪt/"
+      ],
+      "partOfSpeech": "n.",
+      "fileName": "5222-foresight.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "Parmigiani 用 foresight 形容 Science 创立 SBoRE 这一决策的前瞻性和战略眼光。",
+            "found the foresight ... to be novel = 认为这一决策展现出的前瞻性是新颖独特的。Foresight 在此处是对决策者能力的正面评价。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "fore-(前/预先) + sight（看/视野）。字面义：向前看的视力。",
+            "原始画面: 站在高处眺望远方地平线，别人还在看脚下时，你已经看到了风暴即将来临。",
+            "核心意象: 时间前置 + 预见能力 + 战略思维 = foresight。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: show/have/demonstrate foresight; lack of foresight; business/technological foresight.",
+            "近义词区别: vision 更宏大抽象；foresight 更强调对未来具体事件的预见和准备；prudence 侧重谨慎。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Foresight 是领导力和战略思维的核心词汇。在考研阅读中常用来评价政策制定者、企业家或科学家的能力。",
+            "本文 Parmigiani 对 foresight 的肯定（novel, unique, lasting impact）构成了 Q33 的关键依据之一。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Foresight is seeing the invisible before it becomes inevitable. Foresight 是在必然到来之前看见不可见之物。\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5223",
+      "word": "Advisory",
+      "lookupKey": "advisory",
+      "definition": "顾问的；咨询的；劝告的",
+      "pronunciations": [
+        "/ədˈvaɪzəri/"
+      ],
+      "partOfSpeech": "adj.",
+      "fileName": "5223-advisory.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "advisory role 指 SBoRE 主要提供建议和意见，而非直接做决定（如拒稿/接受）。",
+            "Parmigiani 强调 advisory role，暗示 SBoRE 的权力边界——它是顾问团，不是裁判所。这一定位影响了对其预期效果的评估。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "advise（建议）+ -ory（形容词后缀，表「...性质的」「...功能的」）。Advise 源自拉丁语 advisare（反复考虑）。",
+            "原始画面: 一位老臣站在君王身旁低声说话，不直接下命令，只提供参考意见。",
+            "核心意象: 建议 + 辅助 + 无强制力 = advisory。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: advisory role/body/panel/committee; advisory opinion.",
+            "近义词区别: consultative 与 advisory 近乎同义；counseling 更偏向心理/法律咨询。",
+            "常见误用: advisory 不等于 advisable（advisory=顾问的/咨询的；advisable=明智的/可取的）。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Advisory body/role 是制度设计中常见的权力限制方式——有话语权但无决定权。考研阅读中出现 advisory 时要注意其背后的权责划分。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Advisory power influences without deciding. Advisory 的影响力在于引导，而不在于裁决。\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5224",
+      "word": "Overdue",
+      "lookupKey": "overdue",
+      "definition": "早该发生的；迟来的；过期的",
+      "pronunciations": [
+        "/ˌəʊvəˈdjuː/"
+      ],
+      "partOfSpeech": "adj.",
+      "fileName": "5224-overdue.md",
+      "source": {
+        "2015-Text3": "考研英语一 2015 Text 3"
+      },
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "Ioannidis 用 overdue 表达强烈支持——统计审查不仅受欢迎，而且早就该做了（暗示学术界在此问题上行动迟缓）。",
+            "Overdue 在此不是「过期未还」（如 overdue book），而是「迟来的/早该发生的」。与 welcome step forward 连用构成双重正面评价。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "over-(过度/超过) + due（到期/应得）。字面义：超过了应到的时间。",
+            "原始画面: 一列火车本该上午 8 点到达，现在下午 2 点才进站——乘客已经等得太久了。",
+            "核心意象: 延迟 + 必然性 + 期待已久 = overdue。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "典型搭配: long overdue; an overdue reform/change/apology.",
+            "多义词: (1)（时间上）过期的/逾期的 (2)（抽象）早该发生的/姗姗来迟的。考研阅读中(2)更常见。",
+            "常见误用: overdue 不等于 late——late 是中性描述，overdue 含「本该更早」的价值判断。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Overdue 是态度题的高频信号词。当专家说某事 overdue 时，表达的是「支持 + 不满拖延」的复合态度。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Overdue means it should have happened yesterday. Overdue 意味着这件事昨天就该发生了。\""
+          ]
+        }
+      ]
+    },
+    {
+      "word": "dearth",
+      "fileName": "5225-dearth.md",
+      "lookupKey": "dearth",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/dɜːrθ/"
+      ],
+      "definition": "缺乏；不足",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：the 'unsettling dearth of integrity across so many of our institutions'（我们的许多机构中令人不安的诚信缺失）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自中古英语 derthe，与 dear（昂贵的、稀缺的）同源，原指物资稀缺。",
+            "- **原始画面**: 粮仓见底，谷物所剩无几。",
+            "- **核心意象**: 数量严重不足 + 令人担忧 = 匮乏、稀缺。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: a dearth of evidence; a dearth of talent; a dearth of resources",
+            "- **近义词区别**: dearth 强调严重短缺，lack 为通用词，scarcity 偏客观稀缺。",
+            "- **常见误用**: 不要与 death（死亡）混淆拼写。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Dearth 是考研高频词，常与 of 搭配，表示某种重要品质的缺失。在写作中可替换 lack 以提升表达层次，如 a dearth of moral awareness（道德意识的匮乏）。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"A dearth is not just less; it is too little for what is needed. 匮乏不只是少，是少到不够用。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "integrity",
+      "fileName": "5226-integrity.md",
+      "lookupKey": "integrity",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/ɪnˈteɡrəti/"
+      ],
+      "definition": "诚信；正直；完整",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：the dearth of integrity across institutions（机构中诚信的缺失）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 integritas，integer（完整的、未受损的）的名词形式。",
+            "- **原始画面**: 一根完整的、没有裂缝的梁柱。",
+            "- **核心意象**: 内在一致 + 未受腐蚀 + 道德完整 = 诚信、正直。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: personal integrity; moral integrity; territorial integrity; structural integrity",
+            "- **近义词区别**: integrity 强调道德完整，honesty 侧重不说谎。",
+            "- **常见误用**: 不要与 integration（整合）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Integrity 在本文中是核心主题词，指机构与个人在道德上的完整与诚实。考研写作中可用于讨论学术诚信、职业道德等话题。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Integrity is wholeness in action. 诚信，是行动中的完整。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "unsettling",
+      "fileName": "5227-unsettling.md",
+      "lookupKey": "unsettling",
+      "partOfSpeech": "形容词",
+      "pronunciations": [
+        "/ʌnˈsetlɪŋ/"
+      ],
+      "definition": "令人不安的；令人担忧的",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：the 'unsettling dearth of integrity'（令人不安的诚信缺失）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: un-（不）+ settle（使安定）+ -ing（令人……的）。",
+            "- **原始画面**: 本已放好的东西被突然打翻，心神不宁。",
+            "- **核心意象**: 打破平静 + 引发担忧 = 令人不安的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: unsettling news; unsettling trend; unsettling silence",
+            "- **近义词区别**: unsettling 强调心理上的不安，disturbing 更强烈，可指 disturbing  disturbing。",
+            "- **常见误用**: 不要与 unsettled（未解决的、不安的）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Unsettling 常用于描述趋势、发现或现象让人感到担忧，是考研阅读中表达负面态度的重要形容词。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Unsettling is the quiet feeling that something is wrong. 令人不安的，是某种不对劲的安静感觉。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "sorting mechanism",
+      "fileName": "5228-sorting-mechanism.md",
+      "lookupKey": "sorting-mechanism",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈsɔːrtɪŋ ˈmekənɪzəm/"
+      ],
+      "definition": "排序机制；筛选机制",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：the only 'sorting mechanism' in society should be profit and the market（社会中唯一的'排序机制'应当是利润和市场）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: sort（分类、排序）+ mechanism（机制）。",
+            "- **原始画面**: 一台机器把物品按大小或价值分门别类。",
+            "- **核心意象**: 按某种标准对社会事物进行排序/筛选 = 排序机制。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: market sorting mechanism; social sorting mechanism",
+            "- **近义词区别**: sorting mechanism 是隐喻用法，强调社会资源的分配规则，不是具体机器。",
+            "- **常见误用**: 不要按字面理解为机械装置。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Sorting mechanism 在本文中是社会批判的核心隐喻，指社会用利润和市场来给人与事分等级。写作中可用于分析教育、职场、社会评价体系。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"A sorting mechanism is the invisible ruler by which a society ranks its people. 排序机制，是社会给人排座次的隐形尺子。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "collective acceptance",
+      "fileName": "5229-collective-acceptance.md",
+      "lookupKey": "collective-acceptance",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/kəˈlektɪv əkˈseptəns/"
+      ],
+      "definition": "集体接受；普遍认同",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：because of a collective acceptance that the only sorting mechanism should be profit and the market（因为人们普遍接受利润和市场是唯一的排序机制）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: collective（集体的）+ acceptance（接受、认同）。",
+            "- **原始画面**: 一群人共同点头同意某件事。",
+            "- **核心意象**: 群体层面的一致认可 + 形成社会共识 = 集体接受。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: collective acceptance of...; gain collective acceptance",
+            "- **近义词区别**: collective acceptance 强调群体性默认，consensus 更正式，指经过讨论的共识。",
+            "- **常见误用**: 不要与 collective action（集体行动）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Collective acceptance 常用于解释某种社会现象为何长期存在——因为大家都默认了它。考研写作中可用来分析不良现象的深层原因。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Collective acceptance is how a bad idea becomes a background noise. 集体接受，是让坏主意变成背景噪音的过程。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "moral purpose",
+      "fileName": "5230-moral-purpose.md",
+      "lookupKey": "moral-purpose",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈmɔːrəl ˈpɜːrpəs/"
+      ],
+      "definition": "道德目的；道德使命",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：the absence of moral purpose was wounding companies（道德目的的缺失正在伤害公司）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: moral（道德的）+ purpose（目的、使命）。",
+            "- **原始画面**: 一盏灯照亮行动的方向，告诉人们何为正确。",
+            "- **核心意象**: 行动背后的伦理方向 + 超越利益的追求 = 道德目的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: absence of moral purpose; sense of moral purpose; serve a moral purpose",
+            "- **近义词区别**: moral purpose 强调道德层面的目标，social responsibility 强调社会责任。",
+            "- **常见误用**: 不要与 moral standards（道德标准）完全等同。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Moral purpose 是本文反复出现的关键词，指企业或机构除了利润之外应有的伦理追求。写作中可用于讨论企业社会责任、新闻伦理等。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Moral purpose is the compass that keeps profit from becoming the only north. 道德目的，是让利润不至成为唯一北方的指南针。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "lose one's way",
+      "fileName": "5231-lose-one's-way.md",
+      "lookupKey": "lose-one's-way",
+      "partOfSpeech": "动词短语",
+      "pronunciations": [
+        "/luːz wʌnz weɪ/"
+      ],
+      "definition": "迷失方向；误入歧途",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：making it more likely that it would lose its way as it had with widespread illegal telephone hacking（使其更有可能像过去那样因大范围非法电话窃听而迷失方向）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: lose（失去）+ one's way（道路/方向）。",
+            "- **原始画面**: 一个人在森林中找不到回家的路。",
+            "- **核心意象**: 失去正确方向 + 行为偏离正轨 = 迷失方向。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: lose one's way morally; lose one's way in life",
+            "- **近义词区别**: lose one's way 可指 literal 迷路或 moral 迷失，本文为比喻用法。",
+            "- **常见误用**: 不要与 lose one's mind（发疯）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Lose one's way 在本文中比喻企业失去道德方向，是讨论机构堕落的生动表达。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"To lose one's way is not to stop moving, but to move toward the wrong place. 迷失方向不是停止前进，而是朝错误的地方前进。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "conspire",
+      "fileName": "5232-conspire.md",
+      "lookupKey": "conspire",
+      "partOfSpeech": "动词",
+      "pronunciations": [
+        "/kənˈspaɪər/"
+      ],
+      "definition": "合谋；共谋；协力",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：Andy Coulson, for conspiring to hack phones（安迪·库尔森因合谋窃听电话）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 conspirare，con-（共同）+ spirare（呼吸），原指共同呼吸、密谋。",
+            "- **原始画面**: 几个人凑在一起低声密谋。",
+            "- **核心意象**: 秘密共同策划 + 通常带有不良目的 = 合谋。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: conspire to do sth.; conspire against sb.; conspire with sb.",
+            "- **近义词区别**: conspire 强调秘密共谋，collaborate 强调公开合作。",
+            "- **常见误用**: 中性用法 conspire to produce 表示'共同导致'，不带贬义。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Conspire 在本文中为贬义，指合谋犯罪。但在其他语境中可表示'共同促成'，如 circumstances conspired to make it possible。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Conspire is to breathe the same secret air. 合谋，是呼吸同一口秘密的空气。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "predecessor",
+      "fileName": "5233-predecessor.md",
+      "lookupKey": "predecessor",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/ˈpredəsesər/"
+      ],
+      "definition": "前任；前辈；前身",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：finding his predecessor, Rebekah Brooks, innocent of the same charge（裁定他的前任丽贝卡·布鲁克斯在同项指控中无罪）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 praedecessor，prae-（在前）+ decessor（离开者）。",
+            "- **原始画面**: 一个人把椅子传给下一位坐下的人。",
+            "- **核心意象**: 在职务或时间上先于现任者 = 前任。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: one's predecessor at work; the predecessor of the current model",
+            "- **近义词区别**: predecessor 指前任职位上的人，ancestor 指祖先。",
+            "- **常见误用**: 不要与 successor（继任者）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Predecessor 在职场、历史、产品迭代语境中常用。考研阅读中涉及职位更替时经常出现。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"A predecessor is the person whose chair you now sit in. 前任，是你现在正坐着的那把椅子的前任主人。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "innocent",
+      "fileName": "5234-innocent.md",
+      "lookupKey": "innocent",
+      "partOfSpeech": "形容词/名词",
+      "pronunciations": [
+        "/ˈɪnəsnt/"
+      ],
+      "definition": "无罪的；天真的；无辜者",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：finding his predecessor, Rebekah Brooks, innocent of the same charge（裁定其前任丽贝卡·布鲁克斯在同项指控中无罪）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 innocens，in-（不）+ nocens（有害的）。",
+            "- **原始画面**: 一个人双手干净，没有沾染罪行。",
+            "- **核心意象**: 未造成伤害 + 未犯罪 = 无罪的、无辜的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: innocent of the charge; innocent civilians; innocent look",
+            "- **近义词区别**: innocent 作'无罪'为法律用语，作'天真'为日常用语。",
+            "- **常见误用**: innocent of 后接罪名，不要接 for。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Innocent 在本文中为法律含义'无罪的'，与 guilty 相对。考研阅读中法律、伦理类文章常见。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Innocent, in court, means the stain did not stick. 在法庭上，无罪意味着污渍没有沾上。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "industrial scale",
+      "fileName": "5235-industrial-scale.md",
+      "lookupKey": "industrial-scale",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ɪnˈdʌstriəl skeɪl/"
+      ],
+      "definition": "工业规模；大规模",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：This is hacking on an industrial scale（这是一种工业规模的窃听）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: industrial（工业的）+ scale（规模）。",
+            "- **原始画面**: 工厂流水线一样大规模、系统化地生产。",
+            "- **核心意象**: 像工业生产一样大批量、有组织 = 大规模、系统化。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: on an industrial scale; industrial-scale production",
+            "- **近义词区别**: industrial scale 强调系统性和批量，large scale 仅指规模大。",
+            "- **常见误用**: 不要按字面理解为'工业用的秤'。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Industrial scale 在本文中是比喻，强调电话窃听已不是个别行为，而是有组织的大规模操作。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"On an industrial scale is not just big; it is organized big. 工业规模不只是大，是有组织地大。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "point person",
+      "fileName": "5236-point-person.md",
+      "lookupKey": "point-person",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈpɔɪnt ˈpɜːrsn/"
+      ],
+      "definition": "负责人；联络人；关键人物",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：the man hired... to be the point person for phone hacking（被雇来负责电话窃听事务的人）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: point（指向/焦点）+ person（人）。",
+            "- **原始画面**: 一个人站在地图前，所有人都看着他来指明方向。",
+            "- **核心意象**: 特定事务中的主要负责人/对接人 = 关键人物。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: point person for...; serve as the point person",
+            "- **近义词区别**: point person 偏美式口语，contact person 更通用正式。",
+            "- **常见误用**: 不要理解为'指点的人'，而是'被指望负责的人'。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Point person 在组织、项目、危机处理语境中指具体负责人，是职场和媒体文章中的常用表达。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"The point person is the one name everyone calls first. 负责人，是大家第一个想到的名字。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "await trial",
+      "fileName": "5237-await-trial.md",
+      "lookupKey": "await-trial",
+      "partOfSpeech": "动词短语",
+      "pronunciations": [
+        "/əˈweɪt ˈtraɪəl/"
+      ],
+      "definition": "候审；等待审判",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：Others await trial（其他人还在等待审判）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: await（等待）+ trial（审判）。",
+            "- **原始画面**: 法庭门外还有人排着队等待开庭。",
+            "- **核心意象**: 案件尚未判决 + 当事人等待审理 = 候审。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: await trial; await further investigation",
+            "- **近义词区别**: await 为及物动词，等于 wait for，后不接 for。",
+            "- **常见误用**: 不要说 await for trial。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Await trial 是法律新闻中的高频表达，暗示案件尚未结束，可能还有更多人被定罪。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"To await trial is to stand in the shadow of a verdict not yet spoken. 候审，是站在尚未宣读的判决的阴影里。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "revelation",
+      "fileName": "5238-revelation.md",
+      "lookupKey": "revelation",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/ˌrevəˈleɪʃn/"
+      ],
+      "definition": "揭露；启示；新发现",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：One of the astonishing revelations was how little Rebekah Brooks knew...（令人震惊的揭露之一是布鲁克斯知之甚少……）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 revelare，re-（回）+ velare（遮盖），意为揭开面纱。",
+            "- **原始画面**: 帷幕被拉开，原本隐藏的东西显露出来。",
+            "- **核心意象**: 隐藏信息被公开 + 令人惊讶 = 揭露、启示。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: a startling revelation; divine revelation; reveal a revelation",
+            "- **近义词区别**: revelation 强调'被揭露出来的事实'，disclosure 更正式、常指主动公开。",
+            "- **常见误用**: 不要与 revolution（革命）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Revelation 在本文中指审判中暴露出来的惊人事实，带有强烈的意外感。考研阅读中常作'揭露、新发现'使用。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"A revelation is a truth that was hidden until the curtain moved. 揭露，是帷幕移动后才显现的真相。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "newsroom",
+      "fileName": "5239-newsroom.md",
+      "lookupKey": "newsroom",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/ˈnuːzruːm/"
+      ],
+      "definition": "新闻编辑室；编辑部",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：what went on in her newsroom（她的新闻编辑室里发生的事）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: news（新闻）+ room（房间）。",
+            "- **原始画面**: 一间摆满电脑、电话和稿件的办公室，记者和编辑在里面工作。",
+            "- **核心意象**: 新闻媒体机构中采编人员工作的核心场所 = 新闻编辑室。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: in the newsroom; newsroom editor; newsroom culture",
+            "- **近义词区别**: newsroom 是媒体机构内部空间，news agency 是新闻通讯社。",
+            "- **常见误用**: 不要理解为'新闻发布厅'。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Newsroom 是媒体行业术语，在讨论新闻伦理、媒体操作时经常出现。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"The newsroom is where facts are shaped before they reach the public. 新闻编辑室，是事实抵达公众之前被塑形的地方。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "defence",
+      "fileName": "5240-defence.md",
+      "lookupKey": "defence",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/dɪˈfens/"
+      ],
+      "definition": "辩护；防御；防卫",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：The core of her successful defence was that she knew nothing（她成功辩护的核心是她一无所知）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 defendere（击退、保护）。",
+            "- **原始画面**: 一个人举起盾牌挡住攻击。",
+            "- **核心意象**: 法律上为自己辩护 + 物理上抵御攻击 = 辩护、防御。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: legal defence; in defence of; self-defence; defence lawyer",
+            "- **近义词区别**: defence 英式拼写，defense 美式拼写。",
+            "- **常见误用**: 作'辩护'讲时后可接 that 从句说明辩护内容。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Defence 在本文中为法律含义'辩护'，是司法、伦理类文章的高频词。注意英美拼写差异。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Defence is the shield you raise when accusation comes. 辩护，是指控来临时举起的盾牌。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "accountable",
+      "fileName": "5241-accountable.md",
+      "lookupKey": "accountable",
+      "partOfSpeech": "形容词",
+      "pronunciations": [
+        "/əˈkaʊntəbl/"
+      ],
+      "definition": "负责任的；可解释的；可问责的",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：well-paid executives should not be accountable for what happens（高薪高管不应为发生的事负责）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自 account（解释、说明）+ -able（能够……的）。",
+            "- **原始画面**: 一个人站在账簿前，必须解释每一笔钱的去向。",
+            "- **核心意象**: 能够对自己的行为给出解释 + 承担后果 = 负责任的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: be accountable for; hold sb. accountable; accountable government",
+            "- **近义词区别**: accountable 强调可被问责，responsible 强调有职责。",
+            "- **常见误用**: accountable 后接 for，不接 to（对某人负责用 accountable to sb. for sth.）。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Accountable 是本文批判高管免责的核心词，也是企业治理、公共管理话题中的高频词。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"To be accountable is to owe an answer. 负责任，就是欠一个解释。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "shareholder value",
+      "fileName": "5242-shareholder-value.md",
+      "lookupKey": "shareholder-value",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈʃerhoʊldər ˈvæljuː/"
+      ],
+      "definition": "股东价值",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：The words that have mattered are efficiency, flexibility, shareholder value...（真正重要的词汇是效率、灵活性、股东价值……）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: shareholder（股东）+ value（价值）。",
+            "- **原始画面**: 股东持有的股票所代表的经济利益。",
+            "- **核心意象**: 企业为股东创造的经济回报 = 股东价值。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: maximize shareholder value; create shareholder value",
+            "- **近义词区别**: shareholder value 强调股东回报，stakeholder value 强调所有利益相关者。",
+            "- **常见误用**: 不要与 stock price（股价）完全等同， shareholder value 更广泛。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Shareholder value 是企业管理和金融领域的核心概念，常出现在讨论企业目标与社会责任冲突的文章中。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Shareholder value is the scoreboard capitalism looks at most often. 股东价值，是资本主义最常看的那块记分牌。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "proportionality",
+      "fileName": "5243-proportionality.md",
+      "lookupKey": "proportionality",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/prəˌpɔːrʃəˈnæləti/"
+      ],
+      "definition": "相称性；比例原则；均衡",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：Words degraded to the margin have been justice, fairness, tolerance, proportionality and accountability（被贬至边缘的词汇是正义、公平、宽容、相称性和问责制）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 proportio（比例）+ -ality（名词后缀）。",
+            "- **原始画面**: 天平两端重量成比例，处罚与过错相匹配。",
+            "- **核心意象**: 程度与原因相匹配 + 不过度 = 相称性、比例原则。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: principle of proportionality; proportionality of response",
+            "- **近义词区别**: proportionality 强调适度、相称，balance 强调平衡。",
+            "- **常见误用**: 不要与 proportion（比例）完全等同，proportionality 强调'相称'这一原则。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Proportionality 是法律、伦理、政策讨论中的正式用语，指惩罚、措施等与过错或需求相称。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Proportionality is the art of matching the size of the response to the size of the wound. 相称性，是让回应的大小与伤口的大小相匹配的艺术。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "accountability",
+      "fileName": "5244-accountability.md",
+      "lookupKey": "accountability",
+      "partOfSpeech": "名词",
+      "pronunciations": [
+        "/əˌkaʊntəˈbɪləti/"
+      ],
+      "definition": "问责制；责任心；可解释性",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：Words degraded to the margin have been... accountability（被贬至边缘的词汇有……问责制）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: accountable（负责任的）+ -ity（名词后缀）。",
+            "- **原始画面**: 一条清晰的链条，让每个人都必须为自己的行为负责。",
+            "- **核心意象**: 制度上可追溯责任 + 个人需承担后果 = 问责制。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: accountability mechanism; lack of accountability; hold sb. accountable",
+            "- **近义词区别**: accountability 强调制度化的问责，responsibility 强调个人职责。",
+            "- **常见误用**: 不要与 responsibility 完全等同，accountability 更强调'被追究'。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Accountability 是本文的核心价值词之一，指机构和个人必须为自己的行为负责。考研写作中可用于讨论政府透明、企业治理等话题。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Accountability is the chain that keeps power from floating free. 问责制，是防止权力飘离地面的锁链。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "common humanity",
+      "fileName": "5245-common-humanity.md",
+      "lookupKey": "common-humanity",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈkɑːmən hjuːˈmænəti/"
+      ],
+      "definition": "共同的人性；人类共通的良知",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：The purpose of editing... was not to... betray any common humanity（编辑目的不是……背叛共同的人性）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: common（共同的）+ humanity（人性、人类）。",
+            "- **原始画面**: 不同肤色、不同背景的人面对痛苦时都会心生怜悯。",
+            "- **核心意象**: 人类共有的情感与道德本能 = 共同的人性。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: appeal to common humanity; shared humanity",
+            "- **近义词区别**: common humanity 强调普世人性，human rights 强调法定权利。",
+            "- **常见误用**: 不要理解为'普通人类'。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Common humanity 是伦理讨论中的常用表达，强调人与人之间最基本的共情与尊重。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Common humanity is the recognition that the other person is also someone. 共同的人性，是认识到他人也是某个人。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "quest",
+      "fileName": "5246-quest.md",
+      "lookupKey": "quest",
+      "partOfSpeech": "名词/动词",
+      "pronunciations": [
+        "/kwest/"
+      ],
+      "definition": "追求；探索",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：It was to ruin lives in the quest for circulation and impact（其目的是在追求发行量与影响力的过程中毁掉他人生活）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: 源自拉丁语 quaerere（寻找、寻求）。",
+            "- **原始画面**: 骑士为寻找圣杯而踏上漫长旅途。",
+            "- **核心意象**: 长期而执着的追求 + 带有强烈目标 = 探索、追求。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: in the quest for; quest for knowledge; quest for success",
+            "- **近义词区别**: quest 比 pursuit 更文学化、更强调艰辛与使命感。",
+            "- **常见误用**: quest 常与 for 搭配，不接 of。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Quest 在本文中带贬义，指对发行量和影响力的不择手段的追求。写作中可用于表达正面或负面的追求。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"A quest is a search that costs something. 追求，是要付出代价的寻找。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "traceable",
+      "fileName": "5247-traceable.md",
+      "lookupKey": "traceable",
+      "partOfSpeech": "形容词",
+      "pronunciations": [
+        "/ˈtreɪsəbl/"
+      ],
+      "definition": "可追溯的；可追踪的",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：nor received traceable, recorded answers（也没有收到可追溯、有记录的回答）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: trace（追踪、痕迹）+ -able（可……的）。",
+            "- **原始画面**: 雪地上留下清晰的脚印，可以一路跟回去。",
+            "- **核心意象**: 留下可查找的痕迹 + 能够溯源 = 可追溯的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: traceable source; easily traceable; traceable records",
+            "- **近义词区别**: traceable 强调可追踪来源，trackable 强调可实时跟踪位置。",
+            "- **常见误用**: 不要与 trace（微量）作名词时的含义混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Traceable 在本文中强调 Brooks 没有留下任何可查证的管理痕迹，暗示其故意不作为。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Traceable means the path back to you is still open. 可追溯，意味着回到你这里的路仍然敞开着。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "telephone hacking",
+      "fileName": "5248-telephone-hacking.md",
+      "lookupKey": "telephone-hacking",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈtelɪfoʊn ˈhækɪŋ/"
+      ],
+      "definition": "电话窃听；电话黑客攻击",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：widespread illegal telephone hacking（大范围的非法电话窃听）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: telephone（电话）+ hacking（黑客攻击/非法入侵）。",
+            "- **原始画面**: 有人偷偷打开别人的语音信箱听取留言。",
+            "- **核心意象**: 未经授权入侵电话系统获取信息 = 电话窃听。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: phone hacking; illegal telephone hacking; hacking scandal",
+            "- **近义词区别**: telephone hacking 偏正式新闻用语，phone hacking 更口语。",
+            "- **常见误用**: 不要与 computer hacking（电脑黑客攻击）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Telephone hacking 是本文核心事件，指《世界新闻报》记者非法窃听名人、平民电话以获取新闻线索。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Telephone hacking is listening through someone else's keyhole with technology. 电话窃听，是用技术在别人的钥匙孔里偷听。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "well-paid",
+      "fileName": "5249-well-paid.md",
+      "lookupKey": "well-paid",
+      "partOfSpeech": "形容词",
+      "pronunciations": [
+        "/ˌwel ˈpeɪd/"
+      ],
+      "definition": "高薪的；待遇优厚的",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：well-paid executives should not be accountable（高薪高管不应负责）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: well（很好地）+ paid（被支付的）。",
+            "- **原始画面**: 一个人拿到厚厚的薪水信封。",
+            "- **核心意象**: 报酬丰厚 + 社会地位较高 = 高薪的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: well-paid jobs; well-paid executives; well-paid professionals",
+            "- **近义词区别**: well-paid 强调收入高，highly paid 同义，更正式。",
+            "- **常见误用**: 作定语时通常用连字符 well-paid。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Well-paid 在本文中用于形成反差：高管薪水高却不用负责，批判当代企业激励机制失衡。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Well-paid means the envelope is thick, not necessarily the conscience. 高薪，意味着信封厚，不一定是良心厚。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "business-friendly",
+      "fileName": "5250-business-friendly.md",
+      "lookupKey": "business-friendly",
+      "partOfSpeech": "形容词",
+      "pronunciations": [
+        "/ˈbɪznəs ˈfrendli/"
+      ],
+      "definition": "商业友好的；有利于商业的",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：The words that have mattered are efficiency, flexibility, shareholder value, business-friendly...（真正重要的词汇是效率、灵活性、股东价值、商业友好……）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: business（商业）+ friendly（友好的）。",
+            "- **原始画面**: 一扇对企业家敞开、手续简便的大门。",
+            "- **核心意象**: 政策或环境对商业发展有利 = 商业友好的。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: business-friendly policies; business-friendly environment",
+            "- **近义词区别**: business-friendly 强调有利于企业运营，pro-business 更政治化。",
+            "- **常见误用**: 作定语时用连字符 business-friendly。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Business-friendly 是经济、政策类文章中的常见词，常用来描述政府政策或商业环境。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Business-friendly is a door that opens easily for companies. 商业友好，是一扇对公司容易打开的门。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
+    },
+    {
+      "word": "wealth generation",
+      "fileName": "5251-wealth-generation.md",
+      "lookupKey": "wealth-generation",
+      "partOfSpeech": "名词短语",
+      "pronunciations": [
+        "/ˈwelθ ˌdʒenəˈreɪʃn/"
+      ],
+      "definition": "财富创造；创造财富",
+      "sections": [
+        {
+          "title": "当前语境",
+          "lines": [
+            "考研英语一 2015 Text 4：wealth generation, sales, impact and... circulation（财富创造、销售额、影响力、发行量）。"
+          ]
+        },
+        {
+          "title": "词源与构词",
+          "lines": [
+            "- **词源/构词**: wealth（财富）+ generation（创造、产生）。",
+            "- **原始画面**: 一台机器持续产出金钱和价值。",
+            "- **核心意象**: 创造经济价值 + 增加财富总量 = 财富创造。"
+          ]
+        },
+        {
+          "title": "用法边界",
+          "lines": [
+            "- **典型搭配**: wealth generation; wealth creation; generate wealth",
+            "- **近义词区别**: wealth generation 与 wealth creation 基本同义，creation 更常用。",
+            "- **常见误用**: 不要与 wealth distribution（财富分配）混淆。"
+          ]
+        },
+        {
+          "title": "深层解释",
+          "lines": [
+            "Wealth generation 是企业管理和经济政策中的常用词，强调增加社会财富总量。"
+          ]
+        },
+        {
+          "title": "一语道破",
+          "lines": [
+            "\"Wealth generation is making the pie bigger before arguing over the slices. 财富创造，是在争论怎么分之前先把饼做大。\""
+          ]
+        }
+      ],
+      "source": {
+        "note": "考研英语一 2015 Text 4"
+      }
     }
   ]
 }

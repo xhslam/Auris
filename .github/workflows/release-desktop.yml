@@ -1,0 +1,147 @@
+name: Release Desktop App
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  validate-release:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version and release ordering
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Release tag must be vX.Y.Z, got $TAG"
+            exit 1
+          }
+          VERSION="${TAG#v}"
+          PACKAGE_VERSION="$(node -p "require('./auris/package.json').version")"
+          [[ "$PACKAGE_VERSION" = "$VERSION" ]] || {
+            echo "::error::Tag $TAG does not match auris/package.json ($PACKAGE_VERSION)"
+            exit 1
+          }
+
+          LATEST_TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --json tagName --jq '.[0].tagName // empty')"
+          if [[ -n "$LATEST_TAG" ]]; then
+            LATEST_VERSION="${LATEST_TAG#v}"
+            HIGHEST="$(printf '%s\n%s' "$VERSION" "$LATEST_VERSION" | sort -V | tail -1)"
+            if [[ "$HIGHEST" = "$LATEST_VERSION" ]]; then
+              echo "::error::Tag $TAG is not newer than latest published release $LATEST_TAG. Bump the patch version first."
+              exit 1
+            fi
+          fi
+          printf 'tag=%s\nversion=%s\n' "$TAG" "$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Auris $TAG" --generate-notes --draft
+
+  build-and-upload:
+    name: Build ${{ matrix.name }}
+    needs: validate-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Apple Silicon
+            os: macos-14
+            command: npm run desktop:release:build:mac
+            required_metadata: auris/release/latest-mac.yml
+          - name: Windows x64
+            os: windows-latest
+            command: npm run desktop:release:build:win
+            required_metadata: auris/release/latest.yml
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: auris
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: auris/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Require macOS release signing credentials
+        if: matrix.name == 'macOS Apple Silicon'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+        run: |
+          test -n "$CSC_LINK" || { echo "::error::Missing MAC_CSC_LINK secret"; exit 1; }
+          test -n "$CSC_KEY_PASSWORD" || { echo "::error::Missing MAC_CSC_KEY_PASSWORD secret"; exit 1; }
+
+      - name: Build and upload update artifacts
+        env:
+          # The workflow token has only this repository's contents:write permission.
+          GITHUB_RELEASE_TOKEN: ${{ github.token }}
+          # Developer ID credentials are present only in the macOS release job.
+          CSC_LINK: ${{ matrix.name == 'macOS Apple Silicon' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.name == 'macOS Apple Silicon' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+        run: ${{ matrix.command }}
+
+      - name: Verify updater metadata was produced for this version
+        shell: bash
+        env:
+          VERSION: ${{ needs.validate-release.outputs.version }}
+          METADATA: ${{ matrix.required_metadata }}
+        run: |
+          set -euo pipefail
+          test -f "$METADATA"
+          grep -q "^version: $VERSION$" "$METADATA"
+
+  publish-release:
+    name: Publish release
+    needs: [validate-release, build-and-upload]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required updater metadata exists on draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.validate-release.outputs.tag }}
+          VERSION: ${{ needs.validate-release.outputs.version }}
+        run: |
+          set -euo pipefail
+          ASSETS="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+          echo "$ASSETS"
+          printf '%s\n' "$ASSETS" | grep -q '^latest-mac.yml$'
+          printf '%s\n' "$ASSETS" | grep -q '^latest.yml$'
+          # Installer and update archive must both exist for each supported platform.
+          printf '%s\n' "$ASSETS" | grep -q "Auris-$VERSION.*\.dmg$"
+          printf '%s\n' "$ASSETS" | grep -q "Auris-$VERSION.*-mac\.zip$"
+          printf '%s\n' "$ASSETS" | grep -q "Auris-$VERSION.*\.exe$"
+
+      - name: Publish verified draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.validate-release.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false

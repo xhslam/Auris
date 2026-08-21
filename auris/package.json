@@ -1,6 +1,6 @@
 {
   "name": "auris",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "main": "electron/main.cjs",
   "description": "Auris — language learning through listening and shadowing.",
@@ -43,6 +43,11 @@
     "desktop:assemble": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs && npm run desktop:privacy:audit",
     "desktop:assemble:win": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs --target=win32-x64 && npm run desktop:privacy:audit",
     "desktop:build:verify": "node scripts/verify-desktop-build.cjs",
+    "desktop:release:build:mac": "npm run build && npm run desktop:assemble && electron-builder --mac --publish always",
+    "desktop:release:build:win": "npm run build && npm run desktop:assemble:win && electron-builder --win --config.npmRebuild=false --publish always",
+    "desktop:release:check": "node scripts/publish-desktop-release.cjs --check",
+    "desktop:release:local": "node scripts/publish-desktop-release.cjs",
+    "desktop:release": "node scripts/prepare-desktop-release.cjs",
     "postinstall": "node scripts/copy-pdf-worker.cjs",
     "quality:desktop-ipc": "node scripts/verify-desktop-ipc-contract.cjs",
     "quality:feature-ledger": "node scripts/verify-feature-ledger.cjs"

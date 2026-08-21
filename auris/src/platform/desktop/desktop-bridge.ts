@@ -452,6 +452,27 @@ export type DesktopUpdatesBridge = {
     listener: (snapshot: DesktopUpdateSnapshot) => void,
   ) => () => void;
   openReleases: () => Promise<{ ok: boolean; reason?: string }>;
+  /** 仅开发工作副本提供；旧版或已打包应用不会暴露。 */
+  publishRelease?: () => Promise<{
+    branch?: string;
+    error?: string;
+    ok: boolean;
+    retriedTagPush?: boolean;
+    tag?: string;
+    version?: string;
+  }>;
+  /** 仅开发工作副本提供；旧版或已打包应用不会暴露。 */
+  syncRepository?: () => Promise<{
+    branch?: string;
+    commit?: string;
+    currentVersion?: string;
+    error?: string;
+    ok: boolean;
+    repositoryRoot?: string;
+    retriedPush?: boolean;
+    skipped?: boolean;
+    version?: string;
+  }>;
   quitAndInstall: () => Promise<{ ok: boolean; reason?: string }>;
   reset: () => Promise<DesktopUpdateSnapshot>;
   recover: () => Promise<{

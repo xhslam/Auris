@@ -1,0 +1,385 @@
+.personal-os-dashboard {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.personal-os-dashboard__header,
+.personal-os-card {
+  border: 1px solid color-mix(in srgb, var(--auris-line, #2a3348) 82%, transparent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--auris-surface, #141927) 94%, #2e4a68), var(--auris-surface, #141927));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.personal-os-dashboard__header {
+  align-items: flex-start;
+  border-radius: 14px;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.personal-os-dashboard__header small,
+.personal-os-card > small,
+.personal-os-card__eyebrow small,
+.personal-os-dialog small {
+  color: var(--auris-muted, #92a0b8);
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.personal-os-dashboard__header strong {
+  color: var(--auris-text, #edf4ff);
+  display: block;
+  font-size: 17px;
+  line-height: 1.3;
+  margin-top: 3px;
+}
+
+.personal-os-dashboard__header p,
+.personal-os-card p {
+  color: var(--auris-muted, #aab6c9);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 5px 0 0;
+}
+
+.personal-os-dashboard__header-actions,
+.personal-os-card__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: flex-end;
+}
+
+.personal-os-dashboard__header-actions > span {
+  color: var(--auris-muted, #aab6c9);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.personal-os-dashboard__notice {
+  background: color-mix(in srgb, #42b6ff 11%, transparent);
+  border: 1px solid color-mix(in srgb, #42b6ff 34%, transparent);
+  border-radius: 9px;
+  color: #bfe8ff;
+  font-size: 12px;
+  margin: 0;
+  padding: 8px 10px;
+}
+
+.personal-os-card {
+  border-radius: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 13px;
+}
+
+.personal-os-card--notice {
+  display: grid;
+  gap: 4px;
+  min-height: 164px;
+  place-content: center start;
+}
+
+.personal-os-card--notice[data-tone="warning"] {
+  border-color: color-mix(in srgb, #f3b45c 48%, var(--auris-line, #2a3348));
+}
+
+.personal-os-card strong {
+  color: var(--auris-text, #edf4ff);
+  font-size: 14px;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.personal-os-project {
+  border-color: color-mix(in srgb, #5ea8ff 38%, var(--auris-line, #2a3348));
+}
+
+.personal-os-project[data-active="false"] {
+  border-color: color-mix(in srgb, var(--auris-line, #2a3348) 92%, transparent);
+}
+
+.personal-os-card__eyebrow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.personal-os-card__eyebrow span {
+  background: color-mix(in srgb, #4eb1ff 19%, transparent);
+  border: 1px solid color-mix(in srgb, #4eb1ff 38%, transparent);
+  border-radius: 999px;
+  color: #bfe6ff;
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+.personal-os-project__state {
+  color: var(--auris-muted, #aab6c9);
+  display: block;
+  font-size: 11px;
+  margin-top: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personal-os-card__actions {
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.personal-os-button {
+  background: #418de0;
+  border: 1px solid color-mix(in srgb, #7dc0ff 62%, #418de0);
+  border-radius: 7px;
+  color: #f5fbff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.2;
+  padding: 7px 9px;
+}
+
+.personal-os-button:hover:not(:disabled) {
+  background: #5aa4f2;
+}
+
+.personal-os-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.personal-os-button--quiet {
+  background: color-mix(in srgb, var(--auris-panel, #1d2535) 86%, transparent);
+  border-color: color-mix(in srgb, var(--auris-line, #34405a) 82%, transparent);
+  color: var(--auris-text, #edf4ff);
+}
+
+.personal-os-dashboard__grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.personal-os-resources ul {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.personal-os-resources li {
+  align-items: center;
+  border-top: 1px solid color-mix(in srgb, var(--auris-line, #2a3348) 62%, transparent);
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding-top: 7px;
+}
+
+.personal-os-resources li span {
+  color: var(--auris-text, #edf4ff);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personal-os-resources li small {
+  color: var(--auris-muted, #aab6c9);
+  flex: 0 0 auto;
+  font-size: 10px;
+}
+
+.personal-os-dialog {
+  align-items: center;
+  background: rgba(4, 8, 16, 0.68);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 18px;
+  position: fixed;
+  z-index: 80;
+}
+
+.personal-os-dialog__panel {
+  background: #161d2b;
+  border: 1px solid #40506d;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+  display: grid;
+  gap: 11px;
+  max-height: min(760px, calc(100vh - 36px));
+  max-width: 620px;
+  overflow: auto;
+  padding: 18px;
+  width: min(100%, 620px);
+}
+
+.personal-os-dialog__panel header,
+.personal-os-dialog__panel footer {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.personal-os-dialog__panel header button {
+  background: transparent;
+  border: 0;
+  color: var(--auris-muted, #aab6c9);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.personal-os-dialog__panel header strong {
+  color: var(--auris-text, #edf4ff);
+  display: block;
+  font-size: 16px;
+  margin-top: 3px;
+}
+
+.personal-os-dialog__panel p {
+  color: var(--auris-muted, #aab6c9);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.personal-os-dialog__panel label {
+  color: var(--auris-text, #edf4ff);
+  display: grid;
+  font-size: 12px;
+  gap: 6px;
+}
+
+.personal-os-dialog__panel input,
+.personal-os-dialog__panel textarea {
+  background: #101621;
+  border: 1px solid #34425b;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--auris-text, #edf4ff);
+  font: inherit;
+  font-size: 12px;
+  min-height: 36px;
+  padding: 8px;
+  width: 100%;
+}
+
+.personal-os-dialog__panel textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.personal-os-dialog__panel footer {
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .personal-os-dashboard__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .personal-os-dashboard__header-actions {
+    justify-content: flex-start;
+  }
+}
+
+
+.personal-os-energy-picker {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.personal-os-energy-picker legend {
+  color: var(--auris-text, #edf4ff);
+  font-size: 12px;
+  margin-bottom: 7px;
+  padding: 0;
+}
+
+.personal-os-energy-picker legend span {
+  color: var(--auris-muted, #aab6c9);
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: 5px;
+}
+
+.personal-os-energy-picker > div {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.personal-os-energy-picker button {
+  align-items: center;
+  background: #101621;
+  border: 1px solid #34425b;
+  border-radius: 8px;
+  color: var(--auris-muted, #aab6c9);
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  min-height: 50px;
+  padding: 5px 3px;
+}
+
+.personal-os-energy-picker button:hover {
+  border-color: #6c94c4;
+  color: #d8ebff;
+}
+
+.personal-os-energy-picker button.is-selected {
+  background: color-mix(in srgb, #418de0 24%, #101621);
+  border-color: #6eb8ff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #6eb8ff 22%, transparent);
+  color: #e9f6ff;
+}
+
+.personal-os-energy-picker button:focus-visible {
+  outline: 2px solid #8acbff;
+  outline-offset: 2px;
+}
+
+.personal-os-energy-picker button b {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.personal-os-energy-picker button span {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.personal-os-energy-picker > p {
+  color: var(--auris-muted, #aab6c9);
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 7px 0 0;
+}
+
+@media (max-width: 440px) {
+  .personal-os-energy-picker > div {
+    gap: 4px;
+  }
+
+  .personal-os-energy-picker button {
+    min-height: 46px;
+  }
+}

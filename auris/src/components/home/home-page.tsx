@@ -18,6 +18,7 @@ import {
   Trash2Icon,
 } from "@/components/auris-ui/auris-icons";
 import { BrowserStatusCenter } from "@/components/desktop/browser-status-center";
+import { PersonalOsDashboard } from "@/components/desktop/personal-os-dashboard";
 import { CalendarHeatmap } from "@/components/home/calendar-heatmap";
 import { DailyQuote } from "@/components/home/daily-quote";
 import { LifeRoad } from "@/components/home/life-road";
@@ -52,7 +53,7 @@ type HomePageProps = { onNavigate: (href: string) => void; recentNotes?: NotePag
 type ColumnId = "left" | "center" | "right";
 type WidgetType =
   | "calendar" | "workspace" | "quote" | "life" | "review" | "capture" | "plans" | "browser"
-  | "countdown" | "current-study" | "nia" | "progress" | "recent-files" | "reading" | "pomodoro"
+  | "countdown" | "current-study" | "nia" | "progress" | "recent-files" | "reading" | "pomodoro" | "personal-os"
   | "quick-note" | "habit" | "clock" | "weather" | "music";
 type WidgetSize = "small" | "medium" | "large" | "auto";
 type WidgetInstance = {
@@ -90,6 +91,7 @@ const widgetDefinitions: WidgetDefinition[] = [
   { type: "reading", name: "Reading", description: "当前阅读与阅读队列。", category: "学习", defaultHeight: 220, defaultSpan: 4 },
   { type: "review", name: "今日复习", description: "今日待复习知识点与进度。", category: "学习", defaultHeight: 192, defaultSpan: 2 },
   { type: "current-study", name: "继续学习", description: "文章、视频与学习笔记的真实恢复入口。", category: "学习", defaultHeight: 270, defaultSpan: 2 },
+  { type: "personal-os", name: "个人操作系统", description: "以 Markdown 项目库驱动今日主项目、资源入口与学习记录。", category: "学习", defaultHeight: 620, defaultSpan: 6 },
   { type: "progress", name: "学习进度", description: "最近实际打开的 Reading 文章。", category: "学习", defaultHeight: 192, defaultSpan: 2 },
   { type: "calendar", name: "记录日历", description: "最近学习情况热力图。", category: "学习", defaultHeight: 306, defaultSpan: 6 },
   { type: "plans", name: "今日任务", description: "可直接编辑的任务清单。", category: "效率", defaultHeight: 356, defaultSpan: 2 },
@@ -123,10 +125,11 @@ function makeInitialLayout(): WorkspaceLayout {
       { id: "calendar", type: "calendar", zone: "left", order: 0, height: 306, size: "large", centerSpan: 6, pinned: false, hidden: false },
       { id: "workspace", type: "workspace", zone: "left", order: 1, height: 252, size: "medium", centerSpan: 2, pinned: false, hidden: false },
       { id: "quote", type: "quote", zone: "center", order: 0, height: 108, size: "small", centerSpan: 3, pinned: true, hidden: false },
-      { id: "life", type: "life", zone: "center", order: 1, height: 560, size: "large", centerSpan: 6, pinned: true, hidden: false },
-      { id: "review", type: "review", zone: "center", order: 2, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
-      { id: "progress", type: "progress", zone: "center", order: 3, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
-      { id: "capture", type: "capture", zone: "center", order: 4, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
+      { id: "personal-os", type: "personal-os", zone: "center", order: 1, height: 620, size: "large", centerSpan: 6, pinned: false, hidden: false },
+      { id: "life", type: "life", zone: "center", order: 2, height: 560, size: "large", centerSpan: 6, pinned: true, hidden: false },
+      { id: "review", type: "review", zone: "center", order: 3, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
+      { id: "progress", type: "progress", zone: "center", order: 4, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
+      { id: "capture", type: "capture", zone: "center", order: 5, height: 192, size: "medium", centerSpan: 3, pinned: false, hidden: false },
       { id: "plans", type: "plans", zone: "right", order: 0, height: 356, size: "large", centerSpan: 2, pinned: false, hidden: false },
       { id: "browser", type: "browser", zone: "right", order: 1, height: 184, size: "medium", centerSpan: 2, pinned: true, hidden: false },
       { id: "current-study", type: "current-study", zone: "right", order: 2, height: 270, size: "large", centerSpan: 2, pinned: false, hidden: false },
@@ -543,6 +546,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
       const days = Math.max(0, Math.ceil((exam.getTime() - now.getTime()) / 86_400_000));
       return <div className="workspace-countdown"><div className="workspace-countdown__eyebrow"><small>考研</small><em>{exam.getFullYear()}.12.26</em></div><div className="workspace-countdown__metric"><strong>{days}</strong><span>DAYS</span></div><p>距离初试还有 <b>{days}</b> 天</p></div>;
     }
+    if (widget.type === "personal-os") return <PersonalOsDashboard bridge={desktopBridge} onChooseDirectory={workbench.handlePickDirectory} />;
     if (widget.type === "current-study") return <HomeContinueLearningCard article={learningSummary.continueLearning.article} note={learningSummary.continueLearning.note} onConfigureFolders={() => setIsLearningFolderDialogOpen(true)} onNavigate={onNavigate} video={learningSummary.continueLearning.video} />;
     if (widget.type === "nia") return <div className="workspace-nia"><strong>Nia</strong><p>今天有 {learningSummary.review.actionableCount} 个知识点待复习。</p><button onClick={() => onNavigate("/review")}>开始复习</button><button onClick={() => onNavigate("/nia")}>Ask Nia…</button></div>;
     if (widget.type === "progress") return <HomeReadingCard onNavigate={onNavigate} summary={learningSummary.reading} />;

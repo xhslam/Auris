@@ -90,6 +90,8 @@ function hasValidUpdatesBridge(bridge: Partial<DesktopBridge>) {
     && isFunction(bridge.updates.getState)
     && isFunction(bridge.updates.onStateChange)
     && isFunction(bridge.updates.openReleases)
+    && (!bridge.updates.publishRelease || isFunction(bridge.updates.publishRelease))
+    && (!bridge.updates.syncRepository || isFunction(bridge.updates.syncRepository))
     && isFunction(bridge.updates.quitAndInstall)
     && isFunction(bridge.updates.reset)
     && isFunction(bridge.updates.recover)

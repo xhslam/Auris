@@ -13,7 +13,8 @@ publish:
   - provider: github
     owner: xhslam
     repo: auris
-    releaseType: release
+    # 先由标签工作流创建草稿并上传多平台资产；全部元数据验证后才提升为正式 Release。
+    releaseType: draft
 files:
   - electron/**/*
   # Assembled MCP/runtime closure (scripts/assemble-electron-runtime-deps.cjs).
@@ -65,9 +66,9 @@ mac:
   target:
     - dmg
     - zip
-  # Local ARM64 builds still require a valid code signature. Use ad-hoc
-  # signing when no Developer ID certificate is available.
-  identity: "-"
+  # 正式 Release 由 GitHub Actions 提供 CSC_LINK / CSC_KEY_PASSWORD，
+  # electron-builder 会自动导入并选用 Developer ID Application 证书。
+  # 不固定为 ad-hoc identity，否则 macOS 无法就地安装更新。
   hardenedRuntime: false
   gatekeeperAssess: false
 dmg:

@@ -29,6 +29,7 @@ import {
   UPDATE_CHECK_FREQUENCIES,
   type UpdateCheckFrequency,
 } from "@/features/updates/update-settings";
+import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 import { UPDATE_CHECK_REQUEST_KEY } from "@/features/updates/update-navigation";
 
 const FREQUENCY_LABELS: Record<UpdateCheckFrequency, string> = {
@@ -130,6 +131,10 @@ export function AppUpdatePanel() {
     useAppUpdateOperations();
   const { settings, update: updateSetting } = useAppUpdateSettings();
   const [isRestarting, setIsRestarting] = useState(false);
+  const [isRepositorySyncing, setIsRepositorySyncing] = useState(false);
+  const [isReleasePublishing, setIsReleasePublishing] = useState(false);
+  const [repositorySyncMessage, setRepositorySyncMessage] = useState<string | null>(null);
+  const [releasePublishMessage, setReleasePublishMessage] = useState<string | null>(null);
   const handledDeepLinkCheck = useRef(false);
 
   const { canInstallInPlace, downloadProgress, error, errorCode, stalledOperation, status, supported, updateInfo } = snapshot;
@@ -167,6 +172,54 @@ export function AppUpdatePanel() {
   const statusLabel = useMemo(() => STATUS_LABELS[status] ?? status, [status]);
 
   const frequencyIndex = UPDATE_CHECK_FREQUENCIES.indexOf(settings.checkFrequency);
+  const canSyncRepository = available && Boolean(getDesktopBridge()?.updates?.syncRepository);
+  const canPublishRelease = available && Boolean(getDesktopBridge()?.updates?.publishRelease);
+  const syncRepository = useCallback(async () => {
+    const bridge = getDesktopBridge();
+    if (!bridge?.updates?.syncRepository) {
+      setRepositorySyncMessage("当前桌面端未提供源码仓库同步能力。");
+      return;
+    }
+    setIsRepositorySyncing(true);
+    setRepositorySyncMessage(null);
+    try {
+      const result = await bridge.updates.syncRepository();
+      setRepositorySyncMessage(
+        result.ok
+          ? result.skipped
+            ? `当前分支已与 GitHub 同步，未创建新的版本提交${result.commit ? `（${result.commit}）` : ""}。`
+            : result.retriedPush
+              ? `已重试并推送 v${result.version ?? "当前版本"}${result.commit ? `（${result.commit}）` : ""}。`
+              : `已推送 ${result.branch ?? "当前分支"}：${result.currentVersion ?? "当前版本"} → ${result.version ?? "新版本"}${result.commit ? `（${result.commit}）` : ""}`
+          : result.error ?? "仓库同步失败，请检查 Git 状态后重试。",
+      );
+    } catch {
+      setRepositorySyncMessage("仓库同步失败，请检查 Git 状态、网络和提交身份后重试。");
+    } finally {
+      setIsRepositorySyncing(false);
+    }
+  }, []);
+  const publishRelease = useCallback(async () => {
+    const bridge = getDesktopBridge();
+    if (!bridge?.updates?.publishRelease) {
+      setReleasePublishMessage("当前桌面端未提供 GitHub Release 发布能力。");
+      return;
+    }
+    setIsReleasePublishing(true);
+    setReleasePublishMessage(null);
+    try {
+      const result = await bridge.updates.publishRelease();
+      setReleasePublishMessage(
+        result.ok
+          ? `${result.retriedTagPush ? "已重试推送" : "已推送"} ${result.tag ?? `v${result.version ?? ""}`}。GitHub Actions 将构建 macOS 与 Windows 安装包；验证全部更新元数据后才会正式发布。`
+          : result.error ?? "发布标签准备失败，请检查 Git 状态后重试。",
+      );
+    } catch {
+      setReleasePublishMessage("桌面版发布失败，请检查构建环境、Git 状态和 GitHub 授权后重试。");
+    } finally {
+      setIsReleasePublishing(false);
+    }
+  }, []);
 
   if (!available || !supported) {
     return (
@@ -181,6 +234,52 @@ export function AppUpdatePanel() {
           自动更新只在打包后的桌面端可用。开发模式（<code>npm run desktop:dev</code>）下不会
           连接发布源，避免把正常的调试会话误报成更新卡死。
         </p>
+        {canSyncRepository ? (
+          <div className="auris-update__repository-sync">
+            <div>
+              <div className="auris-update__label">同步源码仓库</div>
+              <p className="auris-update__note">
+                依次拉取 GitHub 当前分支、将补丁版本递增（例如 1.0.0 → 1.0.1）、提交并推送；只会包含 Auris 源码目录及忽略规则。
+              </p>
+            </div>
+            <button
+              className="auris-update__btn auris-update__btn--primary"
+              disabled={isRepositorySyncing}
+              onClick={() => void syncRepository()}
+              type="button"
+            >
+              {isRepositorySyncing ? "同步中…" : "同步并推送"}
+            </button>
+            {repositorySyncMessage ? (
+              <p className="auris-update__repository-message" role="status">
+                {repositorySyncMessage}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {canPublishRelease ? (
+          <div className="auris-update__repository-sync">
+            <div>
+              <div className="auris-update__label">发布桌面 App</div>
+              <p className="auris-update__note">
+                仅在当前分支已推送到 GitHub 后执行：创建 vX.Y.Z 标签，并由 GitHub Actions 构建 macOS 与 Windows 安装包；所有更新元数据齐全后才公开 Release。
+              </p>
+            </div>
+            <button
+              className="auris-update__btn auris-update__btn--primary"
+              disabled={isReleasePublishing || isRepositorySyncing}
+              onClick={() => void publishRelease()}
+              type="button"
+            >
+              {isReleasePublishing ? "准备发布中…" : "创建标签并发布"}
+            </button>
+            {releasePublishMessage ? (
+              <p className="auris-update__repository-message" role="status">
+                {releasePublishMessage}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         {available && snapshot.releasesUrl ? (
           <button
             className="auris-update__btn"
@@ -426,6 +525,10 @@ const UPDATE_PANEL_CSS = `
 .auris-update__error{margin:10px 0 0;font-size:13px;line-height:1.7;color:#c2554d;}
 .auris-update__note{margin:10px 0 0;font-size:12.5px;line-height:1.75;color:var(--app-muted);}
 .auris-update__note code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;}
+.auris-update__repository-sync{margin-top:14px;padding:14px;border:1px solid var(--app-line);border-radius:12px;background:var(--app-fill);display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px;}
+.auris-update__repository-sync>div{min-width:220px;flex:1;}
+.auris-update__repository-sync .auris-update__note{margin:4px 0 0;}
+.auris-update__repository-message{flex-basis:100%;margin:0;font-size:12.5px;line-height:1.6;color:var(--app-muted);}
 .auris-update__progress{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
 .auris-update__progress-head{display:flex;justify-content:space-between;font-size:11.5px;color:var(--app-muted);}
 .auris-update__progress-track{height:6px;border-radius:99px;background:var(--app-fill-strong);overflow:hidden;}

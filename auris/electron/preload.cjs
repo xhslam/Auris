@@ -475,6 +475,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
       };
     },
     openReleases: () => invoke("shadowing:updates:open-releases"),
+    publishRelease: () => invoke("shadowing:updates:publish-release"),
+    syncRepository: () => invoke("shadowing:updates:sync-repository"),
     quitAndInstall: () => invoke("shadowing:updates:quit-and-install"),
     reset: () => invoke("shadowing:updates:reset"),
     recover: () => invoke("shadowing:updates:recover"),

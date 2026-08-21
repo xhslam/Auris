@@ -48,6 +48,7 @@ next-env.d.ts
 # ---- 备份 / 临时文件 ----
 *.bak
 *.bak-*
+*.backup-*
 *.old
 *.tmp
 *~
