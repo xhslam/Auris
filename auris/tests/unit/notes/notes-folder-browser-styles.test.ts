@@ -45,6 +45,32 @@ describe("Notes folder browser styles", () => {
     expect(browserStyles).toContain("var(--accent-10");
   });
 
+  it("isolates file cards and rows from the generic Notes button fill", () => {
+    const css = readFileSync(globalsCssPath, "utf-8");
+    const cardRule = rule(
+      css,
+      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__card",
+      "background:",
+    );
+    const rowRule = rule(
+      css,
+      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__row",
+      "background:",
+    );
+    const selectedRule = rule(
+      css,
+      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__row\\[data-selected=\\\"true\\\"\\]",
+      "background:",
+    );
+
+    expect(cardRule).toContain("background: color-mix(in srgb, var(--notes-surface) 90%, var(--notes-bg)) !important");
+    expect(css).toMatch(
+      /notes-v2--folder-browser\s+\.notes-folder-browser__card,[\s\S]*?appearance: none !important/,
+    );
+    expect(rowRule).toContain("background: transparent !important");
+    expect(selectedRule).toContain("color-mix(in srgb, var(--accent) 6%, var(--notes-bg)) !important");
+  });
+
   it.each(["white", "night", "solarized"])(
     "keeps the browser palette tokenized in the %s theme",
     (theme) => {

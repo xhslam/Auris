@@ -143,3 +143,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 实现集中在 `src/app/globals.css` 与 `notes-folder-browser.tsx`：Folder 标题改为工作区级别尺寸并压缩 Header；Search、Sort 与 View Toggle 统一为相同高度、边框、圆角和低对比 surface；List 行使用 `appearance: none`、透明默认背景、弱底部分隔线和 58px 密度，仅在 hover 使用 token-derived surface，在最后打开的文档回到文件夹后才使用 `--accent-10` 与 2px indicator。Grid 继续保留独立 card 信息密度，但同样仅使用 Notes/accent tokens。因桌面 vault 文件记录未公开 mtime（`DesktopVaultFileRecord` 仅含路径与名称），未扩大平台桥接范围；缺失时间在 UI 中降级为 `—` 而非重复显示“未记录时间”。页面将现有 `activePath` 传给浏览器，从而不新增选择模型也能表达唯一低调的当前文档状态。
 
 新增 `tests/unit/notes/notes-folder-browser-styles.test.ts`，防回归透明默认行、hover/selected token 状态、无固定灰色、Grid/List 密度差与 white/night/solarized 主题令牌；组件测试补充唯一选中状态和缺失 mtime 文案。定向 ESLint 通过；Folder Browser 样式与组件测试 11 项通过；包含页面与 Workbench 的 Notes 回归组 4 个文件、63 项通过；`npm run build` 成功。全仓既有 lint/TypeScript 基线未在本轮改变。已重新打包 macOS 应用并替换 `/Applications/Auris.app`，保留安装前副本于 `/Applications/Auris.app.backup-1.0.1-before-native-appearance`；由于系统未授权辅助访问，最终包启动后无法通过自动化切回 Notes 进行第二次前台截图，但打包前的 List 截图、编译 CSS 与回归测试均已确认修正被纳入安装包。未提交或推送本轮代码。
+
+
+## Engineering trajectory: Folder Browser 通用按钮颜色泄漏修复（2026-08-21）
+
+用户截图确认第二轮后 Grid 与 List 仍出现浅灰卡片/行和金色高亮。根因定位为 `globals.css` 中既有的 `.desktop-app-frame .notes-v2 button` 通用规则：它以 `background: rgba(255, 255, 255, 0.52)` 和 `button[data-active="true"] { background: var(--notes-accent) }` 给所有 Notes 按钮施加表面与活动色；Folder Browser 将文件卡、文件行与视图切换实现为 button，因而被污染。此前的局部规则无法在实际打包的样式顺序中可靠抵消该规则。
+
+修复在 `globals.css` 末尾新增只作用于 `.notes-v2--folder-browser` 的高优先级颜色隔离层。它对 card、row、工具栏、搜索关闭按钮、视图切换与空状态按钮统一重置 native appearance、阴影和 transform；Grid 默认用 `color-mix(var(--notes-surface), var(--notes-bg))`，List 默认强制透明；hover 仅用 Notes surface；selected 改为以 accent 6% 混合背景和最多 20% 的弱边框，彻底避免 `--notes-accent` 作为整块填充。该层不修改通用 Editor/Vault 样式或全局主题令牌。
+
+扩展样式回归测试，验证专属 card/row 覆盖携带 `!important`、默认透明行、6% accent selected 与原生外观重置；Folder Browser 组件和样式测试共 12 项通过，定向 ESLint 与 `git diff --check` 通过，`npm run build` 成功。重新组装、打包并替换了 `/Applications/Auris.app`；从已安装包的编译 CSS 中提取并确认 Grid 默认、List 默认和 selected 规则均已进入产物。旧安装包保留在 `/Applications/Auris.app.backup-1.0.1-before-color-isolation`。未提交或推送本次补丁。

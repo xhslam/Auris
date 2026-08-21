@@ -18607,3 +18607,75 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
     animation: none;
   }
 }
+
+/* Folder Browser uses button elements as file affordances. Isolate it from the
+   legacy generic `.notes-v2 button` fill and active-state rules. */
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__tool-button,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__search button,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher button,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__new-note {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card {
+  border-color: var(--notes-line) !important;
+  background: color-mix(in srgb, var(--notes-surface) 90%, var(--notes-bg)) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card:hover {
+  border-color: var(--notes-line-strong) !important;
+  background: color-mix(in srgb, var(--notes-surface) 96%, var(--notes-bg)) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--notes-line)) !important;
+  background: color-mix(in srgb, var(--accent) 6%, var(--notes-bg)) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row {
+  border-color: var(--notes-line) !important;
+  background: transparent !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row:hover {
+  border-bottom-color: transparent !important;
+  background: color-mix(in srgb, var(--notes-surface) 72%, transparent) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row[data-selected="true"] {
+  border-bottom-color: transparent !important;
+  background: color-mix(in srgb, var(--accent) 6%, var(--notes-bg)) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__tool-button,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__sort,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__search,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher {
+  border-color: var(--notes-line) !important;
+  background: color-mix(in srgb, var(--notes-surface) 64%, transparent) !important;
+  color: var(--notes-muted) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__tool-button:hover,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__sort:hover {
+  background: color-mix(in srgb, var(--notes-surface) 86%, transparent) !important;
+  color: var(--notes-text) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher button {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--notes-muted) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher button[data-active="true"] {
+  background: color-mix(in srgb, var(--accent) 8%, var(--notes-bg)) !important;
+  color: var(--accent) !important;
+}
