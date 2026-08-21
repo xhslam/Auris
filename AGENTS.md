@@ -290,3 +290,9 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 用户在移除完整 Widget 设置菜单后发现无法删除组件，要求仅恢复删除键。`auris/src/components/home/home-page.tsx` 现为每张 Widget 标题栏增加单一垃圾桶图标按钮，`aria-label` 为“删除组件 {名称}”；按钮使用既有 `useNotesDialog` 的确认流程，确认文案明确提示默认组件可通过“恢复初始布局”重新添加。确认后仅从当前 Workspace Layout 中移除对应实例并更新布局状态提示；取消不会改变布局。没有恢复“更多操作”菜单、尺寸预设、固定、复制、菜单内移动或隐藏逻辑，任务自身的删除操作也未受影响。
 
 `tests/component/home/desktop-home-shell.test.tsx` 新增完整确认回归：点击第一张卡片的删除按钮会打开 `alertdialog`，确认后记录日历从页面消失，且仍无“更多操作”菜单。首页与学习摘要两个测试文件共 14 项通过；定向 ESLint 无 error（仍有既有 `<img>` warning），`npm run build` 与 `git diff --check` 通过。未提交或推送 Git 改动。
+
+## Engineering trajectory: 首页工作台无装饰线条（2026-08-21）
+
+用户要求隐藏首页的所有装饰性线条，同时不改变原有功能。实现仅修改 `auris/src/components/home/home-demo-workbench.css`，在现有主题覆盖规则之后追加首页作用域样式：移除三栏容器、组件卡片、标题分隔、布局管理浮层、编辑工具条、弹层以及拖放预览的边框、分隔线和阴影，并关闭首页背景网纹。按钮、布局选择、拖放、焦点可见性和表单操作仍保留；进度条、人生阶段时间路径与其他承载状态或内容含义的元素未被隐藏。键盘焦点使用明确的金色 outline，以避免去除边框后损失可访问性反馈。
+
+已执行 `git diff --check`；6 个首页相关 Vitest 文件、18 项测试全部通过。测试输出保留仓库既有的 React `act(...)` 警告，但无失败。`npm run build` 成功完成，Next 路由构建正常。未提交或推送 Git 改动。

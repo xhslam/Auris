@@ -2207,3 +2207,87 @@
 .desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme] .workspace-layout-confirm {
   background: color-mix(in srgb, var(--app-bg) 72%, transparent) !important;
 }
+
+/* 首页无装饰线条：移除工作台框线、卡片分隔线及背景网纹；保留进度、时间路、
+ * 表单状态与键盘焦点等具有信息或交互意义的视觉反馈。 */
+.auris-demo-home {
+  background: #171819 !important;
+}
+
+.auris-demo-home :is(
+  .demo-column,
+  .demo-widget,
+  .demo-widget > header,
+  .demo-widget__menu,
+  .demo-workspace__quick,
+  .demo-workspace__empty,
+  .auris-demo-home__utility button,
+  .home-layout-picker__trigger,
+  .home-layout-menu,
+  .home-layout-menu__file-actions button,
+  .auris-demo-home__editbar,
+  .auris-demo-home__editbar button,
+  .auris-demo-home__focus section,
+  .auris-demo-home__focus header,
+  .auris-demo-home__focus header button,
+  .demo-workspace__head button,
+  .demo-workspace__quick button,
+  .workspace-layout-confirm,
+  .workspace-layout-confirm button
+) {
+  border-color: transparent !important;
+}
+
+.auris-demo-home :is(
+  .demo-column,
+  .demo-widget,
+  .home-layout-picker__trigger,
+  .home-layout-menu,
+  .auris-demo-home__editbar,
+  .auris-demo-home__focus section
+) {
+  box-shadow: none !important;
+}
+
+.auris-demo-home :is(
+  .demo-widget__menu div,
+  .home-layout-menu__divider,
+  .demo-workspace-divider::before,
+  .demo-widget__resize--height::before,
+  .demo-widget__resize--width::before
+) {
+  opacity: 0 !important;
+}
+
+.auris-demo-home :is(
+  .demo-workspace-divider,
+  .demo-drop-preview
+) {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.auris-demo-home .demo-column.is-drop-zone {
+  box-shadow: none !important;
+}
+
+.auris-demo-home .demo-column__empty {
+  border-color: transparent !important;
+}
+
+.auris-demo-home .home-layout-picker__glyph i {
+  border-color: currentColor !important;
+}
+
+.auris-demo-home .demo-widget:focus-within,
+.auris-demo-home button:focus-visible,
+.auris-demo-home [role="button"]:focus-visible {
+  outline: 2px solid var(--accent-strong, #c5a85f) !important;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .auris-demo-home .demo-workspace-divider {
+    cursor: col-resize;
+  }
+}
