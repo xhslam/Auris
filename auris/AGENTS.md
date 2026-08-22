@@ -161,3 +161,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 修复选择完全去除 Folder Browser 的持久选择概念，而非继续微调色值：`notes-folder-browser.tsx` 不再接受 `activePath`，DocumentCard/DocumentRow 不再写入 `data-selected` 或 `aria-current`，页面也不再传递活动路径；对应的 card/row selected、粗字体和 2px 指示条 CSS 一并移除。点击仍会正常进入编辑器；返回文件夹后，文件列表全部回到相同的中性默认态，只有鼠标 hover 保留瞬态 surface 反馈。
 
 组件回归测试改为断言点击后不存在任何 `data-selected` 或 `aria-current`；样式测试改为禁止 Folder Browser card/row 定义 data-selected 规则。Folder Browser、Notes 页面与样式测试 3 个文件共 30 项通过；定向 ESLint、`git diff --check` 与 `npm run build` 通过。最新安装包已替换 `/Applications/Auris.app`，安装前副本保留于 `/Applications/Auris.app.backup-1.0.1-before-no-selection`；从安装包编译 CSS 验证不存在 card/row 的持久选中选择器。未提交或推送本轮补丁。
+
+
+## Engineering trajectory: 首页工作台主题隔离修复（2026-08-22）
+
+用户截图显示设置页的 Notes/应用主题处于 paper 时，首页工作台、Widget 和人生阶段画布被整体改为浅纸色。根因不是 Notes 页面残留在 DOM，而是首页样式本身存在高特异性选择器：`.desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme]` 的所有 Widget 直接消费继承的 `--app-*`、`--accent-*` 令牌；人生阶段则额外为每个 `data-app-theme` 定义了主题场景。因此在 paper/white/mint/sepia 下，首页会有意但不符合产品要求地被重绘。
+
+修复保留 Notes 和设置页的主题机制，不修改外壳全局令牌；而是在 `home-demo-workbench.css` 末尾、同等作用域的首页根节点局部重设深色工作台的 `--app-*` 与 `--accent-*` 令牌。这样所有已有首页 Widget 保持其变量契约，同时不再继承外壳的阅读主题。为胜过 paper 等同特异性人生阶段变体，另在同一末尾把 `.demo-widget--life` 的 `--life-scene-*` 固定为既有 night 场景。首页仍能读取 `data-system-color-scheme`，但该属性不会再造成浅色内容面。
+
+新增 `tests/unit/home/home-workbench-theme-isolation.test.ts`，断言局部 dark palette 和 night life-scene 规则位于 paper 变体之后；结合首页样式隔离、人生阶段、隐藏滚动条、首页单元与桌面首页组件测试共 16 项通过。定向 ESLint、`git diff --check` 和 `npm run build` 通过。最新 macOS 包已安装并启动；安装前副本保留为 `/Applications/Auris.app.backup-1.0.1-before-home-theme-isolation`。已从安装包的压缩 CSS 确认 `--app-bg:#171819` 与最终 night life-scene 场景声明存在。未提交或推送本轮补丁。
