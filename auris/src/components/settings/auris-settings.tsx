@@ -13,6 +13,7 @@ import {
 import { BrowserGrantCenter } from "@/components/browser-window/browser-grant-center";
 import { NotesLocaleSettings } from "@/components/settings/notes-locale-settings";
 import { NotesShortcutSettings } from "@/components/settings/notes-shortcut-settings";
+import { NotesVaultSettings } from "@/components/settings/notes-vault-settings";
 import { AppUpdatePanel } from "@/components/updates/app-update-panel";
 import { UPDATE_SETTINGS_NAVIGATION_EVENT } from "@/features/updates/update-navigation";
 import { useAppUpdateStore } from "@/features/updates/update-store";
@@ -22,11 +23,11 @@ import type {
 } from "@/platform/desktop/desktop-bridge";
 import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 import {
-  DEFAULT_NOTES_READING_THEME,
-  isNotesReadingThemeId,
-  loadNotesReadingTheme,
-  saveNotesReadingTheme,
-} from "@/features/notes/workbench/notes-reading-theme";
+  DEFAULT_APP_THEME,
+  isAppThemeId,
+  loadAppTheme,
+  saveAppTheme,
+} from "@/features/appearance/app-theme";
 import {
   cjkSettingsFromUi,
   cjkUiSelectsFromSettings,
@@ -282,7 +283,7 @@ type Installers = Record<string, boolean>;
 type Texts = Record<string, string>;
 
 // 笔记阅读主题默认值（与 notes 工作台共享，存 localStorage）。
-const INITIAL_THEME: string = DEFAULT_NOTES_READING_THEME;
+const INITIAL_THEME: string = DEFAULT_APP_THEME;
 
 const INITIAL_TOGGLES: Toggles = {
   titlebarName: false,
@@ -495,6 +496,7 @@ type Row =
   | { kind: "shortcutBar" }
   | { kind: "shortcutEditor" }
   | { kind: "notesLocale" }
+  | { kind: "notesVaults" }
   | { kind: "appUpdates" }
   | { kind: "browserGrants" };
 
@@ -525,6 +527,7 @@ const CATEGORIES: Category[] = [
   { id: "integrations", label: "集成", icon: "plug" },
   { id: "language", label: "语言", icon: "languages" },
   { id: "markdown", label: "Markdown", icon: "file-text" },
+  { id: "notes", label: "Notes", icon: "folder" },
   { id: "shortcuts", label: "快捷键", icon: "keyboard" },
   { id: "terminal", label: "终端", icon: "square-terminal" },
   { id: "about", label: "关于", icon: "info" },
@@ -738,7 +741,7 @@ export function AurisSettings({ accent }: { accent?: string }) {
 
   /* --- load persisted notes reading theme on mount --- */
   useEffect(() => {
-    setTheme(loadNotesReadingTheme());
+    setTheme(loadAppTheme());
   }, []);
 
   /* --- CJK 排版设置：加载时回填「语言」分类开关，改动时持久化 --- */
@@ -835,8 +838,8 @@ export function AurisSettings({ accent }: { accent?: string }) {
   /* --- selecting a swatch persists + broadcasts to the notes workbench --- */
   const handleSetTheme = useCallback((id: string) => {
     setTheme(id);
-    if (isNotesReadingThemeId(id)) {
-      saveNotesReadingTheme(id);
+    if (isAppThemeId(id)) {
+      saveAppTheme(id);
     }
   }, []);
 
@@ -1564,6 +1567,9 @@ function RenderRow(props: RowHandlers) {
     case "notesLocale":
       return <NotesLocaleSettings />;
 
+    case "notesVaults":
+      return <NotesVaultSettings />;
+
     case "appUpdates":
       return <AppUpdatePanel />;
 
@@ -1693,6 +1699,17 @@ function buildPanel(
                 text: "当前版本不提供“确认退出”或“自动保存策略”的切换。相关能力将在具备完整桌面端持久化与退出确认链路后再开放。",
               },
             ],
+          },
+        ],
+      };
+
+    case "notes":
+      return {
+        title: "Notes",
+        sections: [
+          {
+            title: "Vault 管理",
+            rows: [{ kind: "notesVaults" }],
           },
         ],
       };

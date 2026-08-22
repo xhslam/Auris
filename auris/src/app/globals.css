@@ -18642,3 +18642,207 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   background: color-mix(in srgb, var(--accent) 8%, var(--notes-bg)) !important;
   color: var(--accent) !important;
 }
+
+/* Unified Notes file browser presentation: shared hierarchy, tokens and spacing. */
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__inner {
+  width: min(100%, 1440px);
+  padding-inline: clamp(28px, 5vw, 76px);
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__header {
+  gap: 24px;
+  padding-bottom: 18px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__tools {
+  gap: 8px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__tool-button,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__sort,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__search,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher {
+  min-height: 36px;
+  border-radius: 8px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher {
+  grid-template-columns: repeat(2, 32px);
+  padding: 2px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__content {
+  padding-top: 24px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__content-heading {
+  min-height: 30px;
+  margin-bottom: 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--notes-line);
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__grid,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__skeleton-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card {
+  display: flex;
+  min-height: 180px;
+  padding: 15px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  border-color: color-mix(in srgb, var(--notes-line) 76%, transparent) !important;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--notes-surface) 84%, var(--notes-bg)) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card:hover {
+  border-color: var(--notes-line-strong) !important;
+  background: color-mix(in srgb, var(--notes-surface) 97%, var(--notes-bg)) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-title-row > svg {
+  flex: 0 0 auto;
+  color: var(--notes-text);
+  opacity: 0.76;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-title-row strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--notes-ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-main {
+  display: block;
+  min-height: 40px;
+  flex: 1 1 auto;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-preview {
+  min-height: 40px;
+  -webkit-line-clamp: 2;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-preview[data-empty="true"] {
+  opacity: 0.36;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-footer {
+  display: block;
+  width: 100%;
+  margin-top: auto;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__card-meta {
+  justify-content: flex-start;
+  min-height: 18px;
+  gap: 6px;
+  padding-top: 0;
+  border-top: 0;
+  color: var(--notes-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row {
+  grid-template-columns: minmax(0, 1fr) 172px 120px;
+  column-gap: 16px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading {
+  min-height: 34px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--notes-line);
+  font-size: 11px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row {
+  min-height: 60px;
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--notes-line) 76%, transparent) !important;
+  border-radius: 8px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row:hover {
+  border-bottom-color: transparent !important;
+  background: color-mix(in srgb, var(--notes-surface) 76%, transparent) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-name {
+  gap: 10px;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-modified,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-type,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading-modified,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading-type {
+  justify-self: start;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-type,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading-type {
+  justify-self: end;
+}
+
+@media (max-width: 1399px) {
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__grid,
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1099px) {
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__grid,
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading,
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row {
+    grid-template-columns: minmax(0, 1fr) 172px;
+  }
+
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading-type,
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-type {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-name small {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__grid,
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__skeleton-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__list-heading,
+  .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row {
+    grid-template-columns: minmax(0, 1fr) 116px;
+  }
+}

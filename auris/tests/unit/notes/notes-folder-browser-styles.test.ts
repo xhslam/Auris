@@ -60,7 +60,7 @@ describe("Notes folder browser styles", () => {
     expect(css).not.toMatch(/notes-folder-browser__(?:card|row)\[data-selected/);
   });
 
-  it.each(["white", "night", "solarized"])(
+  it.each(["white", "paper", "mint", "sepia", "night"])(
     "keeps the browser palette tokenized in the %s theme",
     (theme) => {
       const css = readFileSync(globalsCssPath, "utf-8");
@@ -76,21 +76,36 @@ describe("Notes folder browser styles", () => {
     },
   );
 
-  it("keeps Grid as the card-based variant while List uses dense row dimensions", () => {
+  it("keeps Grid card geometry stable and makes List columns share exact dimensions", () => {
     const css = readFileSync(globalsCssPath, "utf-8");
     const cardRule = rule(
       css,
-      "\\.desktop-app-frame \\.notes-folder-browser__card",
-      "min-height: 176px",
+      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__card",
+      "min-height: 180px",
     );
-    const rowRule = rule(
+    const cardMainRule = rule(
       css,
-      "\\.desktop-app-frame \\.notes-folder-browser__row",
-      "min-height: 58px",
+      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__card-main",
+      "flex: 1 1 auto",
     );
+    const previewRule = rule(
+      css,
+      "\\.desktop-app-frame \\.notes-v2--folder-browser \\.notes-folder-browser__card-preview",
+      "-webkit-line-clamp: 2",
+    );
+    const sharedColumns = css.matchAll(
+      /\.desktop-app-frame \.notes-v2--folder-browser \.notes-folder-browser__(?:list-heading|row)\s*,?[\s\S]*?\{([\s\S]*?)\}/g,
+    );
+    const columnBodies = [...sharedColumns].map((match) => match[1] ?? "");
 
-    expect(cardRule).toContain("border-radius: 9px");
-    expect(cardRule).toContain("min-height: 176px");
-    expect(rowRule).toContain("min-height: 58px");
+    expect(cardRule).toContain("display: flex");
+    expect(cardRule).toContain("min-height: 180px");
+    expect(cardMainRule).toContain("min-height: 40px");
+    expect(previewRule).toContain("min-height: 40px");
+    expect(previewRule).toContain("-webkit-line-clamp: 2");
+    expect(columnBodies.some((body) => body.includes("grid-template-columns: minmax(0, 1fr) 172px 120px"))).toBe(true);
+    expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr))");
+    expect(css).toContain("grid-template-columns: repeat(3, minmax(0, 1fr))");
+    expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
   });
 });

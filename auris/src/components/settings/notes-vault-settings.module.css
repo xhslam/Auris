@@ -1,0 +1,288 @@
+.panel {
+  display: grid;
+  gap: 28px;
+}
+
+.section {
+  display: grid;
+  gap: 14px;
+}
+
+.headingRow,
+.rootCard,
+.createRow,
+.filterRow,
+.entry,
+.actions,
+.entrySummary,
+.rootNameRow {
+  display: flex;
+  align-items: center;
+}
+
+.headingRow,
+.rootCard,
+.entry {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.heading {
+  margin: 0;
+  color: var(--app-text, #ece8df);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.help,
+.empty,
+.unavailable {
+  margin: 5px 0 0;
+  color: var(--app-muted, #9a958c);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.rootList,
+.entryList {
+  display: grid;
+  gap: 8px;
+}
+
+.rootCard,
+.entry {
+  min-width: 0;
+  border: 1px solid var(--app-line, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  background: var(--app-fill, rgba(255, 255, 255, 0.025));
+  padding: 12px 14px;
+}
+
+.rootCard[data-active="true"] {
+  border-color: color-mix(in srgb, var(--accent, #c7a86a) 52%, var(--app-line, rgba(255, 255, 255, 0.1)));
+  background: color-mix(in srgb, var(--accent, #c7a86a) 8%, var(--app-fill, rgba(255, 255, 255, 0.025)));
+}
+
+.rootSummary,
+.entrySummary {
+  min-width: 0;
+}
+
+.rootNameRow {
+  gap: 7px;
+  flex-wrap: wrap;
+  color: var(--app-text, #ece8df);
+  font-size: 14px;
+}
+
+.path,
+.entryPath {
+  display: block;
+  overflow: hidden;
+  color: var(--app-muted, #9a958c);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path {
+  margin-top: 5px;
+}
+
+.actions {
+  flex: 0 0 auto;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  min-height: 32px;
+  border-radius: 7px;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 620;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.primaryButton {
+  border: 1px solid var(--accent, #c7a86a);
+  background: var(--accent, #c7a86a);
+  color: var(--accent-ink, #17130a);
+}
+
+.secondaryButton {
+  border: 1px solid var(--app-line, rgba(255, 255, 255, 0.14));
+  background: var(--app-fill-strong, rgba(255, 255, 255, 0.05));
+  color: var(--app-text, #ece8df);
+}
+
+.dangerButton {
+  border: 1px solid rgba(210, 98, 91, 0.55);
+  background: rgba(210, 98, 91, 0.1);
+  color: #e7978e;
+}
+
+.primaryButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled),
+.dangerButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.dangerButton:focus-visible,
+.input:focus-visible,
+.filterInput:focus-visible {
+  outline: 2px solid var(--accent, #c7a86a);
+  outline-offset: 2px;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.activePill,
+.unavailablePill,
+.kind {
+  border-radius: 99px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.activePill {
+  background: color-mix(in srgb, var(--accent, #c7a86a) 18%, transparent);
+  color: var(--accent, #c7a86a);
+}
+
+.unavailablePill {
+  background: rgba(210, 98, 91, 0.14);
+  color: #e7978e;
+}
+
+.kind {
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--app-muted, #9a958c);
+}
+
+.createRow {
+  gap: 8px;
+  align-items: stretch;
+}
+
+.input,
+.filterInput {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--app-line, rgba(255, 255, 255, 0.12));
+  border-radius: 7px;
+  background: var(--app-fill-strong, rgba(255, 255, 255, 0.045));
+  color: var(--app-text, #ece8df);
+  font-size: 13px;
+}
+
+.input {
+  min-height: 34px;
+  flex: 1 1 auto;
+  padding: 0 10px;
+}
+
+.filterRow {
+  gap: 10px;
+}
+
+.filterLabel {
+  flex: 0 0 auto;
+  color: var(--app-muted, #9a958c);
+  font-size: 12px;
+}
+
+.filterInput {
+  min-height: 30px;
+  padding: 0 9px;
+}
+
+.count {
+  flex: 0 0 auto;
+  color: var(--app-muted, #9a958c);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.entryList {
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.entrySummary {
+  gap: 9px;
+  overflow: hidden;
+}
+
+.entryPath {
+  color: var(--app-text, #ece8df);
+}
+
+.success,
+.error {
+  margin: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.success {
+  border: 1px solid rgba(123, 185, 154, 0.4);
+  background: rgba(123, 185, 154, 0.1);
+  color: #9cd4b4;
+}
+
+.error {
+  border: 1px solid rgba(210, 98, 91, 0.45);
+  background: rgba(210, 98, 91, 0.1);
+  color: #e7978e;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .headingRow,
+  .rootCard,
+  .entry,
+  .createRow,
+  .filterRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .createRow .primaryButton,
+  .createRow .secondaryButton {
+    width: 100%;
+  }
+
+  .count {
+    padding-left: 0;
+  }
+}

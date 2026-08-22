@@ -2671,6 +2671,92 @@ async function setVaultRoot(requestedPath) {
   return getVaultDirectoryInfo();
 }
 
+/**
+ * 从已授权列表中移除一个根，并在删除的是当前根时切换到第一个仍可达的根。
+ * 这个函数只处理配置、watcher 与插件运行时；不改磁盘内容，因此可安全用于
+ * 「从 Auris 移除」操作，也可被真正移入回收站的流程复用。
+ */
+async function removeVaultRoot(requestedPath) {
+  const decision = authorizeVaultRoot(
+    desktopConfig.knownVaultRoots ?? [],
+    requestedPath,
+  );
+
+  if (!decision.ok) {
+    throw new Error("This Vault is not in Auris’s authorized Vault list.");
+  }
+
+  const rootPath = decision.rootPath;
+  const nextKnownVaultRoots = (desktopConfig.knownVaultRoots ?? []).filter(
+    (candidate) => candidate !== rootPath,
+  );
+  const activePath = desktopConfig.vaultPath
+    ? path.resolve(desktopConfig.vaultPath)
+    : null;
+  let nextVaultPath = desktopConfig.vaultPath;
+
+  if (activePath === rootPath) {
+    nextVaultPath = null;
+    for (const candidate of nextKnownVaultRoots) {
+      if (await pathExists(candidate)) {
+        nextVaultPath = candidate;
+        break;
+      }
+    }
+  }
+
+  await writeDesktopConfig({
+    ...desktopConfig,
+    knownVaultRoots: nextKnownVaultRoots,
+    vaultPath: nextVaultPath,
+  });
+  await refreshVaultWatcher();
+  await loadPluginRuntime();
+  scheduleVaultChanged();
+
+  return listVaultRoots();
+}
+
+/**
+ * 整个 Vault 只能在它本身已经通过目录选择器授权后才能被删除。删除走系统
+ * 回收站而不是 rm，以便用户可以在 Finder/Explorer 中恢复；若该根包含其他已
+ * 授权 Vault，则拒绝操作，防止一次删除悄悄毁掉多个已登记的工作区。
+ */
+async function trashVaultRoot(requestedPath) {
+  const decision = authorizeVaultRoot(
+    desktopConfig.knownVaultRoots ?? [],
+    requestedPath,
+  );
+
+  if (!decision.ok) {
+    throw new Error("This Vault is not in Auris’s authorized Vault list.");
+  }
+
+  const rootPath = decision.rootPath;
+  if (!(await pathExists(rootPath))) {
+    throw new Error("This Vault folder is currently unavailable.");
+  }
+
+  const nestedKnownRoot = (desktopConfig.knownVaultRoots ?? []).find((candidate) => {
+    if (candidate === rootPath) return false;
+    const relative = path.relative(rootPath, candidate);
+    return relative !== "" && !relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative);
+  });
+
+  if (nestedKnownRoot) {
+    throw new Error(
+      "This Vault contains another Vault registered in Auris. Remove the nested Vault first.",
+    );
+  }
+
+  const movedToTrash = await shell.trashItem(rootPath);
+  if (!movedToTrash) {
+    throw new Error("The operating system could not move this Vault folder to the Trash.");
+  }
+
+  return removeVaultRoot(rootPath);
+}
+
 async function getVaultDirectoryInfo() {
   const vaultPath = await getVaultPath();
 
@@ -3802,6 +3888,16 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:vault:list-roots", async (event) => {
     requireTrustedMainEvent(event);
     return listVaultRoots();
+  });
+
+  ipcMain.handle("shadowing:vault:remove-root", async (event, rootPath) => {
+    requireTrustedMainEvent(event);
+    return removeVaultRoot(rootPath);
+  });
+
+  ipcMain.handle("shadowing:vault:trash-root", async (event, rootPath) => {
+    requireTrustedMainEvent(event);
+    return trashVaultRoot(rootPath);
   });
 
   // 换根不弹对话框，但只接受已授权的根——白名单校验在 setVaultRoot 里，理由见

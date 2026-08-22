@@ -124,15 +124,42 @@ describe("NotesFolderBrowser", () => {
     expect(screen.queryByText("Control System")).not.toBeInTheDocument();
   });
 
-  it("uses an em dash rather than repeated missing-time copy when a filesystem timestamp is unavailable", async () => {
+  it("hides unavailable timestamps instead of rendering missing-data noise", async () => {
     const documentWithoutTimestamp = { ...documents[0], mtime: null };
     renderBrowser({ documents: [documentWithoutTimestamp] });
 
     await screen.findByRole("button", {
       name: "打开笔记 Control System",
     });
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.queryByText("—")).not.toBeInTheDocument();
     expect(screen.queryByText("未记录时间")).not.toBeInTheDocument();
+    expect(screen.getByText("MD")).toBeInTheDocument();
+  });
+
+  it("keeps a fixed preview region for notes without preview text", async () => {
+    const previewlessDocument = makeDocument({
+      path: "outline.md",
+      title: "Outline",
+      source: "# Outline",
+    });
+    renderBrowser({ documents: [previewlessDocument] });
+
+    const card = await screen.findByRole("button", { name: "打开笔记 Outline" });
+    expect(card.querySelector(".notes-folder-browser__card-preview")).toHaveAttribute(
+      "data-empty",
+      "true",
+    );
+    expect(screen.queryByText("尚未添加内容预览")).not.toBeInTheDocument();
+  });
+
+  it("uses concise MD metadata and shared list columns", async () => {
+    renderBrowser();
+    await screen.findByRole("button", { name: "打开笔记 Control System" });
+
+    fireEvent.click(screen.getByRole("button", { name: "列表视图" }));
+    expect(screen.getByText("更新")).toBeInTheDocument();
+    expect(screen.getAllByText("MD")).toHaveLength(documents.length);
+    expect(screen.queryByText("Markdown")).not.toBeInTheDocument();
   });
 
   it("uses a dedicated empty-folder state with a working new-note action", async () => {

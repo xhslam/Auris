@@ -296,3 +296,19 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 用户要求隐藏首页的所有装饰性线条，同时不改变原有功能。实现仅修改 `auris/src/components/home/home-demo-workbench.css`，在现有主题覆盖规则之后追加首页作用域样式：移除三栏容器、组件卡片、标题分隔、布局管理浮层、编辑工具条、弹层以及拖放预览的边框、分隔线和阴影，并关闭首页背景网纹。按钮、布局选择、拖放、焦点可见性和表单操作仍保留；进度条、人生阶段时间路径与其他承载状态或内容含义的元素未被隐藏。键盘焦点使用明确的金色 outline，以避免去除边框后损失可访问性反馈。
 
 已执行 `git diff --check`；6 个首页相关 Vitest 文件、18 项测试全部通过。测试输出保留仓库既有的 React `act(...)` 警告，但无失败。`npm run build` 成功完成，Next 路由构建正常。未提交或推送 Git 改动。
+
+## Engineering trajectory: Notes 设置 Vault、文件与文件夹管理（2026-08-22）
+
+用户要求补齐 Vault 删除能力，并可在 Notes 的设置中管理当前 Vault 内的文件和文件夹。实现新增 Settings 侧栏的 **Notes** 分类及 `NotesVaultSettings` 面板：它列出已授权 Vault、允许通过原生目录选择器添加、打开、仅从 Auris 列表移除，或将整个 Vault 移入系统回收站；面板同时列出当前 Vault 的可搜索文件/目录、可按相对路径新建 Markdown 文件或文件夹，并可将其中任意文件或目录移入 Auris 回收站。
+
+桌面端新增受信任的 `vault:remove-root` 与 `vault:trash-root` IPC。两者都只接受已授权的 Vault 根；删除整个 Vault 走 `shell.trashItem` 而非永久删除，并拒绝删除包含另一个已登记 Vault 的目录。若移除或删除的是活动 Vault，主进程会切换到第一个仍可达的已登记根，否则清空活动根、刷新 watcher 和插件运行时。改动涉及 `auris/electron/main.cjs`、`auris/electron/preload.cjs`、`auris/src/platform/desktop/desktop-bridge.ts`、`auris/src/components/settings/auris-settings.tsx`，以及新增的 Vault 设置 TSX/CSS 和组件测试。
+
+验证完成：新增 Vault 设置组件测试 2 项通过；相关的 Workspace Rail、Vault 根目录和 Vault 文件操作测试共 54 项中 54 项通过；定向 ESLint、`npm run build` 与 `npm run quality:desktop-ipc` 均通过（IPC 契约报告 108 invokes、110 handlers）。另一次包含 `auris-settings-feature-truthfulness.test.tsx` 的回归运行有 1 个既有失败：该测试期望文件设置页仍显示已不存在的“512 KB / 50 个版本 / Hot Exit”说明；`git show HEAD` 确认此说明在本次改动前已不在该页，故未为了通过测试恢复不真实的文案。未修改既有的个人词汇索引或其他未追踪资料目录；未提交或推送 Git 改动。
+
+## Engineering trajectory: Notes 文件浏览器统一网格与列表视觉系统（2026-08-22）
+
+用户要求只重构 Notes 的文件浏览与呈现区域，不触碰侧边栏、Vault/笔记读取写入逻辑、编辑器、路由或全局主题系统。实现保留原有文件搜索、排序、Grid/List 切换和打开笔记行为，集中调整 `notes-folder-browser.tsx`、其全局样式和两组回归测试。网格卡片现在采用固定 180px 的纵向结构：图标与单行标题、固定两行预览区域、弹性内容区和底部元数据使用统一基线；空预览保留空间但不显示占位噪音；时间缺失时隐藏而非渲染破折号；文件类型通过同一 `fileTypeLabel` 在 Grid/List 中都显示精简标签（Markdown 为 MD）。
+
+列表重构为共享 `minmax(0, 1fr) 172px 120px` 列定义的真实文件列表，表头和行使用完全相同的 Grid；默认行保持透明与底部分隔线、hover 才显示轻微表面；名称包含可选的次级目录信息，时间和类型保持稳定对齐。工具栏控件统一为 36px 高及同一圆角；大屏四列、1399px 以下三列、1099px 以下两列、窄屏单列；列表在 920px 以下先隐藏 Type，在 700px 以下再隐藏次级路径信息。所有新样式仅使用既有 `--notes-*` 与 accent 令牌，静态主题断言覆盖 white、paper、mint、sepia（棕褐）和 night。
+
+验证完成：文件浏览器组件和样式测试 16 项通过；包含 NotesPageClient 的定向回归共 34 项通过；定向 ESLint、`git diff --check` 与 `npm run build` 均通过。NotesPageClient 套件仍输出仓库既有的 React `act(...)` 警告，但无测试失败。未修改本次范围以外的既有未提交文件，未提交或推送 Git 改动。

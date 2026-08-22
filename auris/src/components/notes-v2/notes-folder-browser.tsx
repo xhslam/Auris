@@ -73,7 +73,9 @@ function previewFor(document: NoteDocument) {
 
   const title = document.parsed.title?.trim();
   const preview = lines.filter((line) => line !== title).slice(0, 2).join(" ");
-  return preview || "尚未添加内容预览";
+  // 没有预览时保留空字符串。布局由固定高度的预览区域维持，避免用重复的
+  // 占位文案制造视觉噪音。
+  return preview;
 }
 
 function toTimestamp(value: string | null) {
@@ -82,10 +84,10 @@ function toTimestamp(value: string | null) {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
-function formatUpdatedAt(value: string | null) {
-  if (!value) return "—";
+function formatUpdatedAt(value: string | null): string | null {
+  if (!value) return null;
   const updatedAt = new Date(value);
-  if (Number.isNaN(updatedAt.getTime())) return "—";
+  if (Number.isNaN(updatedAt.getTime())) return null;
 
   const now = Date.now();
   const diff = now - updatedAt.getTime();
@@ -102,9 +104,16 @@ function formatUpdatedAt(value: string | null) {
   }).format(updatedAt);
 }
 
-function describeDocument(document: NoteDocument) {
+function describeDocument(document: NoteDocument): string | null {
   const relativeDirectory = document.path.split("/").slice(0, -1).join("/");
-  return relativeDirectory || "根目录";
+  // 文件就在 Vault 根目录时没有额外的定位价值，省略而不是填入占位文本。
+  return relativeDirectory || null;
+}
+
+function fileTypeLabel(document: NoteDocument) {
+  const formatId = document.formatId?.trim();
+  if (formatId === "markdown") return "MD";
+  return formatId?.slice(0, 4).toLocaleUpperCase("en-US") || "FILE";
 }
 
 function sortDocuments(documents: NoteDocument[], sort: NotesBrowserSort) {
@@ -144,21 +153,38 @@ function NotesDocumentCard({
   document: NoteDocument;
   onOpen: () => void;
 }) {
+  const title = titleFor(document);
+  const preview = previewFor(document);
+  const updatedAt = formatUpdatedAt(document.mtime);
+  const fileType = fileTypeLabel(document);
+
   return (
     <button
-      aria-label={`打开笔记 ${titleFor(document)}`}
+      aria-label={`打开笔记 ${title}`}
       className="notes-folder-browser__card"
+      data-file-kind={document.formatId}
       onClick={onOpen}
+      title={title}
       type="button"
     >
-      <FileText aria-hidden="true" size={20} weight="duotone" />
-      <span className="notes-folder-browser__card-main">
-        <strong>{titleFor(document)}</strong>
-        <span className="notes-folder-browser__card-preview">{previewFor(document)}</span>
+      <span className="notes-folder-browser__card-title-row">
+        <FileText aria-hidden="true" size={19} weight="duotone" />
+        <strong>{title}</strong>
       </span>
-      <span className="notes-folder-browser__card-meta">
-        <span>Markdown</span>
-        <span>{formatUpdatedAt(document.mtime)}</span>
+      <span className="notes-folder-browser__card-main">
+        <span
+          className="notes-folder-browser__card-preview"
+          data-empty={preview ? "false" : "true"}
+        >
+          {preview}
+        </span>
+      </span>
+      <span className="notes-folder-browser__card-footer">
+        <span className="notes-folder-browser__card-meta">
+          {updatedAt ? <span>{updatedAt}</span> : null}
+          {updatedAt ? <span aria-hidden="true">·</span> : null}
+          <span>{fileType}</span>
+        </span>
       </span>
     </button>
   );
@@ -171,22 +197,33 @@ function NotesDocumentRow({
   document: NoteDocument;
   onOpen: () => void;
 }) {
+  const title = titleFor(document);
+  const directory = describeDocument(document);
+  const updatedAt = formatUpdatedAt(document.mtime);
+  const fileType = fileTypeLabel(document);
+
   return (
     <button
-      aria-label={`打开笔记 ${titleFor(document)}`}
+      aria-label={`打开笔记 ${title}`}
       className="notes-folder-browser__row"
+      data-file-kind={document.formatId}
       onClick={onOpen}
+      title={title}
       type="button"
     >
       <span className="notes-folder-browser__row-name">
         <FileText aria-hidden="true" size={18} weight="duotone" />
         <span>
-          <strong>{titleFor(document)}</strong>
-          <small>{describeDocument(document)}</small>
+          <strong>{title}</strong>
+          {directory ? <small>{directory}</small> : null}
         </span>
       </span>
-      <span>{formatUpdatedAt(document.mtime)}</span>
-      <span>Markdown</span>
+      {updatedAt ? (
+        <span className="notes-folder-browser__row-modified">{updatedAt}</span>
+      ) : (
+        <span aria-hidden="true" className="notes-folder-browser__row-modified" />
+      )}
+      <span className="notes-folder-browser__row-type">{fileType}</span>
     </button>
   );
 }
@@ -357,7 +394,9 @@ export function NotesFolderBrowser({
             ) : (
               <div className="notes-folder-browser__list">
                 <div aria-hidden="true" className="notes-folder-browser__list-heading">
-                  <span>名称</span><span>更新</span><span>类型</span>
+                  <span>名称</span>
+                  <span className="notes-folder-browser__list-heading-modified">更新</span>
+                  <span className="notes-folder-browser__list-heading-type">类型</span>
                 </div>
                 {filteredDocuments.map((document) => (
                   <NotesDocumentRow

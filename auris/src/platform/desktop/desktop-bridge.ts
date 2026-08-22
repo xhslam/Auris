@@ -679,6 +679,8 @@ export type DesktopBridge = {
     listRoots?: () => Promise<DesktopVaultRoot[]>;
     moveFile?: (fromPath: string, toPath: string) => Promise<void>;
     onDidChange: (listener: () => void) => () => void;
+    // 仅可操作已授权的根；移除只取消 Auris 对该根的记忆，不删除磁盘内容。
+    removeRoot?: (rootPath: string) => Promise<DesktopVaultRoot[]>;
     pickDirectory: () => Promise<DesktopVaultDirectoryInfo>;
     pickFile?: () => Promise<DesktopVaultFileSelection>;
     readFile: (relativePath: string) => Promise<string | null>;
@@ -687,6 +689,8 @@ export type DesktopBridge = {
     restoreLastDeleted?: () => Promise<string | null>;
     revealFile?: (relativePath: string) => Promise<void>;
     revealPluginsDirectory: () => Promise<void>;
+    // 将整个已授权 Vault 根移入系统回收站，同时取消授权并切换离开活动根。
+    trashRoot?: (rootPath: string) => Promise<DesktopVaultRoot[]>;
     saveFile: (relativePath: string, content: string) => Promise<void>;
     // 在已授权的根之间切换，不弹对话框。主进程只接受 listRoots 里的路径——
     // 任意路径会把笔记读写接口变成任意文件读取。新根必须走 pickDirectory。

@@ -501,6 +501,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
       };
     },
     listRoots: () => invoke("shadowing:vault:list-roots"),
+    removeRoot: (rootPath) => invoke("shadowing:vault:remove-root", rootPath),
     pickDirectory: () => invoke("shadowing:vault:pick-directory"),
     pickFile: () => invoke("shadowing:vault:pick-file"),
     readFile: (relativePath) => invoke("shadowing:vault:read-file", relativePath),
@@ -510,6 +511,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     restoreLastDeleted: () => invoke("shadowing:vault:restore-last-deleted"),
     revealFile: (relativePath) => invoke("shadowing:vault:reveal-file", relativePath),
     revealPluginsDirectory: () => invoke("shadowing:vault:reveal-plugins-directory"),
+    trashRoot: (rootPath) => invoke("shadowing:vault:trash-root", rootPath),
     saveFile: (relativePath, content) =>
       invoke("shadowing:vault:save-file", relativePath, content),
     // 在已授权的根之间切换。主进程只接受 list-roots 里出现过的路径——理由见
