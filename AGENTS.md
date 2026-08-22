@@ -312,3 +312,11 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 列表重构为共享 `minmax(0, 1fr) 172px 120px` 列定义的真实文件列表，表头和行使用完全相同的 Grid；默认行保持透明与底部分隔线、hover 才显示轻微表面；名称包含可选的次级目录信息，时间和类型保持稳定对齐。工具栏控件统一为 36px 高及同一圆角；大屏四列、1399px 以下三列、1099px 以下两列、窄屏单列；列表在 920px 以下先隐藏 Type，在 700px 以下再隐藏次级路径信息。所有新样式仅使用既有 `--notes-*` 与 accent 令牌，静态主题断言覆盖 white、paper、mint、sepia（棕褐）和 night。
 
 验证完成：文件浏览器组件和样式测试 16 项通过；包含 NotesPageClient 的定向回归共 34 项通过；定向 ESLint、`git diff --check` 与 `npm run build` 均通过。NotesPageClient 套件仍输出仓库既有的 React `act(...)` 警告，但无测试失败。未修改本次范围以外的既有未提交文件，未提交或推送 Git 改动。
+
+## Engineering trajectory: 笔记文件夹列表仅展示 Markdown（2026-08-22）
+
+用户希望 Notes 的文件夹列表不再暴露 Vault 中的 `.vmark` 元数据、JSON 和未知文件，只显示可作为笔记阅读与编辑的 Markdown 文档。实现选择在 `NotesFolderBrowser` 的展示层进行格式筛选：在原有搜索和排序前，仅保留 `formatId === "markdown"` 的 `NoteDocument`，因此底层 Vault 文件仍被保留，文件树和其他功能也不受影响；已注册的 Markdown 扩展仍统一按 Markdown 类型展示。
+
+改动涉及 `auris/src/components/notes-v2/notes-folder-browser.tsx`，新增 Markdown 文档的预筛选；以及 `auris/tests/component/notes/notes-folder-browser.test.tsx`，使测试数据可声明格式，并新增 JSON Vault 元数据不会出现、计数只包含 Markdown 的回归断言。使用仓库现有依赖运行 `node_modules/.bin/vitest run tests/component/notes/notes-folder-browser.test.tsx`，8 项测试全部通过；定向 ESLint 与 `git diff --check` 通过。首次用 pnpm 运行检查因现有 node_modules 并非由 pnpm 安装而触发依赖状态检查失败，并生成了临时 `pnpm-lock.yaml` 和 `pnpm-workspace.yaml`；这些临时文件已删除，随后改用仓库现有的本地二进制完成检查。未修改既有的 `src/features/dictionary/personal-vocab/word-index.json` 或仓库外未跟踪目录；本次未提交或推送 Git 改动。
+
+补充验证：随后执行的 `npm run build` 在仓库既有的测试类型错误处失败（包括桌面桥接 mock 缺少字段、`SessionSourceType` 过期值和导出服务测试的隐式 `any`）；失败输出未涉及本次修改的 `notes-folder-browser` 组件或测试文件。定向组件测试与 ESLint 已通过，故未扩大本次范围去修复这些无关的全仓问题。

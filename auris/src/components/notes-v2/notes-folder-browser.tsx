@@ -264,15 +264,20 @@ export function NotesFolderBrowser({
   }, [folder.id, isReady, onEnsureDocuments]);
 
   const filteredDocuments = useMemo(() => {
+    // 文件夹浏览器是笔记入口，只展示注册为 Markdown 的笔记文档；
+    // Vault 内的元数据、配置和其他附件仍保留在磁盘中，但不会干扰笔记列表。
+    const markdownDocuments = documents.filter(
+      (document) => document.formatId === "markdown",
+    );
     const normalizedQuery = searchQuery.trim().toLocaleLowerCase("zh-CN");
     const matching = normalizedQuery
-      ? documents.filter((document) =>
+      ? markdownDocuments.filter((document) =>
           [titleFor(document), document.fileName, document.path]
             .join(" ")
             .toLocaleLowerCase("zh-CN")
             .includes(normalizedQuery),
         )
-      : documents;
+      : markdownDocuments;
 
     return sortDocuments(matching, sortMode);
   }, [documents, searchQuery, sortMode]);

@@ -5,6 +5,7 @@ import { NotesFolderBrowser } from "@/components/notes-v2/notes-folder-browser";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 
 function makeDocument(input: {
+  formatId?: NoteDocument["formatId"];
   path: string;
   source: string;
   title: string;
@@ -14,7 +15,7 @@ function makeDocument(input: {
   return {
     basename: fileName.replace(/\.md$/u, ""),
     fileName,
-    formatId: "markdown",
+    formatId: input.formatId ?? "markdown",
     frontmatter: {},
     mtime: input.updatedAt ?? "2026-08-21T12:00:00.000Z",
     parsed: {
@@ -122,6 +123,23 @@ describe("NotesFolderBrowser", () => {
 
     expect(screen.getByText("Linear Algebra")).toBeInTheDocument();
     expect(screen.queryByText("Control System")).not.toBeInTheDocument();
+  });
+
+  it("only displays documents registered as Markdown notes", async () => {
+    const vaultMetadata = makeDocument({
+      formatId: "json",
+      path: ".vmark/ledger/entry.json",
+      title: "Vault metadata",
+      source: '{"version": 1}',
+    });
+
+    renderBrowser({ documents: [documents[0], vaultMetadata] });
+
+    await screen.findByRole("button", { name: "打开笔记 Control System" });
+    expect(
+      screen.queryByRole("button", { name: "打开笔记 Vault metadata" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("1 个文件")).toBeInTheDocument();
   });
 
   it("hides unavailable timestamps instead of rendering missing-data noise", async () => {
