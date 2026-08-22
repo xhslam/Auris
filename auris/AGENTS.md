@@ -181,3 +181,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 首页删除了错误的局部 `--app-*` 深色重置和固定 night `--life-scene-*` 覆盖，重新继承桌面壳的语义令牌。既有六个 `.desktop-app-shell[data-app-theme="..."] .auris-demo-home ... .demo-widget--life` 场景规则保持为各主题的唯一场景源，使纸张、白色、薄荷、棕褐、夜间和 Solarized 呈现各自背景与前景，而非强制同一种夜景。
 
 新增 `tests/unit/appearance/app-theme.test.ts`，覆盖持久化、广播、共享 Hook 实时更新，以及六个主题在桌面壳、Notes、首页、人生阶段和阅读的令牌选择器完整性；更新首页主题测试为“消费应用令牌 + 每主题独立人生阶段场景”契约。统一主题、首页、人生阶段、阅读、Notes 与桌面首页定向回归共 96 项通过；定向 ESLint、`git diff --check` 和生产构建通过。最新 macOS 包已经安装并启动；运行时截图确认 Solarized 已同时驱动首页所有 Widget 与人生阶段的青绿色场景，而不是被固定为夜间。安装前副本保留于 `/Applications/Auris.app.backup-1.0.1-before-unified-theme`。未提交或推送本轮补丁。
+
+
+## Engineering trajectory: 首页最外层画布主题背景修复（2026-08-22）
+
+统一主题重构后，用户在 Paper 截图中发现首页卡片与「人生阶段」已切换为纸色，但工作台最外层仍保持深色。根因是 `home-demo-workbench.css` 末尾保留了一条早期策略的 `.auris-demo-home { background: #171819 !important; }`：它绕过了已经正确继承的 `--app-*` 令牌，并以 `!important` 固定覆盖首页画布。此前「首页工作台主题隔离修复」轨迹中关于固定深色画布的处理已不再适用；当前产品约束是全应用主题同步，首页不能拥有私有深色背景。
+
+修复将该规则替换为与应用壳同一作用域的 `.desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme] { background: var(--app-bg) !important; }`。因此 White、Paper、Mint、Tan（`sepia`）、Night 和 Solarized 都由 `DesktopAppFrame` 的 `data-app-theme` 与语义 `--app-bg` 令牌驱动首页外层画布；现有卡片、控件和六套人生阶段场景规则继续各自消费同一主题来源。没有改动 Electron 主进程、预加载、认证、Supabase、Vault 或 Editor 核心。
+
+`home-workbench-theme-isolation.test.ts` 现验证最终同选择器覆盖规则使用 `var(--app-bg)`，并禁止旧的固定 `#171819 !important` 根画布规则，以防止同类回归。验证：应用主题、首页工作台、人生阶段、跨主题对比和桌面首页共 5 个定向测试文件、59 项通过（桌面首页既有 React `act(...)` 警告不影响结果）；首页样式隔离与 Folder Browser 样式共 10 项通过；定向 ESLint 和 `git diff --check` 通过；`npm run build`、`npm run desktop:assemble` 与 macOS `electron-builder --mac --publish never` 完成。新包已安装为 `/Applications/Auris.app`（版本 1.0.1），旧包备份为 `/Applications/Auris.app.backup-1.0.1-before-home-canvas-theme`；从安装包编译 CSS 核验到最终主题画布规则。用户的 `src/features/dictionary/personal-vocab/word-index.json` 改动及上层 `markdown/`、`research/vmark-upstream/` 未暂存。

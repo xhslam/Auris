@@ -20,12 +20,20 @@ function ruleBody(selector: string) {
   return match![1];
 }
 
+function lastRuleBody(selector: string) {
+  const matches = [...css.matchAll(new RegExp(`${escapeRegExp(selector)}\\s*\\{([\\s\\S]*?)\\n\\}`, "g"))];
+  expect(matches, `Missing CSS rule: ${selector}`).not.toHaveLength(0);
+  return matches.at(-1)?.[1] ?? "";
+}
+
 describe("home workbench application-theme contract", () => {
   it("consumes the shell semantic palette rather than pinning a private dark palette", () => {
     expect(css).toContain("--bg: var(--app-bg);");
     expect(css).toContain("--panel: var(--app-surface);");
     expect(css).toContain("--ink: var(--app-ink);");
     expect(css).toContain("--muted: var(--app-muted);");
+    expect(lastRuleBody(homeRoot)).toContain("background: var(--app-bg) !important;");
+    expect(css).not.toContain(".auris-demo-home {\n  background: #171819 !important;");
     expect(css).not.toMatch(
       new RegExp(`${escapeRegExp(homeRoot)}\\s*\\{[\\s\\S]*?--app-bg:`),
     );

@@ -2209,9 +2209,10 @@
 }
 
 /* 首页无装饰线条：移除工作台框线、卡片分隔线及背景网纹；保留进度、时间路、
- * 表单状态与键盘焦点等具有信息或交互意义的视觉反馈。 */
-.auris-demo-home {
-  background: #171819 !important;
+ * 表单状态与键盘焦点等具有信息或交互意义的视觉反馈。画布必须消费外壳主题，
+ * 以便 Paper、White、Mint、Tan、Night 与 Solarized 同步切换。 */
+.desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme] {
+  background: var(--app-bg) !important;
 }
 
 .auris-demo-home :is(
