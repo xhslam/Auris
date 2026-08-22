@@ -6,7 +6,7 @@ import { BrowserTabStrip } from "@/components/browser-window/browser-tab-strip";
 import { BrowserToolbar } from "@/components/browser-window/browser-toolbar";
 import { getBrowserBridge } from "@/features/browser/browser-bridge";
 import { useBrowserWindow } from "@/features/browser/use-browser-window";
-import type { NotesReadingThemeId } from "@/features/notes/workbench/notes-reading-theme";
+import type { AppThemeId } from "@/features/appearance/app-theme";
 import "@/app/browser/browser.css";
 import "./notes-embedded-browser.css";
 
@@ -24,7 +24,7 @@ type NotesEmbeddedBrowserProps = {
   onClose?: () => void;
   /** 保留旧调用方的语义，避免浏览器独立组件的既有集成失效。 */
   onReturnToNotes?: () => void;
-  theme?: NotesReadingThemeId;
+  theme?: AppThemeId;
 };
 
 export function NotesEmbeddedBrowser({

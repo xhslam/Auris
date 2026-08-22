@@ -25,13 +25,7 @@ import { NotesWorkbenchBottomRight } from "@/components/notes-v2/notes-workbench
 import { getNotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
 import { applyLearningDependencyReviewToDocument } from "@/features/learning-memory/learning-dependency-note-update";
 import { readLearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-sync";
-import {
-  DEFAULT_NOTES_READING_THEME,
-  NOTES_READING_THEME_EVENT,
-  isNotesReadingThemeId,
-  loadNotesReadingTheme,
-  type NotesReadingThemeId,
-} from "@/features/notes/workbench/notes-reading-theme";
+import { useAppTheme } from "@/features/appearance/use-app-theme";
 import {
   DEFAULT_NOTES_TYPOGRAPHY,
   NOTES_TYPOGRAPHY_EVENT,
@@ -345,30 +339,8 @@ export function NotesWorkbench({
   const [browserPaneWidth, setBrowserPaneWidth] = useState(
     NOTES_BROWSER_SIDEPANE_DEFAULT_WIDTH,
   );
-  // 阅读主题在「设置 → 外观」里选择；这里只负责读取并应用。
-  // 初始 state 固定为 default 以避免 SSR/CSR 水合不一致，挂载后再读取本地偏好。
-  const [readingTheme, setReadingTheme] = useState<NotesReadingThemeId>(
-    DEFAULT_NOTES_READING_THEME,
-  );
-  useEffect(() => {
-    setReadingTheme(loadNotesReadingTheme());
-
-    // 同窗口内（设置页改主题）走自定义事件；跨窗口走 storage 事件。
-    const onThemeEvent = (event: Event) => {
-      const detail = (event as CustomEvent<NotesReadingThemeId>).detail;
-      if (isNotesReadingThemeId(detail)) {
-        setReadingTheme(detail);
-      }
-    };
-    const onStorage = () => setReadingTheme(loadNotesReadingTheme());
-
-    window.addEventListener(NOTES_READING_THEME_EVENT, onThemeEvent);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(NOTES_READING_THEME_EVENT, onThemeEvent);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
+  // 主题由设置页的单一应用偏好提供；Notes 只在根节点消费该值。
+  const readingTheme = useAppTheme();
 
   // 编辑器排版（字号/行高/块间距/字间距/宽度）：同样在「设置」里改，这里读取并应用。
   const [typography, setTypography] = useState<NotesTypographySettings>(

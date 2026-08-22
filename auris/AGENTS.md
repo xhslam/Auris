@@ -170,3 +170,14 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 修复保留 Notes 和设置页的主题机制，不修改外壳全局令牌；而是在 `home-demo-workbench.css` 末尾、同等作用域的首页根节点局部重设深色工作台的 `--app-*` 与 `--accent-*` 令牌。这样所有已有首页 Widget 保持其变量契约，同时不再继承外壳的阅读主题。为胜过 paper 等同特异性人生阶段变体，另在同一末尾把 `.demo-widget--life` 的 `--life-scene-*` 固定为既有 night 场景。首页仍能读取 `data-system-color-scheme`，但该属性不会再造成浅色内容面。
 
 新增 `tests/unit/home/home-workbench-theme-isolation.test.ts`，断言局部 dark palette 和 night life-scene 规则位于 paper 变体之后；结合首页样式隔离、人生阶段、隐藏滚动条、首页单元与桌面首页组件测试共 16 项通过。定向 ESLint、`git diff --check` 和 `npm run build` 通过。最新 macOS 包已安装并启动；安装前副本保留为 `/Applications/Auris.app.backup-1.0.1-before-home-theme-isolation`。已从安装包的压缩 CSS 确认 `--app-bg:#171819` 与最终 night life-scene 场景声明存在。未提交或推送本轮补丁。
+
+
+## Engineering trajectory: 全应用主题统一与首页同步修复（2026-08-22）
+
+用户澄清产品目标：White、Paper、Mint、Tan（内部 id 为 `sepia`）、Night 和 Solarized 是整个应用的统一主题，而非 Notes 专属阅读主题；首页、人生阶段及相关 Widget 必须和设置页同步变化。上一轮固定首页深色的规则因此是错误策略，已被完整移除。
+
+本轮新增 `src/features/appearance/app-theme.ts` 作为唯一主题契约：定义 `AppThemeId`、六个主题 ID、稳定默认值、统一 localStorage 键与 `auris:app-theme` 广播事件。原 `notes-reading-theme.ts` 保留为兼容出口，但只重导该核心值，不再形成第二套状态源。`use-app-theme.ts` 将默认值、水合后读取、同窗口事件及跨窗口 storage 订阅收敛为共享 Hook；桌面外壳、Notes 工作台和独立浏览器窗口均改用它。外观设置直接写入核心契约；浏览器原生背景、Notes 欢迎页和嵌入式浏览器的类型也改为 `AppThemeId`。因此，改变设置主题会同时刷新外壳 `data-app-theme`、首页/人生阶段场景、Notes 根节点、阅读、复习、浏览器与独立窗口。
+
+首页删除了错误的局部 `--app-*` 深色重置和固定 night `--life-scene-*` 覆盖，重新继承桌面壳的语义令牌。既有六个 `.desktop-app-shell[data-app-theme="..."] .auris-demo-home ... .demo-widget--life` 场景规则保持为各主题的唯一场景源，使纸张、白色、薄荷、棕褐、夜间和 Solarized 呈现各自背景与前景，而非强制同一种夜景。
+
+新增 `tests/unit/appearance/app-theme.test.ts`，覆盖持久化、广播、共享 Hook 实时更新，以及六个主题在桌面壳、Notes、首页、人生阶段和阅读的令牌选择器完整性；更新首页主题测试为“消费应用令牌 + 每主题独立人生阶段场景”契约。统一主题、首页、人生阶段、阅读、Notes 与桌面首页定向回归共 96 项通过；定向 ESLint、`git diff --check` 和生产构建通过。最新 macOS 包已经安装并启动；运行时截图确认 Solarized 已同时驱动首页所有 Widget 与人生阶段的青绿色场景，而不是被固定为夜间。安装前副本保留于 `/Applications/Auris.app.backup-1.0.1-before-unified-theme`。未提交或推送本轮补丁。

@@ -8,12 +8,12 @@ import {
   FolderPlus,
 } from "@phosphor-icons/react";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
-import type { NotesReadingThemeId } from "@/features/notes/workbench/notes-reading-theme";
+import type { AppThemeId } from "@/features/appearance/app-theme";
 
 type NotesWelcomeScreenProps = {
   documents: NoteDocument[];
   recentFiles: string[];
-  theme: NotesReadingThemeId;
+  theme: AppThemeId;
   onCreateFile: () => void;
   onOpenFile: () => void;
   onOpenFolder: () => void;

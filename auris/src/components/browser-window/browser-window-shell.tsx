@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BrowserTabStrip } from "@/components/browser-window/browser-tab-strip";
 import { BrowserToolbar } from "@/components/browser-window/browser-toolbar";
 import { BrowserApprovalDialog } from "@/components/browser-window/browser-approval-dialog";
@@ -10,32 +10,12 @@ import { getBrowserBridge } from "@/features/browser/browser-bridge";
 import { createBrowserReferenceContext } from "@/features/nia/nia-context";
 import { getNiaStandaloneBridge } from "@/features/nia/nia-standalone-bridge";
 import { useBrowserWindow } from "@/features/browser/use-browser-window";
-import {
-  DEFAULT_NOTES_READING_THEME,
-  NOTES_READING_THEME_EVENT,
-  isNotesReadingThemeId,
-  loadNotesReadingTheme,
-  type NotesReadingThemeId,
-} from "@/features/notes/workbench/notes-reading-theme";
+import { useAppTheme } from "@/features/appearance/use-app-theme";
 
 export function BrowserWindowShell() {
   const model = useBrowserWindow(typeof window === "undefined" ? globalThis : window);
   const browserWindow = model.window;
-  const [appTheme, setAppTheme] = useState<NotesReadingThemeId>(DEFAULT_NOTES_READING_THEME);
-  useEffect(() => {
-    setAppTheme(loadNotesReadingTheme());
-    const onThemeEvent = (event: Event) => {
-      const detail = (event as CustomEvent<NotesReadingThemeId>).detail;
-      if (isNotesReadingThemeId(detail)) setAppTheme(detail);
-    };
-    const onStorage = () => setAppTheme(loadNotesReadingTheme());
-    window.addEventListener(NOTES_READING_THEME_EVENT, onThemeEvent);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(NOTES_READING_THEME_EVENT, onThemeEvent);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
+  const appTheme = useAppTheme();
 
   useEffect(() => {
     const bridge = getBrowserBridge(typeof window === "undefined" ? globalThis : window);

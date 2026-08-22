@@ -7,37 +7,50 @@ const css = readFileSync(
   "utf8",
 );
 
-const homeSelector = ".desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme]";
-const homeRuleSelector = `${homeSelector} {`;
-const lifeSelector = `${homeSelector} .demo-widget--life {`;
+const themes = ["white", "paper", "mint", "sepia", "night", "solarized"] as const;
+const homeRoot = ".desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme]";
 
-function lastRuleBody(selector: string) {
-  const start = css.lastIndexOf(selector);
-  expect(start).toBeGreaterThanOrEqual(0);
-  return css.slice(start, css.indexOf("\n}\n", start) + 3);
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-describe("home workbench theme isolation", () => {
-  it("pins the home workbench to a dark local application palette", () => {
-    const body = lastRuleBody(homeRuleSelector);
+function ruleBody(selector: string) {
+  const match = css.match(new RegExp(`${escapeRegExp(selector)}\\s*\\{([\\s\\S]*?)\\n\\}`));
+  expect(match, `Missing CSS rule: ${selector}`).not.toBeNull();
+  return match![1];
+}
 
-    expect(body).toContain("--app-bg: #171819;");
-    expect(body).toContain("--app-surface: #202124;");
-    expect(body).toContain("--app-ink: #f2efe9;");
-    expect(body).toContain("--accent: #c5a85f;");
-    expect(css.lastIndexOf(homeRuleSelector)).toBeGreaterThan(
-      css.indexOf('.desktop-app-shell[data-app-theme="paper"] .auris-demo-home'),
+describe("home workbench application-theme contract", () => {
+  it("consumes the shell semantic palette rather than pinning a private dark palette", () => {
+    expect(css).toContain("--bg: var(--app-bg);");
+    expect(css).toContain("--panel: var(--app-surface);");
+    expect(css).toContain("--ink: var(--app-ink);");
+    expect(css).toContain("--muted: var(--app-muted);");
+    expect(css).not.toMatch(
+      new RegExp(`${escapeRegExp(homeRoot)}\\s*\\{[\\s\\S]*?--app-bg:`),
     );
   });
 
-  it("pins the life-stage canvas to the dark scene regardless of application theme", () => {
-    const body = lastRuleBody(lifeSelector);
+  it.each(themes)("provides a distinct %s life-stage scene bound to that application theme", (theme) => {
+    const selector = `.desktop-app-shell[data-app-theme="${theme}"] .auris-demo-home[data-system-color-scheme] .demo-widget--life`;
+    const body = ruleBody(selector);
 
-    expect(body).toContain("linear-gradient(180deg, #071421 0%, #112235 47%, #172b24 100%)");
-    expect(body).toContain("--life-scene-label: #d8eee0;");
-    expect(body).toContain("--life-scene-star-opacity: 1;");
-    expect(css.lastIndexOf(lifeSelector)).toBeGreaterThan(
-      css.indexOf('.desktop-app-shell[data-app-theme="paper"] .auris-demo-home'),
+    expect(body).toContain("--life-scene-background:");
+    expect(body).toContain("--life-scene-label:");
+    expect(body).toContain("--life-scene-note-bg:");
+    expect(body).toContain("--life-scene-current:");
+  });
+
+  it("keeps the paper and night life-stage scenes visually distinct", () => {
+    const paper = ruleBody(
+      '.desktop-app-shell[data-app-theme="paper"] .auris-demo-home[data-system-color-scheme] .demo-widget--life',
     );
+    const night = ruleBody(
+      '.desktop-app-shell[data-app-theme="night"] .auris-demo-home[data-system-color-scheme] .demo-widget--life',
+    );
+
+    expect(paper).toContain("#f5e7bf");
+    expect(night).toContain("#071421");
+    expect(paper).not.toBe(night);
   });
 });

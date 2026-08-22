@@ -1,7 +1,7 @@
 import {
-  DEFAULT_NOTES_READING_THEME,
-  type NotesReadingThemeId,
-} from "@/features/notes/workbench/notes-reading-theme";
+  DEFAULT_APP_THEME,
+  type AppThemeId,
+} from "@/features/appearance/app-theme";
 
 /** Native BrowserWindow / WebContentsView fill colors aligned with `--app-bg`. */
 export const BROWSER_THEME_BACKGROUNDS = Object.freeze({
@@ -11,10 +11,10 @@ export const BROWSER_THEME_BACKGROUNDS = Object.freeze({
   sepia: "#f1e7d0",
   night: "#1b1c1f",
   solarized: "#002b36",
-} as const satisfies Record<NotesReadingThemeId, string>);
+} as const satisfies Record<AppThemeId, string>);
 
 export function browserThemeBackground(
-  theme: NotesReadingThemeId = DEFAULT_NOTES_READING_THEME,
+  theme: AppThemeId = DEFAULT_APP_THEME,
 ): string {
   return BROWSER_THEME_BACKGROUNDS[theme] ?? BROWSER_THEME_BACKGROUNDS.mint;
 }

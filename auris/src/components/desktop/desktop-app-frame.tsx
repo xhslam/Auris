@@ -11,13 +11,7 @@ import { persistLastWorkspace } from "@/features/app-runtime/app-runtime-storage
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import { useDesktopRoutePrefetch } from "@/platform/desktop/use-desktop-route-prefetch";
 import { useHydratedDesktopBridge } from "@/platform/desktop/use-hydrated-desktop-bridge";
-import {
-  DEFAULT_NOTES_READING_THEME,
-  NOTES_READING_THEME_EVENT,
-  isNotesReadingThemeId,
-  loadNotesReadingTheme,
-  type NotesReadingThemeId,
-} from "@/features/notes/workbench/notes-reading-theme";
+import { useAppTheme } from "@/features/appearance/use-app-theme";
 
 type DesktopAppFrameProps = {
   activeNavId?: string;
@@ -67,33 +61,10 @@ export function DesktopAppFrame({
   const router = useRouter();
   const { desktopBridge, hasHydratedDesktopBridge } = useHydratedDesktopBridge();
 
-  // 全局主题：与笔记共享同一份选择（设置 → 外观）。挂到外壳根上，供所有界面消费。
-  const [appTheme, setAppTheme] = useState<NotesReadingThemeId>(
-    DEFAULT_NOTES_READING_THEME,
-  );
+  // 全局主题：设置页的单一偏好挂到外壳根上，供所有界面消费。
+  const appTheme = useAppTheme();
   // 默认收起；用户点开后写入 sessionStorage，换页 remount 时保持展开，不会一点导航就收回。
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(readSidebarExpanded);
-
-  useEffect(() => {
-    setAppTheme(loadNotesReadingTheme());
-
-    const onThemeEvent = (event: Event) => {
-      const detail = (event as CustomEvent<NotesReadingThemeId>).detail;
-      if (isNotesReadingThemeId(detail)) {
-        setAppTheme(detail);
-      }
-    };
-    const onStorage = () => {
-      setAppTheme(loadNotesReadingTheme());
-    };
-
-    window.addEventListener(NOTES_READING_THEME_EVENT, onThemeEvent);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(NOTES_READING_THEME_EVENT, onThemeEvent);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
 
   useDesktopRoutePrefetch({
     router,
