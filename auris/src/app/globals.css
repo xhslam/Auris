@@ -17122,13 +17122,43 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 /* Notes focused reading and Markdown split modes. */
 .desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host .cm-line,
 .desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host--wysiwyg .ProseMirror > * {
-  opacity: 0.3;
+  opacity: var(--notes-focus-muted-opacity, 0.3);
   transition: opacity 140ms ease;
+}
+
+.desktop-app-frame .notes-v2[data-focus-dim="standard"] {
+  --notes-focus-muted-opacity: 0.3;
+}
+
+.desktop-app-frame .notes-v2[data-focus-dim="strong"] {
+  --notes-focus-muted-opacity: 0.16;
+}
+
+.desktop-app-frame .notes-v2[data-focus-dim="stronger"] {
+  --notes-focus-muted-opacity: 0.07;
 }
 
 .desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host .cm-activeLine,
 .desktop-app-frame .notes-v2[data-focus-mode="true"] .notes-v2__editor-host--wysiwyg .ProseMirror > .notes-v2__rich-active-block {
   opacity: 1;
+}
+
+.desktop-app-frame
+  .notes-v2[data-auto-hide-status="true"][data-interface-active="false"]
+  .notes-v2__corner-cluster:not(:focus-within) {
+  opacity: 0;
+  transform: translateY(9px);
+  pointer-events: none;
+}
+
+.desktop-app-frame .notes-v2__corner-cluster {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-app-frame .notes-v2__corner-cluster {
+    transition: none;
+  }
 }
 
 .desktop-app-frame .notes-v2[data-read-only="true"] .notes-v2__editor-host {

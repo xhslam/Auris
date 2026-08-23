@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { NotesWorkbench } from "@/components/notes-v2/notes-workbench";
@@ -12,6 +12,10 @@ import type { DesktopTerminalBridge } from "@/platform/desktop/desktop-bridge";
 import type { EditorView } from "@codemirror/view";
 import { TextSelection } from "prosemirror-state";
 import type { EditorView as ProseMirrorEditorView } from "prosemirror-view";
+
+afterEach(() => {
+  window.localStorage.removeItem("auris.appearance.window-preferences.v1");
+});
 
 vi.mock("@xterm/xterm", () => ({
   Terminal: class {
@@ -524,6 +528,36 @@ describe("NotesEditorPane", () => {
 });
 
 describe("NotesWorkbench", () => {
+  it("applies persisted status-bar hiding and focus dim intensity", async () => {
+    window.localStorage.setItem(
+      "auris.appearance.window-preferences.v1",
+      JSON.stringify({ focusDim: 2, hideStatus: true, titlebarName: false }),
+    );
+
+    const { container } = render(
+      <NotesWorkbench
+        activePath="notes/daily.md"
+        documents={[createDocument()]}
+        entries={ENTRIES}
+        onDocumentChange={vi.fn()}
+        onOpenPath={vi.fn()}
+        openTabs={["notes/daily.md"]}
+      />,
+    );
+
+    const workbench = container.querySelector(".notes-v2--minimal");
+    await waitFor(() => {
+      expect(workbench).toHaveAttribute(
+        "data-focus-dim",
+        "stronger",
+      );
+    });
+    expect(workbench).toHaveAttribute(
+      "data-auto-hide-status",
+      "true",
+    );
+  });
+
   it("opens an editable Source Peek for the current display block with F5", async () => {
     const user = userEvent.setup();
     const onDocumentChange = vi.fn();

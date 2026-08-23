@@ -335,3 +335,11 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 用户希望点击“添加任务”后一次输入全部任务，而不是每次先创建一条空任务。`plan-list.tsx` 已改为在卡片内打开批量录入面板：每行解析为一项任务，忽略空行，并自动去除数字序号、项目符号和 Markdown 复选框前缀；面板实时显示有效任务数，支持 Ctrl/Cmd+Enter 提交与 Escape 取消。`home-page.tsx` 将有效任务在一次持久化更新中创建，保留原有单项编辑、完成、删除、记录与导出行为；组件边界保留旧 `onAdd` 兼容层，因此未修改历史备份文件。`home-v3.css` 新增与当前 Auris 主题令牌一致的纸张式多行编辑区和窄卡片响应式布局。
 
 回归测试覆盖批量解析、一次提交、持久化后继续编辑/完成/删除及原有首页功能；首页相关 7 个测试文件、30 项全部通过。定向 ESLint 无错误（仅保留 `home-page.tsx` 既有 `<img>` 优化警告），`npm run build` 和 `git diff --check` 通过。未提交或推送 Git 改动，未触碰其他已有未提交文件。
+
+## Engineering trajectory: 外观设置窗口与专注模式接线（2026-08-23）
+
+用户指出“在标题栏显示文件名”、“自动隐藏状态栏”和“暗化程度”仅改变设置页内部状态，没有任何运行时消费者。实现新增 `app-window-preferences.ts` 与订阅 hook，统一存储、归一化并广播三项偏好；设置页在 mount 后恢复偏好，任意改动立即持久化，并纳入既有设置导入/导出。Toggle 同时补足了可键盘操作的 `switch` 语义。
+
+Notes 笔记页在开启标题偏好时将当前文件名写入 Electron 窗口标题，离开笔记或关闭偏好后回复 `Auris`。自动隐藏状态栏作用于 Notes 底部左右状态簇：停止交互 1.4 秒后淡出，指针、键盘、点击或焦点交互会立即恢复，并保留 `prefers-reduced-motion` 兼容。专注模式的非活动内容可见度明确定为标准 30%、强 16%、更强 7%，活动编辑块始终保持 100%。
+
+新增偏好归一化/持久化、设置控件、Notes 运行时数据属性和桌面标题回归；定向 8 个测试文件、78 项全部通过。定向 ESLint、`git diff --check` 和 `npm run build` 均通过。未提交或推送 Git 改动，未纳入既有个人词库或未跟踪资料目录。

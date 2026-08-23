@@ -87,6 +87,23 @@ vi.mock("@/platform/desktop/desktop-runtime", () => ({
 }));
 
 describe("DesktopAppFrame", () => {
+  it("shows an active filename in the native window title when provided", async () => {
+    render(
+      <DesktopAppFrame
+        activeWorkspace="notes"
+        subtitle="Notes"
+        title="Notebook"
+        windowTitle="daily-review.md"
+      >
+        <div>Notes</div>
+      </DesktopAppFrame>,
+    );
+
+    await waitFor(() => {
+      expect(document.title).toBe("daily-review.md · Auris");
+    });
+  });
+
   beforeEach(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();

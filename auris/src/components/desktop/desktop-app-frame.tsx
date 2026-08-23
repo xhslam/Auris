@@ -20,6 +20,7 @@ type DesktopAppFrameProps = {
   persistActiveWorkspace?: boolean;
   subtitle: string;
   title: string;
+  windowTitle?: string | null;
 };
 
 const SIDEBAR_EXPANDED_SESSION_KEY = "auris.desktop.sidebar-expanded";
@@ -57,6 +58,7 @@ export function DesktopAppFrame({
   activeWorkspace,
   children,
   persistActiveWorkspace = true,
+  windowTitle = null,
 }: DesktopAppFrameProps) {
   const router = useRouter();
   const { desktopBridge, hasHydratedDesktopBridge } = useHydratedDesktopBridge();
@@ -86,6 +88,10 @@ export function DesktopAppFrame({
     hasHydratedDesktopBridge,
     persistActiveWorkspace,
   ]);
+
+  useEffect(() => {
+    document.title = windowTitle?.trim() ? `${windowTitle.trim()} · Auris` : "Auris";
+  }, [windowTitle]);
 
   const handleToggleSidebarExpanded = useCallback(() => {
     setIsSidebarExpanded((previous) => {

@@ -22,6 +22,7 @@ import { useNotesWorkbench } from "@/components/notes-v2/use-notes-workbench";
 import { useNotesDialog } from "@/components/notes-v2/use-notes-dialog";
 import { NotesWelcomeScreen } from "@/components/notes-v2/notes-welcome-screen";
 import { useAppReadingTheme } from "@/features/notes/workbench/use-app-reading-theme";
+import { useAppWindowPreferences } from "@/features/appearance/use-app-window-preferences";
 
 type NotesPageClientProps = {
   resumeNoteId?: string | null;
@@ -29,6 +30,7 @@ type NotesPageClientProps = {
 
 export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
   const theme = useAppReadingTheme();
+  const windowPreferences = useAppWindowPreferences();
   const { promptFn, confirmFn, renderDialogs } = useNotesDialog();
   const workbench = useNotesWorkbench({
     resumeNoteId,
@@ -139,9 +141,17 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
   const isCurrentFolder =
     location.type === "folder" &&
     location.folder.path === workbench.directoryInfo.vaultPath;
+  const activeDocument = useMemo(
+    () => workbench.documents.find((document) => document.path === workbench.activePath) ?? null,
+    [workbench.activePath, workbench.documents],
+  );
+  const windowTitle =
+    windowPreferences.titlebarName && location.type === "note"
+      ? activeDocument?.fileName ?? null
+      : null;
 
   return (
-    <DesktopAppFrame activeNavId="notes" activeWorkspace="notes" subtitle="笔记工作区" title="笔记">
+    <DesktopAppFrame activeNavId="notes" activeWorkspace="notes" subtitle="笔记工作区" title="笔记" windowTitle={windowTitle}>
       <div
         className="notes-v2-page"
         data-entry-view={location.type}

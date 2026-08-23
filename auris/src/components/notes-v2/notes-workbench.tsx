@@ -26,6 +26,7 @@ import { getNotesDocumentSaveState } from "@/features/notes/workbench/notes-docu
 import { applyLearningDependencyReviewToDocument } from "@/features/learning-memory/learning-dependency-note-update";
 import { readLearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-sync";
 import { useAppTheme } from "@/features/appearance/use-app-theme";
+import { useAppWindowPreferences } from "@/features/appearance/use-app-window-preferences";
 import {
   DEFAULT_NOTES_TYPOGRAPHY,
   NOTES_TYPOGRAPHY_EVENT,
@@ -341,6 +342,34 @@ export function NotesWorkbench({
   );
   // 主题由设置页的单一应用偏好提供；Notes 只在根节点消费该值。
   const readingTheme = useAppTheme();
+  const windowPreferences = useAppWindowPreferences();
+  const [isStatusBarActive, setIsStatusBarActive] = useState(true);
+  const statusBarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const markInterfaceActive = useCallback(() => {
+    if (!windowPreferences.hideStatus) return;
+    setIsStatusBarActive(true);
+    if (statusBarTimerRef.current) clearTimeout(statusBarTimerRef.current);
+    statusBarTimerRef.current = setTimeout(() => {
+      setIsStatusBarActive(false);
+      statusBarTimerRef.current = null;
+    }, 1400);
+  }, [windowPreferences.hideStatus]);
+  useEffect(() => {
+    if (statusBarTimerRef.current) clearTimeout(statusBarTimerRef.current);
+    if (!windowPreferences.hideStatus) {
+      setIsStatusBarActive(true);
+      statusBarTimerRef.current = null;
+      return;
+    }
+    setIsStatusBarActive(true);
+    statusBarTimerRef.current = setTimeout(() => {
+      setIsStatusBarActive(false);
+      statusBarTimerRef.current = null;
+    }, 1400);
+    return () => {
+      if (statusBarTimerRef.current) clearTimeout(statusBarTimerRef.current);
+    };
+  }, [windowPreferences.hideStatus]);
 
   // 编辑器排版（字号/行高/块间距/字间距/宽度）：同样在「设置」里改，这里读取并应用。
   const [typography, setTypography] = useState<NotesTypographySettings>(
@@ -775,6 +804,9 @@ export function NotesWorkbench({
         className="notes-v2 notes-v2--minimal"
         data-notes-theme={readingTheme}
         data-focus-mode={viewPreferences.focusMode ? "true" : "false"}
+        data-focus-dim={(["standard", "strong", "stronger"] as const)[windowPreferences.focusDim]}
+        data-auto-hide-status={windowPreferences.hideStatus ? "true" : "false"}
+        data-interface-active={isStatusBarActive ? "true" : "false"}
         data-read-only={viewPreferences.readOnly ? "true" : "false"}
         data-typewriter-mode={viewPreferences.typewriterMode ? "true" : "false"}
         lang={notesLocale}
@@ -785,6 +817,10 @@ export function NotesWorkbench({
           !isBrowserPaneOpen && isTerminalSplitOpen ? "true" : "false"
         }
         ref={shellRef}
+        onClickCapture={markInterfaceActive}
+        onFocusCapture={markInterfaceActive}
+        onKeyDownCapture={markInterfaceActive}
+        onPointerMove={markInterfaceActive}
         style={
           {
             "--notes-browser-pane-width": `${resolvedBrowserPaneWidth}px`,

@@ -29,6 +29,10 @@ import {
   saveAppTheme,
 } from "@/features/appearance/app-theme";
 import {
+  loadAppWindowPreferences,
+  saveAppWindowPreferences,
+} from "@/features/appearance/app-window-preferences";
+import {
   cjkSettingsFromUi,
   cjkUiSelectsFromSettings,
   cjkUiTogglesFromSettings,
@@ -385,6 +389,8 @@ const INITIAL_TEXTS: Texts = {
 
 /** 仅导入导出已接通持久化与运行时消费者的偏好。 */
 const SETTINGS_EXPORT_TOGGLE_KEYS = [
+  "titlebarName",
+  "hideStatus",
   "autoPair",
   "showInvisibles",
   "removeSlashSpacing",
@@ -404,6 +410,7 @@ const SETTINGS_EXPORT_TOGGLE_KEYS = [
 ] as const;
 
 const SETTINGS_EXPORT_SELECT_KEYS = [
+  "focusDim",
   "latinFont",
   "cjkFont",
   "monoFont",
@@ -743,6 +750,35 @@ export function AurisSettings({ accent }: { accent?: string }) {
   useEffect(() => {
     setTheme(loadAppTheme());
   }, []);
+
+  /* --- Window + focus presentation: persist and broadcast to live consumers. --- */
+  const windowPreferencesSaveInitRef = useRef(true);
+  const lastWindowPreferencesJsonRef = useRef("");
+  useEffect(() => {
+    const persisted = loadAppWindowPreferences();
+    lastWindowPreferencesJsonRef.current = JSON.stringify(persisted);
+    setToggles((prev) => ({
+      ...prev,
+      hideStatus: persisted.hideStatus,
+      titlebarName: persisted.titlebarName,
+    }));
+    setSelects((prev) => ({ ...prev, focusDim: persisted.focusDim }));
+  }, []);
+  useEffect(() => {
+    if (windowPreferencesSaveInitRef.current) {
+      windowPreferencesSaveInitRef.current = false;
+      return;
+    }
+    const next = {
+      focusDim: selects.focusDim === 1 || selects.focusDim === 2 ? selects.focusDim : 0,
+      hideStatus: Boolean(toggles.hideStatus),
+      titlebarName: Boolean(toggles.titlebarName),
+    } as const;
+    const json = JSON.stringify(next);
+    if (json === lastWindowPreferencesJsonRef.current) return;
+    lastWindowPreferencesJsonRef.current = json;
+    saveAppWindowPreferences(next);
+  }, [selects.focusDim, toggles.hideStatus, toggles.titlebarName]);
 
   /* --- CJK 排版设置：加载时回填「语言」分类开关，改动时持久化 --- */
   const cjkSaveInitRef = useRef(true);
@@ -1303,10 +1339,21 @@ function RenderRow(props: RowHandlers) {
               </span>
             ) : null}
             <div
+              aria-checked={on}
+              aria-disabled={disabled}
+              aria-label={row.label}
               className="auris-settings__track"
               data-disabled={disabled ? "true" : "false"}
               data-testid={row.key === "browserAutomationEnabled" ? "browser-automation-toggle" : undefined}
+              onKeyDown={(event) => {
+                if (!disabled && (event.key === "Enter" || event.key === " ")) {
+                  event.preventDefault();
+                  props.onToggle(row.key);
+                }
+              }}
               onClick={disabled ? undefined : () => props.onToggle(row.key)}
+              role="switch"
+              tabIndex={disabled ? -1 : 0}
               style={{
                 border: `1px solid ${on ? accent : "var(--app-line)"}`,
                 background: on ? accent : "var(--app-fill-strong)",
@@ -1337,6 +1384,7 @@ function RenderRow(props: RowHandlers) {
             {row.desc ? <div className="auris-settings__row-desc">{row.desc}</div> : null}
           </div>
           <button
+            aria-label={`${row.label}：${row.options[idx]}`}
             type="button"
             className="auris-settings__select"
             data-disabled={disabled ? "true" : "false"}
