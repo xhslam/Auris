@@ -23,6 +23,7 @@ function createService(): DesktopVaultService {
       {
         absolutePath: "C:/vault/notes/shadowing-log.md",
         fileName: "shadowing-log.md",
+        mtime: "2026-08-22T12:00:00.000Z",
         relativePath: "notes/shadowing-log.md",
       },
     ]),
@@ -30,6 +31,7 @@ function createService(): DesktopVaultService {
       {
         absolutePath: "C:/vault/notes/shadowing-log.md",
         fileName: "shadowing-log.md",
+        mtime: "2026-08-22T12:00:00.000Z",
         relativePath: "notes/shadowing-log.md",
       },
     ]),
@@ -64,6 +66,9 @@ describe("desktop vault client", () => {
       "assets/audio.wav",
       "notes/shadowing-log.md",
     ]);
+    expect(entries.find((entry) => entry.path === "notes/shadowing-log.md")?.mtime).toBe(
+      "2026-08-22T12:00:00.000Z",
+    );
     expect(service.listFiles).toHaveBeenCalledOnce();
     expect(service.listMarkdownFiles).not.toHaveBeenCalled();
   });

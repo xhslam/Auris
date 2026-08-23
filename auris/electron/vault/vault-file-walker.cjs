@@ -6,7 +6,7 @@ const path = require("node:path");
  * `Array.prototype.push(...records)` 的参数展开；后者会在大型目录中触发
  * V8 的调用参数上限，表现为 "Maximum call stack size exceeded"。
  */
-function createVaultFileWalker({ readdir = fs.readdir } = {}) {
+function createVaultFileWalker({ readdir = fs.readdir, stat = fs.stat } = {}) {
   return async function walkVaultFiles(vaultPath) {
     const records = [];
     const pendingDirectories = [""];
@@ -37,9 +37,15 @@ function createVaultFileWalker({ readdir = fs.readdir } = {}) {
           continue;
         }
 
+        const absolutePath = path.join(vaultPath, relativePath);
+        // Dirent 不携带时间戳；读取文件属性失败时仍保留文件条目，并显式标记为
+        // 无可用修改时间，避免单个文件的权限或瞬态问题中断整个 Vault 扫描。
+        const metadata = await stat(absolutePath).catch(() => null);
+
         records.push({
-          absolutePath: path.join(vaultPath, relativePath),
+          absolutePath,
           fileName: entry.name,
+          mtime: metadata?.mtime instanceof Date ? metadata.mtime.toISOString() : null,
           relativePath: normalizedRelativePath,
         });
       }

@@ -21,7 +21,7 @@ const items: PlanItem[] = [
 
 function renderPlanList(plans = items) {
   const callbacks = {
-    onAdd: vi.fn(() => "plan-3"),
+    onAddTasks: vi.fn(),
     onDelete: vi.fn(),
     onExport: vi.fn(),
     onRecord: vi.fn(),
@@ -44,13 +44,32 @@ describe("PlanList", () => {
     expect(screen.getByText("再完成 1 项")).toBeInTheDocument();
     expect(within(card).queryByRole("heading", { name: "今日任务" })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "添加计划" }));
     fireEvent.click(screen.getByRole("button", { name: "导出每日计划" }));
     fireEvent.click(screen.getByRole("button", { name: "记录今日任务到 任务记录.md" }));
+    fireEvent.click(screen.getByRole("button", { name: "添加计划" }));
 
-    expect(callbacks.onAdd).toHaveBeenCalledOnce();
+    expect(screen.getByRole("textbox", { name: "批量添加任务" })).toBeInTheDocument();
     expect(callbacks.onExport).toHaveBeenCalledOnce();
     expect(callbacks.onRecord).toHaveBeenCalledOnce();
+  });
+
+  it("adds a pasted task list in one batch and normalizes common list markers", () => {
+    const { callbacks } = renderPlanList([]);
+
+    fireEvent.click(screen.getByRole("button", { name: "添加计划" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "批量添加任务" }), {
+      target: { value: "1. 完成 10 道真题\n- 整理阅读材料\n- [ ] 复习单词\n\n" },
+    });
+
+    expect(screen.getByText("3 项")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "添加 3 项任务" }));
+
+    expect(callbacks.onAddTasks).toHaveBeenCalledWith([
+      "完成 10 道真题",
+      "整理阅读材料",
+      "复习单词",
+    ]);
+    expect(screen.queryByRole("textbox", { name: "批量添加任务" })).not.toBeInTheDocument();
   });
 
   it("uses the flexible task area for an intentional empty state", () => {

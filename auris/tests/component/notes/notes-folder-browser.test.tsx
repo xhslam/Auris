@@ -91,8 +91,11 @@ describe("NotesFolderBrowser", () => {
     fireEvent.click(screen.getByRole("button", { name: "打开笔记 Control System" }));
     expect(onOpenNote).toHaveBeenCalledWith("control-system.md");
 
+    expect(screen.getByText("2 个文件 · 网格视图")).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "列表视图" }));
     expect(screen.getByText("名称")).toBeInTheDocument();
+    expect(screen.getByText("2 个文件 · 列表视图")).toBeInTheDocument();
     expect(window.sessionStorage.getItem("auris.notes.folder-browser-view")).toBe(
       "list",
     );
@@ -125,6 +128,34 @@ describe("NotesFolderBrowser", () => {
     expect(screen.queryByText("Control System")).not.toBeInTheDocument();
   });
 
+  it("reorders the visible documents when the sorting mode changes", async () => {
+    renderBrowser();
+    await screen.findByRole("button", { name: "打开笔记 Control System" });
+
+    const visibleNames = () =>
+      screen
+        .getAllByRole("button", { name: /打开笔记/ })
+        .map((button) => button.getAttribute("aria-label"));
+
+    fireEvent.change(screen.getByLabelText("排序方式"), {
+      target: { value: "modified-asc" },
+    });
+    expect(screen.getByLabelText("排序方式")).toHaveValue("modified-asc");
+    expect(visibleNames()).toEqual([
+      "打开笔记 Linear Algebra",
+      "打开笔记 Control System",
+    ]);
+
+    fireEvent.change(screen.getByLabelText("排序方式"), {
+      target: { value: "name-asc" },
+    });
+    expect(screen.getByLabelText("排序方式")).toHaveValue("name-asc");
+    expect(visibleNames()).toEqual([
+      "打开笔记 Control System",
+      "打开笔记 Linear Algebra",
+    ]);
+  });
+
   it("only displays documents registered as Markdown notes", async () => {
     const vaultMetadata = makeDocument({
       formatId: "json",
@@ -139,7 +170,7 @@ describe("NotesFolderBrowser", () => {
     expect(
       screen.queryByRole("button", { name: "打开笔记 Vault metadata" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("1 个文件")).toBeInTheDocument();
+    expect(screen.getByText("1 个文件 · 网格视图")).toBeInTheDocument();
   });
 
   it("hides unavailable timestamps instead of rendering missing-data noise", async () => {

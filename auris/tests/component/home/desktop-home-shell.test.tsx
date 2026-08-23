@@ -137,6 +137,10 @@ describe("DesktopHomeShell (Home v3)", () => {
     render(<DesktopHomeShell notesStorage={null} />);
 
     fireEvent.click(screen.getByRole("button", { name: "添加计划" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "批量添加任务" }), {
+      target: { value: "整理材料" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "添加 1 项任务" }));
     fireEvent.change(screen.getByLabelText("编辑计划"), {
       target: { value: "整理阅读材料" },
     });

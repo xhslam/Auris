@@ -325,10 +325,10 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
     setHomeData((current) => { const next = updater(current); writeHomeData(storage, next); return next; });
   }, [storage]);
   const updateQuote = useCallback((text: string) => persist((current) => ({ ...current, quote: { date: todayKey, text, updatedAt: new Date().toISOString() } })), [persist, todayKey]);
-  const addPlan = useCallback(() => {
-    const timestamp = new Date().toISOString(); const id = createPlanId();
-    persist((current) => ({ ...current, plans: [...current.plans, { id, title: "", done: false, createdAt: timestamp, updatedAt: timestamp }] }));
-    return id;
+  const addPlanTasks = useCallback((titles: string[]) => {
+    const timestamp = new Date().toISOString();
+    const plans = titles.map((title) => ({ id: createPlanId(), title, done: false, createdAt: timestamp, updatedAt: timestamp }));
+    persist((current) => ({ ...current, plans: [...current.plans, ...plans] }));
   }, [persist]);
   const updatePlanTitle = useCallback((id: string, title: string) => persist((current) => ({ ...current, plans: current.plans.map((item) => item.id === id ? { ...item, title, updatedAt: new Date().toISOString() } : item) })), [persist]);
   const togglePlan = useCallback((id: string) => persist((current) => ({ ...current, plans: current.plans.map((item) => item.id === id ? { ...item, done: !item.done, updatedAt: new Date().toISOString() } : item) })), [persist]);
@@ -567,7 +567,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
     if (widget.type === "life") return <LifeRoad birthYear={homeData.birthYear} records={homeData.lifeRecords} onUpdateBirthYear={(birthYear) => persist((current) => ({ ...current, birthYear }))} onUpdateRecord={(year, text) => persist((current) => ({ ...current, lifeRecords: [...current.lifeRecords.filter((record) => record.year !== year), { year, text, updatedAt: new Date().toISOString() }].filter((record) => record.text.trim()).sort((a, b) => a.year - b.year) }))} />;
     if (widget.type === "review") return reviewBody();
     if (widget.type === "capture") return captureBody();
-    if (widget.type === "plans") return <PlanList items={homeData.plans} onAdd={addPlan} onDelete={deletePlan} onExport={() => { void recordPlansToLog(); }} onRecord={() => { void recordPlansToLog(); }} onToggle={togglePlan} onUpdateTitle={updatePlanTitle} />;
+    if (widget.type === "plans") return <PlanList items={homeData.plans} onAddTasks={addPlanTasks} onDelete={deletePlan} onExport={() => { void recordPlansToLog(); }} onRecord={() => { void recordPlansToLog(); }} onToggle={togglePlan} onUpdateTitle={updatePlanTitle} />;
     if (widget.type === "browser") return <BrowserStatusCenter bridge={desktopBridge?.browserStatus ?? null} />;
     return genericContent(widget);
   }

@@ -177,9 +177,12 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
       .then(async () => {
         if (graphRequestRef.current?.token !== token) return;
 
+        // 文件夹浏览器与关系图都以 Markdown 笔记为单位。此前把所有“可编辑”
+        // 文件（JSON、纯文本及未知文本）一并读取；其中任一读取失败都会使本次
+        // 全量请求丢弃，结果只剩已打开的少数文档。
         const entries = source.entries.filter(
           (entry) =>
-            entry.kind === "file" && getFormatDescriptor(entry.path).canEdit,
+            entry.kind === "file" && getFormatDescriptor(entry.path).id === "markdown",
         );
         const liveByPath = new Map(
           graphLiveDocumentsRef.current.map((document) => [document.path, document]),
@@ -220,7 +223,10 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     documents.forEach((document) => byPath.set(document.path, document));
     return snapshot.entries
       .map((entry) => byPath.get(entry.path) ?? null)
-      .filter((document): document is NoteDocument => document !== null);
+      .filter(
+        (document): document is NoteDocument =>
+          document !== null && document.formatId === "markdown",
+      );
   }, [documents, graphSnapshot, snapshot]);
 
   // Fallback no-op fns so callers don't need to guard against undefined

@@ -40,6 +40,11 @@ const SORT_LABELS: Record<NotesBrowserSort, string> = {
   "name-desc": "名称 Z-A",
 };
 
+const VIEW_MODE_LABELS: Record<NotesBrowserView, string> = {
+  grid: "网格视图",
+  list: "列表视图",
+};
+
 const VIEW_MODE_STORAGE_KEY = "auris.notes.folder-browser-view";
 
 function readViewMode(): NotesBrowserView {
@@ -294,6 +299,7 @@ export function NotesFolderBrowser({
     <main
       className="notes-v2 notes-v2--folder-browser"
       data-notes-theme={theme}
+      data-sort-mode={sortMode}
       data-view-mode={viewMode}
     >
       <div className="notes-folder-browser__inner">
@@ -342,6 +348,7 @@ export function NotesFolderBrowser({
               <select
                 aria-label="排序方式"
                 onChange={(event) => setSortMode(event.target.value as NotesBrowserSort)}
+                title={`当前按${SORT_LABELS[sortMode]}排序`}
                 value={sortMode}
               >
                 {Object.entries(SORT_LABELS).map(([value, label]) => (
@@ -355,6 +362,7 @@ export function NotesFolderBrowser({
                 aria-pressed={viewMode === "grid"}
                 data-active={viewMode === "grid" ? "true" : "false"}
                 onClick={() => setStoredViewMode("grid")}
+                title="切换到网格视图"
                 type="button"
               >
                 <SquaresFour aria-hidden="true" size={18} weight="bold" />
@@ -364,6 +372,7 @@ export function NotesFolderBrowser({
                 aria-pressed={viewMode === "list"}
                 data-active={viewMode === "list" ? "true" : "false"}
                 onClick={() => setStoredViewMode("list")}
+                title="切换到列表视图"
                 type="button"
               >
                 <List aria-hidden="true" size={18} weight="bold" />
@@ -384,7 +393,11 @@ export function NotesFolderBrowser({
           <section aria-label={`${folder.name} 文件`} className="notes-folder-browser__content">
             <div className="notes-folder-browser__content-heading">
               <span>{SORT_LABELS[sortMode]}</span>
-              <small>{searchQuery ? `${filteredDocuments.length} 个匹配项` : `${filteredDocuments.length} 个文件`}</small>
+              <small aria-live="polite">
+                {searchQuery
+                  ? `${filteredDocuments.length} 个匹配项 · ${VIEW_MODE_LABELS[viewMode]}`
+                  : `${filteredDocuments.length} 个文件 · ${VIEW_MODE_LABELS[viewMode]}`}
+              </small>
             </div>
             {viewMode === "grid" ? (
               <div className="notes-folder-browser__grid">

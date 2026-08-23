@@ -320,3 +320,18 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 改动涉及 `auris/src/components/notes-v2/notes-folder-browser.tsx`，新增 Markdown 文档的预筛选；以及 `auris/tests/component/notes/notes-folder-browser.test.tsx`，使测试数据可声明格式，并新增 JSON Vault 元数据不会出现、计数只包含 Markdown 的回归断言。使用仓库现有依赖运行 `node_modules/.bin/vitest run tests/component/notes/notes-folder-browser.test.tsx`，8 项测试全部通过；定向 ESLint 与 `git diff --check` 通过。首次用 pnpm 运行检查因现有 node_modules 并非由 pnpm 安装而触发依赖状态检查失败，并生成了临时 `pnpm-lock.yaml` 和 `pnpm-workspace.yaml`；这些临时文件已删除，随后改用仓库现有的本地二进制完成检查。未修改既有的 `src/features/dictionary/personal-vocab/word-index.json` 或仓库外未跟踪目录；本次未提交或推送 Git 改动。
 
 补充验证：随后执行的 `npm run build` 在仓库既有的测试类型错误处失败（包括桌面桥接 mock 缺少字段、`SessionSourceType` 过期值和导出服务测试的隐式 `any`）；失败输出未涉及本次修改的 `notes-folder-browser` 组件或测试文件。定向组件测试与 ESLint 已通过，故未扩大本次范围去修复这些无关的全仓问题。
+
+
+## Engineering trajectory: Notes 文件夹浏览器 Markdown 全量显示与元数据修复（2026-08-22）
+
+用户反馈文件夹浏览器只显示两个条目、列表行文件名和更新时间空白，且排序与网格/列表切换缺乏可感知反馈。本次将问题拆分为数据范围、文件元数据和呈现反馈三层处理。根因一是桌面 Vault 客户端把 `mtime` 硬编码为 `null`；二是全库临时加载会读取全部可编辑的未知/文本文件，任何无关读取异常都会丢弃整批结果，因而只保留已打开的少量 Markdown 文档。
+
+实现中，`electron/vault/vault-file-walker.cjs` 为文件记录采集 ISO 修改时间，`desktop-bridge.ts` 与 `vault-client.ts` 将其传入 `VaultEntry`。`notes-workbench.facade.ts` 的全量浏览加载改为只读取 `formatId === "markdown"` 的文件，且最终聚合结果同样限定 Markdown；这使 Vault 根目录及子目录中的 `.md` 都被加载，同时避免 `.vmark`、JSON、Git 元数据等无关文件干扰。`notes-folder-browser.tsx` 显示当前排序和 Grid/列表模式，`globals.css` 为列表文件名、时间和类型设定主题令牌色，并为激活视图和模式切换加入清晰状态和短暂过渡。
+
+新增/扩展 `vault-file-walker`、桌面 Vault 客户端和文件夹浏览器的测试，覆盖修改时间传递、只显示 Markdown、排序重排及视图模式反馈。定向 Vitest 共 4 个文件、21 项通过；定向 ESLint、样式令牌测试、`git diff --check` 和 `npm run build` 均通过。按实际桌面扫描逻辑检查 `/Users/apple/Desktop/考研`，确认递归扫描得到 25 个 `.md`，且 0 个缺失修改时间。最终 macOS 应用包已安装到 `/Applications/Auris.app` 并成功启动（Auris 1.0.1）。打包使用本地 macOS 产物且未发布 Release；因没有 Developer ID 证书，包保持未签名状态。未提交或推送本次改动，且未纳入词库索引或既有未跟踪目录。
+
+## Engineering trajectory: 今日任务批量录入（2026-08-23）
+
+用户希望点击“添加任务”后一次输入全部任务，而不是每次先创建一条空任务。`plan-list.tsx` 已改为在卡片内打开批量录入面板：每行解析为一项任务，忽略空行，并自动去除数字序号、项目符号和 Markdown 复选框前缀；面板实时显示有效任务数，支持 Ctrl/Cmd+Enter 提交与 Escape 取消。`home-page.tsx` 将有效任务在一次持久化更新中创建，保留原有单项编辑、完成、删除、记录与导出行为；组件边界保留旧 `onAdd` 兼容层，因此未修改历史备份文件。`home-v3.css` 新增与当前 Auris 主题令牌一致的纸张式多行编辑区和窄卡片响应式布局。
+
+回归测试覆盖批量解析、一次提交、持久化后继续编辑/完成/删除及原有首页功能；首页相关 7 个测试文件、30 项全部通过。定向 ESLint 无错误（仅保留 `home-page.tsx` 既有 `<img>` 优化警告），`npm run build` 和 `git diff --check` 通过。未提交或推送 Git 改动，未触碰其他已有未提交文件。

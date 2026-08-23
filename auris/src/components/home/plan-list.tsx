@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRightIcon,
   CheckIcon,
@@ -12,7 +12,8 @@ import type { PlanItem } from "@/features/home/home-store";
 
 type PlanListProps = {
   items: PlanItem[];
-  onAdd: () => string;
+  onAdd?: () => string;
+  onAddTasks?: (titles: string[]) => void;
   onDelete: (id: string) => void;
   onExport: () => void;
   onRecord: () => void;
@@ -20,17 +21,31 @@ type PlanListProps = {
   onUpdateTitle: (id: string, title: string) => void;
 };
 
+export function parseTaskDraft(draft: string): string[] {
+  return draft
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .map((line) => line.replace(/^[-*+\u2022]\s*\[[ xX]\]\s*/, ""))
+    .map((line) => line.replace(/^[-*+\u2022]\s+/, ""))
+    .map((line) => line.replace(/^\d+[.)\u3001]\s*/, ""))
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 export function PlanList({
   items,
   onAdd,
+  onAddTasks,
   onDelete,
   onExport,
   onRecord,
   onToggle,
   onUpdateTitle,
 }: PlanListProps) {
-  const newestInputRef = useRef<HTMLInputElement | null>(null);
-  const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const [draft, setDraft] = useState("");
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const parsedTasks = useMemo(() => parseTaskDraft(draft), [draft]);
   const doneCount = items.filter((item) => item.done).length;
   const remainingCount = items.length - doneCount;
   const progress = items.length === 0 ? 0 : Math.round((doneCount / items.length) * 100);
@@ -44,14 +59,30 @@ export function PlanList({
           : `再完成 ${remainingCount} 项`;
 
   useEffect(() => {
-    if (!pendingFocusId || !newestInputRef.current) {
+    if (!isComposerOpen || !composerRef.current) {
       return;
     }
 
-    newestInputRef.current.focus();
-    newestInputRef.current.select();
-    setPendingFocusId(null);
-  }, [items, pendingFocusId]);
+    composerRef.current.focus();
+  }, [isComposerOpen]);
+
+  function closeComposer() {
+    setDraft("");
+    setIsComposerOpen(false);
+  }
+
+  function submitTasks() {
+    if (parsedTasks.length === 0) {
+      return;
+    }
+
+    if (onAddTasks) {
+      onAddTasks(parsedTasks);
+    } else if (onAdd) {
+      parsedTasks.forEach((title) => onUpdateTitle(onAdd(), title));
+    }
+    closeComposer();
+  }
 
   return (
     <section className="home-v3-card home-v3-plan" aria-label="计划">
@@ -90,8 +121,54 @@ export function PlanList({
         <span style={{ width: `${progress}%` }} />
       </div>
 
-      <div className="home-v3-plan__list" data-empty={items.length === 0}>
-        {items.length === 0 ? (
+      <div
+        className="home-v3-plan__list"
+        data-composing={isComposerOpen}
+        data-empty={items.length === 0 && !isComposerOpen}
+      >
+        {isComposerOpen ? (
+          <div className="home-v3-plan__composer">
+            <div className="home-v3-plan__composer-heading">
+              <div>
+                <strong>一次写下所有任务</strong>
+                <span>每行一项，粘贴清单也会自动整理</span>
+              </div>
+              <span aria-live="polite">{parsedTasks.length} 项</span>
+            </div>
+            <textarea
+              aria-label="批量添加任务"
+              onChange={(event) => setDraft(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  closeComposer();
+                } else if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                  event.preventDefault();
+                  submitTasks();
+                }
+              }}
+              placeholder={"例如：\n完成 10 道真题\n整理阅读材料\n复习今天的单词"}
+              ref={composerRef}
+              value={draft}
+            />
+            <div className="home-v3-plan__composer-footer">
+              <small>支持序号、项目符号和 Markdown 复选框</small>
+              <div>
+                <button className="home-v3-plan__cancel" onClick={closeComposer} type="button">
+                  取消
+                </button>
+                <button
+                  className="home-v3-plan__confirm"
+                  disabled={parsedTasks.length === 0}
+                  onClick={submitTasks}
+                  type="button"
+                >
+                  {parsedTasks.length > 0 ? `添加 ${parsedTasks.length} 项任务` : "添加任务"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : items.length === 0 ? (
           <div className="home-v3-plan__empty">
             <span><CheckIcon size={16} /></span>
             <p>今天还没有任务</p>
@@ -113,7 +190,6 @@ export function PlanList({
                 className="home-v3-plan__input"
                 onChange={(event) => onUpdateTitle(item.id, event.currentTarget.value)}
                 placeholder="写下一个可完成的计划"
-                ref={pendingFocusId === item.id ? newestInputRef : undefined}
                 value={item.title}
               />
               <button
@@ -129,29 +205,29 @@ export function PlanList({
         )}
       </div>
 
-      <div className="home-v3-plan__footer">
-        <button
-          aria-label="添加计划"
-          className="home-v3-plan__add"
-          onClick={() => {
-            setPendingFocusId(onAdd());
-          }}
-          type="button"
-        >
-          <PlusIcon size={15} />
-          添加任务
-        </button>
-        <button
-          aria-label="导出每日计划"
-          className="home-v3-plan__icon-btn home-v3-plan__export"
-          onClick={onExport}
-          title="导出今日计划为新的 markdown 文件"
-          type="button"
-        >
-          <ArrowUpRightIcon size={14} />
-          <span className="home-v3-plan__export-label">导出</span>
-        </button>
-      </div>
+      {!isComposerOpen ? (
+        <div className="home-v3-plan__footer">
+          <button
+            aria-label="添加计划"
+            className="home-v3-plan__add"
+            onClick={() => setIsComposerOpen(true)}
+            type="button"
+          >
+            <PlusIcon size={15} />
+            添加任务
+          </button>
+          <button
+            aria-label="导出每日计划"
+            className="home-v3-plan__icon-btn home-v3-plan__export"
+            onClick={onExport}
+            title="导出今日计划为新的 markdown 文件"
+            type="button"
+          >
+            <ArrowUpRightIcon size={14} />
+            <span className="home-v3-plan__export-label">导出</span>
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

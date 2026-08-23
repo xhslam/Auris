@@ -385,6 +385,7 @@ export type DesktopVaultFileRecord = {
   absolutePath: string;
   fileName: string;
   isDirectory?: boolean;
+  mtime?: string | null;
   relativePath: string;
 };
 

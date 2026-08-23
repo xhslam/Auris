@@ -18641,6 +18641,17 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__view-switcher button[data-active="true"] {
   background: color-mix(in srgb, var(--accent) 8%, var(--notes-bg)) !important;
   color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+.desktop-app-frame .notes-v2--folder-browser[data-view-mode="grid"] .notes-folder-browser__grid,
+.desktop-app-frame .notes-v2--folder-browser[data-view-mode="list"] .notes-folder-browser__list {
+  animation: notes-folder-browser-view-enter 160ms ease-out;
+}
+
+@keyframes notes-folder-browser-view-enter {
+  from { opacity: 0.58; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Unified Notes file browser presentation: shared hierarchy, tokens and spacing. */
@@ -18680,6 +18691,28 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   margin-bottom: 14px;
   padding-bottom: 9px;
   border-bottom: 1px solid var(--notes-line);
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__content-heading > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--notes-ink);
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__content-heading > span::before {
+  content: "排序";
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__content-heading small {
+  color: var(--notes-muted);
 }
 
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__grid,
@@ -18789,6 +18822,23 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-name {
   gap: 10px;
+}
+
+/* 让列表模式在每个主题下都保持文件名和时间可读；不能依赖旧的通用 button 色值。 */
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-name strong {
+  color: var(--notes-ink) !important;
+  opacity: 1;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-name small,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-modified,
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-type {
+  color: var(--notes-muted) !important;
+  opacity: 1;
+}
+
+.desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-modified:not(:empty) {
+  font-variant-numeric: tabular-nums;
 }
 
 .desktop-app-frame .notes-v2--folder-browser .notes-folder-browser__row-modified,

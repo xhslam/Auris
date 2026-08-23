@@ -14,7 +14,7 @@ function toVaultEntry(
 ): VaultEntry {
   return {
     kind: record.isDirectory ? "directory" : "file",
-    mtime: null,
+    mtime: record.mtime ?? null,
     name: record.fileName,
     path: record.relativePath,
     size: null,
