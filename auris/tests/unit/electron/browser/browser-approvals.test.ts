@@ -130,24 +130,24 @@ describe("browser approval manager", () => {
   });
 
   it.each([
-    ["connection", { connectionId: "connection-two", owner: { id: "connection-two", kind: "mcp" } }],
-    ["owner", { owner: { id: "workflow-one", kind: "workflow" } }],
-    ["window", { windowId: "browser-window-2" }],
-    ["tab", { tabId: "browser-tab-2" }],
-    ["navigation", { navigationGeneration: 4 }],
-    ["control", { controlEpoch: 8 }],
-    ["origin", { origin: "https://other.example" }],
-    ["operation", { operation: "click" }],
-    ["target", { target: { kind: "ref", ref: "ref-other" } }],
-    ["payload", { payloadHash: hashBrowserApprovalPayload({ action: "act", text: "substitution" }) }],
-  ])("rejects %s substitution without consuming the exact approval", (_label, patch) => {
+    ["connection", { connectionId: "connection-two", owner: { id: "connection-two", kind: "mcp" } }, "PAYLOAD_MISMATCH"],
+    ["owner", { owner: { id: "workflow-one", kind: "workflow" } }, "OWNER_MISMATCH"],
+    ["window", { windowId: "browser-window-2" }, "PAYLOAD_MISMATCH"],
+    ["tab", { tabId: "browser-tab-2" }, "PAYLOAD_MISMATCH"],
+    ["navigation", { navigationGeneration: 4 }, "PAYLOAD_MISMATCH"],
+    ["control", { controlEpoch: 8 }, "PAYLOAD_MISMATCH"],
+    ["origin", { origin: "https://other.example" }, "PAYLOAD_MISMATCH"],
+    ["operation", { operation: "click" }, "PAYLOAD_MISMATCH"],
+    ["target", { target: { kind: "ref", ref: "ref-other" } }, "PAYLOAD_MISMATCH"],
+    ["payload", { payloadHash: hashBrowserApprovalPayload({ action: "act", text: "substitution" }) }, "PAYLOAD_MISMATCH"],
+  ])("rejects %s substitution without consuming the exact approval", (_label, patch, errorCode) => {
     const manager = createBrowserApprovalManager();
     const original = binding();
     const { approvalId } = manager.request(original);
     manager.resolve({ approvalId, decision: "allow_once", windowId: "browser-window-1" });
 
     expect(() => manager.consume({ approvalId, binding: binding(patch) })).toThrowError(
-      expect.objectContaining({ code: "PAYLOAD_MISMATCH" }),
+      expect.objectContaining({ code: errorCode }),
     );
     expect(manager.consume({ approvalId, binding: original })).toBe(true);
   });

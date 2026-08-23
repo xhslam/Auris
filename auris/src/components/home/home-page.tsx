@@ -44,7 +44,6 @@ import {
   HomeContinueLearningCard,
   HomeReadingCard,
   HomeReviewCard,
-  LearningNoteFoldersDialog,
 } from "@/components/home/learning/home-learning-cards";
 import "./home-demo-workbench.css";
 import "./home-v3.css";
@@ -274,7 +273,6 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   const [pendingLayoutId, setPendingLayoutId] = useState<string | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [isLearningFolderDialogOpen, setIsLearningFolderDialogOpen] = useState(false);
   const systemColorScheme = useSystemColorScheme();
   const { desktopBridge } = useHydratedDesktopBridge();
   const { promptFn, confirmFn, renderDialogs } = useNotesDialog();
@@ -547,7 +545,7 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
       return <div className="workspace-countdown"><div className="workspace-countdown__eyebrow"><small>考研</small><em>{exam.getFullYear()}.12.26</em></div><div className="workspace-countdown__metric"><strong>{days}</strong><span>DAYS</span></div><p>距离初试还有 <b>{days}</b> 天</p></div>;
     }
     if (widget.type === "personal-os") return <PersonalOsDashboard bridge={desktopBridge} onChooseDirectory={workbench.handlePickDirectory} />;
-    if (widget.type === "current-study") return <HomeContinueLearningCard article={learningSummary.continueLearning.article} note={learningSummary.continueLearning.note} onConfigureFolders={() => setIsLearningFolderDialogOpen(true)} onNavigate={onNavigate} video={learningSummary.continueLearning.video} />;
+    if (widget.type === "current-study") return <HomeContinueLearningCard article={learningSummary.continueLearning.article} note={learningSummary.continueLearning.note} onNavigate={onNavigate} video={learningSummary.continueLearning.video} />;
     if (widget.type === "nia") return <div className="workspace-nia"><strong>Nia</strong><p>今天有 {learningSummary.review.actionableCount} 个知识点待复习。</p><button onClick={() => onNavigate("/review")}>开始复习</button><button onClick={() => onNavigate("/nia")}>Ask Nia…</button></div>;
     if (widget.type === "progress") return <HomeReadingCard onNavigate={onNavigate} summary={learningSummary.reading} />;
     if (widget.type === "recent-files") return <div className="workspace-recent">{recentNotes.slice(0, 4).length ? recentNotes.slice(0, 4).map((note) => <button key={note.id} onClick={() => openNote(note.id)}><FolderIcon size={13} /> {note.title || "未命名笔记"}</button>) : <><button onClick={() => onNavigate("/notes")}>Markdown · 我的知识库</button><button onClick={() => onNavigate("/reading")}>Reading · 待读内容</button><button onClick={() => void quickNote()}>Knowledge Card · 快速笔记</button></>}</div>;
@@ -622,7 +620,6 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
     {isLibraryOpen ? <aside aria-label="添加组件" className="workspace-library"><header><div><strong>添加组件</strong><span>新组件会自动注册至统一工作区。</span></div><button aria-label="关闭添加组件" onClick={() => setIsLibraryOpen(false)} type="button">×</button></header><div>{(["学习", "效率", "Auris", "信息", "媒体"] as const).map((category) => <section key={category}><h2>{category}</h2>{widgetDefinitions.filter((item) => item.category === category).map((item) => <button key={item.type} onClick={() => addWidget(item.type)} type="button"><span><ActivityIcon size={15} /><strong>{item.name}</strong><small>{item.description}</small></span><PlusIcon size={16} /></button>)}</section>)}</div></aside> : null}
     {pendingLayoutId ? <div className="workspace-layout-confirm" role="dialog" aria-modal="true"><section><strong>当前布局有未保存的更改</strong><p>切换布局不会更改任何任务、笔记或学习数据。</p><div><button onClick={() => setPendingLayoutId(null)} type="button">取消</button><button onClick={() => void resolvePendingSwitch("discard")} type="button">不保存并切换</button><button className="primary" onClick={() => void resolvePendingSwitch("save")} type="button">保存并切换</button></div></section></div> : null}
     <input accept="application/json" hidden onChange={importLayouts} ref={layoutImportRef} type="file" />
-    <LearningNoteFoldersDialog onClose={() => setIsLearningFolderDialogOpen(false)} open={isLearningFolderDialogOpen} />
     {renderDialogs()}
   </main>;
 }

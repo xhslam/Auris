@@ -26,11 +26,6 @@ export type VideoResumeState = {
   completedAt: string | null;
 };
 
-export type LearningNoteFoldersState = {
-  version: 1;
-  relativePaths: string[];
-};
-
 export type HomeReviewSummary = {
   status: LearningSourceStatus;
   actionableCount: number;
@@ -71,8 +66,6 @@ export type HomeVideoSummary = {
 export type HomeLearningNoteSummary = {
   status: LearningSourceStatus;
   note: NotePageSummary | null;
-  configuredFolders: string[];
-  missingFolders: string[];
 };
 
 export type HomeLearningSummary = {
@@ -120,8 +113,6 @@ export const EMPTY_HOME_VIDEO_SUMMARY: HomeVideoSummary = {
 export const EMPTY_HOME_LEARNING_NOTE_SUMMARY: HomeLearningNoteSummary = {
   status: "empty",
   note: null,
-  configuredFolders: [],
-  missingFolders: [],
 };
 
 export function loadingHomeLearningSummary(): HomeLearningSummary {

@@ -21,8 +21,9 @@ function entry(lookupKey: string) {
 }
 
 describe("personal vocabulary section contracts", () => {
-  it("exports the card matchers as the canonical four-section contract", () => {
+  it("exports the card matchers including the saved context section", () => {
     expect(PERSONAL_VOCAB_SECTION_CONTRACTS).toEqual({
+      context: ["当前语境"],
       etymology: ["词源", "构词", "核心语义", "原始画面", "核心意象"],
       usage: ["用法", "边界", "搭配", "近义词", "误用"],
       deep: ["深层", "解释"],

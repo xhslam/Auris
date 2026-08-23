@@ -28,12 +28,12 @@ type PersonalVocabSourceSection = {
 };
 
 export function selectPersonalVocabMarkdownGroups(
-  sections: readonly PersonalVocabSourceSection[],
+  sections: readonly PersonalVocabSourceSection[] | null | undefined,
   sectionKey: PersonalVocabSectionKey,
 ): PersonalVocabMarkdownGroup[] {
   const matchers = PERSONAL_VOCAB_SECTION_CONTRACTS[sectionKey];
 
-  return sections.flatMap((section, index) => {
+  return (sections ?? []).flatMap((section, index) => {
     const normalizedTitle = section.title.trim().toLowerCase();
     const matches = matchers.some((matcher) =>
       normalizedTitle.includes(matcher.toLowerCase()),
@@ -46,7 +46,7 @@ export function selectPersonalVocabMarkdownGroups(
 }
 
 export function selectPersonalVocabContextGroups(
-  sections: readonly PersonalVocabSourceSection[],
+  sections: readonly PersonalVocabSourceSection[] | null | undefined,
   fallbackContext?: string,
 ): PersonalVocabMarkdownGroup[] {
   const savedGroups = selectPersonalVocabMarkdownGroups(sections, "context");

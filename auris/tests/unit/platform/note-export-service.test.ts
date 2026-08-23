@@ -75,6 +75,7 @@ describe("note export service", () => {
     expect(bridge.downloads.exportPdf).toHaveBeenCalledWith(
       "daily-review.pdf",
       "<h1>Daily</h1>",
+      undefined,
     );
   });
 });

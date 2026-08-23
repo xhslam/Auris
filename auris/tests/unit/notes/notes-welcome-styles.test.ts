@@ -22,7 +22,12 @@ describe("notes welcome styles", () => {
       /\.desktop-app-frame\s+\.notes-v2--welcome\s+\.notes-welcome__recent-item\s*\{([^}]*)\}/,
     )?.[1];
 
-    expect(welcomeRule).toContain(
+    const normalizedWelcomeRule = welcomeRule
+      ?.replace(/\s+/g, " ")
+      .replace(/\(\s+/g, "(")
+      .replace(/\s+\)/g, ")");
+
+    expect(normalizedWelcomeRule).toContain(
       "--notes-welcome-control: color-mix(in srgb, var(--notes-ink) 3%, var(--notes-bg))",
     );
     expect(actionRule).toContain("background: var(--notes-welcome-control)");

@@ -343,3 +343,13 @@ Keep the trajectory proportional to the task. Capture observable actions and use
 Notes 笔记页在开启标题偏好时将当前文件名写入 Electron 窗口标题，离开笔记或关闭偏好后回复 `Auris`。自动隐藏状态栏作用于 Notes 底部左右状态簇：停止交互 1.4 秒后淡出，指针、键盘、点击或焦点交互会立即恢复，并保留 `prefers-reduced-motion` 兼容。专注模式的非活动内容可见度明确定为标准 30%、强 16%、更强 7%，活动编辑块始终保持 100%。
 
 新增偏好归一化/持久化、设置控件、Notes 运行时数据属性和桌面标题回归；定向 8 个测试文件、78 项全部通过。定向 ESLint、`git diff --check` 和 `npm run build` 均通过。未提交或推送 Git 改动，未纳入既有个人词库或未跟踪资料目录。
+
+## Engineering trajectory: 继续学习组件扫描 Notes Vault（2026-08-23）
+
+用户希望“继续学习”的学习笔记入口直接扫描 Notes 当前 Vault，而不是再选择一组独立的学习子目录。实现移除首页专用的目录选择弹窗、localStorage 配置和目录有效性判断；学习笔记摘要现在通过平台统一的 `NotesStorage` 检查 Vault 配置，并调用 `listPages()` 扫描整个 Vault，仅保留 `.md` 路径后按 `updatedAt` 选择最近笔记。桌面存储本身递归使用 `listMarkdownFiles()`，浏览器存储也递归目录并跳过非 Markdown 文件，因此组件与 Notes 使用同一 Vault、同一解析结果和同一变更订阅。
+
+界面在扫描期间显示禁用的“扫描中”，有结果时直接打开最近笔记，没有结果或 Vault 不可用时引导进入 Notes。改动涉及首页学习摘要、摘要 hook、继续学习卡片、首页装配与对应单元测试，并删除已无消费者的 `learning-note-folders-store.ts`。
+
+发布前全量回归最初暴露 8 个长期漂移的测试文件、23 项失败：终端测试仍断言旧 `create` 契约而运行时已使用 `resume`；源码编辑器测试仍把独立标题输入框算作 CodeMirror 第一行；排版与欢迎页样式测试固化了旧默认值和 CSS 单行格式；设置真实性测试仍要求已删除的空壳历史文案；审批测试没有区分 owner 校验；PDF 导出 mock 没有覆盖可选参数；词库契约未包含新增 context，且 150 个轻量词条没有 `sections`。测试已更新为当前真实契约，词库分组函数对缺失章节返回空集合，保留现有词库数据并避免运行时崩溃。
+
+版本更新至 1.0.2。最终 `npm test` 为 371 个文件、2767 项全部通过；定向 ESLint 通过，`git diff --check` 和 Next 生产构建通过；`desktop:build:verify` 完成打包隐私审计、原生模块探测与桌面工具烟雾测试。macOS arm64 的 DMG、ZIP 和应用包生成成功；本机没有 Developer ID，产物保持未签名。全仓 ESLint 仍会把仓库根部旧 CommonJS 兼容入口的 `require()` 当作 90 项规则错误，本次没有为追求形式通过而把 Electron 启动文件错误迁移到 ESM。既有个人词库索引变化与未跟踪研究目录未纳入发布提交。

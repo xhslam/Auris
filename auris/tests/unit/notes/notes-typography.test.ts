@@ -19,7 +19,7 @@ describe("notes-typography mapping", () => {
       lineHeightEd: 1,
       blockSpacing: 1,
       cjkLetterSpacing: 0,
-      editorWidth: 3,
+      editorWidth: 1,
       latinFont: 0,
       cjkFont: 0,
       monoFont: 0,
@@ -73,7 +73,7 @@ describe("notes-typography mapping", () => {
       "--notes-editor-line-height": "1.6",
       "--notes-editor-block-spacing": "14px",
       "--notes-editor-cjk-letter-spacing": "normal",
-      "--notes-editor-max-width": "none",
+      "--notes-editor-max-width": "50em",
       "--notes-editor-font-latin": DEFAULT_NOTES_TYPOGRAPHY.fontLatin,
       "--auris-font-mono": DEFAULT_NOTES_TYPOGRAPHY.fontMono,
     });

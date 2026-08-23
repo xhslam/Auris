@@ -137,17 +137,18 @@ function createTerminalBridge(
   backend: "pipe" | "pty" = "pty",
 ): TerminalBridgeHarness {
   let exitListener: ((event: DesktopTerminalExitEvent) => void) | null = null;
+  const startSession = async (input: Parameters<DesktopTerminalBridge["resume"]>[0]) => ({
+    backend,
+    cols: input.cols ?? 80,
+    cwd: input.cwd ?? null,
+    id: input.sessionId ?? "term-1",
+    rows: input.rows ?? 24,
+    shell: backend === "pipe" ? "/bin/zsh" : "C:\\Windows\\System32\\cmd.exe",
+  });
 
   return {
     bridge: {
-      create: vi.fn<DesktopTerminalBridge["create"]>(async (input) => ({
-        backend,
-        cols: input.cols ?? 80,
-        cwd: input.cwd ?? null,
-        id: input.sessionId ?? "term-1",
-        rows: input.rows ?? 24,
-        shell: backend === "pipe" ? "/bin/zsh" : "C:\\Windows\\System32\\cmd.exe",
-      })),
+      create: vi.fn<DesktopTerminalBridge["create"]>(startSession),
       kill: vi.fn<DesktopTerminalBridge["kill"]>(async () => undefined),
       list: vi.fn<DesktopTerminalBridge["list"]>(async () => []),
       onData: vi.fn(() => () => undefined),
@@ -158,6 +159,7 @@ function createTerminalBridge(
         };
       }),
       resize: vi.fn<DesktopTerminalBridge["resize"]>(async () => undefined),
+      resume: vi.fn<DesktopTerminalBridge["resume"]>(startSession),
       write: vi.fn<DesktopTerminalBridge["write"]>(async () => undefined),
     },
     emitExit(event) {
@@ -347,6 +349,7 @@ describe("NotesTerminalPanel", () => {
 
   it("starts new renderer session ids after existing backend sessions", async () => {
     const terminal = createTerminalBridge();
+    const user = userEvent.setup();
     vi.mocked(terminal.bridge.list).mockResolvedValue([
       {
         backend: "pty",
@@ -371,7 +374,16 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledWith(
+      expect(terminal.bridge.resume).toHaveBeenCalledWith(
+        expect.objectContaining({ sessionId: "notes-term-4" }),
+      ),
+    );
+
+    await user.click(screen.getByRole("button", { name: "新会话" }));
+
+    await waitFor(() =>
+      expect(terminal.bridge.resume).toHaveBeenNthCalledWith(
+        2,
         expect.objectContaining({ sessionId: "notes-term-5" }),
       ),
     );
@@ -393,7 +405,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     await act(async () => {
@@ -411,9 +423,9 @@ describe("NotesTerminalPanel", () => {
     });
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(2),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(2),
     );
-    expect(terminal.bridge.create).toHaveBeenNthCalledWith(
+    expect(terminal.bridge.resume).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         sessionId: "notes-term-2",
@@ -438,7 +450,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     await waitFor(() =>
@@ -462,7 +474,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     await act(async () => {
@@ -491,7 +503,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     await act(async () => {
@@ -507,7 +519,7 @@ describe("NotesTerminalPanel", () => {
     });
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(2),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(2),
     );
     expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-2", "c");
 
@@ -524,7 +536,7 @@ describe("NotesTerminalPanel", () => {
     });
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(3),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(3),
     );
     expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-3", "d");
   });
@@ -532,7 +544,7 @@ describe("NotesTerminalPanel", () => {
   it("does not start the same terminal session twice while startup is still pending", async () => {
     const terminal = createTerminalBridge();
     const deferredCreate = createDeferredCreateResult();
-    terminal.bridge.create = vi.fn<DesktopTerminalBridge["create"]>((input) =>
+    terminal.bridge.resume = vi.fn<DesktopTerminalBridge["resume"]>((input) =>
       deferredCreate.promise.then((record) => ({
         ...record,
         cols: input.cols ?? record.cols,
@@ -555,7 +567,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     rerender(
@@ -575,20 +587,20 @@ describe("NotesTerminalPanel", () => {
       await Promise.resolve();
     });
 
-    expect(terminal.bridge.create).toHaveBeenCalledTimes(1);
+    expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       deferredCreate.resolve("notes-term-1");
       await deferredCreate.promise;
     });
 
-    expect(terminal.bridge.create).toHaveBeenCalledTimes(1);
+    expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
   });
 
   it("kills a late terminal session if the panel unmounts before startup resolves", async () => {
     const terminal = createTerminalBridge();
     const deferredCreate = createDeferredCreateResult();
-    terminal.bridge.create = vi.fn<DesktopTerminalBridge["create"]>((input) =>
+    terminal.bridge.resume = vi.fn<DesktopTerminalBridge["resume"]>((input) =>
       deferredCreate.promise.then((record) => ({
         ...record,
         cols: input.cols ?? record.cols,
@@ -610,7 +622,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     view.unmount();
@@ -858,7 +870,7 @@ describe("NotesTerminalPanel", () => {
     );
 
     await waitFor(() =>
-      expect(terminal.bridge.create).toHaveBeenCalledTimes(1),
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
     );
 
     fireEvent.contextMenu(

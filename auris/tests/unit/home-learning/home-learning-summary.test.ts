@@ -4,7 +4,7 @@ import {
   createKnowledgePoint,
   createProject,
 } from "@/features/output-review/output-review-model";
-import { getHomeLearningNoteSummary, isNoteInsideLearningFolder } from "@/features/home-learning/home-learning-note-summary";
+import { getHomeLearningNoteSummary } from "@/features/home-learning/home-learning-note-summary";
 import { getHomeReviewSummary } from "@/features/home-learning/home-review-summary";
 import { getHomeReadingSummary } from "@/features/home-learning/home-reading-summary";
 import { getVideoResumeStartTime, parseVideoResumeState } from "@/features/home-learning/video-resume-store";
@@ -95,18 +95,17 @@ describe("home learning summaries", () => {
     }, 600)).toBe(0);
   });
 
-  it("uses folder boundaries, supports valid-empty directories, and reports missing ones", () => {
-    expect(isNoteInsideLearningFolder("mathematics/notes/a.md", "math")).toBe(false);
+  it("scans Markdown notes from the whole Notes Vault and selects the latest update", () => {
     const summary = getHomeLearningNoteSummary({
-      folders: { version: 1, relativePaths: ["math", "physics"] },
-      entries: [{ kind: "directory", path: "math", name: "math", mtime: null, size: null }],
-      notes: [],
+      notes: [
+        { id: "old", fileName: "old.md", icon: "文", relativePath: "math/old.md", title: "旧笔记", updatedAt: "2026-08-20T08:00:00.000Z" },
+        { id: "ignored", fileName: "draft.txt", icon: "文", relativePath: "draft.txt", title: "非 Markdown", updatedAt: "2026-08-23T08:00:00.000Z" },
+        { id: "latest", fileName: "latest.MD", icon: "文", relativePath: "physics/latest.MD", title: "最新笔记", updatedAt: "2026-08-22T08:00:00.000Z" },
+      ],
     });
     expect(summary).toMatchObject({
-      status: "empty",
-      configuredFolders: ["math", "physics"],
-      missingFolders: ["physics"],
-      note: null,
+      status: "ready",
+      note: { id: "latest", relativePath: "physics/latest.MD" },
     });
   });
 });

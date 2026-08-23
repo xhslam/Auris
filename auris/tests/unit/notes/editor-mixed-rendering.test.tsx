@@ -42,7 +42,7 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("notes mixed rendering", () => {
-  it("keeps every Markdown marker visible in source mode", () => {
+  it("keeps the extracted title and every body Markdown marker visible in source mode", () => {
     const { container } = render(
       <NotesEditorPane
         document={createDocument("# Daily Review\n\nShadow the line\n## Keep breathing steady\n- List item\n> Quote line")}
@@ -60,7 +60,7 @@ describe("notes mixed rendering", () => {
       container.querySelectorAll(".cm-line"),
     ).map((line) => line.textContent?.trim() ?? "");
 
-    expect(codeMirrorLines).toContain("# Daily Review");
+    expect(screen.getByRole("textbox", { name: "Note title" })).toHaveValue("Daily Review");
     expect(codeMirrorLines).toContain("## Keep breathing steady");
     expect(codeMirrorLines).toContain("- List item");
     expect(codeMirrorLines).toContain("> Quote line");
@@ -86,14 +86,14 @@ describe("notes mixed rendering", () => {
     const view = host.__notesEditorView;
 
     expect(view).toBeDefined();
-    expect(container.querySelectorAll(".cm-line")[2]?.textContent).toContain(
+    expect(container.querySelectorAll(".cm-line")[1]?.textContent).toContain(
       "## Paragraph two",
     );
 
     act(() => {
       view?.dispatch({
         selection: {
-          anchor: view!.state.doc.line(3).from,
+          anchor: view!.state.doc.line(2).from,
         },
       });
     });

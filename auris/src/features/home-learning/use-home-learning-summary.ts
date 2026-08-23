@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getNotesStorage } from "@/platform/notes/get-notes-storage";
-import { getVaultClient } from "@/platform/notes/get-vault-client";
 import { getDesktopVideoLibraryBridge } from "@/platform/desktop/video-library-adapter";
 import {
   OUTPUT_REVIEW_STORAGE_EVENT,
@@ -13,11 +12,6 @@ import { getHomeReviewSummary } from "@/features/home-learning/home-review-summa
 import { loadHomeReadingSummary } from "@/features/home-learning/home-reading-summary";
 import { loadHomeVideoSummary } from "@/features/home-learning/home-video-summary";
 import { loadHomeLearningNoteSummary } from "@/features/home-learning/home-learning-note-summary";
-import {
-  LEARNING_NOTE_FOLDERS_CHANGED_EVENT,
-  LEARNING_NOTE_FOLDERS_STORAGE_KEY,
-  readLearningNoteFolders,
-} from "@/features/home-learning/learning-note-folders-store";
 import {
   READING_RESUME_CHANGED_EVENT,
   READING_RESUME_STORAGE_KEY,
@@ -51,7 +45,6 @@ export function useHomeLearningSummary(): HomeLearningSummary {
     let cancelled = false;
     let midnightTimer: number | null = null;
     const notesStorage = getNotesStorage();
-    const vaultClient = getVaultClient();
     const videoLibrary = getDesktopVideoLibraryBridge();
 
     const scheduleMidnightRefresh = () => {
@@ -69,15 +62,13 @@ export function useHomeLearningSummary(): HomeLearningSummary {
       );
       const readingResume = readReadingResume();
       const videoResume = readVideoResume();
-      const folders = readLearningNoteFolders();
-
       if (cancelled) return;
       setSummary((current) => ({ ...current, review }));
 
       const [reading, video, note] = await Promise.all([
         loadHomeReadingSummary(notesStorage, readingResume),
         loadHomeVideoSummary(videoResume, videoLibrary),
-        loadHomeLearningNoteSummary(folders, vaultClient, notesStorage),
+        loadHomeLearningNoteSummary(notesStorage),
       ]);
       if (cancelled) return;
 
@@ -96,7 +87,6 @@ export function useHomeLearningSummary(): HomeLearningSummary {
           OUTPUT_REVIEW_STORAGE_KEY,
           READING_RESUME_STORAGE_KEY,
           VIDEO_RESUME_STORAGE_KEY,
-          LEARNING_NOTE_FOLDERS_STORAGE_KEY,
         ].includes(event.key ?? "")
       ) {
         void refresh();
@@ -110,11 +100,9 @@ export function useHomeLearningSummary(): HomeLearningSummary {
     window.addEventListener(READING_PROGRESS_CHANGED_EVENT, handleSourceChange);
     window.addEventListener(READING_RESUME_CHANGED_EVENT, handleSourceChange);
     window.addEventListener(VIDEO_RESUME_CHANGED_EVENT, handleSourceChange);
-    window.addEventListener(LEARNING_NOTE_FOLDERS_CHANGED_EVENT, handleSourceChange);
     window.addEventListener("storage", handleStorage);
     window.addEventListener("focus", handleFocus);
     const unsubscribeNotes = notesStorage?.subscribeToChanges?.(handleSourceChange);
-    const unsubscribeVault = vaultClient?.subscribeToChanges(handleSourceChange);
 
     return () => {
       cancelled = true;
@@ -123,11 +111,9 @@ export function useHomeLearningSummary(): HomeLearningSummary {
       window.removeEventListener(READING_PROGRESS_CHANGED_EVENT, handleSourceChange);
       window.removeEventListener(READING_RESUME_CHANGED_EVENT, handleSourceChange);
       window.removeEventListener(VIDEO_RESUME_CHANGED_EVENT, handleSourceChange);
-      window.removeEventListener(LEARNING_NOTE_FOLDERS_CHANGED_EVENT, handleSourceChange);
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("focus", handleFocus);
       unsubscribeNotes?.();
-      unsubscribeVault?.();
     };
   }, []);
 

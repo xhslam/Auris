@@ -96,18 +96,21 @@ describe("AurisSettings feature truthfulness", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("describes real document history and keeps Pandoc export truthful", async () => {
+  it("does not advertise unsupported file policies and keeps Pandoc export truthful", async () => {
     const user = userEvent.setup();
     render(<AurisSettings />);
 
     await user.click(screen.getByText("文件与图片"));
 
     expect(
-      screen.getByText(/不超过 512 KB.*最多保留 50 个.*Hot Exit/u),
+      screen.getByText(/尚未提供隐藏文件过滤.*相关开关已从设置中移除/u),
     ).toBeInTheDocument();
+    expect(screen.getByText(/不提供“确认退出”或“自动保存策略”的切换/u)).toBeInTheDocument();
     expect(screen.queryByText("最大版本数")).not.toBeInTheDocument();
+
+    await user.click(screen.getByText("Formats"));
     expect(
-      screen.getByText(/检测成功只代表运行环境就绪.*不代表 Auris 已支持 Pandoc/u),
+      screen.getByText(/检测本机 Pandoc 是否可用.*对应能力开放后显示/u),
     ).toBeInTheDocument();
   });
 
