@@ -7,6 +7,7 @@ import {
   extractMarkdownNoteLinks,
   extractWikiLinks,
 } from "@/features/notes/documents/wiki-links";
+import { stripInlineMarkdown } from "@/features/notes/documents/strip-inline-markdown";
 
 const HEADING_PATTERN = /^(#{1,6})\s+(.+)$/;
 const TASK_PATTERN = /^\s*[-*+]\s+\[([ xX])\]\s+(.*)$/;
@@ -35,7 +36,7 @@ function extractHeadings(lines: string[]) {
       depth: headingMatch[1].length,
       line: lineIndex,
       slug: slugifyHeading(headingMatch[2]),
-      text: headingMatch[2].trim(),
+      text: stripInlineMarkdown(headingMatch[2].trim()),
     });
   });
 

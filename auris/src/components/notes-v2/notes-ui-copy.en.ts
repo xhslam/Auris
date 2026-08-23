@@ -191,6 +191,8 @@ export const EN_US_NOTES_UI_COPY = {
   tabs: {
     closePrefix: "Close",
     openTabs: "Open note tabs",
+    scrollLeft: "Scroll tabs left",
+    scrollRight: "Scroll tabs right",
   },
   fileTree: {
     ariaLabel: "Vault file tree",

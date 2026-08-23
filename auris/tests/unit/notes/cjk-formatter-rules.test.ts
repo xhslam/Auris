@@ -234,7 +234,7 @@ describe("normalizeFullwidthPunctuation", () => {
     const output = normalizeFullwidthPunctuation(input);
     // Commas and semicolons in CJK context should be converted
     expect(output).toContain("中文，English");
-    expect(output).toContain("English；");
+    expect(output).toContain("English;");
     // Technical subspans should be protected
     expect(output).toContain("v0.3.11");
     expect(output).toContain("12:30");
@@ -631,8 +631,8 @@ describe("fixDoubleQuoteSpacing", () => {
     });
 
     it("adds space after CJK characters", () => {
-      expect(fixDoubleQuoteSpacing(`中文${OQ}text${CQ}`)).toBe(`中文 ${OQ}text${CQ}`);
-      expect(fixDoubleQuoteSpacing(`日本語${OQ}text${CQ}`)).toBe(`日本語 ${OQ}text${CQ}`);
+      expect(fixDoubleQuoteSpacing(`中文${OQ}text${CQ}`)).toBe(`中文${OQ}text${CQ}`);
+      expect(fixDoubleQuoteSpacing(`日本語${OQ}text${CQ}`)).toBe(`日本語${OQ}text${CQ}`);
       // Korean excluded: native word spacing handles quote proximity
       expect(fixDoubleQuoteSpacing(`한글${OQ}text${CQ}`)).toBe(`한글${OQ}text${CQ}`);
     });
@@ -677,8 +677,8 @@ describe("fixDoubleQuoteSpacing", () => {
     });
 
     it("adds space before CJK characters", () => {
-      expect(fixDoubleQuoteSpacing(`${OQ}text${CQ}中文`)).toBe(`${OQ}text${CQ} 中文`);
-      expect(fixDoubleQuoteSpacing(`${OQ}text${CQ}日本語`)).toBe(`${OQ}text${CQ} 日本語`);
+      expect(fixDoubleQuoteSpacing(`${OQ}text${CQ}中文`)).toBe(`${OQ}text${CQ}中文`);
+      expect(fixDoubleQuoteSpacing(`${OQ}text${CQ}日本語`)).toBe(`${OQ}text${CQ}日本語`);
       // Korean excluded: native word spacing handles quote proximity
       expect(fixDoubleQuoteSpacing(`${OQ}text${CQ}한글`)).toBe(`${OQ}text${CQ}한글`);
     });
@@ -717,7 +717,7 @@ describe("fixDoubleQuoteSpacing", () => {
 
   describe("combined scenarios", () => {
     it("adds space on both sides with CJK", () => {
-      expect(fixDoubleQuoteSpacing(`测试${OQ}hello${CQ}内容`)).toBe(`测试 ${OQ}hello${CQ} 内容`);
+      expect(fixDoubleQuoteSpacing(`测试${OQ}hello${CQ}内容`)).toBe(`测试${OQ}hello${CQ}内容`);
     });
 
     it("handles multiple quote pairs", () => {
@@ -727,12 +727,12 @@ describe("fixDoubleQuoteSpacing", () => {
     });
 
     it("handles CJK content inside quotes", () => {
-      expect(fixDoubleQuoteSpacing(`与${OQ}物质财富${CQ}无关`)).toBe(`与 ${OQ}物质财富${CQ} 无关`);
+      expect(fixDoubleQuoteSpacing(`与${OQ}物质财富${CQ}无关`)).toBe(`与${OQ}物质财富${CQ}无关`);
     });
 
     it("real-world Chinese text", () => {
       const input = `科学共识是明确的：幸福从根本上与${OQ}物质财富${CQ}无关。${OQ}伊斯特林悖论${CQ}表明`;
-      const expected = `科学共识是明确的：幸福从根本上与 ${OQ}物质财富${CQ} 无关。${OQ}伊斯特林悖论${CQ} 表明`;
+      const expected = `科学共识是明确的：幸福从根本上与${OQ}物质财富${CQ}无关。${OQ}伊斯特林悖论${CQ}表明`;
       expect(fixDoubleQuoteSpacing(input)).toBe(expected);
     });
 
@@ -783,7 +783,7 @@ describe("fixSingleQuoteSpacing", () => {
     });
 
     it("adds space after CJK characters", () => {
-      expect(fixSingleQuoteSpacing(`中文${OQ}text${CQ}`)).toBe(`中文 ${OQ}text${CQ}`);
+      expect(fixSingleQuoteSpacing(`中文${OQ}text${CQ}`)).toBe(`中文${OQ}text${CQ}`);
     });
 
     it("no space after CJK terminal punctuation", () => {
@@ -798,7 +798,7 @@ describe("fixSingleQuoteSpacing", () => {
     });
 
     it("adds space before CJK characters", () => {
-      expect(fixSingleQuoteSpacing(`${OQ}text${CQ}中文`)).toBe(`${OQ}text${CQ} 中文`);
+      expect(fixSingleQuoteSpacing(`${OQ}text${CQ}中文`)).toBe(`${OQ}text${CQ}中文`);
     });
 
     it("no space before CJK terminal punctuation", () => {
@@ -809,7 +809,7 @@ describe("fixSingleQuoteSpacing", () => {
 
   describe("combined scenarios", () => {
     it("adds space on both sides with CJK", () => {
-      expect(fixSingleQuoteSpacing(`测试${OQ}hello${CQ}内容`)).toBe(`测试 ${OQ}hello${CQ} 内容`);
+      expect(fixSingleQuoteSpacing(`测试${OQ}hello${CQ}内容`)).toBe(`测试${OQ}hello${CQ}内容`);
     });
   });
 });
@@ -821,7 +821,7 @@ describe("fixCornerQuoteSpacing", () => {
     });
 
     it("adds space after CJK characters", () => {
-      expect(fixCornerQuoteSpacing("中文「text」")).toBe("中文 「text」");
+      expect(fixCornerQuoteSpacing("中文「text」")).toBe("中文「text」");
     });
 
     it("no space after CJK terminal punctuation", () => {
@@ -840,7 +840,7 @@ describe("fixCornerQuoteSpacing", () => {
     });
 
     it("adds space before CJK characters", () => {
-      expect(fixCornerQuoteSpacing("「text」中文")).toBe("「text」 中文");
+      expect(fixCornerQuoteSpacing("「text」中文")).toBe("「text」中文");
     });
 
     it("no space before CJK terminal punctuation", () => {
@@ -855,12 +855,12 @@ describe("fixCornerQuoteSpacing", () => {
 
   describe("combined scenarios", () => {
     it("adds space on both sides with CJK", () => {
-      expect(fixCornerQuoteSpacing("测试「hello」内容")).toBe("测试 「hello」 内容");
+      expect(fixCornerQuoteSpacing("测试「hello」内容")).toBe("测试「hello」内容");
     });
 
     it("handles nested corner quotes", () => {
       expect(fixCornerQuoteSpacing("外层「内层『最内』层」结束")).toBe(
-        "外层 「内层『最内』层」 结束"
+        "外层「内层『最内』层」结束"
       );
     });
   });
@@ -872,7 +872,7 @@ describe("fixDoubleCornerQuoteSpacing", () => {
   });
 
   it("adds space after CJK characters", () => {
-    expect(fixDoubleCornerQuoteSpacing("中文『text』")).toBe("中文 『text』");
+    expect(fixDoubleCornerQuoteSpacing("中文『text』")).toBe("中文『text』");
   });
 
   it("adds space before alphanumeric", () => {
@@ -880,7 +880,7 @@ describe("fixDoubleCornerQuoteSpacing", () => {
   });
 
   it("adds space before CJK characters", () => {
-    expect(fixDoubleCornerQuoteSpacing("『text』中文")).toBe("『text』 中文");
+    expect(fixDoubleCornerQuoteSpacing("『text』中文")).toBe("『text』中文");
   });
 
   it("no space after/before terminal punctuation", () => {
@@ -1560,22 +1560,20 @@ describe("applyRules", () => {
     expect(result).toContain("『内层』");
   });
 
-  it("applies quote spacing", () => {
+  it("keeps CJK quotes adjacent to surrounding CJK text", () => {
     const result = applyRules(
       "中文\u201chello\u201d内容",
       makeConfig({ quoteSpacing: true })
     );
-    expect(result).toContain(" \u201c");
-    expect(result).toContain("\u201d ");
+    expect(result).toBe("中文\u201chello\u201d内容");
   });
 
-  it("applies single quote spacing", () => {
+  it("keeps CJK single quotes adjacent to surrounding CJK text", () => {
     const result = applyRules(
       "中文\u2018hello\u2019内容",
       makeConfig({ singleQuoteSpacing: true })
     );
-    expect(result).toContain(" \u2018");
-    expect(result).toContain("\u2019 ");
+    expect(result).toBe("中文\u2018hello\u2019内容");
   });
 
   it("applies CJK-English spacing", () => {

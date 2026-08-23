@@ -23,6 +23,17 @@ function pushUnique(values: string[], nextValue: string, limit: number) {
   );
 }
 
+/** Resolve the most recently active tab other than the current one. */
+export function getLastUsedOpenTab(
+  state: Pick<NotesWorkspaceState, "activePath" | "openTabs" | "recentFiles">,
+): string | null {
+  return (
+    state.recentFiles.find(
+      (path) => path !== state.activePath && state.openTabs.includes(path),
+    ) ?? null
+  );
+}
+
 export function openWorkspacePath(
   state: NotesWorkspaceState,
   path: string,

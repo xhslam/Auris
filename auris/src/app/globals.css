@@ -18926,3 +18926,51 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
     grid-template-columns: minmax(0, 1fr) 116px;
   }
 }
+
+/* VMark v0.9.50-inspired Notes tab overflow navigation. */
+.notes-v2__tabs-shell {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.desktop-app-frame .notes-v2__tabs {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+
+.desktop-app-frame .notes-v2__tabs::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.notes-v2__tabs-track {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.notes-v2__tabs-scroll {
+  flex: 0 0 auto;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.notes-v2__tabs-scroll:disabled {
+  visibility: hidden;
+  pointer-events: none;
+}

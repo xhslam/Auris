@@ -104,8 +104,12 @@ export class NotesShortcutRegistry {
 }
 
 export function shortcutFromKeyboardEvent(event: KeyboardEvent) {
+  // Ctrl+Tab is a cross-platform tab-navigation chord, while ordinary Ctrl
+  // shortcuts still map to Mod on Windows/Linux for existing bindings.
+  const explicitCtrlTab =
+    event.ctrlKey && !event.metaKey && event.key.toLowerCase() === "tab";
   const modifiers = [
-    event.metaKey || event.ctrlKey ? "mod" : "",
+    explicitCtrlTab ? "ctrl" : event.metaKey || event.ctrlKey ? "mod" : "",
     event.altKey ? "alt" : "",
     event.shiftKey ? "shift" : "",
   ].filter(Boolean);

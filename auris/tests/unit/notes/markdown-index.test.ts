@@ -47,4 +47,17 @@ describe("markdown-index", () => {
     ]);
     expect(index.wordCount).toBe(8);
   });
+
+  it("uses reader-visible heading text without changing the existing slug input", () => {
+    const index = buildMarkdownIndex(
+      "## The **bold** `code` and [[page|Label]]",
+    );
+
+    expect(index.headings[0]).toEqual({
+      depth: 2,
+      line: 0,
+      slug: "the-bold-code-and-pagelabel",
+      text: "The bold code and Label",
+    });
+  });
 });

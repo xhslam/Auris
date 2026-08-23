@@ -529,7 +529,11 @@ describe("VMark sync report", () => {
       ).toThrowError(expect.objectContaining({ code: "CACHE_BUSY" }));
       rmSync(paths.lockDirectory, { recursive: true });
 
-      symlinkSync(repository, paths.cacheDirectory);
+      symlinkSync(
+        repository,
+        paths.cacheDirectory,
+        process.platform === "win32" ? "junction" : undefined,
+      );
       expect(() =>
         prepareUpstreamCache(repositoryUrl, { cacheRoot }),
       ).toThrowError(expect.objectContaining({ code: "CACHE_INVALID" }));
@@ -780,7 +784,8 @@ describe("VMark sync report", () => {
       "windows:2026-07-17T13:00:00.0000000Z",
     );
     expect(observed[1].command).toBe("powershell.exe");
-    expect(observed[1].argv.at(-1)).toBe("77");
+    expect(observed[1].argv.at(-1)).toContain("Get-Process -Id 77");
+    expect(observed[1].argv).not.toContain("77");
     expect(observed[1].options).toMatchObject({ shell: false });
 
     const unavailableProvider = createProcessStartIdentityProvider({

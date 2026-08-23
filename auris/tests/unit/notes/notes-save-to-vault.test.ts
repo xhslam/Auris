@@ -71,6 +71,35 @@ describe("notes save to vault", () => {
     expect(client.writeFile).toHaveBeenCalledWith(path, source);
   });
 
+  it("normalizes Markdown spacing without rewriting protected syntax", async () => {
+    const source = [
+      "+++",
+      'title = "中文API"',
+      "+++",
+      "正文API 与 `中文API` [链接](https://example.com/中文API)",
+      "```ts",
+      "const 中文API = 1;",
+      "```",
+      "硬换行API  ",
+      "下一行",
+      "",
+    ].join("\n");
+    const expected = source.replace("正文API", "正文 API").replace("硬换行API", "硬换行 API");
+    const client = createClient("");
+
+    const result = await saveNoteToVault(client, {
+      expectedRawSource: "",
+      path: "Inbox/Safe.md",
+      rawSource: source,
+      saveType: "manual",
+    });
+
+    expect(result.normalizedSource).toBe(expected);
+    expect(result.normalizedSource).toContain("`中文API`");
+    expect(result.normalizedSource).toContain("https://example.com/中文API");
+    expect(result.normalizedSource).toContain("硬换行 API  \n");
+  });
+
   it("reports conflicts without overwriting the current disk content", async () => {
     const client = createClient("# External");
 

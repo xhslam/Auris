@@ -5,7 +5,7 @@
  * @module lib/cjkFormatter/rules/dashesQuotes
  */
 
-import type { QuoteStyle } from "../../cjk-formatting-settings";
+import type { QuoteStyle } from "../types";
 import {
   CJK_NO_KOREAN,
   CJK_CHARS_PATTERN,
@@ -17,21 +17,24 @@ import {
 /**
  * Convert dashes (2+) to —— when adjacent to CJK characters.
  * Matches: CJK--CJK, CJK--word, word--CJK.
+ *
+ * Same-line only ([ \t], never \n): dashes at a line boundary — e.g. a setext
+ * H2 underline ("--" under a heading) — must not join adjacent lines.
  */
 export function convertDashes(text: string): string {
   // CJK on both sides
   const cjkBothPattern = new RegExp(
-    `(${CJK_CHARS_PATTERN})\\s*-{2,}\\s*(${CJK_CHARS_PATTERN})`,
+    `(${CJK_CHARS_PATTERN})[ \\t]*-{2,}[ \\t]*(${CJK_CHARS_PATTERN})`,
     "g"
   );
   // CJK on left, alphanumeric on right
   const cjkLeftPattern = new RegExp(
-    `(${CJK_CHARS_PATTERN})\\s*-{2,}\\s*([A-Za-z0-9])`,
+    `(${CJK_CHARS_PATTERN})[ \\t]*-{2,}[ \\t]*([A-Za-z0-9])`,
     "g"
   );
   // Alphanumeric on left, CJK on right
   const cjkRightPattern = new RegExp(
-    `([A-Za-z0-9])\\s*-{2,}\\s*(${CJK_CHARS_PATTERN})`,
+    `([A-Za-z0-9])[ \\t]*-{2,}[ \\t]*(${CJK_CHARS_PATTERN})`,
     "g"
   );
 
@@ -50,9 +53,13 @@ export function convertDashes(text: string): string {
   return text;
 }
 
-/** Fix spacing around existing —— (em-dash) characters. */
+/**
+ * Fix spacing around existing —— (em-dash) characters.
+ * Same-line only ([ \t], never \n): a —— at a line boundary must not pull
+ * the next line up.
+ */
 export function fixEmdashSpacing(text: string): string {
-  return text.replace(/([^\s])\s*——\s*([^\s])/g, (_, before, after) => {
+  return text.replace(/([^\s])[ \t]*——[ \t]*([^\s])/g, (_, before, after) => {
     // No space between closing brackets/quotes and ——
     const leftSpace = CJK_CLOSING_BRACKETS.includes(before) ? "" : " ";
     // No space between —— and opening brackets/quotes
@@ -61,12 +68,24 @@ export function fixEmdashSpacing(text: string): string {
   });
 }
 
-/** Fix spacing around quotation marks (generic). */
+/**
+ * Fix spacing around quotation marks (generic).
+ *
+ * A CJK letter is in BOTH no-space sets (WI-CJKF3.3). `“ ”` are fullwidth in
+ * CJK context — GB/T 15834 and JLREQ both give them their own sidebearing, and
+ * the W3C's *Spacing between scripts inline* makes the same point structurally:
+ * the gap belongs to the glyph, not to a character in the content. Without
+ * this, `他说"你好"然后走了` came back as `他说 “你好” 然后走了`.
+ *
+ * Latin↔quote spacing is unaffected, which is the whole point of the rule.
+ * Korean is excluded from `CJK_NO_KOREAN` and so was never spaced.
+ */
 function fixQuoteSpacing(
   text: string,
   openingQuote: string,
   closingQuote: string
 ): string {
+  const isCJKChar = new RegExp(`[${CJK_NO_KOREAN}]`);
   const noSpaceBefore = CJK_CLOSING_BRACKETS + CJK_TERMINAL_PUNCTUATION;
   const noSpaceAfter = CJK_OPENING_BRACKETS + CJK_TERMINAL_PUNCTUATION;
 
@@ -77,7 +96,7 @@ function fixQuoteSpacing(
       "g"
     ),
     (_, before) => {
-      if (noSpaceBefore.includes(before)) {
+      if (noSpaceBefore.includes(before) || isCJKChar.test(before)) {
         return `${before}${openingQuote}`;
       }
       return `${before} ${openingQuote}`;
@@ -91,7 +110,7 @@ function fixQuoteSpacing(
       "g"
     ),
     (_, after) => {
-      if (noSpaceAfter.includes(after)) {
+      if (noSpaceAfter.includes(after) || isCJKChar.test(after)) {
         return `${closingQuote}${after}`;
       }
       return `${closingQuote} ${after}`;

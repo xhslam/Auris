@@ -3,6 +3,7 @@ import {
   closeWorkspacePath,
   createWorkspaceState,
   getEditorMode,
+  getLastUsedOpenTab,
   openWorkspacePath,
   removeWorkspacePath,
   renameWorkspacePath,
@@ -37,6 +38,33 @@ describe("workspace-store", () => {
     expect(openedState.recentFiles).toEqual(["notes/daily.md"]);
     expect(closedState.openTabs).toEqual([]);
     expect(closedState.activePath).toBeNull();
+  });
+
+  it("resolves the last used live tab and skips stale recent paths", () => {
+    const state = {
+      ...createWorkspaceState(),
+      activePath: "notes/c.md",
+      openTabs: ["notes/a.md", "notes/b.md", "notes/c.md"],
+      recentFiles: ["notes/c.md", "notes/deleted.md", "notes/b.md", "notes/a.md"],
+    };
+
+    expect(getLastUsedOpenTab(state)).toBe("notes/b.md");
+    expect(
+      getLastUsedOpenTab({
+        ...state,
+        openTabs: ["notes/c.md"],
+      }),
+    ).toBeNull();
+  });
+
+  it("round-trips between two tabs as activation updates recent files", () => {
+    let state = openWorkspacePath(createWorkspaceState(), "notes/a.md");
+    state = openWorkspacePath(state, "notes/b.md");
+    const firstTarget = getLastUsedOpenTab(state);
+    expect(firstTarget).toBe("notes/a.md");
+
+    state = openWorkspacePath(state, firstTarget!);
+    expect(getLastUsedOpenTab(state)).toBe("notes/b.md");
   });
 
   it("stores editor mode for the active note without changing other notes", () => {

@@ -1436,6 +1436,25 @@ describe("NotesWorkbench", () => {
     expect(terminalPane?.style.width).toBe("688px");
   });
 
+  it("opens the most recently used live tab with Ctrl+Tab", () => {
+    const onOpenPath = vi.fn();
+    render(
+      <NotesWorkbench
+        activePath="notes/daily.md"
+        documents={[createDocument(), createGrammarDocument()]}
+        entries={ENTRIES}
+        onDocumentChange={vi.fn()}
+        onOpenPath={onOpenPath}
+        openTabs={["notes/daily.md", "notes/grammar.md"]}
+        recentFiles={["notes/daily.md", "notes/grammar.md"]}
+      />,
+    );
+
+    fireEvent.keyDown(window, { ctrlKey: true, key: "Tab" });
+
+    expect(onOpenPath).toHaveBeenCalledWith("notes/grammar.md");
+  });
+
   it("opens the command palette from the keyboard, filters commands, and closes after selection", async () => {
     const user = userEvent.setup();
     const runRecentCommand = vi.fn();

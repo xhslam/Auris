@@ -72,6 +72,7 @@ import {
   listNotesHistoryVersions,
   type NotesHistoryVersion,
 } from "@/features/notes/persistence/notes-recovery-store";
+import { getLastUsedOpenTab } from "@/features/notes/workspace/workspace-store";
 import type {
   NotesLeftSidebarMode,
   NotesRightSidebarMode,
@@ -522,6 +523,13 @@ export function NotesWorkbench({
     useNiaPickerStore.getState().openPicker();
   }, [onRequestNiaContext, setNiaPickerContent]);
 
+  const handleOpenLastUsedTab = useCallback(() => {
+    const target = getLastUsedOpenTab({ activePath, openTabs, recentFiles });
+    if (target) {
+      onOpenPath(target);
+    }
+  }, [activePath, onOpenPath, openTabs, recentFiles]);
+
   const commandInfrastructure = useNotesCommandInfrastructure({
     editorMode,
     hasActiveDocument: Boolean(activeDocument),
@@ -529,6 +537,7 @@ export function NotesWorkbench({
       setIsTerminalSplitOpen(false);
       setIsBrowserPaneOpen(true);
     },
+    onOpenLastUsedTab: handleOpenLastUsedTab,
     onOpenNiaPicker: handleOpenNiaPicker,
     onOpenPalette: () => onOpenCommandPaletteChange?.(true),
     onSave: onSaveActiveDocument,

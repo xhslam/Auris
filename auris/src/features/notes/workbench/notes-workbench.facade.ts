@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NotesEditorBridge } from "@/features/notes/editor/editor-types";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
-import { formatMarkdown } from "@/features/notes/formatting/cjk-formatter";
+import { formatMarkdownChecked } from "@/features/notes/formatting/cjk-formatter";
 import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import { loadNoteDocument } from "@/features/notes/documents/document-repository";
 import {
@@ -552,15 +552,20 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     ) {
       return;
     }
-    const nextSource = formatMarkdown(
+    const result = formatMarkdownChecked(
       activeDocument.rawSource,
       loadCjkFormattingSettings(),
+      { preserveTwoSpaceHardBreaks: true },
     );
-    if (nextSource === activeDocument.rawSource) {
+    if (result.refused) {
+      setErrorMessage("中文排版未应用：内容完整性检查未通过。");
       return;
     }
-    handleDocumentChange(activeDocument.path, nextSource);
-  }, [activeDocument, handleDocumentChange]);
+    if (result.text === activeDocument.rawSource) {
+      return;
+    }
+    handleDocumentChange(activeDocument.path, result.text);
+  }, [activeDocument, handleDocumentChange, setErrorMessage]);
 
   useEffect(() => {
     const notesMcpBridge = desktopBridge?.notesMcp;

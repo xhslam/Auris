@@ -18,6 +18,7 @@ type CommandInfrastructureInput = {
   editorMode: NotesEditorMode;
   hasActiveDocument: boolean;
   onOpenBrowser?: () => void;
+  onOpenLastUsedTab?: () => void;
   onOpenNiaPicker?: () => void;
   onOpenPalette?: () => void;
   onSave?: () => void;
@@ -89,6 +90,11 @@ export function useNotesCommandInfrastructure(
         handler: () => inputRef.current.onOpenPalette?.(),
         id: "notes.palette",
         title: "Open command palette",
+      }),
+      bus.register({
+        handler: () => inputRef.current.onOpenLastUsedTab?.(),
+        id: "notes.lastUsedTab",
+        title: "Open last used tab",
       }),
       bus.register({
         handler: () =>

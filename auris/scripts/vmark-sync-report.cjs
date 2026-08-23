@@ -357,8 +357,7 @@ function createProcessStartIdentityProvider({
           "-NoProfile",
           "-NonInteractive",
           "-Command",
-          "$process = Get-Process -Id $args[0] -ErrorAction Stop; $process.StartTime.ToUniversalTime().ToString('o')",
-          String(pid),
+          `$process = Get-Process -Id ${pid} -ErrorAction Stop; $process.StartTime.ToUniversalTime().ToString('o')`,
         ]
       : ["-o", "lstart=", "-p", String(pid)];
     let result;
@@ -697,7 +696,7 @@ function ensurePrivateCacheRoot(cacheRoot) {
       throw failure("CACHE_INVALID", "The cache root is not a directory.");
     }
     assertOwned(stat);
-    if ((stat.mode & 0o077) !== 0) {
+    if (process.platform !== "win32" && (stat.mode & 0o077) !== 0) {
       throw failure("CACHE_INVALID", "The cache root is not private.");
     }
   } catch (error) {
@@ -712,7 +711,7 @@ function assertSafeCacheDirectory(directory) {
       throw failure("CACHE_INVALID", "The cache entry is not a directory.");
     }
     assertOwned(directoryStat);
-    if ((directoryStat.mode & 0o077) !== 0) {
+    if (process.platform !== "win32" && (directoryStat.mode & 0o077) !== 0) {
       fs.chmodSync(directory, 0o700);
     }
     const gitDirectory = path.join(directory, ".git");

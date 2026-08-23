@@ -194,6 +194,8 @@ export const ZH_CN_NOTES_UI_COPY = {
   tabs: {
     closePrefix: "关闭",
     openTabs: "已打开的笔记标签",
+    scrollLeft: "向左滚动标签",
+    scrollRight: "向右滚动标签",
   },
   fileTree: {
     ariaLabel: "笔记库文件树",
