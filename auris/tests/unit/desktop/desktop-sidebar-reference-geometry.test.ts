@@ -29,18 +29,54 @@ describe('Desktop sidebar reference geometry contract', () => {
     expect(REDESIGN_CSS).toContain("--sidebar-rail-width: 30px");
   });
 
-  it('positions the rail at 8px from left and top', () => {
+  it('positions the in-flow rail at 8px from left and top', () => {
     const rail = ruleBody(
       REDESIGN_CSS,
       '.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar',
     );
 
-    expect(rail).toContain("left: 8px");
-    expect(rail).toContain("top: 8px");
+    expect(rail).toContain("position: relative");
+    expect(rail).toContain("left: auto");
+    expect(rail).toContain("top: auto");
+    expect(rail).toContain("margin: 8px 0 8px 8px");
     expect(rail).toContain("width: 30px");
-    expect(rail).toContain("height: calc(100vh - 16px)");
+    expect(rail).toContain("height: auto");
     expect(rail).toContain("display: flex");
     expect(rail).toContain("justify-content: flex-start");
+  });
+
+  it("reserves a structural shell column instead of covering page content", () => {
+    const shell = ruleBody(
+      REDESIGN_CSS,
+      '.desktop-app-shell[data-desktop-runtime="true"]',
+    );
+    const rail = ruleBody(
+      REDESIGN_CSS,
+      '.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar',
+    );
+    const frame = ruleBody(
+      REDESIGN_CSS,
+      '.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame',
+    );
+    const expandedShell = ruleBody(
+      REDESIGN_CSS,
+      '.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]',
+    );
+
+    expect(REDESIGN_CSS).toContain("--sidebar-shell-collapsed-column: 52px");
+    expect(REDESIGN_CSS).toContain("--sidebar-shell-expanded-column: 262px");
+    expect(shell).toContain("display: grid !important");
+    expect(shell).toContain(
+      "grid-template-columns: var(--sidebar-shell-collapsed-column, 52px) minmax(0, 1fr)",
+    );
+    expect(rail).toContain("position: relative");
+    expect(rail).toContain("margin: 8px 0 8px 8px");
+    expect(rail).toContain("grid-column: 1");
+    expect(frame).toContain("grid-column: 2");
+    expect(frame).toContain("width: 100%");
+    expect(expandedShell).toContain(
+      "grid-template-columns: var(--sidebar-shell-expanded-column, 262px) minmax(0, 1fr)",
+    );
   });
 
   it('uses 15px border-radius for capsule shape', () => {

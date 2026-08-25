@@ -198,3 +198,9 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 实现保留 `DesktopAppSidebar` 的七个现有路由、预取、Notes Vault、Reading 二级导航和 sessionStorage 展开状态。清理了 `globals.css` 中两轮已失效的侧栏几何、皮肤和主题强制覆盖，将 Notes 左下角状态簇改为按 8px 左距 + 30px 轨道 + 16px 间隙计算；`auris-redesign.css` 的 Electron 权威块显式恢复 flex 顶部布局，并将折叠态 Vault 入口收敛为 28px；`auris-theme.css` 不再给首页预留旧 56px 列，也不再以 `!important` 永久隐藏展开标签。样式契约测试同步扩展为同时检查新规则与旧级联冲突，而非只搜索数字是否存在。
 
 验证完成：侧栏、桌面外壳和几何契约 3 个文件共 36 项 Vitest 通过；定向 ESLint、`git diff --check` 和 `npm run build` 通过。Playwright 在 1440×900 运行时测得折叠轨道 `x=8, y=8, 30×884`、首个活动项 `x=9, y=48, 28×28`、图标 14×14，Night 背景、活动、指示色分别为 `#2B2E33`、`#333D4B`、`#E55E51`；展开态为 240×884、16px 圆角且七个标签可见。1280×720 下 `/`、`/notes`、`/reading`、`/video`、`/settings` 均返回 200、各有且仅有一个正确活动入口；六主题保持同一几何。未替换已安装包，也未关闭用户正在运行的 Auris 实例；未触碰现有词库、笔记存储和其他未提交改动。
+
+## Engineering trajectory: 胶囊侧边栏结构列修正（2026-08-25）
+
+用户指出上一轮虽然复刻了胶囊本身，却把侧栏实现成覆盖页面的固定浮层；浏览器验收还通过强制桌面运行态与 Night 主题掩盖了真实组合关系。修正将侧栏定义为桌面壳的第一列：折叠列宽 52px（8px 左距 + 30px 轨道 + 14px 间隔），功能页面固定从第二列 `x=52` 开始；展开时第一列同步变为 262px，240px 导航与页面共同重排，不再遮挡页面。侧栏在列内使用 8px 外边距维持 `30×calc(100vh - 16px)` 胶囊几何。
+
+改动集中在 `src/styles/auris-redesign.css`、`src/styles/auris-theme.css`、侧栏 PRD 与几何契约测试。Playwright 在 1440×900 下复核 `/`、`/notes`、`/reading`、`/video`、`/settings`：五页轨道均为 `x=8, y=8, 30×884`，Frame 均为 `x=52, width=1388`，轨道矩形内可点击内容重叠数为 0；展开实测轨道 240px、Frame `x=262`、七个标签可见。侧栏/外壳/几何测试共 37 项通过，定向 ESLint 与 `git diff --check` 通过。业务数据、首页布局状态和主题偏好均未清空或改写。

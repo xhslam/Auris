@@ -58,7 +58,7 @@
   pointer-events: auto !important;
 }
 
-/* 主内容继续铺满窗口；胶囊轨道作为浮层，由各工作区自行保留安全 inset。 */
+/* 主内容填满桌面壳分配给它的第二列；侧栏占位由统一外壳负责。 */
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"] .desktop-app-frame {
   box-sizing: border-box !important;
   flex: 1 1 auto !important;
@@ -68,10 +68,7 @@
   padding-left: 0 !important;
 }
 
-/* globals.css gives the desktop viewport a fixed 100vw width. On home that
- * 100vw sits inside a frame which already reserves space for the persistent
- * rail, so the final rail-width slice gets clipped off-screen. Keep the
- * viewport relative to its actual parent width instead. */
+/* Keep the home viewport relative to the frame's allocated grid column. */
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
   .desktop-app-frame__viewport,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]

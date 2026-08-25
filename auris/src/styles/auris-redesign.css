@@ -76,6 +76,9 @@
   --sidebar-glyph-size: 14px;
   --sidebar-indicator-width: 2px;
   --sidebar-indicator-height: 20px;
+  --sidebar-shell-gap: 14px;
+  --sidebar-shell-collapsed-column: 52px;
+  --sidebar-shell-expanded-column: 262px;
 
   /* ── Sidebar per-theme semantic variables (Night defaults) ────────────── */
   --sidebar-rail-bg: #2B2E33;
@@ -188,6 +191,19 @@ body::-webkit-scrollbar-thumb:hover,
   background: var(--app-bg);
   overflow: hidden;
   position: relative;
+}
+
+/* The desktop rail is a real shell column, not a layer over page content.
+   8px left inset + 30px rail + 14px content gap = 52px collapsed column. */
+.desktop-app-shell[data-desktop-runtime="true"] {
+  display: grid !important;
+  grid-template-columns: var(--sidebar-shell-collapsed-column, 52px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  transition: grid-template-columns 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"] {
+  grid-template-columns: var(--sidebar-shell-expanded-column, 262px) minmax(0, 1fr);
 }
 
 .desktop-app-shell__reveal-zone {
@@ -524,15 +540,15 @@ body::-webkit-scrollbar-thumb:hover,
 /* ── 5b. Desktop-runtime: capsule rail (authority) ─────────────────────── */
 
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar {
-  position: fixed;
-  left: 8px;
-  top: 8px;
+  position: relative;
+  left: auto;
+  top: auto;
   width: 30px;
-  height: calc(100vh - 16px);
+  height: auto;
   max-height: none;
   min-height: 0;
   padding: 0;
-  margin: 0;
+  margin: 8px 0 8px 8px;
   border: 0;
   border-radius: 15px;
   background: var(--sidebar-rail-bg, #2B2E33);
@@ -544,6 +560,10 @@ body::-webkit-scrollbar-thumb:hover,
   pointer-events: auto;
   overflow: hidden;
   z-index: 90;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: stretch;
+  justify-self: start;
   flex: 0 0 30px;
   display: flex;
   flex-direction: column;
@@ -648,7 +668,9 @@ body::-webkit-scrollbar-thumb:hover,
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame {
   position: relative;
   z-index: 1;
-  width: auto;
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
   max-width: none;
   flex: 1 1 auto;
   min-width: 0;
@@ -825,7 +847,7 @@ body::-webkit-scrollbar-thumb:hover,
   transform: translateX(2px);
 }
 
-/* Expanded overlay should not push content */
+/* Expanded state owns a wider shell column, so it reflows rather than covers content. */
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
   .desktop-app-sidebar,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
