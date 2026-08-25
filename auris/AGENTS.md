@@ -190,3 +190,11 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 修复将该规则替换为与应用壳同一作用域的 `.desktop-app-shell[data-app-theme] .auris-demo-home[data-system-color-scheme] { background: var(--app-bg) !important; }`。因此 White、Paper、Mint、Tan（`sepia`）、Night 和 Solarized 都由 `DesktopAppFrame` 的 `data-app-theme` 与语义 `--app-bg` 令牌驱动首页外层画布；现有卡片、控件和六套人生阶段场景规则继续各自消费同一主题来源。没有改动 Electron 主进程、预加载、认证、Supabase、Vault 或 Editor 核心。
 
 `home-workbench-theme-isolation.test.ts` 现验证最终同选择器覆盖规则使用 `var(--app-bg)`，并禁止旧的固定 `#171819 !important` 根画布规则，以防止同类回归。验证：应用主题、首页工作台、人生阶段、跨主题对比和桌面首页共 5 个定向测试文件、59 项通过（桌面首页既有 React `act(...)` 警告不影响结果）；首页样式隔离与 Folder Browser 样式共 10 项通过；定向 ESLint 和 `git diff --check` 通过；`npm run build`、`npm run desktop:assemble` 与 macOS `electron-builder --mac --publish never` 完成。新包已安装为 `/Applications/Auris.app`（版本 1.0.1），旧包备份为 `/Applications/Auris.app.backup-1.0.1-before-home-canvas-theme`；从安装包编译 CSS 核验到最终主题画布规则。用户的 `src/features/dictionary/personal-vocab/word-index.json` 改动及上层 `markdown/`、`research/vmark-upstream/` 未暂存。
+
+## Engineering trajectory: 参考图式 30px 胶囊侧边栏验收与收敛（2026-08-25）
+
+本次先以 `docs/PRD-auris-reference-compact-sidebar.md` 为意图基线审查 Antigravity 的未完成实现。组件层已经移除了导航 ripple、粒子和 burst 状态，并在 `auris-redesign.css` 中建立了 30px 轨道、28px 活动项、14px 图标、2×20px 指示条和六主题变量；但运行时仍被 `globals.css` 中旧的 48/74/78px、贴左直角、36px 按钮和金色活动态 `!important` 规则压过，展开文字也被 `auris-theme.css` 的全局隐藏规则阻断。
+
+实现保留 `DesktopAppSidebar` 的七个现有路由、预取、Notes Vault、Reading 二级导航和 sessionStorage 展开状态。清理了 `globals.css` 中两轮已失效的侧栏几何、皮肤和主题强制覆盖，将 Notes 左下角状态簇改为按 8px 左距 + 30px 轨道 + 16px 间隙计算；`auris-redesign.css` 的 Electron 权威块显式恢复 flex 顶部布局，并将折叠态 Vault 入口收敛为 28px；`auris-theme.css` 不再给首页预留旧 56px 列，也不再以 `!important` 永久隐藏展开标签。样式契约测试同步扩展为同时检查新规则与旧级联冲突，而非只搜索数字是否存在。
+
+验证完成：侧栏、桌面外壳和几何契约 3 个文件共 36 项 Vitest 通过；定向 ESLint、`git diff --check` 和 `npm run build` 通过。Playwright 在 1440×900 运行时测得折叠轨道 `x=8, y=8, 30×884`、首个活动项 `x=9, y=48, 28×28`、图标 14×14，Night 背景、活动、指示色分别为 `#2B2E33`、`#333D4B`、`#E55E51`；展开态为 240×884、16px 圆角且七个标签可见。1280×720 下 `/`、`/notes`、`/reading`、`/video`、`/settings` 均返回 200、各有且仅有一个正确活动入口；六主题保持同一几何。未替换已安装包，也未关闭用户正在运行的 Auris 实例；未触碰现有词库、笔记存储和其他未提交改动。

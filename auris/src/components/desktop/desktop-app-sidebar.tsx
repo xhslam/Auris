@@ -8,8 +8,6 @@ import {
   startTransition,
   useRef,
   useState,
-  type CSSProperties,
-  type FocusEvent,
   type FocusEventHandler,
   type MouseEvent,
   type MouseEventHandler,
@@ -45,14 +43,7 @@ type DesktopAppSidebarProps = {
   isPersistentRail?: boolean;
 };
 
-type RippleState = {
-  isVisible: boolean;
-  x: number;
-  y: number;
-};
-
 const NAV_GROUP_ORDER: DesktopNavGroupId[] = ["primary", "library", "tools"];
-const NAVIGATION_BURST_DURATION_MS = 520;
 const PREFETCHED_NAVIGATION_COMMIT_DELAY_MS = 0;
 const FALLBACK_NAVIGATION_COMMIT_DELAY_MS = 32;
 const NOTES_VAULT_OPEN_SESSION_KEY = "auris.desktop.notes-vault-open";
@@ -78,16 +69,6 @@ function writeNotesVaultOpen(isOpen: boolean) {
     // Session state remains available when storage is unavailable.
   }
 }
-const LINK_BURST_PARTICLES = [
-  { delay: "0ms", rotate: "-72deg", x: "-18px", y: "-20px" },
-  { delay: "34ms", rotate: "-34deg", x: "8px", y: "-24px" },
-  { delay: "18ms", rotate: "6deg", x: "24px", y: "-10px" },
-  { delay: "48ms", rotate: "42deg", x: "22px", y: "18px" },
-  { delay: "12ms", rotate: "92deg", x: "0px", y: "27px" },
-  { delay: "58ms", rotate: "138deg", x: "-22px", y: "16px" },
-  { delay: "28ms", rotate: "184deg", x: "-28px", y: "-2px" },
-  { delay: "66ms", rotate: "224deg", x: "-8px", y: "-30px" },
-] as const;
 
 function getGroupItems(group: DesktopNavGroupId) {
   return DESKTOP_NAV_ITEMS.filter((item) => item.group === group);
@@ -295,23 +276,12 @@ function DesktopSidebarLink({
   onNavigate,
 }: DesktopSidebarLinkProps) {
   const router = useRouter();
-  const burstTimeoutRef = useRef<number | null>(null);
   const hasCommittedNavigationRef = useRef(false);
   const hasPrefetchedRouteRef = useRef(false);
   const navigationTimeoutRef = useRef<number | null>(null);
-  const [isBursting, setIsBursting] = useState(false);
-  const [rippleState, setRippleState] = useState<RippleState>({
-    isVisible: false,
-    x: 0,
-    y: 0,
-  });
 
   useEffect(() => {
     return () => {
-      if (burstTimeoutRef.current !== null) {
-        window.clearTimeout(burstTimeoutRef.current);
-      }
-
       if (navigationTimeoutRef.current !== null) {
         window.clearTimeout(navigationTimeoutRef.current);
       }
@@ -331,52 +301,12 @@ function DesktopSidebarLink({
     hasPrefetchedRouteRef.current = true;
   }
 
-  function updateRipplePosition(
-    target: EventTarget & HTMLAnchorElement,
-    clientX: number,
-    clientY: number,
-  ) {
-    const bounds = target.getBoundingClientRect();
-
-    setRippleState({
-      isVisible: true,
-      x: clientX - bounds.left,
-      y: clientY - bounds.top,
-    });
-  }
-
-  function handleMouseEnter(event: MouseEvent<HTMLAnchorElement>) {
+  function handleMouseEnter() {
     prefetchRoute();
-    updateRipplePosition(event.currentTarget, event.clientX, event.clientY);
   }
 
-  function handleMouseMove(event: MouseEvent<HTMLAnchorElement>) {
-    updateRipplePosition(event.currentTarget, event.clientX, event.clientY);
-  }
-
-  function handleMouseLeave() {
-    setRippleState((currentState) => ({
-      ...currentState,
-      isVisible: false,
-    }));
-  }
-
-  function handleFocus(event: FocusEvent<HTMLAnchorElement>) {
+  function handleFocus() {
     prefetchRoute();
-    const bounds = event.currentTarget.getBoundingClientRect();
-
-    setRippleState({
-      isVisible: true,
-      x: bounds.width * 0.5,
-      y: bounds.height * 0.5,
-    });
-  }
-
-  function handleBlur() {
-    setRippleState((currentState) => ({
-      ...currentState,
-      isVisible: false,
-    }));
   }
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -403,27 +333,6 @@ function DesktopSidebarLink({
       return;
     }
 
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const nextX =
-      event.clientX > 0 ? event.clientX - bounds.left : bounds.width * 0.5;
-    const nextY =
-      event.clientY > 0 ? event.clientY - bounds.top : bounds.height * 0.5;
-
-    setRippleState({
-      isVisible: true,
-      x: nextX,
-      y: nextY,
-    });
-    setIsBursting(true);
-
-    if (burstTimeoutRef.current !== null) {
-      window.clearTimeout(burstTimeoutRef.current);
-    }
-
-    if (navigationTimeoutRef.current !== null) {
-      window.clearTimeout(navigationTimeoutRef.current);
-    }
-
     navigationTimeoutRef.current = window.setTimeout(
       () => {
         hasCommittedNavigationRef.current = true;
@@ -437,60 +346,19 @@ function DesktopSidebarLink({
         ? PREFETCHED_NAVIGATION_COMMIT_DELAY_MS
         : FALLBACK_NAVIGATION_COMMIT_DELAY_MS,
     );
-
-    burstTimeoutRef.current = window.setTimeout(() => {
-      setIsBursting(false);
-      burstTimeoutRef.current = null;
-    }, NAVIGATION_BURST_DURATION_MS);
   }
-
-  const rippleStyle = {
-    "--desktop-link-ripple-x": `${rippleState.x}px`,
-    "--desktop-link-ripple-y": `${rippleState.y}px`,
-  } as CSSProperties;
 
   return (
     <Link
       aria-label={item.label}
       className="desktop-app-sidebar__link"
       data-active={isActive ? "true" : "false"}
-      data-bursting={isBursting ? "true" : "false"}
-      data-hovered={rippleState.isVisible ? "true" : "false"}
       href={item.href}
       onClick={handleClick}
-      onBlur={handleBlur}
       onFocus={handleFocus}
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
-      style={rippleStyle}
       title={item.label}
     >
-      <span aria-hidden="true" className="desktop-app-sidebar__link-ripple" />
-      <span aria-hidden="true" className="desktop-app-sidebar__link-impact">
-        <span className="desktop-app-sidebar__link-impact-core" />
-        <span className="desktop-app-sidebar__link-impact-ring desktop-app-sidebar__link-impact-ring--primary" />
-        <span className="desktop-app-sidebar__link-impact-ring desktop-app-sidebar__link-impact-ring--secondary" />
-      </span>
-      <span
-        aria-hidden="true"
-        className="desktop-app-sidebar__link-particle-field"
-      >
-        {LINK_BURST_PARTICLES.map((particle, index) => (
-          <span
-            className="desktop-app-sidebar__link-particle"
-            key={`${particle.rotate}-${index}`}
-            style={
-              {
-                "--sidebar-particle-delay": particle.delay,
-                "--sidebar-particle-rotate": particle.rotate,
-                "--sidebar-particle-x": particle.x,
-                "--sidebar-particle-y": particle.y,
-              } as CSSProperties
-            }
-          />
-        ))}
-      </span>
       <span className="desktop-app-sidebar__link-leading">
         <span className="desktop-app-sidebar__link-mark" aria-hidden="true">
           <NavGlyph itemId={item.id} />
@@ -614,20 +482,7 @@ export function DesktopAppSidebar({
             onClick={onToggleExpanded}
             type="button"
           >
-            <span className="desktop-app-sidebar__brand-swap-face desktop-app-sidebar__brand-swap-face--logo">
-              <Image
-                alt=""
-                className="desktop-app-sidebar__brand-img"
-                height={28}
-                priority
-                src={aurisLogo}
-                width={28}
-              />
-            </span>
-            <span
-              aria-hidden="true"
-              className="desktop-app-sidebar__brand-swap-face desktop-app-sidebar__brand-swap-face--toggle"
-            >
+            <span className="desktop-app-sidebar__brand-swap-face desktop-app-sidebar__brand-swap-face--toggle">
               <SidebarToggleGlyph expanded={false} />
             </span>
           </button>

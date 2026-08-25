@@ -58,14 +58,14 @@
   pointer-events: auto !important;
 }
 
-/* 2) 给主内容预留窄轨道宽度，避免被常驻侧栏盖住 */
+/* 主内容继续铺满窗口；胶囊轨道作为浮层，由各工作区自行保留安全 inset。 */
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"] .desktop-app-frame {
   box-sizing: border-box !important;
   flex: 1 1 auto !important;
   width: auto !important;
   max-width: none !important;
   min-width: 0 !important;
-  padding-left: calc(var(--auris-sidebar-rail) + 14px) !important;
+  padding-left: 0 !important;
 }
 
 /* globals.css gives the desktop viewport a fixed 100vw width. On home that
@@ -94,20 +94,10 @@
   pointer-events: auto !important;
 }
 
-/* 3) 悬停/聚焦时横向放大为信息面板（浮层覆盖，不挤压正文） */
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
-  .desktop-app-sidebar[data-visible="true"],
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-visible="true"]
-  .desktop-app-sidebar {
-  width: var(--auris-sidebar-wide) !important;
-  align-items: stretch !important;
-  box-shadow: 0 18px 46px rgba(28, 51, 84, 0.16) !important;
-  transition: width 160ms ease !important;
-}
-
-/* 4) 导航保持图标轨道（不显示文字标签）；标签仅供无障碍/tooltip */
-.desktop-app-sidebar__link-text {
-  display: none !important;
+/* 折叠态只显示图标；显式展开态由 auris-redesign.css 恢复文字。 */
+.desktop-app-shell[data-sidebar-expanded="false"]
+  .desktop-app-sidebar__link-text {
+  display: none;
 }
 
 /* 6) 展开态信息层（名称 / 统计 / 活跃日历 / 最近笔记 / 回顾）：窄态隐藏 */

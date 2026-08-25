@@ -175,6 +175,7 @@ describe("DesktopAppSidebar", () => {
     const toggle = screen.getByRole("button", { name: "展开侧栏" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(toggle).toHaveClass("desktop-app-sidebar__brand-swap");
+    expect(toggle.querySelector(".desktop-app-sidebar__brand-img")).toBeNull();
     expect(screen.queryByRole("button", { name: "收起侧栏" })).not.toBeInTheDocument();
     fireEvent.click(toggle);
     expect(onToggleExpanded).toHaveBeenCalledTimes(1);
@@ -279,7 +280,7 @@ describe("DesktopAppSidebar", () => {
     expect(prefetchMock).toHaveBeenCalledWith("/video");
   });
 
-  it("starts the burst immediately but navigates quickly without rescheduling on repeated clicks", () => {
+  it("navigates quickly without rescheduling on repeated clicks", () => {
     vi.useFakeTimers();
     const onNavigate = vi.fn();
 
@@ -294,12 +295,12 @@ describe("DesktopAppSidebar", () => {
 
     const videoLink = getVideoLink();
 
-    expect(videoLink).toHaveAttribute("data-bursting", "false");
-    expect(videoLink.querySelectorAll(".desktop-app-sidebar__link-particle")).toHaveLength(8);
+    expect(videoLink).not.toHaveAttribute("data-bursting");
+    expect(videoLink.querySelector(".desktop-app-sidebar__link-ripple")).toBeNull();
+    expect(videoLink.querySelector(".desktop-app-sidebar__link-particle-field")).toBeNull();
 
     fireEvent.click(videoLink);
 
-    expect(videoLink).toHaveAttribute("data-bursting", "true");
     expect(onNavigate).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalled();
     expect(prefetchMock).toHaveBeenCalledWith("/video");
@@ -320,12 +321,6 @@ describe("DesktopAppSidebar", () => {
     expect(onNavigate).toHaveBeenCalledTimes(1);
     expect(pushMock).toHaveBeenCalledTimes(1);
     expect(pushMock).toHaveBeenCalledWith("/video");
-
-    act(() => {
-      vi.advanceTimersByTime(488);
-    });
-
-    expect(videoLink).toHaveAttribute("data-bursting", "false");
   });
 
   it("commits prefetched navigation on the next timer turn", () => {

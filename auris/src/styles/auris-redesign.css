@@ -62,8 +62,28 @@
   --auris-shadow-card: none;
   --auris-shadow-float: 0 10px 28px rgba(199, 168, 106, 0.18);
 
-  --auris-sidebar-rail: 56px;
-  --auris-sidebar-wide: 196px;
+  --auris-sidebar-rail: 30px;
+  --auris-sidebar-wide: 240px;
+
+  /* ── Sidebar capsule-rail geometry (reference contract) ───────────────── */
+  --sidebar-rail-width: 30px;
+  --sidebar-rail-left: 8px;
+  --sidebar-rail-top: 8px;
+  --sidebar-rail-radius: 15px;
+  --sidebar-item-size: 28px;
+  --sidebar-item-radius: 5px;
+  --sidebar-item-gap: 4px;
+  --sidebar-glyph-size: 14px;
+  --sidebar-indicator-width: 2px;
+  --sidebar-indicator-height: 20px;
+
+  /* ── Sidebar per-theme semantic variables (Night defaults) ────────────── */
+  --sidebar-rail-bg: #2B2E33;
+  --sidebar-item-hover-bg: rgba(255, 255, 255, 0.045);
+  --sidebar-item-active-bg: #333D4B;
+  --sidebar-icon: rgba(215, 217, 222, 0.52);
+  --sidebar-active-icon: #6BA4F8;
+  --sidebar-active-indicator: #E55E51;
 
   /* 训练/演练页（workspace）"静谧绿" → 暗色金调 */
   --workspace-calm-green: #0b0b0c;
@@ -213,34 +233,46 @@ body::-webkit-scrollbar-thumb:hover,
   display: none !important;
 }
 
-/* ---------- 5. 侧边栏：76px 金色图标轨道 ---------- */
+/* ══════════════════════════════════════════════════════════════════════════
+   5. Sidebar — 30px floating capsule rail (reference-compact design)
+   Authority: this block is the single source of truth for sidebar geometry
+   and colour in the Auris Electron desktop shell.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 5a. Base (non-desktop fallback) ───────────────────────────────────── */
+
 .desktop-app-sidebar {
-  flex: 0 0 var(--auris-sidebar-rail);
-  width: var(--auris-sidebar-rail) !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  padding: 10px 0 !important;
-  display: flex !important;
+  position: fixed;
+  left: var(--sidebar-rail-left, 8px);
+  top: var(--sidebar-rail-top, 8px);
+  width: var(--sidebar-rail-width, 30px);
+  height: calc(100vh - 16px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sidebar-rail-radius, 15px);
+  overflow: hidden;
+  z-index: 90;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px !important;
-  border: none !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-  border-radius: 0 !important;
-  background: #0c0c0e !important;
-  box-shadow: none !important;
-  overflow: hidden;
-  z-index: 60;
+  background: var(--sidebar-rail-bg, #2B2E33);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition:
+    width 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 顶部品牌锚点（App Logo）：像 reminds 头像一样钉在最顶，给整条栏“封头” */
+/* ── 5a-i. Brand area ─────────────────────────────────────────────────── */
+
 .desktop-app-sidebar__brand {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   flex: 0 0 auto;
-  margin-bottom: 10px;
+  min-height: 40px;
+  padding: 0;
 }
 
 .desktop-app-sidebar__brand-img {
@@ -253,258 +285,394 @@ body::-webkit-scrollbar-thumb:hover,
   -webkit-user-drag: none;
 }
 
-/* 导航分组容器 */
+/* Collapsed expand toggle: transparent by default, visible on rail hover / focus */
+.desktop-app-sidebar__brand-swap {
+  position: relative;
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  padding: 0;
+  border: none;
+  border-radius: var(--sidebar-item-radius, 5px);
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease;
+}
+
+.desktop-app-sidebar:hover .desktop-app-sidebar__brand-swap,
+.desktop-app-sidebar__brand-swap:focus-visible {
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+}
+
+.desktop-app-sidebar__brand-swap:hover,
+.desktop-app-sidebar__brand-swap:focus-visible {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+}
+
+.desktop-app-sidebar__brand-swap-face {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+.desktop-app-sidebar__brand-swap-face--logo {
+  display: none;
+}
+
+.desktop-app-sidebar__brand-swap-face--toggle {
+  opacity: 1;
+}
+
+/* Expanded state brand: Auris title + collapse button */
+.desktop-app-sidebar__brand-main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.desktop-app-sidebar__brand-copy {
+  display: none;
+}
+
+.desktop-app-sidebar__toggle {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--sidebar-item-radius, 5px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.desktop-app-sidebar__toggle:hover,
+.desktop-app-sidebar__toggle:focus-visible {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+}
+
+.desktop-app-sidebar__toggle-glyph {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── 5a-ii. Navigation layout ─────────────────────────────────────────── */
+
 .desktop-app-sidebar__sections {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
+  padding-top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.desktop-app-sidebar__sections::-webkit-scrollbar {
+  display: none;
 }
 
 .desktop-app-sidebar__group {
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desktop-app-sidebar__group[data-group="tools"] {
+  margin-top: auto;
+  padding-bottom: 8px;
 }
 
 .desktop-app-sidebar__nav {
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px !important;
+  gap: var(--sidebar-item-gap, 4px);
   width: 100%;
-  grid-template-columns: none !important;
 }
 
-/* 图标按钮：与首页统一侧边栏保持一致 */
+/* ── 5a-iii. Nav link items ───────────────────────────────────────────── */
+
 .desktop-app-sidebar__link {
-  width: 36px !important;
-  height: 36px !important;
-  min-height: 36px !important;
-  padding: 0 !important;
-  display: grid !important;
+  position: relative;
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  min-height: var(--sidebar-item-size, 28px);
+  padding: 0;
+  border: none;
+  border-radius: var(--sidebar-item-radius, 5px);
+  display: grid;
   place-items: center;
-  border: none !important;
-  border-radius: 10px !important;
-  background: transparent !important;
-  color: var(--app-muted) !important;
-  transform: none !important;
+  background: transparent;
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  text-decoration: none;
+  cursor: pointer;
+  overflow: visible;
+  transform: none;
   transition:
     color 0.18s ease,
     background-color 0.18s ease;
-  position: relative;
-  overflow: visible;
 }
 
+/* Hover */
 .desktop-app-sidebar__link:hover {
-  color: var(--accent) !important;
-  background: rgba(199, 168, 106, 0.12) !important;
-  transform: none !important;
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  transform: none;
 }
 
+/* Active */
 .desktop-app-sidebar__link[data-active="true"] {
-  color: var(--accent) !important;
-  background: var(--accent-10) !important;
-  box-shadow: none !important;
-  border: none !important;
-  transform: none !important;
+  background: var(--sidebar-item-active-bg, #333D4B);
+  color: var(--sidebar-active-icon, #6BA4F8);
+  box-shadow: none;
+  border: none;
+  transform: none;
 }
 
-/* 中性化旧装饰层（玻璃瓦片 / ripple / impact / 粒子），只留干净图标 */
-.desktop-app-sidebar__link-mark {
-  width: 36px !important;
-  height: 36px !important;
-  display: grid !important;
-  place-items: center;
-  background: none !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  color: inherit !important;
+/* Active indicator bar (coral 2×20px, left edge) */
+.desktop-app-sidebar__link[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: var(--sidebar-indicator-width, 2px);
+  height: var(--sidebar-indicator-height, 20px);
+  border-radius: 0 1px 1px 0;
+  background: var(--sidebar-active-indicator, #E55E51);
 }
+
+/* Focus-visible */
+.desktop-app-sidebar__link:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  outline: none;
+}
+
+/* ── 5a-iv. Icon mark and glyph ──────────────────────────────────────── */
 
 .desktop-app-sidebar__link-leading {
   display: contents;
 }
 
-.desktop-app-sidebar__link[data-active="true"] .desktop-app-sidebar__link-mark {
-  background: none !important;
-  box-shadow: none !important;
-  color: inherit !important;
+.desktop-app-sidebar__link-mark {
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: inherit;
 }
 
-.desktop-app-sidebar__link-ripple,
-.desktop-app-sidebar__link-impact,
-.desktop-app-sidebar__link-particle-field {
-  display: none !important;
+.desktop-app-sidebar__link[data-active="true"] .desktop-app-sidebar__link-mark {
+  background: none;
+  box-shadow: none;
+  color: inherit;
 }
 
 .desktop-app-sidebar__glyph {
-  width: 19px !important;
-  height: 19px !important;
+  width: var(--sidebar-glyph-size, 14px);
+  height: var(--sidebar-glyph-size, 14px);
+  stroke-width: 1.8;
   color: currentColor;
 }
 
+.desktop-app-sidebar__link[data-active="true"] .desktop-app-sidebar__glyph {
+  stroke: var(--sidebar-active-icon, #6BA4F8);
+  color: var(--sidebar-active-icon, #6BA4F8);
+}
+
+/* Hidden in collapsed mode: text labels, old decorative layers */
+.desktop-app-sidebar__link-text,
+.desktop-app-sidebar__link-label,
+.desktop-app-sidebar__link-description,
+.desktop-app-sidebar__link-ripple,
+.desktop-app-sidebar__link-impact,
+.desktop-app-sidebar__link-particle-field {
+  display: none;
+}
+
 .desktop-app-sidebar__avatar-mark {
-  width: 22px !important;
-  height: 22px !important;
-  color: var(--accent) !important;
+  width: 14px;
+  height: 14px;
+  color: var(--sidebar-active-icon, #6BA4F8);
 }
 
-/* 常驻侧边栏跟随全局主题（原写死 #0c0c0e 黑，浅色主题下与内容不一致）。 */
+/* ── 5b. Desktop-runtime: capsule rail (authority) ─────────────────────── */
+
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar {
-  width: var(--auris-sidebar-rail) !important;
-  background: var(--app-surface) !important;
-  align-content: flex-start !important;
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  width: 30px;
+  height: calc(100vh - 16px);
+  max-height: none;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 15px;
+  background: var(--sidebar-rail-bg, #2B2E33);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+  overflow: hidden;
+  z-index: 90;
+  flex: 0 0 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__avatar {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 11px !important;
-  background: var(--accent-10) !important;
-  border: 1px solid var(--accent-28) !important;
-  box-shadow: none !important;
+/* Always visible persistent rail */
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar:not([data-visible="true"]) {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"]
-  .desktop-app-sidebar__avatar-mark {
-  color: var(--accent) !important;
+.desktop-app-shell[data-sidebar-visible="true"] .desktop-app-sidebar,
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar[data-visible="true"] {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
 }
 
+/* Desktop nav items */
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
-  width: 36px !important;
-  min-height: 36px !important;
-  height: 36px !important;
-  padding: 0 !important;
-  border-radius: 10px !important;
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  color: var(--app-muted) !important;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
 }
 
-.desktop-app-shell[data-desktop-runtime="true"]
-  .desktop-app-sidebar__link:hover {
-  background: rgba(199, 168, 106, 0.12) !important;
-  color: var(--accent) !important;
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link:hover {
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  transform: none;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"]
-  .desktop-app-sidebar__link:hover
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link[data-active="true"] {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-active-bg, #333D4B);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link-mark {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link:hover
   .desktop-app-sidebar__link-mark {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"]
-  .desktop-app-sidebar__link[data-active="true"] {
-  color: var(--accent) !important;
-  background: var(--accent-10) !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
+  background: transparent;
+  box-shadow: none;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"]
   .desktop-app-sidebar__link[data-active="true"]
   .desktop-app-sidebar__link-mark {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: var(--accent) !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--sidebar-active-icon, #6BA4F8);
 }
 
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__glyph {
-  stroke: currentColor !important;
-  color: inherit !important;
-  width: 19px !important;
-  height: 19px !important;
+  stroke: currentColor;
+  color: inherit;
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"]
   .desktop-app-sidebar__link[data-active="true"]
   .desktop-app-sidebar__glyph {
-  stroke: var(--accent) !important;
-  color: var(--accent) !important;
+  stroke: var(--sidebar-active-icon, #6BA4F8);
+  color: var(--sidebar-active-icon, #6BA4F8);
 }
 
-.desktop-app-sidebar__link-text,
-.desktop-app-sidebar__link-label,
-.desktop-app-sidebar__link-description,
-.desktop-app-sidebar__brand-copy {
-  display: none !important;
+/* Desktop avatar */
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-/* 折叠态下隐藏展开信息面板（保留逻辑，仅视觉收起） */
-.auris-sidebar-extra {
-  display: none !important;
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__avatar-mark {
+  width: 14px;
+  height: 14px;
 }
 
-/* ---------- 5b. 推出式展开：文档流推开主内容（覆盖 globals 的 fixed 浮层） ---------- */
-.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  z-index: 2 !important;
-  flex: 0 0 var(--auris-sidebar-rail) !important;
-  width: var(--auris-sidebar-rail) !important;
-  height: 100% !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-  padding: 12px 0 !important;
-  border: none !important;
-  border-right: 1px solid var(--app-border, rgba(0, 0, 0, 0.08)) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  transform: none !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  overflow: hidden !important;
-  transition:
-    width 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    flex-basis 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    padding 320ms cubic-bezier(0.22, 1, 0.36, 1) !important;
-}
-
+/* Desktop layout: frame gets padding-left to clear the floating capsule */
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame {
-  position: relative !important;
-  z-index: 1 !important;
-  width: auto !important;
-  max-width: none !important;
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  padding-left: 0 !important;
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 0;
   transition: none;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__viewport,
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__layout,
 .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__main {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
-/* Home is a single-screen workspace.  Give every intermediate box a definite
-   block size instead of relying on min-height propagation: percentage heights
-   otherwise resolve against intrinsic content after some Electron window
-   resize/restore paths, leaving the home canvas at the old 800px height. */
+/* Home workspace: full-height chain */
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
   .desktop-app-frame__viewport,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
   .desktop-app-frame__layout,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
   .desktop-app-frame__main {
-  height: 100% !important;
-  min-height: 0 !important;
+  height: 100%;
+  min-height: 0;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
@@ -515,203 +683,39 @@ body::-webkit-scrollbar-thumb:hover,
   .desktop-app-frame,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="assessment"]
   .desktop-app-frame {
-  padding-left: 0 !important;
+  padding-left: 0;
 }
 
-.desktop-app-sidebar__brand {
-  position: relative;
-  display: flex !important;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 0 8px 8px !important;
-  margin-bottom: 4px;
-  border-bottom: none !important;
-}
-
-.desktop-app-sidebar__brand-main {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-/* 折叠：头像与展开按钮合并为同一槽位，与功能图标对齐 */
-.desktop-app-sidebar__brand-swap {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: none;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  color: var(--app-muted, var(--muted));
-  cursor: pointer;
-  overflow: hidden;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-
-.desktop-app-sidebar__brand-swap-face {
-  grid-area: 1 / 1;
-  display: grid;
-  place-items: center;
-  transition:
-    opacity 160ms ease,
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 200ms ease;
-}
-
-.desktop-app-sidebar__brand-swap-face--logo {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.desktop-app-sidebar__brand-swap-face--toggle {
-  opacity: 0;
-  transform: scale(0.72) rotate(-8deg);
-  filter: blur(1px);
-}
-
-.desktop-app-sidebar__brand-swap:hover,
-.desktop-app-sidebar__brand-swap:focus-visible {
-  color: var(--accent);
-  background: var(--accent-soft);
-  box-shadow: 0 0 0 1px var(--accent-16);
-  transform: translateY(-1px);
-  animation: auris-sidebar-flash 520ms ease;
-}
-
-.desktop-app-sidebar__brand-swap:hover
-  .desktop-app-sidebar__brand-swap-face--logo,
-.desktop-app-sidebar__brand-swap:focus-visible
-  .desktop-app-sidebar__brand-swap-face--logo {
-  opacity: 0;
-  transform: scale(0.72) rotate(8deg);
-  filter: blur(1px);
-}
-
-.desktop-app-sidebar__brand-swap:hover
-  .desktop-app-sidebar__brand-swap-face--toggle,
-.desktop-app-sidebar__brand-swap:focus-visible
-  .desktop-app-sidebar__brand-swap-face--toggle {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
-  filter: none;
-}
-
-.desktop-app-sidebar__toggle {
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--app-muted, var(--muted));
-  background: transparent;
-  cursor: pointer;
-  transition:
-    color 0.18s ease,
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    transform 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.desktop-app-sidebar__toggle:hover,
-.desktop-app-sidebar__toggle:focus-visible {
-  color: var(--accent) !important;
-  background: var(--accent-soft) !important;
-  border-color: var(--accent-16) !important;
-  transform: translateY(-1px);
-  animation: auris-sidebar-flash 520ms ease;
-}
-
-.desktop-app-sidebar__toggle-glyph {
-  width: 16px;
-  height: 16px;
-}
-
-@keyframes auris-sidebar-flash {
-  0% {
-    box-shadow: 0 0 0 0 rgba(199, 168, 106, 0.35);
-  }
-  55% {
-    box-shadow: 0 0 0 6px rgba(199, 168, 106, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(199, 168, 106, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .desktop-app-sidebar__brand-swap,
-  .desktop-app-sidebar__brand-swap-face,
-  .desktop-app-sidebar__toggle,
-  .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-/* 功能行靠近时的微抬起 + 轻微闪动 */
-.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
-  transition:
-    color 0.18s ease,
-    background-color 0.18s ease,
-    transform 180ms ease,
-    box-shadow 180ms ease !important;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"]
-  .desktop-app-sidebar__link:hover {
-  transform: translateY(-1px) !important;
-  animation: auris-sidebar-flash 520ms ease;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link:hover {
-  transform: translateX(2px) !important;
-}
+/* ── 5b-ii. Collapsed brand area (desktop) ─────────────────────────────── */
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="false"]
   .desktop-app-sidebar__brand {
   flex-direction: column;
   gap: 0;
-  padding: 0 0 8px !important;
+  padding: 0;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="false"]
   .desktop-app-sidebar__brand-copy {
-  display: none !important;
+  display: none;
 }
 
-/* 展开：更窄宽栏 + 图标文字靠左紧贴（对齐 Reader） */
+/* ── 5b-iii. Expanded state: 240px floating overlay ────────────────────── */
+
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar {
-  flex: 0 0 var(--auris-sidebar-wide) !important;
-  width: var(--auris-sidebar-wide) !important;
-  align-items: stretch !important;
-  padding: 10px 8px !important;
-  box-shadow: none !important;
+  width: var(--auris-sidebar-wide, 240px);
+  border-radius: 16px;
+  align-items: stretch;
+  padding: 10px 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__brand {
   justify-content: space-between;
-  padding: 0 2px 8px !important;
+  padding: 0 2px 8px;
   margin-bottom: 2px;
 }
 
@@ -723,7 +727,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__brand-copy {
-  display: grid !important;
+  display: grid;
   opacity: 1;
   width: auto;
   transform: translateX(0);
@@ -748,31 +752,28 @@ body::-webkit-scrollbar-thumb:hover,
   .desktop-app-sidebar__group,
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__nav {
-  align-items: stretch !important;
-  justify-content: flex-start !important;
+  align-items: stretch;
+  justify-content: flex-start;
   width: 100%;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__link {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 34px !important;
-  padding: 6px 8px !important;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 0 !important;
-  grid-template-columns: none !important;
-  place-items: unset !important;
-  justify-items: unset !important;
-  border-radius: 8px !important;
+  width: 100%;
+  height: auto;
+  min-height: 34px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  border-radius: 8px;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__link-leading {
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
@@ -782,25 +783,25 @@ body::-webkit-scrollbar-thumb:hover,
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__link-mark {
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  flex: 0 0 18px !important;
-  margin: 0 !important;
-  place-items: center !important;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  place-items: center;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__glyph {
-  width: 16px !important;
-  height: 16px !important;
+  width: 16px;
+  height: 16px;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__link-text {
-  display: inline !important;
-  flex: 0 1 auto !important;
-  margin: 0 !important;
+  display: inline;
+  flex: 0 1 auto;
+  margin: 0;
   opacity: 1;
   color: inherit;
   font-size: 13.5px;
@@ -809,39 +810,117 @@ body::-webkit-scrollbar-thumb:hover,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transform: none !important;
+  transform: none;
   transition: opacity 220ms ease 80ms;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
   .desktop-app-sidebar__link[data-active="true"] {
-  color: var(--accent) !important;
-  background: var(--accent-10) !important;
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-active-bg, #333D4B);
 }
 
-/* 抵消首页旧「悬停浮层加宽」规则，统一走推出态 */
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
-  .desktop-app-sidebar[data-visible="true"],
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-visible="true"]
-  .desktop-app-sidebar {
-  position: relative !important;
-  left: auto !important;
-  width: var(--auris-sidebar-rail) !important;
-  box-shadow: none !important;
-  transform: none !important;
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link:hover {
+  transform: translateX(2px);
 }
 
+/* Expanded overlay should not push content */
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
   .desktop-app-sidebar,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
   .desktop-app-sidebar[data-visible="true"] {
-  width: var(--auris-sidebar-wide) !important;
-  box-shadow: none !important;
+  width: var(--auris-sidebar-wide, 240px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
   .desktop-app-frame {
-  padding-left: 0 !important;
+  padding-left: 0;
+}
+
+/* ── 5b-iv. Reduced motion ─────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-app-sidebar,
+  .desktop-app-sidebar__brand-swap,
+  .desktop-app-sidebar__brand-swap-face,
+  .desktop-app-sidebar__toggle,
+  .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ── 5b-v. Short viewport: scroll secondary entries, keep 7 primaries ─── */
+
+@media (max-height: 719px) {
+  .desktop-app-sidebar__sections {
+    overflow-y: auto;
+    padding-top: 2px;
+  }
+}
+
+/* ── 5b-vi. Six-theme sidebar colours (geometry unchanged) ─────────────── */
+
+/* Night: exact PRD spec values (already in :root defaults) */
+.desktop-app-shell[data-app-theme="night"] {
+  --sidebar-rail-bg: #2B2E33;
+  --sidebar-item-hover-bg: rgba(255, 255, 255, 0.045);
+  --sidebar-item-active-bg: #333D4B;
+  --sidebar-icon: rgba(215, 217, 222, 0.52);
+  --sidebar-active-icon: #6BA4F8;
+  --sidebar-active-indicator: #E55E51;
+}
+
+/* White */
+.desktop-app-shell[data-app-theme="white"] {
+  --sidebar-rail-bg: #F0EDE6;
+  --sidebar-item-hover-bg: rgba(0, 0, 0, 0.04);
+  --sidebar-item-active-bg: #E2DED5;
+  --sidebar-icon: rgba(80, 75, 65, 0.52);
+  --sidebar-active-icon: #4A8FD6;
+  --sidebar-active-indicator: #E55E51;
+}
+
+/* Paper */
+.desktop-app-shell[data-app-theme="paper"] {
+  --sidebar-rail-bg: #EBE3D0;
+  --sidebar-item-hover-bg: rgba(90, 70, 35, 0.06);
+  --sidebar-item-active-bg: #DDD4BE;
+  --sidebar-icon: rgba(90, 75, 50, 0.52);
+  --sidebar-active-icon: #4A8FD6;
+  --sidebar-active-indicator: #E55E51;
+}
+
+/* Mint */
+.desktop-app-shell[data-app-theme="mint"] {
+  --sidebar-rail-bg: #E4EEDF;
+  --sidebar-item-hover-bg: rgba(60, 90, 70, 0.05);
+  --sidebar-item-active-bg: #D5E5CF;
+  --sidebar-icon: rgba(60, 80, 65, 0.52);
+  --sidebar-active-icon: #4A8FD6;
+  --sidebar-active-indicator: #E55E51;
+}
+
+/* Tan (sepia) */
+.desktop-app-shell[data-app-theme="sepia"] {
+  --sidebar-rail-bg: #EDE2C8;
+  --sidebar-item-hover-bg: rgba(120, 95, 60, 0.06);
+  --sidebar-item-active-bg: #DFD3B6;
+  --sidebar-icon: rgba(100, 80, 50, 0.52);
+  --sidebar-active-icon: #4A8FD6;
+  --sidebar-active-indicator: #E55E51;
+}
+
+/* Solarized */
+.desktop-app-shell[data-app-theme="solarized"] {
+  --sidebar-rail-bg: #073642;
+  --sidebar-item-hover-bg: rgba(131, 148, 150, 0.08);
+  --sidebar-item-active-bg: #0A4959;
+  --sidebar-icon: rgba(131, 148, 150, 0.62);
+  --sidebar-active-icon: #6BA4F8;
+  --sidebar-active-indicator: #E55E51;
 }
 
 /* ---------- 5c. 阅读页展开侧栏：阅读精选手风琴（靠左紧贴 + 右侧箭头） ---------- */
@@ -2866,7 +2945,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 /* 左簇让开桌面侧栏；右簇让开右下角 AI dock 圆钮。 */
 .desktop-app-shell[data-desktop-runtime="true"]
   .notes-v2__corner-cluster--left {
-  left: calc(14px + var(--desktop-app-sidebar-width, 74px) + 16px) !important;
+  left: calc(var(--sidebar-rail-left, 8px) + var(--sidebar-rail-width, 30px) + 16px) !important;
 }
 
 .desktop-app-frame .notes-v2__corner-cluster--right {
@@ -3178,12 +3257,12 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-notes-vault-nav__root,
 .desktop-notes-vault-nav__add {
   display: grid;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  min-height: var(--sidebar-item-size, 28px);
   place-items: center;
   margin: 0;
-  border-radius: 8px;
+  border-radius: var(--sidebar-item-radius, 5px);
 }
 
 .desktop-notes-vault-nav__root {
