@@ -326,7 +326,10 @@ private final class IslandController {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var collapseRequested = false
     private var controller: IslandController?
+    private var globalMouseMonitor: Any?
+    private var localMouseMonitor: Any?
     private var parentPid: pid_t = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -334,8 +337,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         controller = IslandController()
         if CommandLine.arguments.count > 1 { parentPid = pid_t(CommandLine.arguments[1]) ?? 0 }
         emit(["type": "ready", "protocol": 1])
+        installOutsideClickMonitors()
         readInput()
         monitorParent()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
+        if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
+        globalMouseMonitor = nil
+        localMouseMonitor = nil
+    }
+
+    private func installOutsideClickMonitors() {
+        let mouseDownEvents: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: mouseDownEvents) { [weak self] _ in
+            DispatchQueue.main.async { self?.collapseIfClickOutside() }
+        }
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: mouseDownEvents) { [weak self] event in
+            DispatchQueue.main.async { self?.collapseIfClickOutside() }
+            return event
+        }
+    }
+
+    @MainActor
+    private func collapseIfClickOutside() {
+        guard let controller,
+              controller.model.presentation == "expanded",
+              !collapseRequested,
+              !controller.panel.frame.contains(NSEvent.mouseLocation) else { return }
+        collapseRequested = true
+        emit(["action": "set-expanded", "value": false])
     }
 
     private func readInput() {
@@ -349,7 +381,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
                 guard type == "snapshot", let message = try? JSONDecoder().decode(SnapshotMessage.self, from: data) else { continue }
-                DispatchQueue.main.async { self?.controller?.apply(message) }
+                DispatchQueue.main.async {
+                    self?.collapseRequested = false
+                    self?.controller?.apply(message)
+                }
             }
             DispatchQueue.main.async { NSApp.terminate(nil) }
         }
