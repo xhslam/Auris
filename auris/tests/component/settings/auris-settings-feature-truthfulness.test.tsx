@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AurisSettings } from "@/components/settings/auris-settings";
 import { UPDATE_SETTINGS_NAVIGATION_EVENT } from "@/features/updates/update-navigation";
 import type { DesktopUpdateSnapshot } from "@/platform/desktop/desktop-bridge";
+import type { DesktopIslandSettings } from "@/features/desktop-island/desktop-island.types";
 import { resetHydratedDesktopBridgeCacheForTests } from "@/platform/desktop/use-hydrated-desktop-bridge";
 import { __resetAppUpdateStoreForTests } from "@/features/updates/update-store";
 import { __resetUpdateSubscriptionForTests } from "@/features/updates/use-app-updates";
@@ -69,6 +70,33 @@ describe("AurisSettings feature truthfulness", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "关于" })).toBeInTheDocument();
+  });
+
+  it("loads and persists the native desktop island preferences", async () => {
+    const user = userEvent.setup();
+    const updateSettings = vi.fn(async (patch: Partial<DesktopIslandSettings>) => ({
+      enabled: patch.enabled ?? true,
+      expandOnHover: patch.expandOnHover ?? false,
+      privacyMode: patch.privacyMode ?? false,
+    }));
+    window.shadowingDesktop = createTestDesktopBridge({
+      desktopIsland: {
+        acknowledgeIntent: vi.fn(async () => undefined),
+        getSettings: vi.fn(async () => ({
+          enabled: true, expandOnHover: false, privacyMode: false,
+        })),
+        listPendingIntents: vi.fn(async () => []),
+        onIntent: vi.fn(() => () => undefined),
+        syncSnapshot: vi.fn(async () => ({ accepted: true, revision: 1 })),
+        updateSettings,
+      },
+    });
+
+    render(<AurisSettings />);
+    const privacySwitch = await screen.findByRole("switch", { name: "隐私模式" });
+    expect(privacySwitch).toHaveAttribute("aria-checked", "false");
+    await user.click(privacySwitch);
+    expect(updateSettings).toHaveBeenCalledWith({ privacyMode: true });
   });
 
   it("opens the About update center and checks immediately from the update-button deep link", async () => {

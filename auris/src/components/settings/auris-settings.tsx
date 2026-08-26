@@ -310,6 +310,9 @@ const INITIAL_TOGGLES: Toggles = {
   mcpStartOnLaunch: true,
   mcpAutoApprove: false,
   browserAutomationEnabled: false,
+  desktopIslandEnabled: true,
+  desktopIslandExpandOnHover: true,
+  desktopIslandPrivacyMode: false,
   removeSlashSpacing: true,
   collapseSpaces: true,
   convertDashes: true,
@@ -611,6 +614,7 @@ export function AurisSettings({ accent }: { accent?: string }) {
   const realClientsRef = useRef<DesktopMcpClient[]>([]);
 
   const bridge = useMemo(() => getDesktopBridge()?.notesMcp ?? null, []);
+  const desktopIslandBridge = useMemo(() => getDesktopBridge()?.desktopIsland ?? null, []);
   const systemBridge = useMemo(() => getDesktopBridge()?.system ?? null, []);
   const browserSecurityBridge = useMemo(() => {
     const desktop = typeof window !== "undefined" ? window.shadowingDesktop : null;
@@ -745,6 +749,21 @@ export function AurisSettings({ accent }: { accent?: string }) {
       unsubscribe();
     };
   }, [browserSecurityBridge]);
+
+  useEffect(() => {
+    if (!desktopIslandBridge) return;
+    let cancelled = false;
+    void desktopIslandBridge.getSettings().then((settings) => {
+      if (cancelled) return;
+      setToggles((prev) => ({
+        ...prev,
+        desktopIslandEnabled: settings.enabled,
+        desktopIslandExpandOnHover: settings.expandOnHover,
+        desktopIslandPrivacyMode: settings.privacyMode,
+      }));
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [desktopIslandBridge]);
 
   /* --- load persisted notes reading theme on mount --- */
   useEffect(() => {
@@ -911,10 +930,25 @@ export function AurisSettings({ accent }: { accent?: string }) {
             })
             .catch(() => undefined);
         }
+        const islandSettingKey = {
+          desktopIslandEnabled: "enabled",
+          desktopIslandExpandOnHover: "expandOnHover",
+          desktopIslandPrivacyMode: "privacyMode",
+        }[key] as "enabled" | "expandOnHover" | "privacyMode" | undefined;
+        if (islandSettingKey && desktopIslandBridge) {
+          void desktopIslandBridge.updateSettings({ [islandSettingKey]: value }).then((settings) => {
+            setToggles((current) => ({
+              ...current,
+              desktopIslandEnabled: settings.enabled,
+              desktopIslandExpandOnHover: settings.expandOnHover,
+              desktopIslandPrivacyMode: settings.privacyMode,
+            }));
+          }).catch(() => undefined);
+        }
         return { ...prev, [key]: value };
       });
     },
-    [bridge, browserSecurity.automationToggleAvailable, browserSecurityBridge],
+    [bridge, browserSecurity.automationToggleAvailable, browserSecurityBridge, desktopIslandBridge],
   );
 
   const cycleSelect = useCallback((key: string, len: number) => {
@@ -1651,6 +1685,14 @@ function buildPanel(
             rows: [
               { kind: "toggle", key: "titlebarName", label: "在标题栏显示文件名", desc: "在窗口标题中显示当前文件名" },
               { kind: "toggle", key: "hideStatus", label: "自动隐藏状态栏", desc: "不与界面交互时隐藏底部状态栏" },
+            ],
+          },
+          {
+            title: "桌面灵动岛",
+            rows: [
+              { kind: "toggle", key: "desktopIslandEnabled", label: "显示桌面灵动岛", desc: "在 macOS 桌面顶部显示今日任务与回顾复习" },
+              { kind: "toggle", key: "desktopIslandExpandOnHover", label: "悬停时展开", desc: "指针停留片刻后自动展开，移开后自动收起" },
+              { kind: "toggle", key: "desktopIslandPrivacyMode", label: "隐私模式", desc: "展开时隐藏任务和知识点标题，只显示数量与进度" },
             ],
           },
           {

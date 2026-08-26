@@ -48,8 +48,10 @@ function cloneEmptyState(): OutputReviewState {
 
 export function ReviewPageClient({
   initialIntent = null,
+  initialKnowledgePointId = null,
 }: {
   initialIntent?: "create-knowledge-point" | null;
+  initialKnowledgePointId?: string | null;
 }) {
   const today = toLocalDateKey(new Date());
   const [state, setState] = useState<OutputReviewState>(cloneEmptyState);
@@ -61,6 +63,7 @@ export function ReviewPageClient({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [notice, setNotice] = useState("");
   const [hasHandledCreateIntent, setHasHandledCreateIntent] = useState(false);
+  const [hasHandledKnowledgePointIntent, setHasHandledKnowledgePointIntent] = useState(false);
   const [continueKnowledgePointAfterProject, setContinueKnowledgePointAfterProject] = useState(false);
 
   useEffect(() => {
@@ -83,6 +86,15 @@ export function ReviewPageClient({
     setContinueKnowledgePointAfterProject(true);
     setProjectFormOpen(true);
   }, [hasHandledCreateIntent, hydrated, initialIntent, state.projects.length]);
+
+  useEffect(() => {
+    if (!hydrated || hasHandledKnowledgePointIntent || !initialKnowledgePointId) return;
+    setHasHandledKnowledgePointIntent(true);
+    if (state.knowledgePoints.some((point) => point.id === initialKnowledgePointId)) {
+      setView("today");
+      setDetailId(initialKnowledgePointId);
+    }
+  }, [hasHandledKnowledgePointIntent, hydrated, initialKnowledgePointId, state.knowledgePoints]);
 
   useEffect(() => {
     if (!notice) return;

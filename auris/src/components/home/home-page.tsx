@@ -29,6 +29,8 @@ import { useNotesWorkbench } from "@/components/notes-v2/use-notes-workbench";
 import {
   createDefaultHomeData,
   getBrowserHomeStorage,
+  HOME_STORAGE_EVENT,
+  HOME_STORAGE_KEY,
   readHomeData,
   toLocalDateKey,
   writeHomeData,
@@ -282,6 +284,19 @@ export function HomePage({ onNavigate, recentNotes = [] }: HomePageProps) {
   useEffect(() => {
     setHomeData(readHomeData(storage));
     setMounted(true);
+  }, [storage]);
+  useEffect(() => {
+    if (!storage) return;
+    const refresh = () => setHomeData(readHomeData(storage));
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === HOME_STORAGE_KEY) refresh();
+    };
+    window.addEventListener(HOME_STORAGE_EVENT, refresh);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(HOME_STORAGE_EVENT, refresh);
+      window.removeEventListener("storage", onStorage);
+    };
   }, [storage]);
   useEffect(() => {
     const nextSavedLayouts = loadSavedLayouts();

@@ -693,8 +693,8 @@ body::-webkit-scrollbar-thumb:hover,
   .desktop-app-frame__layout,
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
   .desktop-app-frame__main {
-  height: 100%;
-  min-height: 0;
+  height: 100% !important;
+  min-height: 0 !important;
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]

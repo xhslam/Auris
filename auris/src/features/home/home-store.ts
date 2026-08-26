@@ -1,4 +1,5 @@
 export const HOME_STORAGE_KEY = "auris:home:v1";
+export const HOME_STORAGE_EVENT = "auris:home-changed";
 
 export type LifeNodeRecord = {
   year: number;
@@ -200,6 +201,9 @@ export function writeHomeData(
   }
 
   storage.setItem(HOME_STORAGE_KEY, JSON.stringify(normalizeHomeData(data)));
+  if (typeof window !== "undefined") {
+    queueMicrotask(() => window.dispatchEvent(new CustomEvent(HOME_STORAGE_EVENT)));
+  }
 }
 
 export function getBrowserHomeStorage() {

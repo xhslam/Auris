@@ -262,7 +262,10 @@ export function ReadingWorkbench({
   useEffect(() => {
     if (isPdfSource || resumePosition.kind !== "paragraph") return;
     const frame = window.requestAnimationFrame(() => {
-      paragraphEls.current.get(resumePosition.paragraphId)?.scrollIntoView({ block: "center" });
+      const paragraph = paragraphEls.current.get(resumePosition.paragraphId);
+      if (typeof paragraph?.scrollIntoView === "function") {
+        paragraph.scrollIntoView({ block: "center" });
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [isPdfSource, resumePosition, selectedSource.id]);

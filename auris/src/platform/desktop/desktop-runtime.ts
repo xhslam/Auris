@@ -98,6 +98,17 @@ function hasValidUpdatesBridge(bridge: Partial<DesktopBridge>) {
   );
 }
 
+function hasValidDesktopIslandBridge(bridge: Partial<DesktopBridge>) {
+  return !bridge.desktopIsland || (
+    isFunction(bridge.desktopIsland.acknowledgeIntent)
+    && isFunction(bridge.desktopIsland.getSettings)
+    && isFunction(bridge.desktopIsland.listPendingIntents)
+    && isFunction(bridge.desktopIsland.onIntent)
+    && isFunction(bridge.desktopIsland.syncSnapshot)
+    && isFunction(bridge.desktopIsland.updateSettings)
+  );
+}
+
 export function isDesktopBridge(value: unknown): value is DesktopBridge {
   if (!value || typeof value !== "object") {
     return false;
@@ -110,6 +121,7 @@ export function isDesktopBridge(value: unknown): value is DesktopBridge {
       isFunction(bridge.commands.list) &&
       isFunction(bridge.commands.run) &&
       hasValidClipboardBridge(bridge) &&
+      hasValidDesktopIslandBridge(bridge) &&
       hasValidBrowserStatusBridge(bridge) &&
       bridge.downloads &&
       isFunction(bridge.downloads.exportJson) &&

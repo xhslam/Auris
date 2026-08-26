@@ -131,6 +131,14 @@ describe("desktop runtime", () => {
     expect(getDesktopBridge()).toBeNull();
   });
 
+  it("rejects a partially exposed optional desktop island bridge", () => {
+    const bridge = createBridge({
+      desktopIsland: { syncSnapshot: vi.fn() } as unknown as DesktopBridge["desktopIsland"],
+    });
+
+    expect(isDesktopBridge(bridge)).toBe(false);
+  });
+
   it("validates bridge shapes with a type guard", () => {
     const bridge = createBridge();
 

@@ -34,6 +34,10 @@ if (process.platform !== "darwin") {
   process.exit(1);
 }
 
+run(process.platform === "win32" ? "npm.cmd" : "npm", [
+  "run",
+  "desktop:island:build",
+]);
 run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"]);
 run(process.platform === "win32" ? "npm.cmd" : "npm", [
   "run",
@@ -51,6 +55,30 @@ if (!appPath) {
     "desktop:build:verify could not find an unpacked .app.\n",
   );
   process.exit(1);
+}
+const islandHelperPath = path.join(
+  appPath,
+  "Contents",
+  "Resources",
+  "native",
+  "desktop-island",
+  "AurisDesktopIslandHelper",
+);
+try {
+  fs.accessSync(islandHelperPath, fs.constants.X_OK);
+} catch {
+  process.stderr.write(`desktop:build:verify missing executable helper: ${islandHelperPath}\n`);
+  process.exit(1);
+}
+run("/usr/bin/file", [islandHelperPath]);
+const signatureProbe = spawnSync("/usr/bin/codesign", ["-dv", appPath], {
+  cwd: projectRoot,
+  encoding: "utf8",
+});
+if (signatureProbe.status === 0) {
+  run("/usr/bin/codesign", ["--verify", "--deep", "--strict", appPath]);
+} else {
+  process.stdout.write("[desktop:build:verify] local app is unsigned; release CI must run the deep signature check.\n");
 }
 run(process.execPath, [
   path.join(projectRoot, "scripts", "audit-package-privacy.cjs"),

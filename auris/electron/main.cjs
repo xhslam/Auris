@@ -149,6 +149,13 @@ const {
 } = require("./release-tag-preparer.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
+const { DesktopIslandService } = require("./desktop-island/desktop-island-service.cjs");
+const {
+  normalizeDesktopIslandSettings,
+} = require("./desktop-island/desktop-island-contract.cjs");
+const {
+  MacDesktopIslandNativeHost,
+} = require("./desktop-island/mac-desktop-island-native-host.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
@@ -214,6 +221,7 @@ const STARTUP_LOG_PATH = path.join(DESKTOP_LOG_ROOT, "electron-startup.log");
 const NEXT_PROCESS_LOG_PATH = path.join(DESKTOP_LOG_ROOT, "electron-next.log");
 const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
+const DESKTOP_ISLAND_CACHE_FILE = "auris-desktop-island-snapshot.json";
 
 let mainWindow = null;
 let niaStandaloneWindow = null;
@@ -239,6 +247,7 @@ let terminalSessionUnsubscribers = [];
 let voiceEngineRuntime = null;
 let aiViewManager = null;
 let notesMcpBridge = null;
+let desktopIslandService = null;
 let mcpClientCredentialStore = null;
 let browserMcpDispatcher = null;
 let browserCapabilities = null;
@@ -849,6 +858,7 @@ function focusExistingWindow() {
     mainWindow.restore();
   }
 
+  mainWindow.show();
   mainWindow.focus();
   return true;
 }
@@ -893,6 +903,11 @@ process.on("unhandledRejection", (error) => {
 function createDefaultDesktopConfig() {
   return {
     browserAutomationEnabled: false,
+    desktopIsland: normalizeDesktopIslandSettings({
+      enabled: process.platform === "darwin",
+      expandOnHover: true,
+      privacyMode: false,
+    }),
     // 用户历史上通过目录选择器授权过的 vault 根，供 Workspace Rail 免对话框切换。
     // 它同时是 `vault:set-root` 的白名单——见 setVaultRoot() 的安全说明。
     knownVaultRoots: [],
@@ -2033,6 +2048,10 @@ async function readDesktopConfig() {
 
     desktopConfig = {
       browserAutomationEnabled: parsed?.browserAutomationEnabled === true,
+      desktopIsland: normalizeDesktopIslandSettings(
+        parsed?.desktopIsland,
+        createDefaultDesktopConfig().desktopIsland,
+      ),
       knownVaultRoots: normalizeKnownVaultRoots(parsed?.knownVaultRoots),
       mcp: normalizeMcpPolicy(parsed?.mcp),
       pluginsEnabled:
@@ -2058,6 +2077,10 @@ async function readDesktopConfig() {
 async function writeDesktopConfig(nextConfig) {
   desktopConfig = {
     browserAutomationEnabled: nextConfig.browserAutomationEnabled === true,
+    desktopIsland: normalizeDesktopIslandSettings(
+      nextConfig.desktopIsland,
+      createDefaultDesktopConfig().desktopIsland,
+    ),
     knownVaultRoots: normalizeKnownVaultRoots(nextConfig.knownVaultRoots),
     mcp: normalizeMcpPolicy(nextConfig.mcp),
     pluginsEnabled: nextConfig.pluginsEnabled ?? {},
@@ -3356,6 +3379,16 @@ async function ensureMainWindow() {
   return mainWindowCreationPromise;
 }
 
+async function openMainRoute(routePath) {
+  await ensureMainWindow();
+  if (!mainWindow || mainWindow.isDestroyed() || !nextServerUrl) return;
+  if (process.platform === "darwin") app.focus({ steal: true });
+  mainWindow.show();
+  mainWindow.focus();
+  const targetUrl = new URL(normalizeRoutePath(routePath), `${nextServerUrl}/`).toString();
+  await mainWindow.loadURL(targetUrl);
+}
+
 function navigateToRoute(routePath) {
   if (!mainWindow || mainWindow.isDestroyed() || !nextServerUrl) {
     return;
@@ -3413,6 +3446,34 @@ function registerDesktopHandlers() {
     ipcMain,
     requireTrustedSender: requireTrustedMainEvent,
     store: getNotesRecoveryStore(),
+  });
+
+  ipcMain.handle("shadowing:desktop-island:get-settings", async (event) => {
+    requireTrustedMainFrameEvent(event);
+    return desktopIslandService?.getSettings() ?? desktopConfig.desktopIsland;
+  });
+  ipcMain.handle("shadowing:desktop-island:update-settings", async (event, patch) => {
+    requireTrustedMainFrameEvent(event);
+    const settings = normalizeDesktopIslandSettings(
+      { ...desktopConfig.desktopIsland, ...(patch && typeof patch === "object" ? patch : {}) },
+      desktopConfig.desktopIsland,
+    );
+    await writeDesktopConfig({ ...desktopConfig, desktopIsland: settings });
+    return desktopIslandService?.updateSettings(settings) ?? settings;
+  });
+  ipcMain.handle("shadowing:desktop-island:sync-snapshot", async (event, snapshot) => {
+    requireTrustedMainFrameEvent(event);
+    if (!desktopIslandService) return { accepted: false, revision: 0 };
+    return desktopIslandService.syncSnapshot(snapshot);
+  });
+  ipcMain.handle("shadowing:desktop-island:list-pending-intents", async (event) => {
+    requireTrustedMainFrameEvent(event);
+    return desktopIslandService?.listPendingIntents() ?? [];
+  });
+  ipcMain.handle("shadowing:desktop-island:acknowledge-intent", async (event, actionId) => {
+    requireTrustedMainFrameEvent(event);
+    if (typeof actionId !== "string" || actionId.length > 128) return;
+    desktopIslandService?.acknowledgeIntent(actionId);
   });
 
   ipcMain.handle("shadowing:commands:list", async () => {
@@ -4238,6 +4299,31 @@ async function pickSystemFile(options) {
 app.whenReady().then(async () => {
   writeStartupLog("app:ready");
   await readDesktopConfig();
+  const desktopIslandNativeHost = new MacDesktopIslandNativeHost({
+    app,
+    appRoot: PROJECT_ROOT,
+    logger: (eventName, detail = {}) => writeStartupLog(
+      `${eventName} ${JSON.stringify(detail)}`,
+    ),
+  });
+  desktopIslandService = new DesktopIslandService({
+    cachePath: path.join(app.getPath("userData"), DESKTOP_ISLAND_CACHE_FILE),
+    nativeHost: desktopIslandNativeHost,
+    onIntent: (intent) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("shadowing:desktop-island:intent", intent);
+      }
+    },
+    onOpenHome: () => openMainRoute("/"),
+    onOpenReview: (knowledgePointId) => {
+      const params = knowledgePointId
+        ? `?knowledgePointId=${encodeURIComponent(knowledgePointId)}`
+        : "";
+      return openMainRoute(`/review${params}`);
+    },
+    settings: desktopConfig.desktopIsland,
+  });
+  desktopIslandService.start();
   getAiLibraryRepository();
   getRuntimeStateRepository();
   getLocalHistoryRepository();
@@ -4295,6 +4381,8 @@ app.on("window-all-closed", async () => {
 });
 
 app.on("before-quit", async () => {
+  desktopIslandService?.dispose();
+  desktopIslandService = null;
   const closeAttempt = getCloseAttemptTracker().begin("before-quit");
   writeStartupLog("app:before-quit:start");
   if (appUpdaterStallWatchdog) {

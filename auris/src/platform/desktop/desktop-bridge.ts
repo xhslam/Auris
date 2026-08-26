@@ -18,6 +18,12 @@ import type {
 import type { BrowserStatusSnapshot } from "@/features/browser/window-status";
 import type { NiaBridgeCommand } from "@/features/nia/nia-bridge";
 import type { PdfExportOptions } from "@/platform/files/pdf-export-options";
+import type {
+  DesktopIslandContentSnapshot,
+  DesktopIslandRendererIntent,
+  DesktopIslandSettings,
+  DesktopIslandSyncResult,
+} from "@/features/desktop-island/desktop-island.types";
 
 export type DesktopCommandRecord = {
   id: string;
@@ -496,6 +502,18 @@ export type DesktopPreparedTrainingSessionInput = {
 };
 
 export type DesktopBridge = {
+  desktopIsland?: {
+    acknowledgeIntent: (actionId: string) => Promise<void>;
+    getSettings: () => Promise<DesktopIslandSettings>;
+    listPendingIntents: () => Promise<DesktopIslandRendererIntent[]>;
+    onIntent: (listener: (intent: DesktopIslandRendererIntent) => void) => () => void;
+    syncSnapshot: (
+      snapshot: DesktopIslandContentSnapshot,
+    ) => Promise<DesktopIslandSyncResult>;
+    updateSettings: (
+      patch: Partial<DesktopIslandSettings>,
+    ) => Promise<DesktopIslandSettings>;
+  };
   menu?: {
     onCommand: (listener: (commandId: string) => void) => () => void;
   };

@@ -61,6 +61,9 @@ asarUnpack:
 mac:
   icon: assets/app-icon.icns
   category: public.app-category.education
+  extraResources:
+    - from: build/native/desktop-island/${arch}/AurisDesktopIslandHelper
+      to: native/desktop-island/AurisDesktopIslandHelper
   # zip 是 macOS 自动更新的必需产物：electron-updater 在 mac 上只能从 zip
   # 做增量/就地替换，dmg 仅供人工下载。两个一起出，dmg 继续当手动分发口。
   target:

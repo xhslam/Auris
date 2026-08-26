@@ -2,7 +2,13 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReviewPageClient } from "@/components/review/review-page-client";
-import { addCalendarDays, toLocalDateKey } from "@/features/output-review/output-review-model";
+import {
+  EMPTY_OUTPUT_REVIEW_STATE,
+  addCalendarDays,
+  createKnowledgePoint,
+  createProject,
+  toLocalDateKey,
+} from "@/features/output-review/output-review-model";
 import { OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 
 vi.mock("@/components/desktop/desktop-app-frame", () => ({
@@ -58,5 +64,27 @@ describe("output review page", () => {
     expect(screen.getByText("显示当前调整后的计划。")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^洞察$/ }));
     expect(screen.getByRole("heading", { name: "执行洞察" })).toBeInTheDocument();
+  });
+
+  it("opens a valid knowledge point deep link after local state hydration", async () => {
+    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "线性代数" });
+    state = createKnowledgePoint(state, {
+      projectId: state.projects[0].id,
+      startDate: toLocalDateKey(new Date()),
+      title: "特征值与特征向量",
+    });
+    const pointId = state.knowledgePoints[0].id;
+    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+
+    render(<ReviewPageClient initialKnowledgePointId={pointId} />);
+
+    expect(await screen.findByLabelText("知识点详情：特征值与特征向量")).toBeInTheDocument();
+  });
+
+  it("ignores an unknown knowledge point deep link", async () => {
+    render(<ReviewPageClient initialKnowledgePointId="missing-point" />);
+
+    expect(await screen.findByText("还没有复习周期")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/知识点详情/)).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ServiceProvider } from "@/lib/di/service-provider";
 import { GlobalErrorBoundary } from "@/components/error-boundary/global-error-boundary";
+import { DesktopIslandSyncHost } from "@/components/desktop/desktop-island-sync-host";
 import { registerServices } from "@/services/register-services";
 import "./globals.css";
 import "@/styles/auris-theme.css";
@@ -42,6 +43,7 @@ export default function RootLayout({
         <GlobalErrorBoundary>
           <ServiceProvider>
             <QueryProvider>
+              <DesktopIslandSyncHost />
               <div className="app-shell">
                 <div className="app-shell__body">{children}</div>
               </div>

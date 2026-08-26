@@ -194,6 +194,23 @@ contextBridge.exposeInMainWorld("aurisWorkflows", workflowBridge);
 contextBridge.exposeInMainWorld("aurisBrowser", browserChromeBridge);
 
 contextBridge.exposeInMainWorld("shadowingDesktop", {
+  desktopIsland: {
+    acknowledgeIntent: (actionId) =>
+      invoke("shadowing:desktop-island:acknowledge-intent", actionId),
+    getSettings: () => invoke("shadowing:desktop-island:get-settings"),
+    listPendingIntents: () =>
+      invoke("shadowing:desktop-island:list-pending-intents"),
+    onIntent: (listener) => {
+      if (typeof listener !== "function") return () => undefined;
+      const handler = (_event, intent) => listener(intent);
+      ipcRenderer.on("shadowing:desktop-island:intent", handler);
+      return () => ipcRenderer.removeListener("shadowing:desktop-island:intent", handler);
+    },
+    syncSnapshot: (snapshot) =>
+      invoke("shadowing:desktop-island:sync-snapshot", snapshot),
+    updateSettings: (patch) =>
+      invoke("shadowing:desktop-island:update-settings", patch),
+  },
   menu: {
     onCommand: (listener) => {
       if (typeof listener !== "function") return () => undefined;
