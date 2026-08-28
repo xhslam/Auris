@@ -108,10 +108,27 @@ describe("desktop standalone packaging", () => {
       "chunk\n",
     );
     fs.writeFileSync(path.join(root, "public", "asset.txt"), "asset\n");
+    fs.mkdirSync(path.join(root, "node_modules", "@swc", "helpers"), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(root, "node_modules", "next"), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, "node_modules", "next", "package.json"),
+      '{"name":"next","dependencies":{"@swc/helpers":"0.5.15"}}\n',
+    );
+    fs.writeFileSync(
+      path.join(root, "node_modules", "@swc", "helpers", "package.json"),
+      '{"name":"@swc/helpers"}\n',
+    );
+    fs.writeFileSync(
+      path.join(root, "node_modules", "@swc", "helpers", "runtime.js"),
+      "module.exports = {};\n",
+    );
 
     const result = assembleStandalone({ projectRoot: root });
     expect(result.staticCopied).toBe(true);
     expect(result.publicCopied).toBe(true);
+    expect(result.copiedRuntimePackages).toEqual(["@swc/helpers"]);
     expect(
       fs.readFileSync(
         path.join(
@@ -132,6 +149,20 @@ describe("desktop standalone packaging", () => {
         "utf8",
       ),
     ).toBe("asset\n");
+    expect(
+      fs.readFileSync(
+        path.join(
+          root,
+          ".next",
+          "standalone",
+          "node_modules",
+          "@swc",
+          "helpers",
+          "runtime.js",
+        ),
+        "utf8",
+      ),
+    ).toBe("module.exports = {};\n");
   });
 
   it("removes private runtime data from the generated standalone tree", () => {

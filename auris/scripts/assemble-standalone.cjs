@@ -4,6 +4,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+const NEXT_RUNTIME_PACKAGE = "next";
+
 class StandaloneAssemblyError extends Error {
   constructor(code, message) {
     super(message);
@@ -31,6 +33,71 @@ function replaceGeneratedDirectory(source, destination, buildRoot) {
   fs.mkdirSync(path.dirname(safeDestination), { recursive: true });
   fs.cpSync(source, safeDestination, { dereference: false, recursive: true });
   return true;
+}
+
+function packagePath(root, packageName) {
+  return path.join(root, "node_modules", ...packageName.split("/"));
+}
+
+function resolveInstalledPackage(root, packageName, fromDirectory = root) {
+  let current = path.resolve(fromDirectory);
+  const projectRoot = path.resolve(root);
+
+  while (current === projectRoot || current.startsWith(`${projectRoot}${path.sep}`)) {
+    const candidate = packagePath(current, packageName);
+    if (fs.existsSync(path.join(candidate, "package.json"))) {
+      return candidate;
+    }
+    if (current === projectRoot) break;
+    current = path.dirname(current);
+  }
+
+  return null;
+}
+
+function copyRequiredStandaloneRuntimePackages(root, standaloneRoot) {
+  const nextDirectory = resolveInstalledPackage(root, NEXT_RUNTIME_PACKAGE);
+  if (!nextDirectory) return [];
+
+  const nextPackage = JSON.parse(
+    fs.readFileSync(path.join(nextDirectory, "package.json"), "utf8"),
+  );
+  const copied = new Set();
+  const queued = Object.keys(nextPackage.dependencies || {}).map((name) => ({
+    fromDirectory: nextDirectory,
+    name,
+  }));
+
+  while (queued.length > 0) {
+    const dependency = queued.shift();
+    if (!dependency || copied.has(dependency.name)) continue;
+
+    const source = resolveInstalledPackage(
+      root,
+      dependency.name,
+      dependency.fromDirectory,
+    );
+    if (!source) {
+      throw new StandaloneAssemblyError(
+        "RUNTIME_DEPENDENCY_MISSING",
+        `Next runtime dependency is missing: ${dependency.name}`,
+      );
+    }
+
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(source, "package.json"), "utf8"),
+    );
+    const destination = packagePath(standaloneRoot, dependency.name);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.cpSync(source, destination, { dereference: false, force: true, recursive: true });
+    copied.add(dependency.name);
+
+    for (const name of Object.keys(packageJson.dependencies || {})) {
+      queued.push({ fromDirectory: source, name });
+    }
+  }
+
+  return [...copied].sort((left, right) => left.localeCompare(right));
 }
 
 function isPrivateArtifactName(name) {
@@ -99,11 +166,16 @@ function assembleStandalone({
     path.join(standaloneRoot, "public"),
     nextRoot,
   );
+  const copiedRuntimePackages = copyRequiredStandaloneRuntimePackages(
+    root,
+    standaloneRoot,
+  );
   const privateArtifactsRemoved = removePrivateArtifacts(
     standaloneRoot,
     nextRoot,
   );
   const result = Object.freeze({
+    copiedRuntimePackages,
     privateArtifactsRemoved,
     publicCopied,
     serverPath,
@@ -126,6 +198,9 @@ if (require.main === module) {
 }
 
 module.exports = {
+  copyRequiredStandaloneRuntimePackages,
+  NEXT_RUNTIME_PACKAGE,
+  resolveInstalledPackage,
   StandaloneAssemblyError,
   assembleStandalone,
   findPrivateArtifacts,
