@@ -302,6 +302,9 @@
 
 .reading-minimal__shell {
   min-height: calc(100vh - 36px);
+  inline-size: 100%;
+  min-inline-size: 0;
+  box-sizing: border-box;
   display: grid;
   justify-items: center;
   padding: 70px 32px 120px;
@@ -309,6 +312,9 @@
 
 .reading-minimal__page {
   width: min(var(--reading-content-width, 1000px), 100%);
+  min-inline-size: 0;
+  justify-self: center;
+  margin-inline: auto;
   transition: width 180ms ease;
 }
 
@@ -349,6 +355,21 @@
 
 .reading-minimal__content {
   padding-top: 36px;
+}
+
+/* Exam material is a centered reading stage, irrespective of the individual
+   question format.  Keep the page-width preference as the outer limit, then
+   give every format one shared, symmetric canvas inside it. */
+.reading-minimal[data-content-kind="exam"] .reading-minimal__content {
+  display: grid;
+  inline-size: 100%;
+  min-inline-size: 0;
+  justify-items: center;
+}
+
+.reading-minimal[data-content-kind="exam"] .reading-exam {
+  inline-size: min(100%, 1240px);
+  min-inline-size: 0;
 }
 
 .reading-minimal__paragraph {
@@ -690,6 +711,7 @@
 .reading-exam {
   display: flex;
   flex-direction: column;
+  min-inline-size: 0;
   gap: 52px;
 }
 
@@ -697,6 +719,9 @@
   --exam-rule: var(--reading-accent-line);
   display: flex;
   flex-direction: column;
+  inline-size: 100%;
+  min-inline-size: 0;
+  box-sizing: border-box;
   gap: 22px;
   padding-bottom: 40px;
   border-bottom: 1px solid var(--reading-border);

@@ -127,6 +127,25 @@ describe("Reading theme styles", () => {
     expect(studyLayoutRule).toContain("var(--reading-line-width");
   });
 
+  it("anchors every exam format to one centered reading canvas", () => {
+    const css = readFileSync(workbenchCssPath, "utf-8");
+    const shellRule = css.match(/\.reading-minimal__shell\s*\{([^}]*)\}/)?.[1];
+    const pageRule = css.match(/\.reading-minimal__page\s*\{([^}]*)\}/)?.[1];
+    const examContentRule = css.match(
+      /\.reading-minimal\[data-content-kind="exam"\] \.reading-minimal__content\s*\{([^}]*)\}/,
+    )?.[1];
+    const examCanvasRule = css.match(
+      /\.reading-minimal\[data-content-kind="exam"\] \.reading-exam\s*\{([^}]*)\}/,
+    )?.[1];
+
+    expect(shellRule).toContain("inline-size: 100%");
+    expect(shellRule).toContain("justify-items: center");
+    expect(pageRule).toContain("justify-self: center");
+    expect(pageRule).toContain("margin-inline: auto");
+    expect(examContentRule).toContain("justify-items: center");
+    expect(examCanvasRule).toContain("inline-size: min(100%, 1240px)");
+  });
+
   it.each(["white", "paper", "mint", "sepia", "night", "solarized"])(
     "keeps the %s title color readable against its Reading background",
     (theme) => {
