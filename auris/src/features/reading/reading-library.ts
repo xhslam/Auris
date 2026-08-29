@@ -10,57 +10,47 @@ export type ReadingLibraryFilter =
   | "history"
   | "episode";
 
-export const READING_FILTER_ORDER: ReadingLibraryFilter[] = [
-  "all",
+/** Reading 侧边栏对用户暴露的三个栏目。 */
+export type ReadingSectionFilter = Extract<
+  ReadingLibraryFilter,
+  "article" | "book" | "exam"
+>;
+
+export const READING_FILTER_ORDER: ReadingSectionFilter[] = [
   "article",
   "book",
   "exam",
-  "favorite",
-  "history",
 ];
 
-export const READING_FILTER_LABELS: Record<ReadingLibraryFilter, string> = {
-  all: "全部",
+export const READING_FILTER_LABELS: Record<ReadingSectionFilter, string> = {
   article: "文章",
   book: "书籍",
   exam: "题目",
-  favorite: "收藏",
-  history: "历史",
-  episode: "剧集",
 };
 
 /** 侧栏「阅读精选」树使用的文案。 */
-export const READING_SIDEBAR_FILTER_LABELS: Record<ReadingLibraryFilter, string> =
-  {
-    all: "阅读概览",
+export const READING_SIDEBAR_FILTER_LABELS: Record<ReadingSectionFilter, string> = {
     article: "文章",
     book: "书籍",
     exam: "题目",
-    favorite: "收藏夹",
-    history: "阅读历史",
-    episode: "剧集",
-  };
+};
 
 /** 阅读精选下的子分类。 */
-export const READING_CURATED_CHILD_FILTERS: ReadingLibraryFilter[] = [
+export const READING_CURATED_CHILD_FILTERS: ReadingSectionFilter[] = [
   "article",
   "book",
   "exam",
 ];
 
-export const READING_LIBRARY_FILTERS: readonly ReadingLibraryFilter[] = [
-  "all",
+export const READING_LIBRARY_FILTERS: readonly ReadingSectionFilter[] = [
   "article",
   "book",
   "exam",
-  "favorite",
-  "history",
-  "episode",
 ] as const;
 
 export function isReadingLibraryFilter(
   value: string | null | undefined,
-): value is ReadingLibraryFilter {
+): value is ReadingSectionFilter {
   return (
     typeof value === "string" &&
     (READING_LIBRARY_FILTERS as readonly string[]).includes(value)
@@ -69,12 +59,12 @@ export function isReadingLibraryFilter(
 
 export function parseReadingLibraryFilter(
   value: string | null | undefined,
-): ReadingLibraryFilter {
-  return isReadingLibraryFilter(value) ? value : "all";
+): ReadingSectionFilter {
+  return isReadingLibraryFilter(value) ? value : "article";
 }
 
-export function readingLibraryHref(filter: ReadingLibraryFilter = "all"): string {
-  if (filter === "all") {
+export function readingLibraryHref(filter: ReadingSectionFilter = "article"): string {
+  if (filter === "article") {
     return "/reading";
   }
   return `/reading?filter=${filter}`;

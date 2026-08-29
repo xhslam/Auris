@@ -149,7 +149,9 @@ describe("DesktopAppSidebar", () => {
     const sidebar = screen.getByLabelText("App navigation");
     expect(sidebar).toHaveAttribute("data-expanded", "true");
     expect(screen.getByText("Auris")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "阅读精选" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "文章" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "书籍" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "题目" })).toBeInTheDocument();
     expect(screen.getByLabelText("系统设置")).toBeInTheDocument();
 
     const toggle = screen.getByRole("button", { name: "收起侧栏" });
@@ -181,7 +183,7 @@ describe("DesktopAppSidebar", () => {
     expect(onToggleExpanded).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the reading curated tree when expanded on reading", () => {
+  it("shows only the three flat reading columns when expanded on reading", () => {
     pathnameMock.mockReturnValue("/reading");
     searchParamsGetMock.mockImplementation((key: string) =>
       key === "filter" ? "article" : null,
@@ -200,14 +202,11 @@ describe("DesktopAppSidebar", () => {
 
     const sidebar = screen.getByLabelText("App navigation");
     expect(sidebar).toHaveAttribute("data-reading-nav", "true");
-    expect(screen.getByRole("button", { name: "阅读精选" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "阅读精选" })).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
+    expect(screen.getByLabelText("阅读分类导航")).toHaveAttribute("data-flat", "true");
+    expect(screen.queryByRole("button", { name: "阅读精选" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "文章" })).toHaveAttribute(
       "href",
-      "/reading?filter=article",
+      "/reading",
     );
     expect(screen.getByRole("link", { name: "书籍" })).toHaveAttribute(
       "href",

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  READING_CURATED_CHILD_FILTERS,
   filterSources,
   formatReadingDate,
   groupSourcesByDate,
+  parseReadingLibraryFilter,
+  readingLibraryHref,
 } from "@/features/reading/reading-library";
 import type { ReadingSource } from "@/features/reading/reading-fixtures";
 
@@ -30,6 +33,18 @@ describe("formatReadingDate", () => {
   it("falls back for missing or odd input", () => {
     expect(formatReadingDate(undefined)).toBe("未分组");
     expect(formatReadingDate("whenever")).toBe("whenever");
+  });
+});
+
+describe("public Reading sections", () => {
+  it("exposes only articles, books and exams and defaults to articles", () => {
+    expect(READING_CURATED_CHILD_FILTERS).toEqual(["article", "book", "exam"]);
+    expect(parseReadingLibraryFilter(null)).toBe("article");
+    expect(parseReadingLibraryFilter("favorite")).toBe("article");
+    expect(parseReadingLibraryFilter("history")).toBe("article");
+    expect(readingLibraryHref("article")).toBe("/reading");
+    expect(readingLibraryHref("book")).toBe("/reading?filter=book");
+    expect(readingLibraryHref("exam")).toBe("/reading?filter=exam");
   });
 });
 

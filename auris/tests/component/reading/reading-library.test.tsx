@@ -39,6 +39,12 @@ function createPersistedReadingSource(): ReadingSource {
   };
 }
 
+function useReadingFilter(filter: string) {
+  searchParamsGetMock.mockImplementation((key: string) =>
+    key === "filter" ? filter : null,
+  );
+}
+
 describe("ReadingLibrary", () => {
   beforeEach(() => {
     replaceMock.mockReset();
@@ -69,7 +75,70 @@ describe("ReadingLibrary", () => {
     render(<ReadingLibrary notesStorage={null} onOpen={vi.fn()} />);
 
     expect(screen.queryByRole("heading", { name: "导入阅读材料" })).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Ebooks" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Reading" })).toBeInTheDocument();
+  });
+
+  it("presents the current reading as an English-to-Chinese motion window", () => {
+    useReadingFilter("article");
+    render(<ReadingLibrary notesStorage={null} onOpen={vi.fn()} />);
+
+    const currentReading = screen.getByRole("region", { name: "正在阅读" });
+    expect(
+      currentReading.querySelector(".reading-library__language-panel--english"),
+    ).toBeInTheDocument();
+    expect(
+      currentReading.querySelector(".reading-library__language-panel--chinese"),
+    ).toBeInTheDocument();
+    expect(
+      currentReading.querySelectorAll(".reading-library__preview-scroll"),
+    ).toHaveLength(2);
+  });
+
+  it("renders the page title as an English-to-Chinese hover stack", () => {
+    useReadingFilter("article");
+    render(<ReadingLibrary notesStorage={null} onOpen={vi.fn()} />);
+
+    const heading = screen.getByRole("heading", { name: "Reading" });
+    expect(
+      heading.querySelector(".reading-library__title-language--english"),
+    ).toHaveTextContent("Reading");
+    expect(
+      heading.querySelector(".reading-library__title-language--chinese"),
+    ).toHaveTextContent("阅读");
+  });
+
+  it("keeps the editorial list wired to the existing reader", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    useReadingFilter("article");
+    render(<ReadingLibrary notesStorage={null} onOpen={onOpen} />);
+
+    await user.click(
+      screen.getByRole("button", { name: /Quiet Momentum/ }),
+    );
+
+    expect(onOpen).toHaveBeenCalledWith("quiet-momentum");
+  });
+
+  it("keeps books on the original cover shelf instead of the article layout", () => {
+    useReadingFilter("book");
+    const book = {
+      ...createPersistedReadingSource(),
+      category: "book" as const,
+      id: "shelf-book",
+      title: "Shelf Book",
+    };
+    render(
+      <ReadingLibrary
+        notesStorage={null}
+        onOpen={vi.fn()}
+        sessionSources={[book]}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Books" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Reading shelf" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "正在阅读" })).not.toBeInTheDocument();
   });
 
   it("imports a markdown file through the replacement quick action", async () => {
@@ -129,11 +198,11 @@ describe("ReadingLibrary", () => {
   });
 
   it("groups visible sources under date labels", async () => {
+    useReadingFilter("article");
     render(<ReadingLibrary notesStorage={null} onOpen={vi.fn()} />);
 
     expect(await screen.findByText("Quiet Momentum")).toBeInTheDocument();
     expect(screen.getByText("2026.06.21")).toBeInTheDocument();
-    expect(screen.getByText("2026.06.14")).toBeInTheDocument();
   });
 
   it("deletes a persisted reading from the library page without opening it", async () => {
@@ -144,6 +213,7 @@ describe("ReadingLibrary", () => {
     });
     const deletePageSpy = vi.spyOn(storage, "deletePage");
     const onOpen = vi.fn();
+    useReadingFilter("article");
 
     render(<ReadingLibrary notesStorage={storage} onOpen={onOpen} />);
 
@@ -174,6 +244,7 @@ describe("ReadingLibrary", () => {
       },
     );
 
+    useReadingFilter("article");
     render(<ReadingLibrary notesStorage={storage} onOpen={vi.fn()} />);
     expect(await screen.findByText("Delete Me Reading")).toBeInTheDocument();
 
