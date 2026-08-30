@@ -118,6 +118,10 @@ async function readDirectoryPages(
       fileName: fileHandle.name,
       markdown,
       relativePath,
+      updatedAt:
+        Number.isFinite(file.lastModified) && file.lastModified > 0
+          ? new Date(file.lastModified).toISOString()
+          : undefined,
     });
 
     if (page) {

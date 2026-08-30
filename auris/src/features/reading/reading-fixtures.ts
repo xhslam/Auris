@@ -10,7 +10,6 @@ export type ReadingSourceFormat = "text" | "pdf";
 
 /** 考研英语一题型（MD `## 题型:` 标记）。 */
 export type ReadingExamType =
-  | "cloze"
   | "reading"
   | "new_order"
   | "new_seven_five"

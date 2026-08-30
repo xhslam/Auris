@@ -111,9 +111,25 @@ function normalizePositiveInteger(value, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
 
-function createTerminalEnvironment(baseEnv, cwd) {
+function isUtf8Locale(locale) {
+  return /(?:utf-?8)/i.test(String(locale ?? ""));
+}
+
+function createTerminalEnvironment(baseEnv, cwd, platform) {
+  const effectiveLocale = baseEnv.LC_ALL || baseEnv.LC_CTYPE || baseEnv.LANG;
+  const localeFallback = platform === "darwin" ? "en_US.UTF-8" : "C.UTF-8";
+  const localeEnv =
+    platform !== "win32" && !isUtf8Locale(effectiveLocale)
+      ? {
+          LANG: localeFallback,
+          LC_CTYPE: localeFallback,
+          ...(baseEnv.LC_ALL ? { LC_ALL: localeFallback } : {}),
+        }
+      : {};
+
   return {
     ...baseEnv,
+    ...localeEnv,
     EDITOR: "auris",
     SHADOWING_WORKSPACE: cwd,
     TERM: "xterm-256color",
@@ -247,7 +263,7 @@ function createTerminalSessionManager(options = {}) {
     const shell = requestedShell ?? resolveDefaultShell(platform, env);
     const cols = normalizePositiveInteger(input.cols, DEFAULT_COLS);
     const rows = normalizePositiveInteger(input.rows, DEFAULT_ROWS);
-    const childEnv = createTerminalEnvironment(env, cwd);
+    const childEnv = createTerminalEnvironment(env, cwd, platform);
 
     if (ptyBackend && typeof ptyBackend.spawn === "function") {
       let pty = null;
@@ -435,6 +451,7 @@ function createTerminalSessionManager(options = {}) {
 
 module.exports = {
   buildShellArgs,
+  createTerminalEnvironment,
   createTerminalSessionManager,
   isAbsoluteShellPath,
   isCmdShell,

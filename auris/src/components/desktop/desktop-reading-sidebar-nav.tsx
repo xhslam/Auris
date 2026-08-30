@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -9,6 +10,20 @@ import {
   readingLibraryHref,
   type ReadingLibraryFilter,
 } from "@/features/reading/reading-library";
+
+function CuratedGlyph() {
+  return (
+    <svg aria-hidden="true" className="desktop-reading-nav__glyph" viewBox="0 0 24 24">
+      <path
+        d="M5 7h6v4H5V7Zm8 0h6v6h-6V7ZM5 13h6v4H5v-4Zm8 4h6v-2h-6v2Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
 
 function ArticleGlyph() {
   return (
@@ -73,6 +88,26 @@ function ExamGlyph() {
   );
 }
 
+function ChevronGlyph({ open }: { open?: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="desktop-reading-nav__chevron-icon"
+      data-open={open ? "true" : "false"}
+      viewBox="0 0 16 16"
+    >
+      <path
+        d={open ? "M4.5 6.25 8 9.75l3.5-3.5" : "M6.25 4.5 9.75 8l-3.5 3.5"}
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
 function filterGlyph(filter: ReadingLibraryFilter) {
   switch (filter) {
     case "article":
@@ -82,43 +117,65 @@ function filterGlyph(filter: ReadingLibraryFilter) {
     case "exam":
       return <ExamGlyph />;
     default:
-      return <ArticleGlyph />;
+      return <CuratedGlyph />;
   }
 }
 
-/** Reading 区的三个平级栏目：文章 / 书籍 / 题目。 */
+/** Reading 一级入口及其文章 / 书籍 / 题目子栏。 */
 export function DesktopReadingSidebarNav() {
   const searchParams = useSearchParams();
   const activeFilter = parseReadingLibraryFilter(searchParams.get("filter"));
+  const curatedChildActive = READING_CURATED_CHILD_FILTERS.includes(activeFilter);
+  const [isCuratedOpen, setIsCuratedOpen] = useState(true);
 
   return (
     <section
       aria-label="阅读分类导航"
       className="desktop-reading-nav"
-      data-flat="true"
+      data-library-open={isCuratedOpen ? "true" : "false"}
     >
       <div className="desktop-reading-nav__block">
-        <ul className="desktop-reading-nav__children">
-          {READING_CURATED_CHILD_FILTERS.map((filter) => (
-            <li key={filter}>
-              <Link
-                aria-current={activeFilter === filter ? "page" : undefined}
-                className="desktop-reading-nav__row desktop-reading-nav__row--child"
-                data-active={activeFilter === filter ? "true" : "false"}
-                href={readingLibraryHref(filter)}
-              >
-                <span className="desktop-reading-nav__leading">
-                  <span className="desktop-reading-nav__mark" aria-hidden="true">
-                    {filterGlyph(filter)}
+        <button
+          aria-expanded={isCuratedOpen}
+          className="desktop-reading-nav__row desktop-reading-nav__row--parent"
+          data-active={curatedChildActive ? "true" : "false"}
+          onClick={() => setIsCuratedOpen((open) => !open)}
+          type="button"
+        >
+          <span className="desktop-reading-nav__leading">
+            <span className="desktop-reading-nav__mark" aria-hidden="true">
+              <CuratedGlyph />
+            </span>
+            <span className="desktop-reading-nav__label">阅读精选</span>
+          </span>
+          <span className="desktop-reading-nav__trailing" aria-hidden="true">
+            <ChevronGlyph open={isCuratedOpen} />
+          </span>
+        </button>
+
+        {isCuratedOpen ? (
+          <ul className="desktop-reading-nav__children">
+            {READING_CURATED_CHILD_FILTERS.map((filter) => (
+              <li key={filter}>
+                <Link
+                  aria-current={activeFilter === filter ? "page" : undefined}
+                  className="desktop-reading-nav__row desktop-reading-nav__row--child"
+                  data-active={activeFilter === filter ? "true" : "false"}
+                  href={readingLibraryHref(filter)}
+                >
+                  <span className="desktop-reading-nav__leading">
+                    <span className="desktop-reading-nav__mark" aria-hidden="true">
+                      {filterGlyph(filter)}
+                    </span>
+                    <span className="desktop-reading-nav__label">
+                      {READING_SIDEBAR_FILTER_LABELS[filter]}
+                    </span>
                   </span>
-                  <span className="desktop-reading-nav__label">
-                    {READING_SIDEBAR_FILTER_LABELS[filter]}
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </section>
   );

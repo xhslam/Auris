@@ -85,6 +85,18 @@ describe("markdown note codec", () => {
     expect(parsed?.relativePath).toBe("archive/2026-03-07 chat-log.md");
   });
 
+  it("uses the Vault file modification time for Markdown without Auris metadata", () => {
+    const parsed = parseMarkdownNote({
+      fileName: "linear-equations.md",
+      markdown: "# 线性方程组\n\n齐次方程组",
+      relativePath: "math/linear-equations.md",
+      updatedAt: "2026-08-23T03:40:26.000Z",
+    });
+
+    expect(parsed?.title).toBe("线性方程组");
+    expect(parsed?.updatedAt).toBe("2026-08-23T03:40:26.000Z");
+  });
+
   it("preserves additional frontmatter fields for generated learning notes", () => {
     const markdown = serializeMarkdownNote({
       ...createPage(),

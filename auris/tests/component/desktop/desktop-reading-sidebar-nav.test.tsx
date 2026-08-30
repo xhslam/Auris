@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { DesktopReadingSidebarNav } from "@/components/desktop/desktop-reading-sidebar-nav";
 
@@ -9,9 +9,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("DesktopReadingSidebarNav", () => {
-  it("shows only articles, books and exams", () => {
+  it("nests articles, books and exams under the Reading parent", () => {
     render(<DesktopReadingSidebarNav />);
 
+    const parent = screen.getByRole("button", { name: "阅读精选" });
+    expect(parent).toHaveAttribute("aria-expanded", "true");
     expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
       "文章",
       "书籍",
@@ -24,5 +26,10 @@ describe("DesktopReadingSidebarNav", () => {
       "aria-current",
       "page",
     );
+
+    fireEvent.click(parent);
+
+    expect(parent).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "文章" })).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 /**
  * Lightweight Markdown parse for the reading exam view.
  * Supports the subset used in exam imports: bold/italic/code, lists, tables,
- * blockquotes, fenced code, hr, headings, paragraphs, and cloze blanks (`__1__`).
+ * blockquotes, fenced code, hr, headings, paragraphs, and numbered blanks (`__1__`).
  */
 
 export type ExamMdInline =

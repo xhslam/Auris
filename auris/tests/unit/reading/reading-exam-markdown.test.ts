@@ -5,7 +5,7 @@ import {
 } from "@/features/reading/reading-exam-markdown";
 
 describe("parseExamMarkdownInline", () => {
-  it("parses bold, italic, code, and cloze blanks", () => {
+  it("parses bold, italic, code, and numbered blanks", () => {
     const nodes = parseExamMarkdownInline(
       "**来源**: year *note* and `code` blank __2__",
     );

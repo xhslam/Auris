@@ -89,6 +89,29 @@ describe("desktop notes storage", () => {
     expect(page?.relativePath).toBe("notes/study-log.md");
   });
 
+  it("uses file mtime when scanning a plain Markdown note", async () => {
+    const vaultService = createVaultService();
+    vi.mocked(vaultService.listMarkdownFiles).mockResolvedValue([
+      {
+        absolutePath: "C:/vault/math/linear-equations.md",
+        fileName: "linear-equations.md",
+        mtime: "2026-08-23T03:40:26.000Z",
+        relativePath: "math/linear-equations.md",
+      },
+    ]);
+    vi.mocked(vaultService.readMarkdownFile).mockResolvedValue(
+      "# 线性方程组\n\n齐次方程组",
+    );
+
+    const pages = await createDesktopNotesStorage(vaultService).listPages();
+
+    expect(pages[0]).toMatchObject({
+      relativePath: "math/linear-equations.md",
+      title: "线性方程组",
+      updatedAt: "2026-08-23T03:40:26.000Z",
+    });
+  });
+
   it("creates and deletes a markdown note inside the vault", async () => {
     const storage = createDesktopNotesStorage(createVaultService());
 

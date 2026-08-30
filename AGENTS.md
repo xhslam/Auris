@@ -353,3 +353,171 @@ Notes 笔记页在开启标题偏好时将当前文件名写入 Electron 窗口�
 发布前全量回归最初暴露 8 个长期漂移的测试文件、23 项失败：终端测试仍断言旧 `create` 契约而运行时已使用 `resume`；源码编辑器测试仍把独立标题输入框算作 CodeMirror 第一行；排版与欢迎页样式测试固化了旧默认值和 CSS 单行格式；设置真实性测试仍要求已删除的空壳历史文案；审批测试没有区分 owner 校验；PDF 导出 mock 没有覆盖可选参数；词库契约未包含新增 context，且 150 个轻量词条没有 `sections`。测试已更新为当前真实契约，词库分组函数对缺失章节返回空集合，保留现有词库数据并避免运行时崩溃。
 
 版本更新至 1.0.2。最终 `npm test` 为 371 个文件、2767 项全部通过；定向 ESLint 通过，`git diff --check` 和 Next 生产构建通过；`desktop:build:verify` 完成打包隐私审计、原生模块探测与桌面工具烟雾测试。macOS arm64 的 DMG、ZIP 和应用包生成成功；本机没有 Developer ID，产物保持未签名。全仓 ESLint 仍会把仓库根部旧 CommonJS 兼容入口的 `require()` 当作 90 项规则错误，本次没有为追求形式通过而把 Electron 启动文件错误迁移到 ESM。既有个人词库索引变化与未跟踪研究目录未纳入发布提交。
+
+后续实机反馈发现组件标题与点击后打开的笔记不一致。根因有两处：普通 Markdown 没有 Auris `updatedAt` frontmatter 时，解析器会用扫描时刻作为更新时间，导致每次扫描都把文件误判为刚更新；同时卡片传递旧 `NotePage.id`，而 Notes 工作台按 Vault 路径恢复，匹配失败后会回退到自身最近文档。修复让桌面扫描使用文件 `mtime`、浏览器扫描使用 `File.lastModified`，并让卡片以 `relativePath` 作为恢复参数；新增解析器、桌面存储和卡片导航回归。定向 ESLint、4 个文件 15 项定向测试、全仓 372 个文件 2770 项测试、`git diff --check` 与 Next 生产构建均通过。此次修复尚未提交或推送，既有个人词库和未跟踪资料目录保持不动。
+
+## Engineering trajectory: Auris 紧凑胶囊侧边栏与夜间模式适配（2026-08-25）
+
+按 `PRD-auris-reference-compact-sidebar.md` 规范重构 Auris 桌面侧边栏，将原本 48px/74px 贴边通顶条改造为 30px 悬浮胶囊 Rail（8px 外边距、15px 圆角、28px 项目尺寸与 14px 图标）。收缩态移除了粒子爆发（burst/particle）、水波纹（ripple）与冲击环等冗余动画层，激活态采用 2×20px 珊瑚橙（`#E55E51`）垂直指示条与沉浸微发光；全面对齐 Night 深色主题（Rail 背景 `#2B2E33`、激活项目背景 `#333D4B`、激活图标 `#6BA4F8`）并为全部 6 套主题提供颜色令牌映射。
+
+改动集中在：
+1. `auris/src/components/desktop/desktop-app-sidebar.tsx`：精简收起态组件结构，移除粒子/水波纹状态及 DOM，保留所有 7 条导航路由、阅读精选子树、Vault 开关及 Next.js prefetch/transition 快速导航契约。
+2. `auris/src/styles/auris-redesign.css`：收敛 sidebar 尺寸令牌与 Night 语义色；重写 Section 5 样式，实现 30px 悬浮胶囊、28px 项目、珊瑚橙激活指示条与 240px 悬浮展开菜单；更新 Notes 视图左侧角标偏移公式。
+3. `auris/tests/unit/desktop/desktop-sidebar-reference-geometry.test.ts`：新建几何契约单测，覆盖 30px 宽度、8px 偏移、15px 胶囊圆角、28px 项目、14px 图标、2×20 指示条及 Night 主题色，防止历史 48/74/78px 宽度与金色选中色回潮。
+4. `auris/tests/component/runtime/desktop-app-sidebar.test.tsx`：更新导航测试，移除对已下线粒子和 `data-bursting` 属性的断言，保留快速导航调度与防重复点击回归。
+
+验证通过：
+- 定向 Vitest：`desktop-app-sidebar.test.tsx`、`desktop-app-frame.test.tsx`、`desktop-sidebar-reference-geometry.test.ts` 共 3 个文件、33 项测试全部通过。
+- 定向 ESLint 0 错误 0 警告；`git diff --check` 无空白或格式问题。
+- `npm run build` Next.js 生产构建完成并成功输出所有 22 个静态/动态路由。
+- 历史代码已备份至 `auris/docs/homepage-backups/2026-08-25-compact-sidebar/`。未提交或推送 Git 改动。
+
+## Engineering trajectory: 桌面灵动岛全栈验证与 Proma 对标（2026-08-26）
+
+用户要求参考 Proma（proma-ai/Proma）灵动岛功能完成 Auris 桌面灵动岛。代码审查确认前一次会话已完成 95%+ 的全栈实现；本次工作集中在架构审计、打包验证、实机烟雾测试和缺口排查。
+
+### 与 Proma 对标
+
+Proma 灵动岛为 Agent 运行状态监视器（idle/working/waiting），仅展示 Agent 状态。Auris 灵动岛在交互深度上超越 Proma：支持今日任务直接勾选、间隔复习知识点深链、隐私模式、悬停自动展开/收起状态机。技术方案一致：NSPanel + stdin/stdout JSON 行跨进程通信。
+
+### 验证的完整组件清单
+
+- **数据层**：`desktop-island.types.ts`（5 类型）、`desktop-island-projection.ts`（投影）、`desktop-island-contract.cjs`（严格验证）
+- **主进程**：`desktop-island-service.cjs`（状态机 compact/expanded/hidden）、`mac-desktop-island-native-host.cjs`（helper 生命周期）
+- **main.cjs**：5 个 IPC handler（L3451-3477）、`app.whenReady()` 初始化（L4299-4326）、`before-quit` dispose（L4384）
+- **原生 Helper**：`AurisDesktopIslandHelper.swift`（359 行，NSPanel + SwiftUI CompactView/ExpandedView）
+- **渲染器**：`preload.cjs`（6 方法桥接）、`desktop-island-sync-host.tsx`（根布局挂载，多事件源监听 + 意图队列重放）
+- **设置**：`auris-settings.tsx` 中 3 个 toggle（显示/悬停展开/隐私模式）
+- **打包**：`electron-builder.yml` L64-66 `extraResources` 包含 helper、`scripts/build-desktop-island-helper.cjs` 支持 arm64/x86_64、`package.json` 注册 `desktop:island:build`
+- **默认配置**：`createDefaultDesktopConfig()` 仅在 `process.platform === "darwin"` 时启用
+
+### 实机验证结果
+
+- `npm run desktop:dev`：Electron PID 6345 启动后，AurisDesktopIslandHelper PID 6356 以父 PID 6345 为参数运行
+- helper 二进制：`Mach-O 64-bit executable arm64`，697KB，可执行
+- 退出清理：kill Electron 后 3 秒内 helper 进程消失（Swift 端 `monitorParent()` 孤儿检测生效）
+- 无内容时灵动岛保持 hidden（`currentPresentation()` 在 `hasContent === false` 时返回 hidden，不缓存）
+
+### 测试与构建
+
+- 灵动岛定向测试 4 文件 9 项 + 首页回归 11 文件 35 项全部通过
+- ESLint 定向 0 错误
+- `npm run build` Next.js 生产构建成功
+
+### 设计稿
+
+已有 `docs/designs/2026-08-26-auris-dynamic-island-compact.png`（收起态药丸）和 `2026-08-26-auris-dynamic-island-expanded.png`（展开态双栏）。新设计稿因图片生成配额限制未能重新生成。
+
+### 后续风险
+
+1. 尚未在有真实任务和复习数据的环境下验证灵动岛可见效果（当前测试数据为空，island 保持 hidden）
+2. Intel Mac 需要单独编译 x86_64 产物（脚本已支持，但无测试机验证）
+3. `openMainRoute` 使用 `loadURL` 而非 Next.js 客户端路由，会导致 review 深链触发页面重载而非 SPA 跳转
+
+未修改任何代码文件。未提交或推送 Git 改动。
+
+## Engineering trajectory: Auris 桌面灵动岛实现补齐与原生验收（2026-08-26）
+
+用户确认按收起态 430×40px、展开态 560×310px 的设计标准开始实施，并在后续要求核实先前“完成报告”是否属实。本轮不把报告截图当作运行证据，而是从当前工作树补齐实现并独立验证。方案保持 Auris 的任务与输出复习 localStorage 为唯一内容真相源：新增纯投影、根布局 `DesktopIslandSyncHost`、严格主进程 contract、待确认的幂等 `set-task-done` 意图队列和 `/review?knowledgePointId=` 深链；主进程只接受固定动作，不暴露任意 URL、路由或脚本执行。
+
+原生层新增 SwiftUI/AppKit `NSPanel` helper，支持 hidden/compact/expanded、300ms 悬停展开、420ms 移开收起、当前快照 dismiss、全 Space/全屏辅助窗口、外接屏菜单栏回退、父进程/EOF 退出监控。收起态实现任务环形进度、任务/复习数量、分隔线和逾期提示；展开态实现三条可勾选任务、进度条、一条最急复习卡、任务/复习深链、隐私模式、收起/关闭按钮与“数据已同步至 Auris”底栏。设置页新增显示、悬停展开和隐私模式三项持久化开关。
+
+构建链新增 `scripts/build-desktop-island-helper.cjs`，产物位于 `build/native/desktop-island/<arch>/`，并由 macOS 专属 `extraResources` 复制到 `Auris.app/Contents/Resources/native/desktop-island/AurisDesktopIslandHelper`，避免进入 asar。开发态与发布构建均先编译 helper；打包验证脚本检查可执行位、Mach-O 类型，并在存在应用签名时执行 deep/strict 校验。
+
+验证结果：Swift helper 编译成功，`file` 确认为 arm64 Mach-O，`LC_BUILD_VERSION` 最低 macOS 12.0；Next.js 生产构建成功；灵动岛、首页、回顾、设置、桌面 runtime 与 IPC 合约共 10 个测试文件、43 项通过；定向 ESLint 0 error（仅首页既有 `<img>` 1 条警告），IPC 合约为 113 invoke / 115 handler，`git diff --check` 通过。electron-builder `--mac --dir` 成功，打包版 helper 存在且可执行；实际启动打包版 Auris 后 helper 以主进程 PID 运行，退出后无残留进程。用完全合成数据实机截取 compact 与 expanded 原生窗口，确认两态尺寸、内容、操作按钮、进度与同步底栏可见。当前本机没有 Developer ID，electron-builder 明确跳过正式应用签名；helper 只有 linker ad-hoc 签名，正式 Release 仍须由 CI 的 Developer ID 完成全包签名与公证。Intel 路径由脚本分架构生成，但未在 Intel 实机验证。
+
+最终全仓回归首次发现既有首页高度链契约与样式不一致，按既有测试要求为 home workspace 的 `height/min-height` 补回 `!important`；随后一次全量运行暴露阅读器在无 `scrollIntoView` 的测试/嵌入环境会抛异步异常，增加函数能力检测后安全降级。定向用例通过后，最终 `npm test` 为 381 个文件、2820 项全部通过且无未处理错误；再次执行 Next.js 生产构建与 `git diff --check` 均成功。
+
+改动集中在 `auris/electron/desktop-island/`、`auris/native/desktop-island/`、Electron main/preload、桌面桥、根同步 Host、任务存储、回顾深链、设置页、构建脚本/配置及对应测试。工作在 `codex/auris-dynamic-island` 分支完成，未提交或推送；工作树中原有个人词库、Notes 与首页学习卡等无关变更保持未触碰。
+
+用户选择本地合并与更新应用后，仅将上述灵动岛文件提交为 `36eefd3`，未纳入工作树既有的词库、Notes、首页学习卡等改动；`main` 已从 `5807aa3` 快进合并到该提交，功能分支随后删除。合并结果再次执行全仓 381 个文件、2820 项测试并全部通过。重新编译 helper、Next 生产包、standalone 运行时及 macOS arm64 `.app` 后，旧 `/Applications/Auris.app` 已正常退出并移动到可恢复备份 `/Applications/Auris.app.backup-before-dynamic-island-20260826`，新版安装到原路径。旧应用遗留的 Notes MCP sidecar PID 2095 在确认身份后终止；新版 Auris PID 20507 启动成功，打包内 helper PID 20547 以主进程 PID 为父参数运行。
+
+### 灵动岛点击外部自动收起（2026-08-26）
+
+用户实机确认点击胶囊展开正常，希望点击桌面其他空白区域即可收起。Swift helper 新增互补的 `NSEvent` local/global mouse-down monitor：应用内部点击由 local monitor 观察，桌面或其他应用点击由 global monitor 观察；事件只旁观并原样返回，不吞掉用户原点击。只有当前 presentation 为 expanded 且鼠标坐标不在 `NSPanel.frame` 内才发出固定的 `set-expanded: false`，因此任务勾选、开始复习和面板内按钮不会误收起。增加 `collapseRequested` 门控，在主进程返回下一份 snapshot 前最多发送一次收起请求；helper 退出时移除两个 monitor。
+
+新增原生源码契约测试覆盖双 monitor、实际窗口边界、事件不拦截、单次请求和清理；Swift helper 编译成功，灵动岛定向 4 个文件、11 项通过，`git diff --check` 通过。系统自动点击命令因本机未授予 osascript 辅助访问而返回权限错误，但该尝试仍产生了原生 outside-click 动作；功能实现不依赖辅助功能权限或 CGEventTap。
+
+改动提交为 `2f9783b` 并快进合并到本地 `main`，临时分支已删除。重新打包 macOS arm64 应用后，上一版安装移动到 `/Applications/Auris.app.backup-before-click-away-20260826`，新版已安装并启动；Auris 主进程 PID 21342，打包内原生 helper PID 21385。更早的 `/Applications/Auris.app.backup-before-dynamic-island-20260826` 仍保留，用户数据目录未变更。
+
+用户要求推送 GitHub 并更新版本后，`package.json` 与 `package-lock.json` 的应用版本由 1.0.3 升至 1.0.4，提交为 `fe0bf8f`。生产构建通过，`main` 从 `5807aa3` 到 `fe0bf8f` 已推送至 `https://github.com/xhslam/auris.git`，随后 fetch 验证 `origin/main...main` 为 0/0。重新生成 1.0.4 的 helper、standalone 和 macOS arm64 `.app`；安装阶段第一次尝试因 zsh 不拆分多行 PID 而在覆盖前安全中止，确认旧应用仅剩 4 个 Notes MCP sidecar 后逐个终止。旧 1.0.3 安装保存在 `/Applications/Auris.app.backup-before-1.0.4-20260826`，新版 `/Applications/Auris.app` 的 Info.plist 确认为 1.0.4，主进程 PID 22803、helper PID 22872 正常运行。现有本机无 Developer ID，生成的本地包仍为未正式签名开发包。
+
+## Engineering trajectory: 终端中文路径 locale 回归修复（2026-08-27）
+
+用户更新后的终端提示符将中文目录显示为 `�\M-...`。用 `LC_ALL=C` 在同一中文工作目录启动 zsh 可稳定复现，确认是 Electron 从 Finder/更新启动时继承了缺失或非 UTF-8 locale，zsh 在生成提示符时已将中文字节转义，不是 xterm 字体或渲染问题。
+
+修复同步落在实际打包入口 `auris/electron/terminal-session-manager.cjs` 与保留的根目录副本 `auris/terminal-session-manager.cjs`：POSIX 会话在有效 UTF-8 locale 下保持原值；只在有效 locale 缺失或为 `C` 等非 UTF-8 值时注入 UTF-8 `LANG`/`LC_CTYPE`，并在既有 `LC_ALL` 会覆盖分类 locale 时一并修正。Windows 仍沿用现有 code page 65001 逻辑。
+
+新增回归断言覆盖 `LC_ALL=C` 修正与既有 `zh_CN.UTF-8` 保留。定向 Vitest 14 项通过，两份 CommonJS 管理器均通过 `node --check`，`git diff --check` 通过；真实 zsh 验证在输入 `LC_ALL=C` 时已正常输出 `~/Desktop/大学markdown/auris`，无 Unicode replacement character。未提交、未推送，未覆盖安装中的应用。
+
+## Engineering trajectory: Reading 完形填空题型移除（2026-08-28）
+
+用户确认 Reading 区的完形填空格式已淘汰。本次从 `ReadingExamType`、题型别名、题型标签、展示配置及专属 `cloze-sheet` CSS 中完整移除 `cloze`；其余阅读理解、新题型、翻译与写作题型保持不变。`__1__` 这类编号空仍保留为通用 Markdown 行内元素，以支持其他题型的空位表达。
+
+旧 Markdown 中的 `## 题型: 完形填空`、`## 完形填空` 或 `Use of English` 不再被解析为考试内容，而是作为普通 Markdown 导入，避免旧数据触发已删除的展示配置；词典中已有的完形来源注释未改动。删除了本次刚生成的完形整理格式替换稿。
+
+更新 Reading 组件、解析器、类型与回归测试；定向 Vitest 3 文件、33 项通过，定向 ESLint、`git diff --check` 与 `npm run build` 均通过。未提交或推送 Git 改动。
+
+## Engineering trajectory: 完形填空复用阅读理解精读格式（2026-08-28）
+
+用户补充阅读理解提示词后，明确完形填空不应恢复已淘汰的独立 `cloze` 类型，而应通过 `## 完形填空` 进入阅读理解现有的 0—10 精读流。解析器因此将“完形填空”识别为 `reading` 别名，但只在完整包含“一分钟读懂全文、逐句翻译和讲解、全文逻辑地图、长难句精讲、关键词与表达、阅读理解题精讲、同义替换、误解、大白话、记忆与最终压缩”11 个区块时启用；旧的 standalone cloze 结构继续作为普通 Markdown 处理。
+
+序列化同步保留 `## 完形填空` 与 0—10 二级标题，避免首次导入后保存为扁平三级标题、再加载时丢失共用精读布局。新增首次导入、旧格式拒绝和保存往返回归。定向 Reading Vitest 4 文件、46 项通过，定向 ESLint、`git diff --check` 与 Next 生产构建均通过。
+
+根据用户提供的阅读理解提示词，新增 `考研英语一完形填空真题整理提示词-阅读理解共用格式.md`。新提示词重点补齐逐句翻译和讲解：全文每句固定包含英文原句、答案补全句、中文、句子结构、语法现象、常见用法、词汇与表达及综合点评；同时保留年份顺序、PDF 保真、20 题解析、词库/JSON 同步、processing-record 和质量检查要求。未提交或推送 Git 改动。
+
+## Engineering trajectory: 桌面打包 Next 运行时依赖修复（2026-08-28）
+
+本地安装的 Auris 无法打开时，运行日志显示主进程正常启动但 Next utility process 在创建窗口前退出；根因是 standalone 输出缺少 `@swc/helpers`，补入后继续暴露 `@next/env` 缺失，证明问题是 Next 16 的输出文件追踪未打入完整运行时闭包，而不是单一模块遗漏。`scripts/assemble-standalone.cjs` 现在读取已安装 Next 的正式依赖，递归解析每个依赖的生产依赖并复制到 `.next/standalone/node_modules`；缺失依赖会在打包阶段抛出明确错误，不再生成可打包但无法启动的应用。
+
+更新 `tests/unit/electron/desktop-packaging.test.ts`，用最小 Next 包清单断言 helper 被放入 standalone。定向 Vitest 10 项、定向 ESLint 与 `git diff --check` 通过。已将修复提交为 `2f58439` 并推送至 `main`。现有已安装 `/Applications/Auris.app` 采用同一闭包补齐后成功启动：Next server ready、主窗口 ready-to-show/loaded 与 Renderer 均已确认。未触碰用户数据；工作树其余未提交修改未纳入该提交。
+
+## Engineering trajectory: Reading 题型画布居中（2026-08-28）
+
+用户反馈 Reading 的题型内容在宽屏桌面壳中视觉偏移，希望获得以主内容区正中央为基准的阅读体验。问题处理限定为布局：`reading-workbench.css` 让阅读壳和页面显式占满可用内联尺寸并用 `justify-self` / `margin-inline` 锚定中心；考试内容再建立独立的居中画布，最大 1240px，所有题型共享该画布，精读原有的行宽设置仍在画布内生效。页面宽度与行宽的用户设置、移动端宽度约束、题型内容和解析逻辑均未改变。
+
+新增 CSS 回归断言，防止未来移除外层、页面或考试画布的中心定位。Reading 样式、题型视图与工作台定向 Vitest 共 27 项通过，相关 TypeScript 定向 ESLint 与 `git diff --check` 通过。工作树原有的完形填空格式移除/复用修改保持未触碰；未提交或推送 Git 改动。
+
+## Engineering trajectory: Reading 精选展示页编辑式重构（2026-08-29）
+
+用户希望将导入后的 Reading 列表按参考图的布局直接还原，并保留 Auris 主题、导入与现有阅读器契约。实现将封面网格替换为大号无衬线粗标题、正在阅读窗口、日期横线和大留白文章列表；标题、正文与作者信息均使用 Hanken Grotesk / Noto Sans SC，日期使用等宽字体。内容画布桌面端为 1120px，文章正文相对日期轴内缩 18px。不复制参考配色，六套应用主题继续通过 Reading 语义令牌适配。
+
+正在阅读窗口会以 22 秒周期往返滚动真实文章段落；默认展示英文，鼠标悬停或键盘聚焦时英文层向下离场、中文层从上方落入，离开后反向恢复。日期列表的摘要使用同一双语下切，标题与作者保持稳定，中文来自现有 translation / summary；无译文时提供诚实空态。系统开启减少动画时禁用滚动与过渡。为对齐参考图，原先的可见搜索/语言工具条与封面式视觉已移除；日期排序、导入分类、材料移动、删除和点击进入原阅读器保留。
+
+改动限定在 `reading-library.tsx`、`reading-library.css` 及对应组件测试。定向 ESLint 通过，Reading Library Vitest 10 项通过，`git diff --check` 通过，Next.js 生产构建成功。Playwright 在 1440、720 和 480px 视口确认无横向溢出；悬停后英文层实测下移 112px 且 opacity 为 0，中文层回到原位且 opacity 为 1。未修改已有 Reading 工作台、题型、导入解析或其他未提交文件；未提交或推送 Git 改动。
+
+### Reading 顶部标题中英切换（2026-08-29）
+
+用户要求顶部 `Curated Reads` 改为 `Reading`，并在指针靠近文字时切换为“阅读”。标题现使用与内容双语窗口一致的纵向双层动画：英文向下离场，中文从上方落入，离开后恢复英文；键盘聚焦触发同样效果，并保留焦点反馈。减少动画模式下取消过渡。Reading Library 回归现为 11 项全部通过，定向 ESLint、`git diff --check` 与 Next.js 生产构建通过。
+
+### 参考图布局限定为文章分类（2026-08-29）
+
+用户进一步明确编辑式 `Reading` 布局只属于 Reading 区的“文章”页。`ReadingLibrary` 现依据 URL filter 选择展示分支：仅 `/reading?filter=article` 渲染双语标题、正在阅读窗口和日期文章流；阅读概览、书籍、题目、收藏与历史继续使用封面书架。两个分支共用原有导入、分类移动、删除、进度与打开阅读器逻辑，没有拆分或复制数据存储。
+
+新增回归明确断言书籍 filter 存在封面书架且不存在“正在阅读”编辑式区域。Reading Library 定向 Vitest 12 项、ESLint、`git diff --check` 与 Next.js 生产构建全部通过。Playwright 实测文章路由仅出现编辑式布局，概览/书籍/题目路由均不出现，四个路由在 1440px 下均无横向溢出。
+
+### Reading 栏目收敛为文章、书籍、题目（2026-08-29）
+
+用户明确 Reading 只保留题目、书籍和文章三个栏目。展开侧边栏现改为三个平级链接，移除“阅读精选”手风琴父级、阅读概览、收藏夹和阅读历史入口。公开 filter 白名单仅接受 `article | book | exam`；`/reading` 默认解析为文章，旧的 `all | favorite | history | episode` 查询会安全回退到文章页。阅读材料自身的历史进度和收藏存储未删除，只移除它们作为顶层栏目的展示与路由。
+
+改动涉及 `reading-library.ts`、`desktop-reading-sidebar-nav.tsx`、侧边栏样式和相关回归。新增侧边栏 DOM 断言与公开路由白名单断言；Reading 定向 3 个文件、22 项 Vitest 通过，定向 ESLint、`git diff --check` 和 Next.js 生产构建通过。
+
+用户要求合并、推送并更新本地 App 后，本次 Reading 改造与测试以 `03e1f95`（`feat(reading): redesign article library`）直接提交到 `main`；提交严格限定为 9 个 Reading/侧栏文件，工作树既有 Notes、首页、词库、题型与终端改动均未纳入。全量测试首次发现两个旧侧栏断言仍期待“阅读精选”父级，以及 mint Reading 主题缺少显式契约且辅助文字对比度为 4.41:1；同步更新断言、补回显式主题规则并将 muted 色调整至 4.61:1 后，最终 383 个测试文件、2834 项全部通过，定向 ESLint 与 `git diff --check` 通过。提交已推送到 GitHub，fetch 后 `origin/main...main` 为 0/0。
+
+为避免把工作树其他未提交内容混入桌面包，应用在固定于 `03e1f95` 的临时隔离 worktree 中构建。首次复用 `node_modules` 软链接触发 standalone 同源复制保护；改为 APFS clone 的独立依赖树后完成 Desktop Island helper、Next 生产构建、standalone 组装和 macOS arm64 `.app`。本机无 Developer ID，产物仅作本地 ad-hoc 深度签名；隐私审计、签名校验和 packaged MCP sidecar 冒烟测试通过。旧应用已移动到 `/Applications/Auris.app.backup-before-reading-03e1f95`，新版 1.0.4 安装并启动，主进程、Next server、Renderer、GPU/Network Helper 与原生 helper 均正常；本地 `/reading` 返回 HTTP 200 且包含 Reading/阅读双层标题。临时构建工作树已删除。
+
+## Engineering trajectory: Reading 父子导航层级恢复（2026-08-30）
+
+用户指出文章、书籍和题目不应在展开侧边栏中充当三个独立一级入口。检查确认 `/reading` 路由会用三个平级链接替换原 Reading 父级；实现恢复「阅读精选」手风琴父级，文章、书籍、题目继续使用现有 `/reading?filter=...` 路由并以缩进子栏显示。原有引导线、箭头、激活色和收起行为得到复用；移除已无用的平级样式覆盖。底部导航「会议片段」同步改名为「视频」，路由仍为 `/video`。
+
+改动涉及 `desktop-reading-sidebar-nav.tsx`、`desktop-shell-fixtures.ts`、`auris-redesign.css` 及两个侧边栏组件测试。定向 Vitest 2 个文件、13 项通过，定向 ESLint、`git diff --check` 与 Next.js 生产构建通过，构建路由表仍包含 `/reading` 和 `/video`。工作树中其他未提交改动未触碰；未提交或推送 Git 改动。
+
+### Reading 页头避让桌面灵动岛（2026-08-30）
+
+用户截图显示 Reading 大标题末尾进入顶部原生「今日任务／回顾复习」灵动岛的阴影区域。`reading-library.css` 现在仅对桌面运行时的 Reading 画布保留 82–104px 顶部安全区，标题与右侧排序、导入控件整组下移，不缩小标题或改动全局灵动岛。新增 CSS 契约回归防止安全区被误删。Reading 组件与样式定向 Vitest 2 个文件、24 项通过，定向 ESLint 与 `git diff --check` 通过。未提交或推送 Git 改动。
+
+## Engineering trajectory: Reading 完形标题彻底归一为阅读理解（2026-08-30）
+
+用户反馈文章中的 `## 完形填空` 仍会唤起旧完形格式。根因是已删除 `cloze` 类型与展示样式后，解析器仍保留独立的完形别名、专属解析分支和序列化回写分支。`reading-exam-parse.ts` 现在只在输入边界兼容 `## 完形填空` 与 `## 题型: 完形填空`，立即将它们规范化为 `## 题型: 阅读理解`；后续与普通阅读理解共用完全相同的解析、数据类型、布局和序列化通道，不再保留完形标签或分支。
+
+更新 `tests/unit/reading/reading-import.test.ts` 覆盖两种旧标题、紧凑题型文档、0–10 精读文档及保存往返；断言产物始终为 `type: reading`、label 为「阅读理解」，且保存结果不再出现独立 `## 完形填空`。Reading 定向 Vitest 3 个文件、35 项通过，定向 ESLint、`git diff --check` 与 Next.js 生产构建通过。未提交或推送 Git 改动，工作树其他未提交内容保持不变。

@@ -66,6 +66,7 @@ async function loadPages(vaultService: DesktopVaultService) {
         fileName: file.fileName,
         markdown: content,
         relativePath: file.relativePath,
+        updatedAt: file.mtime ?? undefined,
       });
     },
   );

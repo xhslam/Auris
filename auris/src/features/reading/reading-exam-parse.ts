@@ -15,7 +15,6 @@ const EXAM_TYPE_HEADING =
   /^##\s*题型\s*[:：]\s*(.+?)\s*$/gm;
 
 const LEGACY_EXAM_HEADING_ALIASES = [
-  "完形填空",
   "阅读理解",
   "新题型-排序",
   "新题型-七选五",
@@ -28,9 +27,6 @@ const LEGACY_EXAM_HEADING_ALIASES = [
 ] as const;
 
 const EXAM_TYPE_ALIASES: Record<string, ReadingExamType> = {
-  完形: "cloze",
-  完形填空: "cloze",
-  "use of english": "cloze",
   阅读: "reading",
   阅读理解: "reading",
   "新题型-排序": "new_order",
@@ -51,6 +47,9 @@ const EXAM_TYPE_ALIASES: Record<string, ReadingExamType> = {
   写作: "writing_b",
   作文: "writing_b",
 };
+
+const RETIRED_CLOZE_HEADING =
+  /^##[ \t]*(?:题型[ \t]*[:：][ \t]*)?完形填空[ \t]*$/gm;
 
 const SECTION_KIND_ALIASES: Record<string, ReadingExamBlockKind> = {
   directions: "directions",
@@ -109,13 +108,21 @@ export function stripMarkdownFrontmatter(markdown: string) {
   return text.slice(end + 4).replace(/^\r?\n/, "");
 }
 
-/** Keep old study files usable while making `## 题型: …` the canonical form. */
+/**
+ * Keep old study files readable while removing the retired cloze presentation.
+ * A cloze heading is an input compatibility alias only: from this point on it
+ * is indistinguishable from a reading-comprehension section.
+ */
 function normalizeLegacyExamHeading(markdown: string) {
+  const canonicalMarkdown = markdown.replace(
+    RETIRED_CLOZE_HEADING,
+    "## 题型: 阅读理解",
+  );
   const legacyPattern = new RegExp(
     `^##\\s*(${LEGACY_EXAM_HEADING_ALIASES.join("|")})\\s*$`,
     "gm",
   );
-  return markdown.replace(legacyPattern, "## 题型: $1");
+  return canonicalMarkdown.replace(legacyPattern, "## 题型: $1");
 }
 
 export function resolveExamTypeLabel(label: string): ReadingExamType | null {
@@ -128,7 +135,10 @@ export function resolveExamTypeLabel(label: string): ReadingExamType | null {
 
 export function hasReadingExamMarkers(markdown: string) {
   const body = normalizeLegacyExamHeading(stripMarkdownFrontmatter(markdown));
-  return /^##\s*题型\s*[:：]\s*.+/m.test(body);
+  EXAM_TYPE_HEADING.lastIndex = 0;
+  return [...body.matchAll(EXAM_TYPE_HEADING)].some((match) =>
+    resolveExamTypeLabel(match[1] ?? "") !== null,
+  );
 }
 
 function resolveBlockKind(heading: string): ReadingExamBlockKind {
@@ -543,14 +553,17 @@ export function parseReadingExamMarkdown(markdown: string): ReadingExamSection[]
     const end =
       index + 1 < matches.length ? (matches[index + 1]!.index ?? body.length) : body.length;
     const sectionBody = body.slice(start, end);
+    const readingStudyBlocks = type === "reading"
+      ? parseReadingStudyTemplate(sectionBody)?.blocks
+      : undefined;
     const blocks =
       type === "reading"
         ? (
-            parseDetailedReadingHandout(sectionBody) ??
-            parseReadingStudyTemplate(sectionBody)?.blocks ??
-            parseRichReadingComprehension(sectionBody) ??
-            parseInnerBlocks(sectionBody)
-          )
+          parseDetailedReadingHandout(sectionBody) ??
+          readingStudyBlocks ??
+          parseRichReadingComprehension(sectionBody) ??
+          parseInnerBlocks(sectionBody)
+        )
         : type === "writing_a" || type === "writing_b"
           ? parseCompositionBlocks(sectionBody)
           : parseInnerBlocks(sectionBody);
@@ -628,7 +641,6 @@ export function buildReadingSourceFromExamMarkdown(options: {
 }
 
 export const READING_EXAM_TYPE_LABELS: Record<ReadingExamType, string> = {
-  cloze: "完形填空",
   reading: "阅读理解",
   new_order: "新题型-排序",
   new_seven_five: "新题型-七选五",
@@ -662,10 +674,33 @@ const BLOCK_HEADING_LABELS: Record<ReadingExamBlockKind, string> = {
   other: "内容",
 };
 
+function isReadingStudySection(section: ReadingExamSection) {
+  return section.blocks.length === READING_STUDY_TEMPLATE.length &&
+    READING_STUDY_TEMPLATE.every(
+      (template, index) => section.blocks[index]?.kind === template.kind,
+    );
+}
+
+function serializeReadingStudySection(section: ReadingExamSection) {
+  const header = `## 题型: ${READING_EXAM_TYPE_LABELS[section.type] ?? section.label}`;
+  const body = READING_STUDY_TEMPLATE.map((template, index) => {
+    const block = section.blocks[index]!;
+    const content = block.translation
+      ? `${block.english}\n\n${block.translation}`
+      : block.english;
+    return `## ${template.number}. ${template.titles[0]}\n\n${content}`;
+  }).join("\n\n");
+
+  return `${header}\n\n${body}`;
+}
+
 /** Serialize exam sections back to marker markdown for vault persistence. */
 export function serializeReadingExamSections(sections: ReadingExamSection[]) {
   return sections
     .map((section) => {
+      if (isReadingStudySection(section)) {
+        return serializeReadingStudySection(section);
+      }
       const header = `## 题型: ${READING_EXAM_TYPE_LABELS[section.type] ?? section.label}`;
       const body = section.blocks
         .map((block) => {

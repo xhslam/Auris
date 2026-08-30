@@ -190,11 +190,6 @@ const EXAM_PRESENTATIONS: Record<
   ReadingExamType,
   { eyebrow: string; hint: string; layout: string }
 > = {
-  cloze: {
-    eyebrow: "Context · Choice · Coherence",
-    hint: "先通读篇章，再在语境中逐一落词。",
-    layout: "cloze-sheet",
-  },
   reading: {
     eyebrow: "Passage · Evidence · Questions",
     hint: "正文保持连续阅读，题目作为独立答题区。",

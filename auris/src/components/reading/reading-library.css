@@ -106,6 +106,12 @@
   padding: clamp(48px, 6.5vh, 70px) 0 120px;
 }
 
+/* Keep the editorial heading below the native desktop island instead of
+   letting the island shadow clip the final letters of "Reading". */
+.desktop-app-shell[data-desktop-runtime="true"] .reading-library__canvas {
+  padding-top: clamp(82px, 10vh, 104px);
+}
+
 .reading-library__topbar {
   display: flex;
   align-items: center;

@@ -944,29 +944,21 @@
   font-weight: 700;
 }
 
-/* Each exam family gets a layout shaped around the task, rather than a
-   recoloured copy of the prose reader. */
-.reading-exam__section[data-type="cloze"] {
-  --exam-rule: #c46c48;
-}
-
-.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__section-layout,
+/* Each remaining exam family gets a layout shaped around the task, rather
+   than a recoloured copy of the prose reader. */
 .reading-exam__section[data-layout="passage-questions"] .reading-exam__section-layout,
 .reading-exam__section[data-layout="gap-matcher"] .reading-exam__section-layout {
   grid-template-columns: minmax(0, 1.65fr) minmax(230px, 0.85fr);
   align-items: start;
 }
 
-.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="directions"],
 .reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="directions"],
 .reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="directions"],
-.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="answers"],
 .reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="answers"],
 .reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="answers"] {
   grid-column: 1 / -1;
 }
 
-.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="passage"],
 .reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="passage"],
 .reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="passage"] {
   grid-column: 1;
@@ -974,7 +966,6 @@
   background: color-mix(in srgb, var(--reading-panel) 74%, transparent);
 }
 
-.reading-exam__section[data-layout="cloze-sheet"] .reading-exam__block[data-kind="options"],
 .reading-exam__section[data-layout="passage-questions"] .reading-exam__block[data-kind="questions"],
 .reading-exam__section[data-layout="gap-matcher"] .reading-exam__block[data-kind="options"] {
   grid-column: 2;

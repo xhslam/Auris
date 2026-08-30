@@ -1076,19 +1076,6 @@ body::-webkit-scrollbar-thumb:hover,
   padding: 7px 6px 7px 22px;
 }
 
-.desktop-reading-nav[data-flat="true"] .desktop-reading-nav__children {
-  padding-top: 0;
-}
-
-.desktop-reading-nav[data-flat="true"] .desktop-reading-nav__children::before {
-  display: none;
-}
-
-.desktop-reading-nav[data-flat="true"] .desktop-reading-nav__row--child {
-  min-height: 36px;
-  padding: 8px 6px;
-}
-
 /* ---------- 6. 通用排版：标题用衬线 ---------- */
 .auris-page__title,
 .auris-section__title,

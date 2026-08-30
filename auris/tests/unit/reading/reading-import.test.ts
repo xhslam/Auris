@@ -88,7 +88,7 @@ describe("createReadingSourceFromMarkdownFile", () => {
     expect(source.paragraphs[1]?.translation).toBe("稳定的节奏保护注意力。");
   });
 
-  it("parses exam-type markers into structured sections", async () => {
+  it("normalizes the retired cloze marker into reading comprehension", async () => {
     const file = new File(
       [
         `## 题型: 完形填空
@@ -106,20 +106,102 @@ Advances in AI __1__ our lives.
 1. A
 `,
       ],
-      "Cloze.md",
+      "Retired Cloze.md",
       { type: "text/markdown" },
     );
 
     const source = await createReadingSourceFromMarkdownFile(file);
 
-    expect(source.examSections).toHaveLength(1);
-    expect(source.examSections?.[0]?.type).toBe("cloze");
-    expect(source.examSections?.[0]?.blocks.some((block) => block.kind === "passage")).toBe(
-      true,
-    );
+    expect(hasReadingExamMarkers(await file.text())).toBe(true);
+    expect(source.category).toBe("exam");
+    expect(source.examSections?.[0]?.type).toBe("reading");
+    expect(source.examSections?.[0]?.label).toBe("阅读理解");
     expect(
       source.examSections?.[0]?.blocks.find((block) => block.kind === "passage")?.english,
-    ).toContain("__1__");
+    ).toContain("Advances in AI __1__ our lives.");
+  });
+
+  it("routes the explicit cloze heading through the shared reading-study format", async () => {
+    const markdown = `# 2010 考研英语一 · 完形填空
+
+## 完形填空
+
+## 0. 一分钟读懂全文
+主题概览。
+
+## 1. 逐句翻译和讲解
+### Sentence 1
+**英文**
+The finding was __1__ surprising.
+**中文**
+这一发现非常令人惊讶。
+#### 句子结构
+主系表结构。
+#### 语法现象
+一般过去时。
+#### 常见用法
+be surprising。
+#### 词汇与表达
+finding。
+#### 综合点评
+空格依赖程度副词与形容词的搭配。
+
+## 2. 全文逻辑地图
+现象 → 解释 → 结论。
+
+## 3. 长难句精讲
+本篇关键句解析。
+
+## 4. 关键词与表达
+关键词。
+
+## 5. 阅读理解题精讲
+### Question 1
+答案与选项辨析。
+
+## 6. 文章中的「同义替换」
+同义复现。
+
+## 7. 容易误解的地方
+干扰项陷阱。
+
+## 8. 用大白话重新讲一遍文章
+文章复述。
+
+## 9. 读完这篇文章真正需要记住什么
+核心记忆。
+
+## 10. 最终压缩
+一句话总结。`;
+    const file = new File([markdown], "2010.md", { type: "text/markdown" });
+    const source = await createReadingSourceFromMarkdownFile(file);
+
+    expect(hasReadingExamMarkers(markdown)).toBe(true);
+    expect(source.category).toBe("exam");
+    expect(source.examSections?.[0]?.label).toBe("阅读理解");
+    expect(source.examSections?.[0]?.type).toBe("reading");
+    expect(source.examSections?.[0]?.blocks.map((block) => block.kind)).toEqual([
+      "overview",
+      "passage",
+      "logic_map",
+      "sentences",
+      "vocabulary",
+      "questions",
+      "synonyms",
+      "pitfalls",
+      "retelling",
+      "takeaways",
+      "summary",
+    ]);
+    expect(source.examSections?.[0]?.blocks[1]?.english).toContain(
+      "The finding was __1__ surprising.",
+    );
+
+    const serialized = serializeReadingExamSections(source.examSections!);
+    expect(serialized).toContain("## 题型: 阅读理解");
+    expect(serialized).not.toMatch(/^## 完形填空$/m);
+    expect(serialized).toContain("## 1. 逐句翻译和讲解");
+    expect(parseReadingExamMarkdown(serialized)?.[0]?.blocks).toHaveLength(11);
   });
 
   it.each([
@@ -454,6 +536,20 @@ What is the main idea?
     expect(sections?.[0]?.type).toBe("reading");
     expect(sections?.[0]?.blocks.some((block) => block.kind === "passage")).toBe(true);
     expect(sections?.[0]?.blocks.some((block) => block.kind === "questions")).toBe(true);
+  });
+
+  it("recognizes the retired cloze heading only as a reading trigger", () => {
+    expect(hasReadingExamMarkers("## 完形填空\n\n## 0. 一分钟读懂全文")).toBe(true);
+    expect(parseReadingExamMarkdown(`## 完形填空
+
+### 篇章
+The passage remains in the reading layout.
+
+### 题目
+What is the main idea?`)?.[0]).toMatchObject({
+      label: "阅读理解",
+      type: "reading",
+    });
   });
 
   it("normalizes rich reading handouts into one bilingual passage and question area", () => {

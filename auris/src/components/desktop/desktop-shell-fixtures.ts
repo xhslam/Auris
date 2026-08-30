@@ -95,11 +95,11 @@ export const DESKTOP_NAV_ITEMS: DesktopNavItem[] = [
     runtimeWorkspace: "workspace",
   },
   {
-    description: "会议片段和演示素材",
+    description: "视频素材与英语陪练",
     group: "tools",
     href: "/video",
     id: "video",
-    label: "会议片段",
+    label: "视频",
     runtimeWorkspace: "workspace",
   },
   {

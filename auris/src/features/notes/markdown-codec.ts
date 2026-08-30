@@ -19,6 +19,7 @@ type ParseMarkdownNoteInput = {
   fileName: string;
   markdown: string;
   relativePath?: string;
+  updatedAt?: string;
 };
 
 function parseFrontmatter(source: string) {
@@ -215,6 +216,7 @@ export function parseMarkdownNote({
   fileName,
   markdown,
   relativePath,
+  updatedAt,
 }: ParseMarkdownNoteInput): NotePage | null {
   const trimmed = markdown.trim();
 
@@ -236,7 +238,9 @@ export function parseMarkdownNote({
     markdownBody,
     relativePath: relativePath ?? fileName,
     title: resolvedTitle,
-    updatedAt: frontmatter.updatedAt,
+    // 文件系统修改时间代表 Vault 中真实的最近变更；无法取得时才回退到
+    // Auris frontmatter，避免普通 Markdown 在每次扫描时都被标记成“刚更新”。
+    updatedAt: updatedAt ?? frontmatter.updatedAt,
   });
 }
 

@@ -185,6 +185,62 @@ describe("terminal-session-manager", () => {
     );
   });
 
+  it("forces a UTF-8 locale for POSIX shells when the desktop process inherited C locale", () => {
+    const pty = createFakePty();
+    const spawnPty = vi.fn(() => pty);
+    const manager = createTerminalSessionManager({
+      env: {
+        LANG: "C",
+        LC_ALL: "C",
+        SHELL: "/bin/zsh",
+      },
+      homedir: () => "/Users/test",
+      platform: "darwin",
+      ptyBackend: { spawn: spawnPty },
+    });
+
+    manager.createSession({
+      cwd: "/Users/test/Desktop/大学markdown",
+      sessionId: "term-utf8-locale",
+    });
+
+    expect(spawnPty).toHaveBeenCalledWith(
+      "/bin/zsh",
+      [],
+      expect.objectContaining({
+        env: expect.objectContaining({
+          LANG: "en_US.UTF-8",
+          LC_ALL: "en_US.UTF-8",
+          LC_CTYPE: "en_US.UTF-8",
+        }),
+      }),
+    );
+  });
+
+  it("preserves an existing UTF-8 locale for POSIX shells", () => {
+    const spawnPty = vi.fn(() => createFakePty());
+    const manager = createTerminalSessionManager({
+      env: {
+        LANG: "zh_CN.UTF-8",
+        SHELL: "/bin/zsh",
+      },
+      homedir: () => "/Users/test",
+      platform: "darwin",
+      ptyBackend: { spawn: spawnPty },
+    });
+
+    manager.createSession({ sessionId: "term-existing-utf8-locale" });
+
+    expect(
+      (spawnPty.mock.calls[0]?.[2] as { env: Record<string, string> }).env,
+    ).toMatchObject({
+      LANG: "zh_CN.UTF-8",
+    });
+    expect(
+      (spawnPty.mock.calls[0]?.[2] as { env: Record<string, string> }).env,
+    ).not.toHaveProperty("LC_CTYPE");
+  });
+
   it("falls back to pipe spawn when the pty backend throws synchronously", () => {
     const ptySpawn = vi.fn(() => {
       throw new Error("posix_spawnp failed.");

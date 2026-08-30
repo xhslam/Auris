@@ -94,6 +94,15 @@ describe("Reading theme styles", () => {
     }
   });
 
+  it("keeps the Reading heading below the native desktop island", () => {
+    const css = readFileSync(libraryCssPath, "utf-8");
+    const canvasRule = css.match(
+      /\.desktop-app-shell\[data-desktop-runtime="true"\] \.reading-library__canvas\s*\{([^}]*)\}/,
+    )?.[1];
+
+    expect(canvasRule).toContain("padding-top: clamp(82px, 10vh, 104px)");
+  });
+
   it("keeps the article title on the active Reading foreground token", () => {
     const css = readFileSync(redesignCssPath, "utf-8");
     const titleRule = css.match(

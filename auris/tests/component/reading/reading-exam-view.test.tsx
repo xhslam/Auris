@@ -8,7 +8,6 @@ import type {
 } from "@/features/reading/reading-fixtures";
 
 const LAYOUTS: Array<[ReadingExamType, string, string]> = [
-  ["cloze", "cloze-sheet", "完形填空"],
   ["reading", "passage-questions", "阅读理解"],
   ["new_order", "sequence-board", "新题型-排序"],
   ["new_seven_five", "gap-matcher", "新题型-七选五"],
