@@ -21,8 +21,26 @@ export function normalizeLanguage(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-function isExternalSource(value: string) {
-  return /^(?:[a-zA-Z][a-zA-Z\d+\-.]*:|\/\/)/.test(value.trim());
+const SAFE_DATA_IMAGE_PATTERN =
+  /^data:image\/(?:png|jpe?g|gif|webp|avif);base64,[a-z\d+/=\s]+$/iu;
+
+function hasUriScheme(value: string) {
+  return /^[a-z][a-z\d+.-]*:/iu.test(value.trim());
+}
+
+function isAllowedExternalImageSource(value: string) {
+  const trimmed = value.trim();
+  return (
+    /^https?:\/\//iu.test(trimmed) || SAFE_DATA_IMAGE_PATTERN.test(trimmed)
+  );
+}
+
+function isSafeRelativeImagePath(value: string) {
+  const normalized = value.replace(/\\/g, "/");
+  if (!normalized || normalized === "." || normalized === "~") return false;
+  if (normalized.startsWith("/") || normalized.startsWith("~/")) return false;
+  if (/^[a-z]:\//iu.test(normalized) || hasUriScheme(normalized)) return false;
+  return !normalized.split("/").some((segment) => segment === "..");
 }
 
 function normalizeVaultPathSegments(path: string) {
@@ -54,6 +72,7 @@ function encodeVaultMediaPath(path: string) {
 export function resolveMarkdownImageSource(
   source: string,
   notePath: string | null,
+  reloadKey = 0,
 ) {
   const trimmed = source.trim();
 
@@ -61,7 +80,7 @@ export function resolveMarkdownImageSource(
     return null;
   }
 
-  if (isExternalSource(trimmed)) {
+  if (isAllowedExternalImageSource(trimmed)) {
     return trimmed;
   }
 
@@ -74,6 +93,17 @@ export function resolveMarkdownImageSource(
     return null;
   }
 
+  if (
+    !isAllowedExternalImageSource(normalizedSource) &&
+    !isSafeRelativeImagePath(normalizedSource)
+  ) {
+    return null;
+  }
+
+  if (isAllowedExternalImageSource(normalizedSource)) {
+    return normalizedSource;
+  }
+
   const noteDirectory = notePath?.split("/").slice(0, -1).join("/") ?? "";
   const resolvedPath = normalizeVaultPathSegments(
     [noteDirectory, normalizedSource].filter(Boolean).join("/"),
@@ -83,7 +113,22 @@ export function resolveMarkdownImageSource(
     return null;
   }
 
-  return `shadowing-media://vault/${encodeVaultMediaPath(resolvedPath)}`;
+  return appendMediaReloadKey(
+    `shadowing-media://vault/${encodeVaultMediaPath(resolvedPath)}`,
+    reloadKey,
+  );
+}
+
+export function appendMediaReloadKey(source: string, reloadKey: number) {
+  if (
+    !source.startsWith("shadowing-media://vault/") ||
+    !Number.isSafeInteger(reloadKey) ||
+    reloadKey <= 0
+  ) {
+    return source;
+  }
+
+  return `${source}${source.includes("?") ? "&" : "?"}v=${reloadKey}`;
 }
 
 export async function renderCodeBlockPreview(

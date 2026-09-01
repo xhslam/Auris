@@ -44,7 +44,7 @@ function createFakePty(): FakePty {
 describe("terminal-session-manager", () => {
   it("prefers Windows PowerShell over cmd.exe when no shell is specified", () => {
     const pty = createFakePty();
-    const spawnPty = vi.fn((..._args: unknown[]) => pty);
+    const spawnPty = vi.fn(() => pty);
     const manager = createTerminalSessionManager({
       env: {
         ComSpec: "C:\\Windows\\System32\\cmd.exe",
@@ -73,7 +73,7 @@ describe("terminal-session-manager", () => {
 
   it("creates a pty-backed terminal session and streams data through the manager", () => {
     const pty = createFakePty();
-    const spawnPty = vi.fn((..._args: unknown[]) => pty);
+    const spawnPty = vi.fn(() => pty);
     const manager = createTerminalSessionManager({
       env: {
         ComSpec: "C:\\Windows\\System32\\cmd.exe",
@@ -96,12 +96,14 @@ describe("terminal-session-manager", () => {
       cwd: "C:\\vault",
       rows: 32,
       sessionId: "term-1",
+      workspaceInstanceId: "path:win32:C:\\vault",
     });
 
     expect(session).toMatchObject({
       backend: "pty",
       cwd: "C:\\vault",
       id: "term-1",
+      workspaceInstanceId: "path:win32:C:\\vault",
       shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
     });
     expect(spawnPty).toHaveBeenCalledWith(
@@ -138,6 +140,36 @@ describe("terminal-session-manager", () => {
       }),
     );
     expect(manager.listSessions()).toEqual([]);
+  });
+
+  it("buffers bounded output for renderer detach and replay", () => {
+    const pty = createFakePty();
+    const manager = createTerminalSessionManager({
+      env: { SHELL: "/bin/zsh" },
+      homedir: () => "/Users/test",
+      platform: "darwin",
+      ptyBackend: { spawn: vi.fn(() => pty) },
+    });
+
+    const created = manager.createSession({
+      sessionId: "term-buffered",
+      workspaceInstanceId: "path:darwin:/workspace",
+    });
+    pty.emitData("before detach\r\n");
+
+    expect(created.output).toBe("");
+    expect(manager.listSessions()).toEqual([
+      expect.objectContaining({
+        id: "term-buffered",
+        output: "before detach\r\n",
+        workspaceInstanceId: "path:darwin:/workspace",
+      }),
+    ]);
+
+    pty.emitData("x".repeat(200_010));
+    const [record] = manager.listSessions();
+    expect(record.output).toHaveLength(200_000);
+    expect(record.output.endsWith("x".repeat(32))).toBe(true);
   });
 
   it("rejects renderer-provided relative shell paths", () => {

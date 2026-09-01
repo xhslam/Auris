@@ -6,6 +6,7 @@ import type { NotesDirectoryInfo } from "@/features/notes/note-types";
 import { createBrowserVaultClient } from "@/features/notes/vault/browser-vault-client";
 import { createDesktopVaultClient } from "@/platform/desktop/vault-client";
 import { createVaultStore } from "@/features/notes/vault/vault-store";
+import { bumpNotesMediaReloadKey } from "@/features/notes/editor/notes-media-reload";
 import { buildVaultExportManifest } from "@/features/notes/vault/vault-export-manifest";
 import {
   formatVaultExportValidationIssues,
@@ -218,6 +219,7 @@ export function useNotesRuntime() {
     void refreshSnapshot();
 
     return vaultStore.subscribeToExternalChanges(() => {
+      bumpNotesMediaReloadKey();
       void refreshSnapshot({
         showLoading: false,
       });

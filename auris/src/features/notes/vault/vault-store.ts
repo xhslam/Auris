@@ -52,6 +52,7 @@ export function createVaultStore(client: VaultClient) {
   };
   const documentCache = new Map<string, NoteDocument>();
   let fullyIndexed = false;
+  let refreshChain: Promise<void> = Promise.resolve();
 
   function publish(entries: VaultEntry[]) {
     const documents = entries
@@ -103,7 +104,7 @@ export function createVaultStore(client: VaultClient) {
     });
   }
 
-  async function refresh(options: VaultRefreshOptions = {}) {
+  async function performRefresh(options: VaultRefreshOptions = {}) {
     const entries = sortVaultEntries(
       (await client.listEntries()).filter(
         (entry) => !isHiddenVaultPath(entry.path),
@@ -134,6 +135,15 @@ export function createVaultStore(client: VaultClient) {
     await readEntries(entries, requestedPaths);
     fullyIndexed = options.loadAll === true;
     return publish(entries);
+  }
+
+  function refresh(options: VaultRefreshOptions = {}) {
+    const result = refreshChain.then(() => performRefresh(options));
+    refreshChain = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
   }
 
   async function loadDocuments(paths: readonly string[]) {

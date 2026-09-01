@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { SearchAddon } from "@xterm/addon-search";
 import type { Terminal } from "@xterm/xterm";
@@ -8,10 +8,16 @@ import type {
   DesktopTerminalBridge,
   DesktopTerminalSessionRecord,
 } from "@/platform/desktop/desktop-bridge";
+import {
+  selectActiveTerminalSessionId,
+  selectTerminalSessionsForWorkspace,
+} from "@/features/notes/workspace/terminal-session-scope";
 
 const DEFAULT_COLS = 80;
 const DEFAULT_ROWS = 24;
 const MAX_SESSIONS = 5;
+const WINDOW_TERMINAL_SCOPE = "__window__";
+const lastActiveSessionByScope = new Map<string, string>();
 
 type SessionStatus = "starting" | "running" | "exited" | "failed";
 
@@ -23,6 +29,7 @@ export type NotesTerminalSession = {
   label: string;
   shell: string | null;
   status: SessionStatus;
+  workspaceInstanceId: string | null;
 };
 
 type TerminalEntry = {
@@ -36,6 +43,7 @@ type UseNotesTerminalSessionsInput = {
   cwd?: string | null;
   enabled: boolean;
   terminalBridge?: DesktopTerminalBridge | null;
+  workspaceInstanceId?: string | null;
 };
 
 function getThemeScope(element?: Element | null) {
@@ -169,6 +177,30 @@ function createSessionLabel(sessions: NotesTerminalSession[]) {
   return `Terminal ${index}`;
 }
 
+function getTerminalScopeKey(workspaceInstanceId: string | null) {
+  return workspaceInstanceId ?? WINDOW_TERMINAL_SCOPE;
+}
+
+function restoreTerminalSessions(records: DesktopTerminalSessionRecord[]) {
+  const nextIndexByScope = new Map<string, number>();
+
+  return records.map((record) => {
+    const scopeKey = getTerminalScopeKey(record.workspaceInstanceId ?? null);
+    const index = nextIndexByScope.get(scopeKey) ?? 1;
+    nextIndexByScope.set(scopeKey, index + 1);
+    return {
+      backend: record.backend,
+      cwd: record.cwd,
+      id: record.id,
+      isAlive: true,
+      label: `Terminal ${index}`,
+      shell: record.shell,
+      status: "starting" as const,
+      workspaceInstanceId: record.workspaceInstanceId ?? null,
+    };
+  });
+}
+
 function getRendererSessionNumber(sessionId: string) {
   const match = sessionId.match(/^notes-term-(\d+)$/);
   return match ? Number.parseInt(match[1] ?? "0", 10) : null;
@@ -270,11 +302,13 @@ export function useNotesTerminalSessions({
   cwd = null,
   enabled,
   terminalBridge = null,
+  workspaceInstanceId = null,
 }: UseNotesTerminalSessionsInput) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const entriesRef = useRef<Map<string, TerminalEntry>>(new Map());
   const initializingSessionIdsRef = useRef<Set<string>>(new Set());
   const invalidatedSessionIdsRef = useRef<Set<string>>(new Set());
+  const terminatingSessionIdsRef = useRef<Set<string>>(new Set());
   const isMountedRef = useRef(true);
   // Forward refs so the xterm key handler (installed once per session inside
   // initializeSession) can always reach the latest paste/copy callbacks
@@ -325,11 +359,9 @@ export function useNotesTerminalSessions({
         }, 1);
 
         nextSessionIdRef.current = Math.max(nextSessionIdRef.current, nextIndex);
-        setSessions((current) => current.length ? current : records.map((record, index) => ({
-          backend: record.backend, cwd: record.cwd, id: record.id, isAlive: true,
-          label: `Terminal ${index + 1}`, shell: record.shell, status: "starting",
-        })));
-        setActiveSessionId((current) => current ?? records.at(-1)?.id ?? null);
+        setSessions((current) =>
+          current.length ? current : restoreTerminalSessions(records),
+        );
       })
       .catch(() => undefined)
       .finally(() => {
@@ -346,6 +378,21 @@ export function useNotesTerminalSessions({
   useEffect(() => {
     sessionsRef.current = sessions;
   }, [sessions]);
+
+  const visibleSessions = useMemo(
+    () => selectTerminalSessionsForWorkspace(sessions, workspaceInstanceId),
+    [sessions, workspaceInstanceId],
+  );
+  const scopeKey = getTerminalScopeKey(workspaceInstanceId);
+
+  const activateSession = useCallback(
+    (sessionId: string) => {
+      if (!visibleSessions.some(({ id }) => id === sessionId)) return;
+      lastActiveSessionByScope.set(scopeKey, sessionId);
+      setActiveSessionId(sessionId);
+    },
+    [scopeKey, visibleSessions],
+  );
 
   const isSessionActive = useCallback((sessionId: string) => {
     return (
@@ -423,14 +470,22 @@ export function useNotesTerminalSessions({
   }, []);
 
   const createSession = useCallback(() => {
-    if (sessionsRef.current.length >= MAX_SESSIONS) {
+    const currentVisibleSessions = selectTerminalSessionsForWorkspace(
+      sessionsRef.current,
+      workspaceInstanceId,
+    );
+    if (currentVisibleSessions.length >= MAX_SESSIONS) {
       return;
     }
 
     const nextId = createRendererSessionId();
 
     setSessions((current) => {
-      if (current.length >= MAX_SESSIONS) {
+      const visibleCurrent = selectTerminalSessionsForWorkspace(
+        current,
+        workspaceInstanceId,
+      );
+      if (visibleCurrent.length >= MAX_SESSIONS) {
         return current;
       }
 
@@ -441,9 +496,10 @@ export function useNotesTerminalSessions({
           cwd: null,
           id: nextId,
           isAlive: true,
-          label: createSessionLabel(current),
+          label: createSessionLabel(visibleCurrent),
           shell: null,
           status: "starting",
+          workspaceInstanceId,
         },
       ];
       sessionsRef.current = nextSessions;
@@ -451,7 +507,8 @@ export function useNotesTerminalSessions({
     });
 
     setActiveSessionId(nextId);
-  }, [createRendererSessionId]);
+    lastActiveSessionByScope.set(scopeKey, nextId);
+  }, [createRendererSessionId, scopeKey, workspaceInstanceId]);
 
   const markSession = useCallback(
     (sessionId: string, patch: Partial<NotesTerminalSession>) => {
@@ -484,6 +541,7 @@ export function useNotesTerminalSessions({
       }
 
       invalidateSession(sessionId);
+      terminatingSessionIdsRef.current.add(sessionId);
       terminalBridge?.kill(sessionId).catch(() => undefined);
       disposeEntry(sessionId);
       const nextSession = {
@@ -503,9 +561,12 @@ export function useNotesTerminalSessions({
       setActiveSessionId((current) =>
         current === sessionId ? nextSessionId : current,
       );
+      if (lastActiveSessionByScope.get(scopeKey) === sessionId) {
+        lastActiveSessionByScope.set(scopeKey, nextSessionId);
+      }
       setStatusMessage(null);
     },
-    [createRendererSessionId, disposeEntry, invalidateSession, terminalBridge],
+    [createRendererSessionId, disposeEntry, invalidateSession, scopeKey, terminalBridge],
   );
 
   const initializeSession = useCallback(
@@ -629,10 +690,13 @@ export function useNotesTerminalSessions({
           cwd,
           rows: terminal.rows || DEFAULT_ROWS,
           sessionId: session.id,
+          workspaceInstanceId: session.workspaceInstanceId,
         });
 
         if (!isSessionActive(session.id)) {
-          void terminalBridge.kill(record.id).catch(() => undefined);
+          if (terminatingSessionIdsRef.current.has(session.id)) {
+            void terminalBridge.kill(record.id).catch(() => undefined);
+          }
           pendingInputRef.current.delete(session.id);
           disposeEntry(session.id);
           return;
@@ -644,8 +708,12 @@ export function useNotesTerminalSessions({
           isAlive: true,
           shell: record.shell,
           status: "running",
+          workspaceInstanceId: record.workspaceInstanceId ?? session.workspaceInstanceId,
         });
         setStatusMessage(null);
+        if (record.output) {
+          terminal.write(record.output);
+        }
         const pendingInput = consumePendingInput(session.id);
 
         if (pendingInput) {
@@ -735,22 +803,37 @@ export function useNotesTerminalSessions({
       return;
     }
 
-    if (sessionsRef.current.length === 0) {
+    if (visibleSessions.length === 0) {
       createSession();
     }
-  }, [createSession, enabled, hasLoadedBackendSessions, terminalBridge]);
+  }, [createSession, enabled, hasLoadedBackendSessions, terminalBridge, visibleSessions.length]);
+
+  useEffect(() => {
+    const nextActiveSessionId = selectActiveTerminalSessionId(
+      sessions,
+      workspaceInstanceId,
+      activeSessionId,
+      lastActiveSessionByScope.get(scopeKey) ?? null,
+    );
+    if (nextActiveSessionId) {
+      lastActiveSessionByScope.set(scopeKey, nextActiveSessionId);
+    }
+    if (nextActiveSessionId !== activeSessionId) {
+      setActiveSessionId(nextActiveSessionId);
+    }
+  }, [activeSessionId, scopeKey, sessions, workspaceInstanceId]);
 
   useEffect(() => {
     if (!enabled || !terminalBridge) {
       return;
     }
 
-    sessions.forEach((session) => {
+    visibleSessions.forEach((session) => {
       if (session.status === "starting") {
         void initializeSession(session);
       }
     });
-  }, [enabled, initializeSession, sessions, terminalBridge]);
+  }, [enabled, initializeSession, terminalBridge, visibleSessions]);
 
   useEffect(() => {
     showActiveSession(activeSessionId);
@@ -820,7 +903,6 @@ export function useNotesTerminalSessions({
         invalidateSession(session.id);
       });
       entriesRef.current.forEach((entry, sessionId) => {
-        terminalBridge?.kill(sessionId).catch(() => undefined);
         pendingInputRef.current.delete(sessionId);
         entry.terminal.dispose();
         entry.container.remove();
@@ -830,11 +912,12 @@ export function useNotesTerminalSessions({
     };
 
     return disposeAllEntries;
-  }, [invalidateSession, terminalBridge]);
+  }, [invalidateSession]);
 
   const closeSession = useCallback(
     (sessionId: string) => {
       invalidateSession(sessionId);
+      terminatingSessionIdsRef.current.add(sessionId);
       terminalBridge?.kill(sessionId).catch(() => undefined);
       pendingInputRef.current.delete(sessionId);
       disposeEntry(sessionId);
@@ -842,13 +925,22 @@ export function useNotesTerminalSessions({
         const nextSessions = current.filter((session) => session.id !== sessionId);
 
         if (activeSessionId === sessionId) {
-          setActiveSessionId(nextSessions.at(-1)?.id ?? null);
+          const nextActiveSessionId = selectTerminalSessionsForWorkspace(
+              nextSessions,
+              workspaceInstanceId,
+            ).at(-1)?.id ?? null;
+          if (nextActiveSessionId) {
+            lastActiveSessionByScope.set(scopeKey, nextActiveSessionId);
+          } else {
+            lastActiveSessionByScope.delete(scopeKey);
+          }
+          setActiveSessionId(nextActiveSessionId);
         }
 
         return nextSessions;
       });
     },
-    [activeSessionId, disposeEntry, invalidateSession, terminalBridge],
+    [activeSessionId, disposeEntry, invalidateSession, scopeKey, terminalBridge, workspaceInstanceId],
   );
 
   const closeActiveSession = useCallback(() => {
@@ -989,20 +1081,20 @@ export function useNotesTerminalSessions({
 
   return {
     activeSessionId,
-    activeSession: sessions.find((session) => session.id === activeSessionId) ?? null,
+    activeSession: visibleSessions.find((session) => session.id === activeSessionId) ?? null,
     clearActiveSession,
     closeActiveSession,
     copyActiveSelection,
     createSession,
     focusActiveSession,
     hostRef,
-    isMaxed: sessions.length >= MAX_SESSIONS,
+    isMaxed: visibleSessions.length >= MAX_SESSIONS,
     pasteIntoActiveSession,
     restartActiveSession,
     searchQuery,
     selectAllActiveSession,
-    sessions,
-    setActiveSessionId,
+    sessions: visibleSessions,
+    setActiveSessionId: activateSession,
     setSearchQuery,
     statusMessage,
   };

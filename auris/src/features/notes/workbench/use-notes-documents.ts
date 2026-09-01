@@ -41,6 +41,7 @@ import {
 import type { NotesWorkspaceState } from "@/features/notes/workspace/workspace-types";
 import {
   buildVaultWriteConflictDiff,
+  getVaultWriteConflictStaleReason,
   type VaultWriteConflict,
 } from "@/features/notes/vault/vault-write-conflict";
 import { normalizeVaultPath } from "@/features/notes/vault/vault-path";
@@ -1047,16 +1048,64 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     ],
   );
 
+  const revalidateWriteConflict = useCallback(
+    async (conflict: VaultWriteConflict) => {
+      const latestSnapshot = await refreshSnapshot({
+        eagerPaths: [conflict.path],
+        showLoading: false,
+      });
+      const currentDiskContent =
+        latestSnapshot?.documents.find(({ path }) => path === conflict.path)
+          ?.rawSource ?? null;
+      const staleReason = getVaultWriteConflictStaleReason(conflict, {
+        currentDiskContent,
+        dirty: dirtyPathsRef.current[conflict.path] === true,
+        documentPath: liveDocumentsRef.current[conflict.path]?.path ?? null,
+      });
+
+      if (!staleReason) {
+        return true;
+      }
+
+      if (
+        staleReason === "disk-changed" &&
+        dirtyPathsRef.current[conflict.path] === true &&
+        liveDocumentsRef.current[conflict.path]?.path === conflict.path
+      ) {
+        setWriteConflict({
+          ...conflict,
+          localRawSource:
+            liveDocumentsRef.current[conflict.path]?.rawSource ??
+            conflict.localRawSource,
+          remoteRawSource: currentDiskContent,
+        });
+      } else {
+        setWriteConflict(null);
+      }
+      setErrorMessage("文件状态已再次变化，已重新读取磁盘内容，请按最新状态处理冲突。");
+      return false;
+    },
+    [refreshSnapshot, setErrorMessage],
+  );
+
   const handleReloadWriteConflict = useCallback(async () => {
     if (!writeConflict) {
       return;
     }
 
+    if (!(await revalidateWriteConflict(writeConflict))) {
+      return;
+    }
+
     await clearConflictState(writeConflict.path, null);
-  }, [clearConflictState, writeConflict]);
+  }, [clearConflictState, revalidateWriteConflict, writeConflict]);
 
   const handleKeepWriteConflict = useCallback(async () => {
     if (!writeConflict) {
+      return;
+    }
+
+    if (!(await revalidateWriteConflict(writeConflict))) {
       return;
     }
 
@@ -1076,7 +1125,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     );
     setWriteConflict(null);
     setErrorMessage(null);
-  }, [setErrorMessage, writeConflict]);
+  }, [revalidateWriteConflict, setErrorMessage, writeConflict]);
 
   const handleCopyWriteConflictDiff = useCallback(async () => {
     if (!writeConflict) {

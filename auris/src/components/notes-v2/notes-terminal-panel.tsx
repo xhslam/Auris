@@ -28,6 +28,7 @@ type NotesTerminalPanelProps = {
   onRunCommand?: (commandId: string) => void;
   terminalBridge?: DesktopTerminalBridge | null;
   terminalCwd?: string | null;
+  workspaceInstanceId?: string | null;
 };
 
 function getSessionButtonLabel(label: string) {
@@ -43,6 +44,7 @@ export function NotesTerminalPanel({
   onRunCommand,
   terminalBridge = null,
   terminalCwd = null,
+  workspaceInstanceId = null,
 }: NotesTerminalPanelProps) {
   const {
     activeSession,
@@ -66,6 +68,7 @@ export function NotesTerminalPanel({
     cwd: terminalCwd,
     enabled: Boolean(terminalBridge),
     terminalBridge,
+    workspaceInstanceId,
   });
   const contextMenuRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] =

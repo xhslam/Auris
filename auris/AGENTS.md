@@ -207,6 +207,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 
 参考 VMark 的原子节点交互新增 `notes-math-node-view.ts`：行内公式默认只显示 KaTeX，点击后原位显示 LaTeX 源码并在上方显示实时预览，Enter/失焦保存、Escape 取消；块公式使用多行源码编辑器与实时预览。新增/扩展回归覆盖用户列出的积分、绝对值、多行 `\boxed` 链路、canonical delimiter、代码保护、货币符号防误判、混合预览与点击源码编辑。定向 Vitest 8 个文件、48 项通过；定向 ESLint、`git diff --check`、Next 生产构建、桌面隐私审计与 packaged MCP sidecar smoke 均通过。未改写用户笔记源文件；macOS arm64 本地包已替换 `/Applications/Auris.app` 并启动，`/notes` 返回 200，旧包备份为 `/Applications/Auris.app.backup-1.0.4-before-math-ast`。本地没有 Developer ID 证书，因此该同版本开发包未签名且未发布 GitHub Release。
 
+## Engineering trajectory: VMark v0.9.59 P0/P1 选择性对齐（2026-09-01）
+
+本轮依据 `docs/vmark-sync/feature-gap-report-2026-09-01.md` 实施三项已验证的架构无关保证，不整仓复制 VMark。Markdown 媒体解析改为 HTTP(S)、安全栅格图 data URL 和 Vault 内相对路径的明确白名单，Vault 变化会推进 reload key 并重建 CodeMirror 图片 decoration。Vault snapshot refresh 改为可继续的 Promise chain；Keep/Reload 前会即时重读目标文件，以 dirty、path 和最新磁盘内容阻止过期决策。Terminal owner 贯通 renderer、desktop bridge、Electron manager 和 recovery store；可见会话、上限、编号与最后活跃项按 Workspace 计算，收起面板只断开 xterm view，不终止 shell，主进程保留最近 200,000 字符供重新打开时回放。
+
+验证覆盖对抗性媒体源、单调 reload key、确定性 refresh race、冲突决策前二次变更、Workspace session selector/last-active、owner 持久化、有界输出回放和面板卸载不 kill。定向 Vitest、ESLint、三个 Electron CJS `node --check`、`git diff --check` 与 Next 生产构建的完整结果记录在 `docs/vmark-sync/implementation-status-2026-09-01.md`。Workspace Rail 当前的「关闭」只是临时移出列表且会在 refresh 后恢复，因此本轮没有将它扩张为销毁 Workspace 并 kill 其会话。未提交或推送 Git，用户已有词库与笔记改动未触碰。
+
 ## Engineering trajectory: 胶囊侧边栏结构列修正（2026-08-25）
 
 用户指出上一轮虽然复刻了胶囊本身，却把侧栏实现成覆盖页面的固定浮层；浏览器验收还通过强制桌面运行态与 Night 主题掩盖了真实组合关系。修正将侧栏定义为桌面壳的第一列：折叠列宽 52px（8px 左距 + 30px 轨道 + 14px 间隔），功能页面固定从第二列 `x=52` 开始；展开时第一列同步变为 262px，240px 导航与页面共同重排，不再遮挡页面。侧栏在列内使用 8px 外边距维持 `30×calc(100vh - 16px)` 胶囊几何。

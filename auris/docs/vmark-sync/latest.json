@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "6f1e1d9777d4ef62eed03cebe1c69b3c9013941d",
+  "comparedCommit": "47161298299a887a349003843b938f2c19dca261",
   "summary": {
-    "changed": 1694,
-    "added": 1570,
-    "deleted": 351,
-    "renamed": 201,
+    "changed": 1841,
+    "added": 1728,
+    "deleted": 356,
+    "renamed": 199,
     "missingAurisTargets": 0,
     "staleMappings": 12,
-    "mappedUpstreamChanges": 81,
-    "domainCandidates": 545,
-    "unmappedUpstreamChanges": 3190
+    "mappedUpstreamChanges": 87,
+    "domainCandidates": 605,
+    "unmappedUpstreamChanges": 3432
   },
   "upstreamChanges": [
     {
@@ -76,6 +76,30 @@
       "status": "added"
     },
     {
+      "path": ".cc-suite/audits/audit-fix-20260825-224150-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260829-134812-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260829-155501-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260831-190500-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260831-211200-r2-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260831-213000-r3-findings.md",
+      "status": "added"
+    },
+    {
       "path": ".claude/commands/bump.md",
       "status": "changed"
     },
@@ -116,6 +140,14 @@
       "status": "changed"
     },
     {
+      "path": ".claude/rules/21-website-docs.md",
+      "status": "changed"
+    },
+    {
+      "path": ".claude/rules/30-ui-consistency.md",
+      "status": "changed"
+    },
+    {
       "path": ".claude/rules/31-design-tokens.md",
       "status": "changed"
     },
@@ -126,6 +158,14 @@
     {
       "path": ".claude/rules/33-focus-indicators.md",
       "status": "changed"
+    },
+    {
+      "path": ".claude/rules/34-dark-theme.md",
+      "status": "changed"
+    },
+    {
+      "path": ".claude/rules/35-copy-conventions.md",
+      "status": "added"
     },
     {
       "path": ".claude/rules/40-version-bump.md",
@@ -153,6 +193,10 @@
     },
     {
       "path": ".claude/tdd-guardian/20260816-cross-platform-pdf-export.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/tdd-guardian/20260831-terminal-per-instance-sessions.md",
       "status": "added"
     },
     {
@@ -1092,6 +1136,10 @@
       "status": "changed"
     },
     {
+      "path": "e2e/journeys/01-boot-editor-ready.mjs",
+      "status": "changed"
+    },
+    {
       "path": "e2e/journeys/09-open-from-disk.mjs",
       "status": "changed"
     },
@@ -1192,6 +1240,18 @@
       "status": "added"
     },
     {
+      "path": "e2e/journeys/35-terminal-rail-scoping.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/jsonRpcStdio.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/bridge.mjs",
+      "status": "changed"
+    },
+    {
       "path": "e2e/lib/browser.mjs",
       "status": "added"
     },
@@ -1205,6 +1265,30 @@
     },
     {
       "path": "e2e/lib/fixtureServer.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/jsonRpcStdio.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/mockBridge.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/rail.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/readiness.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/readiness.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/settingsPatch.mjs",
       "status": "added"
     },
     {
@@ -1224,6 +1308,10 @@
       "status": "added"
     },
     {
+      "path": "e2e/portFileAgreement.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/run-ime.mjs",
       "status": "added"
     },
@@ -1232,8 +1320,28 @@
       "status": "changed"
     },
     {
+      "path": "e2e/smoke.mjs",
+      "status": "changed"
+    },
+    {
+      "path": "e2e/vmarkMcpResult.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/wait-ready.mjs",
       "status": "added"
+    },
+    {
+      "path": "e2e/waitReady.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/waitReadyArgs.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "eslint.config.js",
+      "status": "changed"
     },
     {
       "path": "eslint.typeaware.config.mjs",
@@ -1273,6 +1381,10 @@
     },
     {
       "path": "scripts/baseline-review-schedule.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/baselineRatchetContrastFloors.mjs",
       "status": "added"
     },
     {
@@ -1384,6 +1496,14 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-comment-headers.sh",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-comment-headers.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-commit-message.mjs",
       "status": "added"
     },
@@ -1452,6 +1572,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-i18n-copy.test.ts",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-i18n-keys.ts",
       "status": "changed"
     },
@@ -1465,6 +1589,10 @@
     },
     {
       "path": "scripts/check-keybinding-manifest.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-keybinding-manifest.test.mjs",
       "status": "added"
     },
     {
@@ -1560,6 +1688,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-selection-styles.mjs",
+      "status": "deleted"
+    },
+    {
       "path": "scripts/check-shell-slots.mjs",
       "status": "added"
     },
@@ -1604,6 +1736,22 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-theme-contrast.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-theme-contrast.ts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-theme-names.sh",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-theme-names.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-trusted-html-contract.mjs",
       "status": "added"
     },
@@ -1612,7 +1760,31 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-tscope-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-tscope-phase.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-type-aware.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-consistency.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-consistency.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-phase.test.mjs",
       "status": "added"
     },
     {
@@ -1664,6 +1836,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/design-tokens-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/dev-disk.mjs",
       "status": "added"
     },
@@ -1704,7 +1880,15 @@
       "status": "added"
     },
     {
+      "path": "scripts/gate-tests-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/gen-feature-ledger.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/i18n-copy-baseline.json",
       "status": "added"
     },
     {
@@ -1724,7 +1908,27 @@
       "status": "added"
     },
     {
+      "path": "scripts/lib/cssRules.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/designTokenChecks.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/designTokensTsx.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/lib/packageScripts.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/uiConsistencyCss.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/uiConsistencyTsx.mjs",
       "status": "added"
     },
     {
@@ -1780,11 +1984,23 @@
       "status": "added"
     },
     {
+      "path": "scripts/test-changed.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/test-types-baseline.json",
       "status": "added"
     },
     {
+      "path": "scripts/theme-contrast-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/type-aware-baseline.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/ui-consistency-baseline.json",
       "status": "added"
     },
     {
@@ -3621,6 +3837,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/pdf_export/renderer/linux_print.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/pdf_export/renderer/macos.rs",
       "status": "added"
     },
@@ -3698,6 +3918,14 @@
     },
     {
       "path": "src-tauri/src/shell_integration.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance.test.rs",
       "status": "added"
     },
     {
@@ -3873,6 +4101,10 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/tauri.dev.conf.json",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/tests/spike_sp1_dry_run_projection.rs",
       "status": "added"
     },
@@ -4021,6 +4253,18 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/BrowserGrantsList.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserOmnibox.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserOverlays.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserPageTabs.test.tsx",
       "status": "changed"
     },
@@ -4042,6 +4286,14 @@
     },
     {
       "path": "src/components/Browser/browser-chrome.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/browser-grants-list.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/browser-omnibox.css",
       "status": "changed"
     },
     {
@@ -4089,6 +4341,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/CommandPalette/CommandPalette.a11y.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/CommandPalette/CommandPalette.test.tsx",
       "status": "changed"
     },
@@ -4127,6 +4383,10 @@
     {
       "path": "src/components/ContentSearch/__tests__/useContentSearchShortcuts.test.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/components/ContentSearch/content-search.css",
+      "status": "changed"
     },
     {
       "path": "src/components/ContentSearch/useContentSearchScheduler.test.ts",
@@ -4185,6 +4445,38 @@
       "status": "added"
     },
     {
+      "path": "src/components/Editor/HeadingPicker.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/ImageContextMenu.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/MediaView/MediaView.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/MediaView/MediaView.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/MediaView/MediaView.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/MediaView/useMediaAsset.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/MediaViewer/MediaViewer.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/MediaViewer/MediaViewer.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Editor/SourceEditor.test.tsx",
       "status": "changed"
     },
@@ -4233,12 +4525,20 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Editor/SplitPaneEditor/split-pane-editor.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx",
       "status": "added"
     },
     {
       "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.ts",
       "status": "added"
+    },
+    {
+      "path": "src/components/Editor/SplitPaneEditor/view-mode-toggle.css",
+      "status": "changed"
     },
     {
       "path": "src/components/Editor/TiptapEditor.callbacks.test.tsx",
@@ -4297,6 +4597,26 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Editor/UniversalToolbar/universal-toolbar.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/ConcurrencyForm.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/DiagnosticsBanner.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/ExpressionEditor.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/JobForm.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Editor/WorkflowEditor/PermissionsForm.tsx",
       "status": "changed"
     },
@@ -4306,6 +4626,14 @@
     },
     {
       "path": "src/components/Editor/WorkflowEditor/StepForm.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/TriggerForm.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx",
       "status": "changed"
     },
     {
@@ -4400,7 +4728,19 @@
       "status": "renamed"
     },
     {
+      "path": "src/components/Editor/__tests__/HeadingPicker.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Editor/__tests__/tableFitToWidthCss.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/cvIdleViewportLock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/cvIdleViewportLock.ts",
       "status": "added"
     },
     {
@@ -4409,6 +4749,10 @@
     },
     {
       "path": "src/components/Editor/editor.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/heading-picker.css",
       "status": "changed"
     },
     {
@@ -4425,6 +4769,14 @@
     },
     {
       "path": "src/components/Editor/sourcePendingNav.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/tiptapEditorHelpers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/tiptapEditorHelpers.ts",
       "status": "changed"
     },
     {
@@ -4456,11 +4808,27 @@
       "status": "changed"
     },
     {
+      "path": "src/components/FeatureErrorBoundary.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/FeatureErrorBoundary.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/FindBar/FindBar.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/FindBar/FindBar.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/FindBar/FindBar.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/GenieChips.tsx",
       "status": "changed"
     },
     {
@@ -4472,7 +4840,23 @@
       "status": "changed"
     },
     {
+      "path": "src/components/GeniePicker/GenieResponseView.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/PromptHistoryDropdown.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/ProviderSwitcher.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/GeniePicker/ProviderSwitcher.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/genie-picker.css",
       "status": "changed"
     },
     {
@@ -4508,11 +4892,35 @@
       "status": "changed"
     },
     {
+      "path": "src/components/McpHistory/mcp-history.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickLook/QuickLookOverlay.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickLook/QuickLookOverlay.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickOpen/QuickOpen.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/QuickOpen/QuickOpen.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/QuickOpen/QuickOpen.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickOpen/QuickOpenList.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickOpen/QuickOpenList.tsx",
       "status": "changed"
     },
     {
@@ -4540,6 +4948,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Sidebar/FileExplorer/ContextMenu.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Sidebar/FileExplorer/ContextMenu.test.tsx",
       "status": "changed"
     },
@@ -4562,6 +4974,10 @@
     {
       "path": "src/components/Sidebar/FileExplorer/FileExplorerEmptyState.tsx",
       "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/FileNode.tsx",
+      "status": "changed"
     },
     {
       "path": "src/components/Sidebar/FileExplorer/contextMenuActions.test.ts",
@@ -4656,6 +5072,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Sidebar/SidebarResizeHandle.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Sidebar/__tests__/OutlineView.render.test.tsx",
       "status": "changed"
     },
@@ -4681,6 +5101,18 @@
     },
     {
       "path": "src/components/Sidebar/useSidebarInstanceSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/StatusBar/FileLoadIndicator.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/StatusBar/LintBadge.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/StatusBar/StatusBar.a11y.test.tsx",
       "status": "added"
     },
     {
@@ -4728,6 +5160,14 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/WordCountPopover.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/StatusBar/__tests__/mcpTooltip.test.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/components/StatusBar/incrementalTextMetrics.test.ts",
       "status": "changed"
     },
@@ -4764,6 +5204,14 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/tabPillSurface.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/StatusBar/tabStripHarnessContract.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/StatusBar/tabTransferActions.test.ts",
       "status": "changed"
     },
@@ -4780,11 +5228,19 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/word-count-popover.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Tabs/Tab.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/Tabs/Tab.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Tabs/TabContextMenu.css",
       "status": "changed"
     },
     {
@@ -4820,6 +5276,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/TerminalPanel.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Terminal/TerminalPanel.tsx",
       "status": "changed"
     },
@@ -4836,8 +5296,16 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/TerminalTabBar.a11y.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/TerminalTabBar.css",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/TerminalTabBar.scope.test.tsx",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/TerminalTabBar.test.tsx",
@@ -4948,6 +5416,14 @@
       "status": "added"
     },
     {
+      "path": "src/components/Terminal/resolveTerminalSpawnContext.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/resolveTerminalSpawnContext.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/resourceStack.ts",
       "status": "added"
     },
@@ -5016,6 +5492,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/terminal-panel.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Terminal/terminalBell.test.ts",
       "status": "changed"
     },
@@ -5036,6 +5516,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Terminal/terminalKeyHandler.scope.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/terminalKeyHandler.test.ts",
       "status": "changed"
     },
@@ -5046,6 +5530,10 @@
     {
       "path": "src/components/Terminal/terminalMessages.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalOptions.test.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/terminalOptions.ts",
@@ -5065,6 +5553,10 @@
     },
     {
       "path": "src/components/Terminal/terminalSearchOptions.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionBell.ts",
       "status": "added"
     },
     {
@@ -5096,8 +5588,16 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/terminalSessionStoreSync.railswitch.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/terminalSessionStoreSync.root.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionStoreSync.scope.test.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/terminalSessionStoreSync.test.ts",
@@ -5160,8 +5660,24 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/useTerminalSessions.createFail.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/useTerminalSessions.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalSessionsInit.scope.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalSessionsInit.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalShellLifecycle.scope.test.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/useTerminalShellLifecycle.test.ts",
@@ -5170,6 +5686,14 @@
     {
       "path": "src/components/Terminal/useTerminalShellLifecycle.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/useVisibleTerminalSessions.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/ThemedToaster.tsx",
+      "status": "added"
     },
     {
       "path": "src/components/TitleBar/TitleBar.a11y.test.tsx",
@@ -5188,6 +5712,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/TitleBar/titleBarShellOffset.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/TitleBar/useTitleBarRename.test.ts",
       "status": "added"
     },
@@ -5204,11 +5732,19 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Welcome/welcome.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/WindowStatusPanel/WindowStatusPanel.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/WindowStatusPanel/WindowStatusPanel.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/WindowStatusPanel/window-status-overlay.css",
       "status": "changed"
     },
     {
@@ -5264,6 +5800,26 @@
       "status": "changed"
     },
     {
+      "path": "src/components/WorkspaceRail/workspaceRailHandlers.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/WorkspaceRail/workspaceRailHandlers.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/shared/TabStripButton.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/shared/TabStripButton.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/spotlight/spotlightDialog.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/toastIcons.tsx",
       "status": "added"
     },
@@ -5277,6 +5833,10 @@
     },
     {
       "path": "src/contexts/prepareWindowStorage.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/contexts/readyBarrierScope.test.ts",
       "status": "added"
     },
     {
@@ -5296,7 +5856,7 @@
       "status": "changed"
     },
     {
-      "path": "src/contexts/useWindowReady.test.ts",
+      "path": "src/contexts/useWindowReady.test.tsx",
       "status": "added"
     },
     {
@@ -5362,6 +5922,10 @@
     {
       "path": "src/export/__tests__/pdfPresets.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/export/__tests__/printFailureToast.test.ts",
+      "status": "added"
     },
     {
       "path": "src/export/__tests__/uint8ArrayToBase64.test.ts",
@@ -5452,6 +6016,14 @@
       "status": "changed"
     },
     {
+      "path": "src/export/reader/vmark-reader.js",
+      "status": "changed"
+    },
+    {
+      "path": "src/export/renderMarkdownToHtml.ts",
+      "status": "added"
+    },
+    {
       "path": "src/export/themeSnapshot.ts",
       "status": "changed"
     },
@@ -5461,6 +6033,14 @@
     },
     {
       "path": "src/hooks/closeSave.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.ts",
       "status": "deleted"
     },
     {
@@ -5640,7 +6220,19 @@
       "status": "added"
     },
     {
+      "path": "src/hooks/useExternalFileChanges.deletion.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useExternalFileChanges.eolRewrite.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.media.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.staleConflict.test.ts",
       "status": "added"
     },
     {
@@ -5791,6 +6383,10 @@
       "status": "added"
     },
     {
+      "path": "src/hooks/useOutlineSync.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/hooks/useQuickOpenShortcuts.test.ts",
       "status": "deleted"
     },
@@ -5824,6 +6420,14 @@
     },
     {
       "path": "src/hooks/useSidebarContext.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSidebarResize.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSidebarResize.ts",
       "status": "changed"
     },
     {
@@ -6447,6 +7051,10 @@
       "status": "added"
     },
     {
+      "path": "src/lib/formats/adapters/json-view-theme.css",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/formats/adapters/json.test.ts",
       "status": "changed"
     },
@@ -6513,6 +7121,10 @@
     {
       "path": "src/lib/formats/adapters/txt.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/formats/adapters/useHtmlTrust.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/formats/adapters/yaml.test.ts",
@@ -6923,6 +7535,10 @@
       "status": "added"
     },
     {
+      "path": "src/locales/de/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/de/breakdown.json",
       "status": "added"
     },
@@ -6971,6 +7587,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/en/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/en/breakdown.json",
       "status": "added"
     },
@@ -7016,6 +7636,10 @@
     },
     {
       "path": "src/locales/en/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/ai.json",
       "status": "changed"
     },
     {
@@ -7119,6 +7743,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/it/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/it/breakdown.json",
       "status": "added"
     },
@@ -7167,6 +7795,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/ja/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/ja/breakdown.json",
       "status": "added"
     },
@@ -7212,6 +7844,10 @@
     },
     {
       "path": "src/locales/ja/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/ai.json",
       "status": "changed"
     },
     {
@@ -7315,6 +7951,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/zh-CN/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/zh-CN/breakdown.json",
       "status": "added"
     },
@@ -7360,6 +8000,10 @@
     },
     {
       "path": "src/locales/zh-CN/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/ai.json",
       "status": "changed"
     },
     {
@@ -7423,6 +8067,10 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/AboutSettings.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/AboutSettings.tsx",
       "status": "changed"
     },
@@ -7467,6 +8115,10 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/DocumentToolsSettings.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/EditorSettings.tsx",
       "status": "changed"
     },
@@ -7480,6 +8132,10 @@
     },
     {
       "path": "src/pages/settings/FilesImagesSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/FormatsSettings.test.tsx",
       "status": "changed"
     },
     {
@@ -7499,7 +8155,15 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/KeyCapture.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/KeyCapture.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/LanguageSettings.test.tsx",
       "status": "changed"
     },
     {
@@ -7515,6 +8179,10 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/McpConfigPreviewDialog.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/McpConfigPreviewDialog.tsx",
       "status": "changed"
     },
@@ -7523,7 +8191,15 @@
       "status": "added"
     },
     {
+      "path": "src/pages/settings/ModelComboBox.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/ModelComboBox.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/ProviderRadio.tsx",
       "status": "changed"
     },
     {
@@ -7531,11 +8207,27 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/SettingsNav.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/SettingsNav.tsx",
       "status": "added"
     },
     {
+      "path": "src/pages/settings/SettingsSearchResults.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/ShortcutsSettings.confirm.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/ShortcutsSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/TagInput.tsx",
       "status": "changed"
     },
     {
@@ -7579,11 +8271,31 @@
       "status": "added"
     },
     {
+      "path": "src/pages/settings/components.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/componentsToggleContrast.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/pages/settings/inputs.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/layout.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/mcpConfigMessages.test.ts",
       "status": "added"
     },
     {
       "path": "src/pages/settings/mcpConfigMessages.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/pages/settings/primitivesCanonical.test.tsx",
       "status": "added"
     },
     {
@@ -7624,6 +8336,10 @@
     },
     {
       "path": "src/plugins/aiSuggestion/__tests__/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/aiSuggestion/ai-suggestion.css",
       "status": "changed"
     },
     {
@@ -7859,6 +8575,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codeBlockLineNumbers/hljs-syntax.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codeBlockLineNumbers/hljsSyntax.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codeBlockLineNumbers/icons.ts",
       "status": "changed"
     },
@@ -7903,6 +8627,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/codePreview/code-preview.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codePreview/editMode.ts",
       "status": "changed"
     },
@@ -7931,6 +8659,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codePreview/previewHelpers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codePreview/previewHelpers.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codePreview/renderers/renderGraphvizPreview.test.ts",
       "status": "changed"
     },
@@ -7939,11 +8675,19 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codePreview/renderers/renderMarkmapPreview.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codePreview/renderers/renderMermaidPreview.test.ts",
       "status": "changed"
     },
     {
       "path": "src/plugins/codePreview/renderers/renderMermaidPreview.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codePreview/themeObserver.ts",
       "status": "changed"
     },
     {
@@ -7972,6 +8716,10 @@
     },
     {
       "path": "src/plugins/codePreview/tiptap.widgets2.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/__tests__/codeHighlightTags.test.ts",
       "status": "added"
     },
     {
@@ -8083,6 +8831,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codemirror/source-syntax.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codemirror/sourceCopyOnSelect.test.ts",
       "status": "changed"
     },
@@ -8167,6 +8919,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/codemirror/sourceTableContextMenu.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codemirror/sourceWorkflowCompletion.test.ts",
       "status": "changed"
     },
@@ -8219,6 +8975,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codemirror/theme.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codemirror/typewriterModePlugin.test.ts",
       "status": "changed"
     },
@@ -8268,6 +9028,10 @@
     },
     {
       "path": "src/plugins/detailsBlock/__tests__/detailsBlock.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/detailsBlock/details-block.css",
       "status": "changed"
     },
     {
@@ -8435,6 +9199,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/footnotePopup/tiptapDomUtils.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/footnotePopup/tiptapInsertFootnote.test.ts",
       "status": "changed"
     },
@@ -8501,6 +9269,10 @@
     {
       "path": "src/plugins/formatToolbar/types.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/frontmatterPanel/frontmatter-panel.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/frontmatterPanel/manifest.ts",
@@ -8608,6 +9380,14 @@
     },
     {
       "path": "src/plugins/imagePreview/__tests__/ImagePreviewView.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/imagePreview/containerDom.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/imagePreview/image-preview.css",
       "status": "changed"
     },
     {
@@ -8735,6 +9515,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/linkCreatePopup/link-create-popup.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/linkCreatePopup/linkCreateDom.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/linkCreatePopup/manifest.ts",
       "status": "deleted"
     },
@@ -8809,6 +9597,10 @@
     {
       "path": "src/plugins/lint/lineMap.ts",
       "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/lint.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/lint/manifest.ts",
@@ -8915,6 +9707,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/markmap/markmap.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/markmap/markmap.test.ts",
       "status": "changed"
     },
@@ -8939,6 +9735,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/mathPopup/math-popup.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/mathPopup/operations.test.ts",
       "status": "changed"
     },
@@ -8961,6 +9761,10 @@
     {
       "path": "src/plugins/mathPreview/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mathPreview/math-preview.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/mediaHandler/__tests__/mediaHandler.test.ts",
@@ -8991,8 +9795,16 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/mediaPopup/__tests__/mediaPopupDom.test.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/mediaPopup/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mediaPopup/media-popup.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/mediaPopup/mediaAttrUpdates.test.ts",
@@ -9027,6 +9839,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/mermaid/mermaid-panzoom.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/mermaid/mermaid.test.ts",
       "status": "changed"
     },
@@ -9053,6 +9869,14 @@
     {
       "path": "src/plugins/mermaidPreview/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mermaidPreview/mermaid-preview.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/mermaidPreview/mermaidPreviewDOM.ts",
+      "status": "changed"
     },
     {
       "path": "src/plugins/multiCursor/MultiSelection.ts",
@@ -9141,6 +9965,10 @@
     {
       "path": "src/plugins/multiCursor/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/multiCursor/multi-cursor.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/multiCursor/rangeUtils.ts",
@@ -9243,6 +10071,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/shared/diagramThemeTokens.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/shared/fenceDelimiter.ts",
       "status": "added"
     },
@@ -9324,6 +10156,10 @@
     },
     {
       "path": "src/plugins/shared/mediaSecurity.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/mediaSecurity.ts",
       "status": "changed"
     },
     {
@@ -9667,6 +10503,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/sourceMathPopup/source-math-popup.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/sourcePeekInline/index.ts",
       "status": "changed"
     },
@@ -9683,6 +10523,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/sourcePeekInline/source-peek-inline.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/sourcePeekInline/sourcePeekActions.test.ts",
       "status": "changed"
     },
@@ -9696,6 +10540,14 @@
     },
     {
       "path": "src/plugins/sourcePeekInline/sourcePeekEditor.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourcePeekInline/sourcePeekHeader.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourcePeekInline/sourcePeekHeader.ts",
       "status": "changed"
     },
     {
@@ -9787,6 +10639,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/syntaxReveal/syntax-reveal.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/tabIndent/__tests__/shiftTabEscape.test.ts",
       "status": "changed"
     },
@@ -9824,6 +10680,10 @@
     },
     {
       "path": "src/plugins/tabIndent/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/tableOfContents/TocNodeView.ts",
       "status": "changed"
     },
     {
@@ -9865,6 +10725,10 @@
     {
       "path": "src/plugins/tableUI/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/tableUI/table-ui.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/tableUI/tableEscape.edge-cases.test.ts",
@@ -10307,7 +11171,15 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/wikiLinkPopup/wiki-link-popup.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/wikiLinkPopup/wikiLinkPaths.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/workflowPreview/WorkflowNode.tsx",
       "status": "changed"
     },
     {
@@ -10323,6 +11195,14 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/workflowPreview/workflow-node.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/workflowPreview/workflow-preview.css",
+      "status": "changed"
+    },
+    {
       "path": "src/services/assembly/autoPairConfig.ts",
       "status": "added"
     },
@@ -10332,6 +11212,10 @@
     },
     {
       "path": "src/services/assembly/bindHostSettings.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/assembly/blockMediaExtensions.ts",
       "status": "added"
     },
     {
@@ -10675,6 +11559,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/commands/menuCommandsReady.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/menuCommandsReady.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/useUnifiedMenuCommands.test.tsx",
       "path": "src/services/commands/menuListener.editorActions.test.tsx",
       "status": "renamed"
@@ -10748,7 +11640,19 @@
       "status": "changed"
     },
     {
+      "path": "src/services/dialogs/confirmAction.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/dialogs/confirmAction.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/dialogs/errorDialog.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/dialogs/errorDialog.ts",
       "status": "changed"
     },
     {
@@ -10849,6 +11753,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/files/applyModifyPolicy.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/useDefaultSaveFolder.test.ts",
       "path": "src/services/files/defaultSaveFolder.test.ts",
       "status": "renamed"
@@ -10885,6 +11793,22 @@
       "fromPath": "src/hooks/useFileSave.ts",
       "path": "src/services/files/fileSave.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/files/resolveDirtyBatch.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/fonts/verifiedMonoStack.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/fonts/verifiedMonoStack.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/fonts/verifiedMonoStack.webkit.test.ts",
+      "status": "added"
     },
     {
       "path": "src/services/formats/formatSettingsBridge.test.ts",
@@ -10947,6 +11871,10 @@
       "fromPath": "src/hooks/useUnifiedHistory.ts",
       "path": "src/services/history/unifiedHistory.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/ime/imeToast.test.ts",
+      "status": "changed"
     },
     {
       "path": "src/services/ime/imeToast.ts",
@@ -11597,6 +12525,10 @@
       "status": "added"
     },
     {
+      "path": "src/services/navigation/finderOpenDispatch.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/navigation/largeFileRouting.test.ts",
       "status": "changed"
     },
@@ -12042,11 +12974,47 @@
       "status": "added"
     },
     {
+      "path": "src/services/terminal/closeTerminalSession.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/closeTerminalSession.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/createTerminalSession.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/createTerminalSession.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/maybeAutoCreateTerminalSession.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/maybeAutoCreateTerminalSession.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/terminal/openTerminalHere.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/terminal/openTerminalHere.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/resolveTerminalOwnerInstanceId.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/resolveTerminalOwnerInstanceId.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/revealTerminalSession.test.ts",
       "status": "added"
     },
     {
@@ -12062,6 +13030,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/terminal/terminalCdFollow.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/terminalCdFollow.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/components/Terminal/terminalGate.test.ts",
       "path": "src/services/terminal/terminalGate.test.ts",
       "status": "renamed"
@@ -12070,6 +13046,10 @@
       "fromPath": "src/components/Terminal/terminalGate.ts",
       "path": "src/services/terminal/terminalGate.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/terminal/visibleTerminalSessions.ts",
+      "status": "added"
     },
     {
       "path": "src/services/theme/nativeTheme.test.ts",
@@ -12127,14 +13107,20 @@
       "status": "added"
     },
     {
-      "fromPath": "src/hooks/fsChangeHandlers.test.ts",
-      "path": "src/services/windowClose/fsChangeHandlers.test.ts",
-      "status": "renamed"
+      "path": "src/services/windowClose/fsChangeContext.ts",
+      "status": "added"
     },
     {
-      "fromPath": "src/hooks/fsChangeHandlers.ts",
+      "path": "src/services/windowClose/fsChangeHandlers.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/windowClose/fsChangeHandlers.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/windowClose/fsRenameHandlers.ts",
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/saveDialog.ts",
@@ -12276,7 +13262,23 @@
       "status": "changed"
     },
     {
+      "path": "src/services/workspaces/finalizeInstanceRemoval.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/finalizeInstanceRemoval.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workspaces/hydrateWorkspaceInstanceContext.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/instanceOperationLock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/instanceOperationLock.ts",
       "status": "added"
     },
     {
@@ -12315,6 +13317,10 @@
     },
     {
       "path": "src/services/workspaces/restoreContextOrdering.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/restoreInstanceContext.ts",
       "status": "added"
     },
     {
@@ -12461,6 +13467,10 @@
     {
       "path": "src/shell/appShellClassName.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/shell/barHeight.test.ts",
+      "status": "added"
     },
     {
       "path": "src/shell/shellChrome.test.ts",
@@ -12717,6 +13727,14 @@
       "status": "added"
     },
     {
+      "path": "src/stores/documentStore/__tests__/readonlyDocumentView.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/documentStore/__tests__/revisionCoverage.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/documentStore/__tests__/serializationSyncDirty.test.ts",
       "status": "added"
     },
@@ -12819,6 +13837,10 @@
     {
       "path": "src/stores/inlineMathEditingStore.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/stores/instanceRekeyBus.ts",
+      "status": "added"
     },
     {
       "path": "src/stores/largeFileSessionStore.test.ts",
@@ -13111,6 +14133,10 @@
       "status": "added"
     },
     {
+      "path": "src/stores/tabStoreClosedScopesValidation.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/tabStoreHelpers.test.ts",
       "status": "changed"
     },
@@ -13137,6 +14163,26 @@
     {
       "path": "src/stores/uiStore/contentSearchSlice.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeActions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeActions.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeSelectors.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeSelectors.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalSlice.scope.test.ts",
+      "status": "added"
     },
     {
       "path": "src/stores/uiStore/terminalSlice.ts",
@@ -13203,6 +14249,10 @@
       "status": "changed"
     },
     {
+      "path": "src/stores/workspaceInstancesStore/helpers.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/stores/workspacePaneLayoutsStore.test.ts",
       "status": "added"
     },
@@ -13235,12 +14285,44 @@
       "status": "added"
     },
     {
+      "path": "src/styles/icon-button-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/iconButton.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/styles/index.css",
       "status": "changed"
     },
     {
+      "path": "src/styles/input-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/input.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/styles/media-popup-shared.css",
-      "status": "changed"
+      "status": "deleted"
+    },
+    {
+      "path": "src/styles/overlay-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/overlay.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/panel-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/panel.test.ts",
+      "status": "added"
     },
     {
       "path": "src/styles/popup-shared.css",
@@ -13248,6 +14330,14 @@
     },
     {
       "path": "src/styles/select-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/syntax-palette.css",
+      "status": "deleted"
+    },
+    {
+      "path": "src/test/adversarialMediaSources.ts",
       "status": "added"
     },
     {
@@ -13267,6 +14357,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/devProfileIsolation.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/editingFuzz.test.ts",
       "status": "added"
     },
@@ -13276,6 +14370,10 @@
     },
     {
       "path": "src/test/externalCorpora.soak.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/externalFileChangesFixtures.ts",
       "status": "added"
     },
     {
@@ -13401,11 +14499,19 @@
       "status": "renamed"
     },
     {
+      "path": "src/test/fontRoles.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/gateTierCoverage.test.ts",
       "status": "added"
     },
     {
       "path": "src/test/ghaCorpusHelpers.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/globalTestHooks.ts",
       "status": "added"
     },
     {
@@ -13429,6 +14535,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/reducedMotionGlobal.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/setup.ts",
       "status": "changed"
     },
@@ -13446,6 +14556,10 @@
     },
     {
       "path": "src/test/tabNavigationDocs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/tailwindTheme.test.ts",
       "status": "added"
     },
     {
@@ -13497,8 +14611,32 @@
       "status": "added"
     },
     {
+      "path": "src/test/windowReadyContract.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/theme/__snapshots__/buildXtermTheme.regression.test.ts.snap",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/__snapshots__/emittedCssVars.regression.test.ts.snap",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/applyTheme.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/applyTheme.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/theme/buildXtermTheme.regression.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/theme/buildXtermTheme.test.ts",
+      "status": "added"
     },
     {
       "path": "src/theme/buildXtermTheme.ts",
@@ -13517,7 +14655,19 @@
       "status": "changed"
     },
     {
+      "path": "src/theme/legacyModeColors.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/theme/legacyModeColors.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/theme/palettes.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/theme/syntaxStaticFallback.test.ts",
       "status": "added"
     },
     {
@@ -13541,7 +14691,43 @@
       "status": "changed"
     },
     {
+      "path": "src/theme/themes/__acceptance__/contrast.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/theme/themes/__acceptance__/highContrast.spike.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/__acceptance__/highContrast.spike.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/mint.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/night.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/paper.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/sepia.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/solarized.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/themes/white.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/theme/tokens.ts",
       "status": "changed"
     },
     {
@@ -13579,6 +14765,10 @@
     {
       "path": "src/utils/__tests__/workspaceIdentity.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/utils/appName.ts",
+      "status": "added"
     },
     {
       "path": "src/utils/binary.test.ts",
@@ -13749,6 +14939,10 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/fontStacks.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/utils/fsEventFilter.test.ts",
       "status": "deleted"
     },
@@ -13779,6 +14973,14 @@
     {
       "path": "src/utils/htmlToMarkdown.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/utils/iconSizes.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/iconSizes.ts",
+      "status": "added"
     },
     {
       "path": "src/utils/icons.test.ts",
@@ -14641,11 +15843,39 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/motion.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/motion.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/multiImageParsing.test.ts",
       "status": "changed"
     },
     {
       "path": "src/utils/openPolicy.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy/externalChangePolicy.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy/openRouting.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/openPolicy/openRouting.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy/types.ts",
       "status": "changed"
     },
     {
@@ -15663,6 +16893,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/GeniePicker/GenieChips.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/GeniePicker/GeniePicker.test.tsx",
       "status": "changed"
     },
@@ -15671,7 +16905,23 @@
       "status": "changed"
     },
     {
+      "path": "src/components/GeniePicker/GenieResponseView.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/PromptHistoryDropdown.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/ProviderSwitcher.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/GeniePicker/ProviderSwitcher.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/GeniePicker/genie-picker.css",
       "status": "changed"
     },
     {
@@ -15680,6 +16930,10 @@
     },
     {
       "path": "src/components/WindowStatusPanel/WindowStatusPanel.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/WindowStatusPanel/window-status-overlay.css",
       "status": "changed"
     },
     {
@@ -16322,6 +17576,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/WindowStatusPanel/window-status-overlay.css",
+          "status": "changed"
+        },
+        {
           "path": "src/components/WindowStatusPanel/window-status-panel.css",
           "status": "changed"
         },
@@ -16428,6 +17686,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/GeniePicker/GenieChips.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/GeniePicker/GeniePicker.test.tsx",
           "status": "changed"
         },
@@ -16436,7 +17698,23 @@
           "status": "changed"
         },
         {
+          "path": "src/components/GeniePicker/GenieResponseView.css",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/GeniePicker/PromptHistoryDropdown.test.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/GeniePicker/ProviderSwitcher.test.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/GeniePicker/ProviderSwitcher.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/GeniePicker/genie-picker.css",
           "status": "changed"
         },
         {
@@ -17180,6 +18458,38 @@
           "status": "added"
         },
         {
+          "path": "src/components/Editor/HeadingPicker.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/ImageContextMenu.test.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/MediaView/MediaView.css",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/MediaView/MediaView.test.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/MediaView/MediaView.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/MediaView/useMediaAsset.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/MediaViewer/MediaViewer.test.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/MediaViewer/MediaViewer.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/SourceEditor.test.tsx",
           "status": "changed"
         },
@@ -17228,12 +18538,20 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/SplitPaneEditor/split-pane-editor.css",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx",
           "status": "added"
         },
         {
           "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.ts",
           "status": "added"
+        },
+        {
+          "path": "src/components/Editor/SplitPaneEditor/view-mode-toggle.css",
+          "status": "changed"
         },
         {
           "path": "src/components/Editor/TiptapEditor.callbacks.test.tsx",
@@ -17292,6 +18610,26 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/UniversalToolbar/universal-toolbar.css",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowEditor/ConcurrencyForm.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowEditor/DiagnosticsBanner.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowEditor/ExpressionEditor.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowEditor/JobForm.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/WorkflowEditor/PermissionsForm.tsx",
           "status": "changed"
         },
@@ -17301,6 +18639,14 @@
         },
         {
           "path": "src/components/Editor/WorkflowEditor/StepForm.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowEditor/TriggerForm.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx",
           "status": "changed"
         },
         {
@@ -17395,7 +18741,19 @@
           "status": "renamed"
         },
         {
+          "path": "src/components/Editor/__tests__/HeadingPicker.test.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/__tests__/tableFitToWidthCss.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/cvIdleViewportLock.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/cvIdleViewportLock.ts",
           "status": "added"
         },
         {
@@ -17404,6 +18762,10 @@
         },
         {
           "path": "src/components/Editor/editor.css",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/heading-picker.css",
           "status": "changed"
         },
         {
@@ -17420,6 +18782,14 @@
         },
         {
           "path": "src/components/Editor/sourcePendingNav.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/tiptapEditorHelpers.test.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/tiptapEditorHelpers.ts",
           "status": "changed"
         },
         {
@@ -17605,6 +18975,14 @@
         },
         {
           "path": "src/services/commands/lintCommands.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/services/commands/menuCommandsReady.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/services/commands/menuCommandsReady.ts",
           "status": "added"
         },
         {
@@ -18060,6 +19438,10 @@
           "status": "added"
         },
         {
+          "path": "src/lib/formats/adapters/json-view-theme.css",
+          "status": "changed"
+        },
+        {
           "path": "src/lib/formats/adapters/json.test.ts",
           "status": "changed"
         },
@@ -18126,6 +19508,10 @@
         {
           "path": "src/lib/formats/adapters/txt.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/lib/formats/adapters/useHtmlTrust.ts",
+          "status": "added"
         },
         {
           "path": "src/lib/formats/adapters/yaml.test.ts",
@@ -18588,6 +19974,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/TerminalPanel.test.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Terminal/TerminalPanel.tsx",
           "status": "changed"
         },
@@ -18604,8 +19994,16 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/TerminalTabBar.a11y.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/TerminalTabBar.css",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/TerminalTabBar.scope.test.tsx",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/TerminalTabBar.test.tsx",
@@ -18716,6 +20114,14 @@
           "status": "added"
         },
         {
+          "path": "src/components/Terminal/resolveTerminalSpawnContext.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/resolveTerminalSpawnContext.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/resourceStack.ts",
           "status": "added"
         },
@@ -18784,6 +20190,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/terminal-panel.css",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Terminal/terminalBell.test.ts",
           "status": "changed"
         },
@@ -18804,6 +20214,10 @@
           "status": "added"
         },
         {
+          "path": "src/components/Terminal/terminalKeyHandler.scope.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/terminalKeyHandler.test.ts",
           "status": "changed"
         },
@@ -18814,6 +20228,10 @@
         {
           "path": "src/components/Terminal/terminalMessages.test.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/terminalOptions.test.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/terminalOptions.ts",
@@ -18833,6 +20251,10 @@
         },
         {
           "path": "src/components/Terminal/terminalSearchOptions.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/terminalSessionBell.ts",
           "status": "added"
         },
         {
@@ -18864,8 +20286,16 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/terminalSessionStoreSync.railswitch.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/terminalSessionStoreSync.root.test.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/terminalSessionStoreSync.scope.test.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/terminalSessionStoreSync.test.ts",
@@ -18928,8 +20358,24 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/useTerminalSessions.createFail.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/useTerminalSessions.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/useTerminalSessionsInit.scope.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTerminalSessionsInit.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTerminalShellLifecycle.scope.test.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/useTerminalShellLifecycle.test.ts",
@@ -18938,6 +20384,10 @@
         {
           "path": "src/components/Terminal/useTerminalShellLifecycle.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/useVisibleTerminalSessions.ts",
+          "status": "added"
         },
         {
           "fromPath": "src/components/Terminal/terminalGate.test.ts",
@@ -18985,8 +20435,28 @@
           "status": "added"
         },
         {
+          "path": "src/theme/__snapshots__/buildXtermTheme.regression.test.ts.snap",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/__snapshots__/emittedCssVars.regression.test.ts.snap",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/applyTheme.test.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/applyTheme.ts",
+          "status": "changed"
+        },
+        {
           "path": "src/theme/buildXtermTheme.regression.test.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/theme/buildXtermTheme.test.ts",
+          "status": "added"
         },
         {
           "path": "src/theme/buildXtermTheme.ts",
@@ -19005,7 +20475,19 @@
           "status": "changed"
         },
         {
+          "path": "src/theme/legacyModeColors.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/theme/legacyModeColors.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/theme/palettes.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/theme/syntaxStaticFallback.test.ts",
           "status": "added"
         },
         {
@@ -19029,7 +20511,43 @@
           "status": "changed"
         },
         {
+          "path": "src/theme/themes/__acceptance__/contrast.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/theme/themes/__acceptance__/highContrast.spike.test.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/__acceptance__/highContrast.spike.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/mint.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/night.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/paper.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/sepia.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/solarized.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/themes/white.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/theme/tokens.ts",
           "status": "changed"
         }
       ]
@@ -20127,6 +21645,70 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/HeadingPicker.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/ImageContextMenu.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/MediaView/MediaView.css",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/MediaView/MediaView.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/MediaView/MediaView.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/MediaView/useMediaAsset.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/MediaViewer/MediaViewer.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/MediaViewer/MediaViewer.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/SourceEditor.test.tsx",
         "status": "changed"
       },
@@ -20223,6 +21805,14 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/SplitPaneEditor/split-pane-editor.css",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx",
         "status": "added"
       },
@@ -20233,6 +21823,14 @@
       "change": {
         "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.ts",
         "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/SplitPaneEditor/view-mode-toggle.css",
+        "status": "changed"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -20351,6 +21949,46 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/UniversalToolbar/universal-toolbar.css",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowEditor/ConcurrencyForm.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowEditor/DiagnosticsBanner.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowEditor/ExpressionEditor.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowEditor/JobForm.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/WorkflowEditor/PermissionsForm.tsx",
         "status": "changed"
       },
@@ -20368,6 +22006,22 @@
     {
       "change": {
         "path": "src/components/Editor/WorkflowEditor/StepForm.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowEditor/TriggerForm.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx",
         "status": "changed"
       },
       "decision": "adapt",
@@ -20554,7 +22208,31 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/__tests__/HeadingPicker.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/__tests__/tableFitToWidthCss.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/cvIdleViewportLock.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/cvIdleViewportLock.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -20571,6 +22249,14 @@
     {
       "change": {
         "path": "src/components/Editor/editor.css",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/heading-picker.css",
         "status": "changed"
       },
       "decision": "adapt",
@@ -20603,6 +22289,22 @@
     {
       "change": {
         "path": "src/components/Editor/sourcePendingNav.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/tiptapEditorHelpers.test.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/tiptapEditorHelpers.ts",
         "status": "changed"
       },
       "decision": "adapt",
@@ -20682,6 +22384,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/TerminalPanel.test.tsx",
+        "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/TerminalPanel.tsx",
         "status": "changed"
       },
@@ -20714,8 +22424,24 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/TerminalTabBar.a11y.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/TerminalTabBar.css",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TerminalTabBar.scope.test.tsx",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -20938,6 +22664,22 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/resolveTerminalSpawnContext.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/resolveTerminalSpawnContext.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/resourceStack.ts",
         "status": "added"
       },
@@ -21074,6 +22816,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminal-panel.css",
+        "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalBell.test.ts",
         "status": "changed"
       },
@@ -21114,6 +22864,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminalKeyHandler.scope.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalKeyHandler.test.ts",
         "status": "changed"
       },
@@ -21132,6 +22890,14 @@
       "change": {
         "path": "src/components/Terminal/terminalMessages.test.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/terminalOptions.test.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -21171,6 +22937,14 @@
     {
       "change": {
         "path": "src/components/Terminal/terminalSearchOptions.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/terminalSessionBell.ts",
         "status": "added"
       },
       "decision": "defer",
@@ -21234,8 +23008,24 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminalSessionStoreSync.railswitch.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalSessionStoreSync.root.test.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/terminalSessionStoreSync.scope.test.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -21362,8 +23152,40 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/useTerminalSessions.createFail.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/useTerminalSessions.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTerminalSessionsInit.scope.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTerminalSessionsInit.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTerminalShellLifecycle.scope.test.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -21380,6 +23202,14 @@
       "change": {
         "path": "src/components/Terminal/useTerminalShellLifecycle.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useVisibleTerminalSessions.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -21745,6 +23575,14 @@
     },
     {
       "change": {
+        "path": "src/lib/formats/adapters/json-view-theme.css",
+        "status": "changed"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
         "path": "src/lib/formats/adapters/json.test.ts",
         "status": "changed"
       },
@@ -21875,6 +23713,14 @@
       "change": {
         "path": "src/lib/formats/adapters/txt.ts",
         "status": "changed"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/useHtmlTrust.ts",
+        "status": "added"
       },
       "decision": "port",
       "domainId": "formats"
@@ -22242,6 +24088,22 @@
     {
       "change": {
         "path": "src/services/commands/lintCommands.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/commands/menuCommandsReady.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/commands/menuCommandsReady.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -23365,8 +25227,48 @@
     },
     {
       "change": {
+        "path": "src/theme/__snapshots__/buildXtermTheme.regression.test.ts.snap",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/__snapshots__/emittedCssVars.regression.test.ts.snap",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/applyTheme.test.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/applyTheme.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
         "path": "src/theme/buildXtermTheme.regression.test.ts",
         "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/buildXtermTheme.test.ts",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "theme-i18n"
@@ -23405,7 +25307,31 @@
     },
     {
       "change": {
+        "path": "src/theme/legacyModeColors.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
         "path": "src/theme/legacyModeColors.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/palettes.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/syntaxStaticFallback.test.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -23453,7 +25379,79 @@
     },
     {
       "change": {
+        "path": "src/theme/themes/__acceptance__/contrast.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
         "path": "src/theme/themes/__acceptance__/highContrast.spike.test.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/__acceptance__/highContrast.spike.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/mint.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/night.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/paper.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/sepia.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/solarized.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/themes/white.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "theme-i18n"
+    },
+    {
+      "change": {
+        "path": "src/theme/tokens.ts",
         "status": "changed"
       },
       "decision": "adapt",
@@ -23522,6 +25520,30 @@
       "status": "added"
     },
     {
+      "path": ".cc-suite/audits/audit-fix-20260825-224150-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260829-134812-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260829-155501-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260831-190500-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260831-211200-r2-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260831-213000-r3-findings.md",
+      "status": "added"
+    },
+    {
       "path": ".claude/commands/bump.md",
       "status": "changed"
     },
@@ -23562,6 +25584,14 @@
       "status": "changed"
     },
     {
+      "path": ".claude/rules/21-website-docs.md",
+      "status": "changed"
+    },
+    {
+      "path": ".claude/rules/30-ui-consistency.md",
+      "status": "changed"
+    },
+    {
       "path": ".claude/rules/31-design-tokens.md",
       "status": "changed"
     },
@@ -23572,6 +25602,14 @@
     {
       "path": ".claude/rules/33-focus-indicators.md",
       "status": "changed"
+    },
+    {
+      "path": ".claude/rules/34-dark-theme.md",
+      "status": "changed"
+    },
+    {
+      "path": ".claude/rules/35-copy-conventions.md",
+      "status": "added"
     },
     {
       "path": ".claude/rules/40-version-bump.md",
@@ -23599,6 +25637,10 @@
     },
     {
       "path": ".claude/tdd-guardian/20260816-cross-platform-pdf-export.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/tdd-guardian/20260831-terminal-per-instance-sessions.md",
       "status": "added"
     },
     {
@@ -24538,6 +26580,10 @@
       "status": "changed"
     },
     {
+      "path": "e2e/journeys/01-boot-editor-ready.mjs",
+      "status": "changed"
+    },
+    {
       "path": "e2e/journeys/09-open-from-disk.mjs",
       "status": "changed"
     },
@@ -24638,6 +26684,18 @@
       "status": "added"
     },
     {
+      "path": "e2e/journeys/35-terminal-rail-scoping.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/jsonRpcStdio.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/bridge.mjs",
+      "status": "changed"
+    },
+    {
       "path": "e2e/lib/browser.mjs",
       "status": "added"
     },
@@ -24651,6 +26709,30 @@
     },
     {
       "path": "e2e/lib/fixtureServer.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/jsonRpcStdio.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/mockBridge.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/rail.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/readiness.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/readiness.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/settingsPatch.mjs",
       "status": "added"
     },
     {
@@ -24670,6 +26752,10 @@
       "status": "added"
     },
     {
+      "path": "e2e/portFileAgreement.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/run-ime.mjs",
       "status": "added"
     },
@@ -24678,8 +26764,28 @@
       "status": "changed"
     },
     {
+      "path": "e2e/smoke.mjs",
+      "status": "changed"
+    },
+    {
+      "path": "e2e/vmarkMcpResult.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/wait-ready.mjs",
       "status": "added"
+    },
+    {
+      "path": "e2e/waitReady.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/waitReadyArgs.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "eslint.config.js",
+      "status": "changed"
     },
     {
       "path": "eslint.typeaware.config.mjs",
@@ -24715,6 +26821,10 @@
     },
     {
       "path": "scripts/baseline-review-schedule.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/baselineRatchetContrastFloors.mjs",
       "status": "added"
     },
     {
@@ -24818,6 +26928,14 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-comment-headers.sh",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-comment-headers.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-commit-message.mjs",
       "status": "added"
     },
@@ -24886,6 +27004,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-i18n-copy.test.ts",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-i18n-keys.ts",
       "status": "changed"
     },
@@ -24899,6 +27021,10 @@
     },
     {
       "path": "scripts/check-keybinding-manifest.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-keybinding-manifest.test.mjs",
       "status": "added"
     },
     {
@@ -24994,6 +27120,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-selection-styles.mjs",
+      "status": "deleted"
+    },
+    {
       "path": "scripts/check-shell-slots.mjs",
       "status": "added"
     },
@@ -25038,6 +27168,22 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-theme-contrast.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-theme-contrast.ts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-theme-names.sh",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-theme-names.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-trusted-html-contract.mjs",
       "status": "added"
     },
@@ -25046,7 +27192,31 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-tscope-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-tscope-phase.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-type-aware.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-consistency.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-consistency.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-ui-phase.test.mjs",
       "status": "added"
     },
     {
@@ -25098,6 +27268,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/design-tokens-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/dev-disk.mjs",
       "status": "added"
     },
@@ -25138,7 +27312,15 @@
       "status": "added"
     },
     {
+      "path": "scripts/gate-tests-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/gen-feature-ledger.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/i18n-copy-baseline.json",
       "status": "added"
     },
     {
@@ -25158,7 +27340,27 @@
       "status": "added"
     },
     {
+      "path": "scripts/lib/cssRules.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/designTokenChecks.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/designTokensTsx.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/lib/packageScripts.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/uiConsistencyCss.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/uiConsistencyTsx.mjs",
       "status": "added"
     },
     {
@@ -25214,11 +27416,23 @@
       "status": "added"
     },
     {
+      "path": "scripts/test-changed.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/test-types-baseline.json",
       "status": "added"
     },
     {
+      "path": "scripts/theme-contrast-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/type-aware-baseline.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/ui-consistency-baseline.json",
       "status": "added"
     },
     {
@@ -26502,6 +28716,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/pdf_export/renderer/linux_print.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/pdf_export/renderer/macos.rs",
       "status": "added"
     },
@@ -26570,6 +28788,14 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/single_instance.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/tab_transfer.rs",
       "status": "changed"
     },
@@ -26635,6 +28861,10 @@
     },
     {
       "path": "src-tauri/tauri.conf.json",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/tauri.dev.conf.json",
       "status": "changed"
     },
     {
@@ -26786,6 +29016,18 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/BrowserGrantsList.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserOmnibox.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserOverlays.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserPageTabs.test.tsx",
       "status": "changed"
     },
@@ -26807,6 +29049,14 @@
     },
     {
       "path": "src/components/Browser/browser-chrome.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/browser-grants-list.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/browser-omnibox.css",
       "status": "changed"
     },
     {
@@ -26854,6 +29104,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/CommandPalette/CommandPalette.a11y.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/CommandPalette/CommandPalette.test.tsx",
       "status": "changed"
     },
@@ -26894,6 +29148,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/components/ContentSearch/content-search.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/ContentSearch/useContentSearchScheduler.test.ts",
       "status": "changed"
     },
@@ -26906,11 +29164,23 @@
       "status": "deleted"
     },
     {
+      "path": "src/components/FeatureErrorBoundary.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/FeatureErrorBoundary.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/FindBar/FindBar.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/FindBar/FindBar.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/FindBar/FindBar.tsx",
       "status": "changed"
     },
     {
@@ -26946,11 +29216,35 @@
       "status": "changed"
     },
     {
+      "path": "src/components/McpHistory/mcp-history.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickLook/QuickLookOverlay.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickLook/QuickLookOverlay.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickOpen/QuickOpen.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/QuickOpen/QuickOpen.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/QuickOpen/QuickOpen.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickOpen/QuickOpenList.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/QuickOpen/QuickOpenList.tsx",
       "status": "changed"
     },
     {
@@ -26978,6 +29272,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Sidebar/FileExplorer/ContextMenu.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Sidebar/FileExplorer/ContextMenu.test.tsx",
       "status": "changed"
     },
@@ -27000,6 +29298,10 @@
     {
       "path": "src/components/Sidebar/FileExplorer/FileExplorerEmptyState.tsx",
       "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/FileNode.tsx",
+      "status": "changed"
     },
     {
       "path": "src/components/Sidebar/FileExplorer/contextMenuActions.test.ts",
@@ -27094,6 +29396,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Sidebar/SidebarResizeHandle.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Sidebar/__tests__/OutlineView.render.test.tsx",
       "status": "changed"
     },
@@ -27119,6 +29425,18 @@
     },
     {
       "path": "src/components/Sidebar/useSidebarInstanceSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/StatusBar/FileLoadIndicator.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/StatusBar/LintBadge.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/StatusBar/StatusBar.a11y.test.tsx",
       "status": "added"
     },
     {
@@ -27166,6 +29484,14 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/WordCountPopover.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/StatusBar/__tests__/mcpTooltip.test.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/components/StatusBar/incrementalTextMetrics.test.ts",
       "status": "changed"
     },
@@ -27202,6 +29528,14 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/tabPillSurface.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/StatusBar/tabStripHarnessContract.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/StatusBar/tabTransferActions.test.ts",
       "status": "changed"
     },
@@ -27218,11 +29552,19 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/word-count-popover.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Tabs/Tab.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/Tabs/Tab.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Tabs/TabContextMenu.css",
       "status": "changed"
     },
     {
@@ -27250,6 +29592,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/ThemedToaster.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/TitleBar/TitleBar.a11y.test.tsx",
       "status": "changed"
     },
@@ -27266,6 +29612,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/TitleBar/titleBarShellOffset.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/TitleBar/useTitleBarRename.test.ts",
       "status": "added"
     },
@@ -27279,6 +29629,10 @@
     },
     {
       "path": "src/components/Welcome/WelcomeScreen.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Welcome/welcome.css",
       "status": "changed"
     },
     {
@@ -27330,6 +29684,26 @@
       "status": "changed"
     },
     {
+      "path": "src/components/WorkspaceRail/workspaceRailHandlers.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/WorkspaceRail/workspaceRailHandlers.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/shared/TabStripButton.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/shared/TabStripButton.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/spotlight/spotlightDialog.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/toastIcons.tsx",
       "status": "added"
     },
@@ -27343,6 +29717,10 @@
     },
     {
       "path": "src/contexts/prepareWindowStorage.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/contexts/readyBarrierScope.test.ts",
       "status": "added"
     },
     {
@@ -27362,7 +29740,7 @@
       "status": "changed"
     },
     {
-      "path": "src/contexts/useWindowReady.test.ts",
+      "path": "src/contexts/useWindowReady.test.tsx",
       "status": "added"
     },
     {
@@ -27428,6 +29806,10 @@
     {
       "path": "src/export/__tests__/pdfPresets.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/export/__tests__/printFailureToast.test.ts",
+      "status": "added"
     },
     {
       "path": "src/export/__tests__/uint8ArrayToBase64.test.ts",
@@ -27518,6 +29900,14 @@
       "status": "changed"
     },
     {
+      "path": "src/export/reader/vmark-reader.js",
+      "status": "changed"
+    },
+    {
+      "path": "src/export/renderMarkdownToHtml.ts",
+      "status": "added"
+    },
+    {
       "path": "src/export/themeSnapshot.ts",
       "status": "changed"
     },
@@ -27527,6 +29917,14 @@
     },
     {
       "path": "src/hooks/closeSave.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/fsChangeHandlers.ts",
       "status": "deleted"
     },
     {
@@ -27634,7 +30032,19 @@
       "status": "added"
     },
     {
+      "path": "src/hooks/useExternalFileChanges.deletion.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useExternalFileChanges.eolRewrite.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.media.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useExternalFileChanges.staleConflict.test.ts",
       "status": "added"
     },
     {
@@ -27770,6 +30180,10 @@
       "status": "added"
     },
     {
+      "path": "src/hooks/useOutlineSync.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/hooks/useQuickOpenShortcuts.test.ts",
       "status": "deleted"
     },
@@ -27803,6 +30217,14 @@
     },
     {
       "path": "src/hooks/useSidebarContext.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSidebarResize.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSidebarResize.ts",
       "status": "changed"
     },
     {
@@ -28590,6 +31012,10 @@
       "status": "added"
     },
     {
+      "path": "src/locales/de/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/de/breakdown.json",
       "status": "added"
     },
@@ -28638,6 +31064,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/en/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/en/breakdown.json",
       "status": "added"
     },
@@ -28683,6 +31113,10 @@
     },
     {
       "path": "src/locales/en/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/es/ai.json",
       "status": "changed"
     },
     {
@@ -28786,6 +31220,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/it/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/it/breakdown.json",
       "status": "added"
     },
@@ -28834,6 +31272,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/ja/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/ja/breakdown.json",
       "status": "added"
     },
@@ -28879,6 +31321,10 @@
     },
     {
       "path": "src/locales/ja/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/ko/ai.json",
       "status": "changed"
     },
     {
@@ -28982,6 +31428,10 @@
       "status": "changed"
     },
     {
+      "path": "src/locales/zh-CN/ai.json",
+      "status": "changed"
+    },
+    {
       "path": "src/locales/zh-CN/breakdown.json",
       "status": "added"
     },
@@ -29027,6 +31477,10 @@
     },
     {
       "path": "src/locales/zh-CN/workflowEditor.json",
+      "status": "changed"
+    },
+    {
+      "path": "src/locales/zh-TW/ai.json",
       "status": "changed"
     },
     {
@@ -29090,6 +31544,10 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/AboutSettings.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/AboutSettings.tsx",
       "status": "changed"
     },
@@ -29134,6 +31592,10 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/DocumentToolsSettings.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/EditorSettings.tsx",
       "status": "changed"
     },
@@ -29147,6 +31609,10 @@
     },
     {
       "path": "src/pages/settings/FilesImagesSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/FormatsSettings.test.tsx",
       "status": "changed"
     },
     {
@@ -29166,7 +31632,15 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/KeyCapture.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/KeyCapture.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/LanguageSettings.test.tsx",
       "status": "changed"
     },
     {
@@ -29182,6 +31656,10 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/McpConfigPreviewDialog.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/McpConfigPreviewDialog.tsx",
       "status": "changed"
     },
@@ -29190,7 +31668,15 @@
       "status": "added"
     },
     {
+      "path": "src/pages/settings/ModelComboBox.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/ModelComboBox.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/ProviderRadio.tsx",
       "status": "changed"
     },
     {
@@ -29198,11 +31684,27 @@
       "status": "changed"
     },
     {
+      "path": "src/pages/settings/SettingsNav.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/SettingsNav.tsx",
       "status": "added"
     },
     {
+      "path": "src/pages/settings/SettingsSearchResults.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/ShortcutsSettings.confirm.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/pages/settings/ShortcutsSettings.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/TagInput.tsx",
       "status": "changed"
     },
     {
@@ -29246,11 +31748,31 @@
       "status": "added"
     },
     {
+      "path": "src/pages/settings/components.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/componentsToggleContrast.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/pages/settings/inputs.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/pages/settings/layout.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/mcpConfigMessages.test.ts",
       "status": "added"
     },
     {
       "path": "src/pages/settings/mcpConfigMessages.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/pages/settings/primitivesCanonical.test.tsx",
       "status": "added"
     },
     {
@@ -29291,6 +31813,10 @@
     },
     {
       "path": "src/plugins/aiSuggestion/__tests__/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/aiSuggestion/ai-suggestion.css",
       "status": "changed"
     },
     {
@@ -29526,6 +32052,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codeBlockLineNumbers/hljs-syntax.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codeBlockLineNumbers/hljsSyntax.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codeBlockLineNumbers/icons.ts",
       "status": "changed"
     },
@@ -29570,6 +32104,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/codePreview/code-preview.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codePreview/editMode.ts",
       "status": "changed"
     },
@@ -29598,6 +32136,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codePreview/previewHelpers.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codePreview/previewHelpers.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codePreview/renderers/renderGraphvizPreview.test.ts",
       "status": "changed"
     },
@@ -29606,11 +32152,19 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codePreview/renderers/renderMarkmapPreview.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codePreview/renderers/renderMermaidPreview.test.ts",
       "status": "changed"
     },
     {
       "path": "src/plugins/codePreview/renderers/renderMermaidPreview.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/codePreview/themeObserver.ts",
       "status": "changed"
     },
     {
@@ -29639,6 +32193,10 @@
     },
     {
       "path": "src/plugins/codePreview/tiptap.widgets2.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/codemirror/__tests__/codeHighlightTags.test.ts",
       "status": "added"
     },
     {
@@ -29750,6 +32308,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codemirror/source-syntax.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codemirror/sourceCopyOnSelect.test.ts",
       "status": "changed"
     },
@@ -29834,6 +32396,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/codemirror/sourceTableContextMenu.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codemirror/sourceWorkflowCompletion.test.ts",
       "status": "changed"
     },
@@ -29886,6 +32452,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codemirror/theme.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/codemirror/typewriterModePlugin.test.ts",
       "status": "changed"
     },
@@ -29935,6 +32505,10 @@
     },
     {
       "path": "src/plugins/detailsBlock/__tests__/detailsBlock.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/detailsBlock/details-block.css",
       "status": "changed"
     },
     {
@@ -30102,6 +32676,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/footnotePopup/tiptapDomUtils.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/footnotePopup/tiptapInsertFootnote.test.ts",
       "status": "changed"
     },
@@ -30168,6 +32746,10 @@
     {
       "path": "src/plugins/formatToolbar/types.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/frontmatterPanel/frontmatter-panel.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/frontmatterPanel/manifest.ts",
@@ -30275,6 +32857,14 @@
     },
     {
       "path": "src/plugins/imagePreview/__tests__/ImagePreviewView.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/imagePreview/containerDom.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/imagePreview/image-preview.css",
       "status": "changed"
     },
     {
@@ -30402,6 +32992,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/linkCreatePopup/link-create-popup.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/linkCreatePopup/linkCreateDom.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/linkCreatePopup/manifest.ts",
       "status": "deleted"
     },
@@ -30476,6 +33074,10 @@
     {
       "path": "src/plugins/lint/lineMap.ts",
       "status": "added"
+    },
+    {
+      "path": "src/plugins/lint/lint.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/lint/manifest.ts",
@@ -30582,6 +33184,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/markmap/markmap.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/markmap/markmap.test.ts",
       "status": "changed"
     },
@@ -30606,6 +33212,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/mathPopup/math-popup.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/mathPopup/operations.test.ts",
       "status": "changed"
     },
@@ -30628,6 +33238,10 @@
     {
       "path": "src/plugins/mathPreview/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mathPreview/math-preview.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/mediaHandler/__tests__/mediaHandler.test.ts",
@@ -30658,8 +33272,16 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/mediaPopup/__tests__/mediaPopupDom.test.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/mediaPopup/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mediaPopup/media-popup.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/mediaPopup/mediaAttrUpdates.test.ts",
@@ -30694,6 +33316,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/mermaid/mermaid-panzoom.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/mermaid/mermaid.test.ts",
       "status": "changed"
     },
@@ -30720,6 +33346,14 @@
     {
       "path": "src/plugins/mermaidPreview/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mermaidPreview/mermaid-preview.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/mermaidPreview/mermaidPreviewDOM.ts",
+      "status": "changed"
     },
     {
       "path": "src/plugins/multiCursor/MultiSelection.ts",
@@ -30808,6 +33442,10 @@
     {
       "path": "src/plugins/multiCursor/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/multiCursor/multi-cursor.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/multiCursor/rangeUtils.ts",
@@ -30910,6 +33548,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/shared/diagramThemeTokens.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/shared/fenceDelimiter.ts",
       "status": "added"
     },
@@ -30991,6 +33633,10 @@
     },
     {
       "path": "src/plugins/shared/mediaSecurity.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/mediaSecurity.ts",
       "status": "changed"
     },
     {
@@ -31334,6 +33980,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/sourceMathPopup/source-math-popup.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/sourcePeekInline/index.ts",
       "status": "changed"
     },
@@ -31350,6 +34000,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/sourcePeekInline/source-peek-inline.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/sourcePeekInline/sourcePeekActions.test.ts",
       "status": "changed"
     },
@@ -31363,6 +34017,14 @@
     },
     {
       "path": "src/plugins/sourcePeekInline/sourcePeekEditor.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourcePeekInline/sourcePeekHeader.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/sourcePeekInline/sourcePeekHeader.ts",
       "status": "changed"
     },
     {
@@ -31454,6 +34116,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/syntaxReveal/syntax-reveal.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/tabIndent/__tests__/shiftTabEscape.test.ts",
       "status": "changed"
     },
@@ -31491,6 +34157,10 @@
     },
     {
       "path": "src/plugins/tabIndent/tiptap.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/tableOfContents/TocNodeView.ts",
       "status": "changed"
     },
     {
@@ -31532,6 +34202,10 @@
     {
       "path": "src/plugins/tableUI/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/tableUI/table-ui.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/tableUI/tableEscape.edge-cases.test.ts",
@@ -31974,7 +34648,15 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/wikiLinkPopup/wiki-link-popup.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/wikiLinkPopup/wikiLinkPaths.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/workflowPreview/WorkflowNode.tsx",
       "status": "changed"
     },
     {
@@ -31990,6 +34672,14 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/workflowPreview/workflow-node.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/workflowPreview/workflow-preview.css",
+      "status": "changed"
+    },
+    {
       "path": "src/services/assembly/autoPairConfig.ts",
       "status": "added"
     },
@@ -31999,6 +34689,10 @@
     },
     {
       "path": "src/services/assembly/bindHostSettings.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/assembly/blockMediaExtensions.ts",
       "status": "added"
     },
     {
@@ -32242,7 +34936,19 @@
       "status": "changed"
     },
     {
+      "path": "src/services/dialogs/confirmAction.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/dialogs/confirmAction.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/dialogs/errorDialog.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/dialogs/errorDialog.ts",
       "status": "changed"
     },
     {
@@ -32343,6 +35049,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/files/applyModifyPolicy.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/useDefaultSaveFolder.test.ts",
       "path": "src/services/files/defaultSaveFolder.test.ts",
       "status": "renamed"
@@ -32379,6 +35089,22 @@
       "fromPath": "src/hooks/useFileSave.ts",
       "path": "src/services/files/fileSave.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/files/resolveDirtyBatch.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/fonts/verifiedMonoStack.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/fonts/verifiedMonoStack.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/fonts/verifiedMonoStack.webkit.test.ts",
+      "status": "added"
     },
     {
       "path": "src/services/formats/formatSettingsBridge.test.ts",
@@ -32431,6 +35157,10 @@
       "fromPath": "src/hooks/useUnifiedHistory.ts",
       "path": "src/services/history/unifiedHistory.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/ime/imeToast.test.ts",
+      "status": "changed"
     },
     {
       "path": "src/services/ime/imeToast.ts",
@@ -32851,6 +35581,10 @@
       "status": "added"
     },
     {
+      "path": "src/services/navigation/finderOpenDispatch.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/navigation/largeFileRouting.test.ts",
       "status": "changed"
     },
@@ -33036,11 +35770,47 @@
       "status": "added"
     },
     {
+      "path": "src/services/terminal/closeTerminalSession.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/closeTerminalSession.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/createTerminalSession.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/createTerminalSession.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/maybeAutoCreateTerminalSession.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/maybeAutoCreateTerminalSession.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/terminal/openTerminalHere.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/terminal/openTerminalHere.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/resolveTerminalOwnerInstanceId.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/resolveTerminalOwnerInstanceId.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/revealTerminalSession.test.ts",
       "status": "added"
     },
     {
@@ -33053,6 +35823,18 @@
     },
     {
       "path": "src/services/terminal/runInTerminal.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/terminalCdFollow.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/terminalCdFollow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/visibleTerminalSessions.ts",
       "status": "added"
     },
     {
@@ -33103,14 +35885,20 @@
       "status": "added"
     },
     {
-      "fromPath": "src/hooks/fsChangeHandlers.test.ts",
-      "path": "src/services/windowClose/fsChangeHandlers.test.ts",
-      "status": "renamed"
+      "path": "src/services/windowClose/fsChangeContext.ts",
+      "status": "added"
     },
     {
-      "fromPath": "src/hooks/fsChangeHandlers.ts",
+      "path": "src/services/windowClose/fsChangeHandlers.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/windowClose/fsChangeHandlers.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/windowClose/fsRenameHandlers.ts",
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/saveDialog.ts",
@@ -33252,7 +36040,23 @@
       "status": "changed"
     },
     {
+      "path": "src/services/workspaces/finalizeInstanceRemoval.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/finalizeInstanceRemoval.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workspaces/hydrateWorkspaceInstanceContext.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/instanceOperationLock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/instanceOperationLock.ts",
       "status": "added"
     },
     {
@@ -33291,6 +36095,10 @@
     },
     {
       "path": "src/services/workspaces/restoreContextOrdering.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/restoreInstanceContext.ts",
       "status": "added"
     },
     {
@@ -33437,6 +36245,10 @@
     {
       "path": "src/shell/appShellClassName.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/shell/barHeight.test.ts",
+      "status": "added"
     },
     {
       "path": "src/shell/shellChrome.test.ts",
@@ -33685,6 +36497,14 @@
       "status": "added"
     },
     {
+      "path": "src/stores/documentStore/__tests__/readonlyDocumentView.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/documentStore/__tests__/revisionCoverage.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/documentStore/__tests__/serializationSyncDirty.test.ts",
       "status": "added"
     },
@@ -33787,6 +36607,10 @@
     {
       "path": "src/stores/inlineMathEditingStore.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/stores/instanceRekeyBus.ts",
+      "status": "added"
     },
     {
       "path": "src/stores/largeFileSessionStore.test.ts",
@@ -34039,6 +36863,10 @@
       "status": "added"
     },
     {
+      "path": "src/stores/tabStoreClosedScopesValidation.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/tabStoreHelpers.test.ts",
       "status": "changed"
     },
@@ -34065,6 +36893,26 @@
     {
       "path": "src/stores/uiStore/contentSearchSlice.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeActions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeActions.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeSelectors.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalScopeSelectors.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/uiStore/terminalSlice.scope.test.ts",
+      "status": "added"
     },
     {
       "path": "src/stores/uiStore/terminalSlice.ts",
@@ -34123,6 +36971,10 @@
       "status": "changed"
     },
     {
+      "path": "src/stores/workspaceInstancesStore/helpers.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/stores/workspacePaneLayoutsStore.test.ts",
       "status": "added"
     },
@@ -34155,12 +37007,44 @@
       "status": "added"
     },
     {
+      "path": "src/styles/icon-button-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/iconButton.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/styles/index.css",
       "status": "changed"
     },
     {
+      "path": "src/styles/input-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/input.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/styles/media-popup-shared.css",
-      "status": "changed"
+      "status": "deleted"
+    },
+    {
+      "path": "src/styles/overlay-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/overlay.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/panel-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/panel.test.ts",
+      "status": "added"
     },
     {
       "path": "src/styles/popup-shared.css",
@@ -34168,6 +37052,14 @@
     },
     {
       "path": "src/styles/select-shared.css",
+      "status": "added"
+    },
+    {
+      "path": "src/styles/syntax-palette.css",
+      "status": "deleted"
+    },
+    {
+      "path": "src/test/adversarialMediaSources.ts",
       "status": "added"
     },
     {
@@ -34187,6 +37079,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/devProfileIsolation.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/editingFuzz.test.ts",
       "status": "added"
     },
@@ -34196,6 +37092,10 @@
     },
     {
       "path": "src/test/externalCorpora.soak.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/externalFileChangesFixtures.ts",
       "status": "added"
     },
     {
@@ -34321,11 +37221,19 @@
       "status": "renamed"
     },
     {
+      "path": "src/test/fontRoles.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/gateTierCoverage.test.ts",
       "status": "added"
     },
     {
       "path": "src/test/ghaCorpusHelpers.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/globalTestHooks.ts",
       "status": "added"
     },
     {
@@ -34349,6 +37257,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/reducedMotionGlobal.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/setup.ts",
       "status": "changed"
     },
@@ -34366,6 +37278,10 @@
     },
     {
       "path": "src/test/tabNavigationDocs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/tailwindTheme.test.ts",
       "status": "added"
     },
     {
@@ -34417,6 +37333,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/windowReadyContract.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/types/cursorSync.ts",
       "status": "changed"
     },
@@ -34451,6 +37371,10 @@
     {
       "path": "src/utils/__tests__/workspaceIdentity.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/utils/appName.ts",
+      "status": "added"
     },
     {
       "path": "src/utils/binary.test.ts",
@@ -34621,6 +37545,10 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/fontStacks.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/utils/fsEventFilter.test.ts",
       "status": "deleted"
     },
@@ -34651,6 +37579,14 @@
     {
       "path": "src/utils/htmlToMarkdown.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/utils/iconSizes.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/iconSizes.ts",
+      "status": "added"
     },
     {
       "path": "src/utils/icons.test.ts",
@@ -35513,11 +38449,39 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/motion.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/motion.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/multiImageParsing.test.ts",
       "status": "changed"
     },
     {
       "path": "src/utils/openPolicy.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy/externalChangePolicy.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy/openRouting.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/openPolicy/openRouting.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/openPolicy/types.ts",
       "status": "changed"
     },
     {

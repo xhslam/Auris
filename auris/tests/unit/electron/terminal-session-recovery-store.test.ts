@@ -19,11 +19,11 @@ describe("terminal session recovery store", () => {
     const store = createTerminalSessionRecoveryStore(path.join(directory, "sessions.json"));
 
     const saved = store.save([
-      { cols: 120, cwd: "/workspace", id: "notes-term-1", rows: 40, shell: "/bin/zsh" },
+      { cols: 120, cwd: "/workspace", id: "notes-term-1", rows: 40, shell: "/bin/zsh", workspaceInstanceId: "path:darwin:/workspace" },
       { cwd: "relative", id: "bad", shell: "/bin/zsh" },
     ]);
 
-    expect(saved).toEqual([{ cols: 120, cwd: "/workspace", id: "notes-term-1", rows: 40, shell: "/bin/zsh" }]);
+    expect(saved).toEqual([{ cols: 120, cwd: "/workspace", id: "notes-term-1", rows: 40, shell: "/bin/zsh", workspaceInstanceId: "path:darwin:/workspace" }]);
     expect(store.load()).toEqual(saved);
   });
 

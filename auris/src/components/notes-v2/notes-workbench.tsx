@@ -73,6 +73,7 @@ import {
   type NotesHistoryVersion,
 } from "@/features/notes/persistence/notes-recovery-store";
 import { getLastUsedOpenTab } from "@/features/notes/workspace/workspace-store";
+import { useWorkspaceInstancesStore } from "@/features/notes/workspace/workspace-instances-store";
 import type {
   NotesLeftSidebarMode,
   NotesRightSidebarMode,
@@ -270,6 +271,9 @@ export function NotesWorkbench({
   writeConflict = null,
 }: NotesWorkbenchProps) {
   const notesLocale = useNotesLocale();
+  const activeWorkspaceInstanceId = useWorkspaceInstancesStore(
+    (state) => state.activeWorkspaceInstanceId,
+  );
   const shellRef = useRef<HTMLElement | null>(null);
   const editorBridgeRef = useRef<NotesEditorBridge | null>(null);
   const terminalDragStateRef = useRef<{
@@ -950,6 +954,7 @@ export function NotesWorkbench({
                   onRunCommand={onRunDesktopCommand}
                   terminalBridge={desktopTerminal}
                   terminalCwd={directoryInfo?.vaultPath ?? null}
+                  workspaceInstanceId={activeWorkspaceInstanceId}
                 />
               </aside>
             </>

@@ -44,6 +44,7 @@ describe("terminal-session-policy", () => {
         rows: -1,
         sessionId: "notes-term-1",
         shell: "C:\\Windows\\System32\\cmd.exe",
+        workspaceInstanceId: "path:win32:C:\\vault",
       },
       {
         homePath: "C:\\Users\\test",
@@ -56,7 +57,17 @@ describe("terminal-session-policy", () => {
       cwd: "C:\\vault",
       rows: 24,
       sessionId: "notes-term-1",
+      workspaceInstanceId: "path:win32:C:\\vault",
     });
     expect(input).not.toHaveProperty("shell");
+  });
+
+  it("rejects malformed workspace ownership metadata", () => {
+    const input = createTerminalSessionInput(
+      { sessionId: "notes-term-2", workspaceInstanceId: "bad\u0000scope" },
+      { homePath: "/Users/test", vaultPath: "/workspace" },
+    );
+
+    expect(input).not.toHaveProperty("workspaceInstanceId");
   });
 });

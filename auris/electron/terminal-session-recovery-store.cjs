@@ -4,7 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const SESSION_ID = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/;
-const MAX_SESSIONS = 5;
+const MAX_SESSIONS = 50;
+const MAX_WORKSPACE_INSTANCE_ID_LENGTH = 1024;
 
 function normalizePositiveInteger(value, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
@@ -15,6 +16,10 @@ function normalizeDescriptor(value) {
   const id = typeof value.id === "string" ? value.id.trim() : "";
   const cwd = typeof value.cwd === "string" ? value.cwd.trim() : "";
   const shell = typeof value.shell === "string" ? value.shell.trim() : "";
+  const workspaceInstanceId =
+    typeof value.workspaceInstanceId === "string"
+      ? value.workspaceInstanceId.trim()
+      : "";
   if (!SESSION_ID.test(id) || !path.isAbsolute(cwd)) return null;
   return {
     cols: normalizePositiveInteger(value.cols, 80),
@@ -22,6 +27,11 @@ function normalizeDescriptor(value) {
     id,
     rows: normalizePositiveInteger(value.rows, 24),
     shell: shell && path.isAbsolute(shell) ? shell : null,
+    ...(workspaceInstanceId &&
+    workspaceInstanceId.length <= MAX_WORKSPACE_INSTANCE_ID_LENGTH &&
+    !/[\u0000-\u001f\u007f-\u009f]/.test(workspaceInstanceId)
+      ? { workspaceInstanceId }
+      : {}),
   };
 }
 

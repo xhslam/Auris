@@ -5,6 +5,33 @@ export type VaultWriteConflict = {
   remoteRawSource: string | null;
 };
 
+export type VaultWriteConflictCurrentState = {
+  currentDiskContent: string | null;
+  dirty: boolean;
+  documentPath: string | null;
+};
+
+export type VaultWriteConflictStaleReason =
+  | "disk-changed"
+  | "document-moved"
+  | "not-dirty";
+
+/**
+ * A conflict dialog is a delayed decision. Revalidate the captured path,
+ * dirty state and disk version before applying either destructive choice.
+ */
+export function getVaultWriteConflictStaleReason(
+  conflict: VaultWriteConflict,
+  current: VaultWriteConflictCurrentState,
+): VaultWriteConflictStaleReason | null {
+  if (!current.dirty) return "not-dirty";
+  if (current.documentPath !== conflict.path) return "document-moved";
+  if (current.currentDiskContent !== conflict.remoteRawSource) {
+    return "disk-changed";
+  }
+  return null;
+}
+
 function splitConflictLines(source: string | null) {
   return (source ?? "").replace(/\r\n/g, "\n").split("\n");
 }

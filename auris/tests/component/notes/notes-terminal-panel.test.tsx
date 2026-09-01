@@ -24,6 +24,7 @@ const terminalClearSpies: Array<Mock<() => void>> = [];
 const terminalFocusSpies: Array<Mock<() => void>> = [];
 const terminalSelectAllSpies: Array<Mock<() => void>> = [];
 const terminalKeyHandlers: Array<(event: KeyboardEvent) => boolean> = [];
+const terminalWrites: string[][] = [];
 let terminalSelection = "";
 
 vi.mock("@xterm/xterm", () => ({
@@ -33,12 +34,14 @@ vi.mock("@xterm/xterm", () => ({
     unicode = {
       activeVersion: "",
     };
+    writeIndex = 0;
 
     constructor(options: CapturedTerminalOptions) {
       capturedTerminalOptions = options;
       terminalClearSpies.push(vi.fn<() => void>());
       terminalFocusSpies.push(vi.fn<() => void>());
       terminalSelectAllSpies.push(vi.fn<() => void>());
+      this.writeIndex = terminalWrites.push([]) - 1;
     }
 
     attachCustomKeyEventHandler(handler: (event: KeyboardEvent) => boolean) {
@@ -90,7 +93,8 @@ vi.mock("@xterm/xterm", () => ({
       return undefined;
     }
 
-    write() {
+    write(data: string) {
+      terminalWrites[this.writeIndex]?.push(data);
       return undefined;
     }
   },
@@ -204,6 +208,7 @@ describe("NotesTerminalPanel", () => {
     terminalFocusSpies.length = 0;
     terminalSelectAllSpies.length = 0;
     terminalKeyHandlers.length = 0;
+    terminalWrites.length = 0;
     terminalSelection = "";
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -386,6 +391,67 @@ describe("NotesTerminalPanel", () => {
         2,
         expect.objectContaining({ sessionId: "notes-term-5" }),
       ),
+    );
+  });
+
+  it("stamps new sessions with the active workspace instance", async () => {
+    const terminal = createTerminalBridge();
+
+    render(
+      <div className="notes-v2">
+        <NotesTerminalPanel
+          commands={[]}
+          isDesktopBridgeAvailable
+          terminalBridge={terminal.bridge}
+          workspaceInstanceId="path:darwin:/workspace-a"
+        />
+      </div>,
+    );
+
+    await waitFor(() =>
+      expect(terminal.bridge.resume).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: "notes-term-1",
+          workspaceInstanceId: "path:darwin:/workspace-a",
+        }),
+      ),
+    );
+  });
+
+  it("replays buffered backend output when the terminal view attaches", async () => {
+    const terminal = createTerminalBridge();
+    vi.mocked(terminal.bridge.list).mockResolvedValue([
+      {
+        backend: "pty",
+        cwd: "/workspace-a",
+        id: "notes-term-7",
+        output: "hidden output\r\n",
+        shell: "/bin/zsh",
+        workspaceInstanceId: "path:darwin:/workspace-a",
+      },
+    ]);
+    vi.mocked(terminal.bridge.resume).mockResolvedValue({
+      backend: "pty",
+      cwd: "/workspace-a",
+      id: "notes-term-7",
+      output: "hidden output\r\n",
+      shell: "/bin/zsh",
+      workspaceInstanceId: "path:darwin:/workspace-a",
+    });
+
+    render(
+      <div className="notes-v2">
+        <NotesTerminalPanel
+          commands={[]}
+          isDesktopBridgeAvailable
+          terminalBridge={terminal.bridge}
+          workspaceInstanceId="path:darwin:/workspace-a"
+        />
+      </div>,
+    );
+
+    await waitFor(() =>
+      expect(terminalWrites[0]).toContain("hidden output\r\n"),
     );
   });
 
@@ -597,7 +663,7 @@ describe("NotesTerminalPanel", () => {
     expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
   });
 
-  it("kills a late terminal session if the panel unmounts before startup resolves", async () => {
+  it("detaches without killing a terminal if the panel unmounts during startup", async () => {
     const terminal = createTerminalBridge();
     const deferredCreate = createDeferredCreateResult();
     terminal.bridge.resume = vi.fn<DesktopTerminalBridge["resume"]>((input) =>
@@ -627,18 +693,14 @@ describe("NotesTerminalPanel", () => {
 
     view.unmount();
 
-    expect(terminal.bridge.kill).toHaveBeenCalledTimes(1);
-    expect(terminal.bridge.kill).toHaveBeenCalledWith("notes-term-1");
+    expect(terminal.bridge.kill).not.toHaveBeenCalled();
 
     await act(async () => {
       deferredCreate.resolve("notes-term-1");
       await deferredCreate.promise;
     });
 
-    await waitFor(() =>
-      expect(terminal.bridge.kill).toHaveBeenCalledTimes(2),
-    );
-    expect(terminal.bridge.kill).toHaveBeenLastCalledWith("notes-term-1");
+    expect(terminal.bridge.kill).not.toHaveBeenCalled();
   });
 
   it("refocuses the active xterm when clicking terminal surface chrome", async () => {
@@ -661,6 +723,10 @@ describe("NotesTerminalPanel", () => {
       expect(screen.getByTestId("notes-terminal-host")).toBeInTheDocument(),
     );
     await waitFor(() => expect(terminalFocusSpies[0]).toBeDefined());
+    await waitFor(() =>
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
+    );
+    await act(async () => Promise.resolve());
 
     const focusSpy = terminalFocusSpies[0];
     expect(focusSpy).toBeDefined();

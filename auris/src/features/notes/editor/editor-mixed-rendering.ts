@@ -120,6 +120,7 @@ export function shouldSuspendMixedRendering(input: {
 }
 
 const setMixedRenderingSuspended = StateEffect.define<boolean>();
+const refreshMixedRendering = StateEffect.define<null>();
 
 const mixedRenderingSuspendedField = StateField.define<boolean>({
   create() {
@@ -1031,6 +1032,14 @@ function createMixedRenderingField(environment?: MixedRenderingEnvironment) {
       return buildMixedLineDecorations(state, environment, resolveExists);
     },
     update(value, transaction) {
+      if (transaction.effects.some((effect) => effect.is(refreshMixedRendering))) {
+        return buildMixedLineDecorations(
+          transaction.state,
+          environment,
+          resolveExists,
+        );
+      }
+
       // If the suspended state changed (e.g. IME composition start/end),
       // we must rebuild regardless of other conditions.
       if (transaction.effects.some((e) => e.is(setMixedRenderingSuspended))) {
@@ -1067,6 +1076,10 @@ function createMixedRenderingField(environment?: MixedRenderingEnvironment) {
       );
     },
   });
+}
+
+export function refreshNotesMixedRendering(view: EditorView | null) {
+  view?.dispatch({ effects: refreshMixedRendering.of(null) });
 }
 
 export function createNotesMixedRendering(

@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
@@ -27,6 +28,11 @@ import {
   parseEditableNoteSource,
 } from "@/features/notes/documents/note-editing-source";
 import { resolveMarkdownImageSource } from "@/features/notes/editor/code-block-preview";
+import { refreshNotesMixedRendering } from "@/features/notes/editor/editor-mixed-rendering";
+import {
+  getNotesMediaReloadKey,
+  subscribeNotesMediaReloadKey,
+} from "@/features/notes/editor/notes-media-reload";
 import { notesEditorSyncAnnotation } from "@/features/notes/editor/editor-annotations";
 import {
   findNextNotesEditorSearchMatch,
@@ -156,6 +162,11 @@ export function NotesEditorPane({
   const replaceTextRef = useRef("");
   const findInputRef = useRef<HTMLInputElement | null>(null);
   const sourceTitleDraftRef = useRef("");
+  const mediaReloadKey = useSyncExternalStore(
+    subscribeNotesMediaReloadKey,
+    getNotesMediaReloadKey,
+    () => 0,
+  );
 
   useEffect(() => {
     viewPreferencesRef.current = viewPreferences;
@@ -244,7 +255,11 @@ export function NotesEditorPane({
 
   const resolveWechatImageSource = useCallback(
     (source: string) => {
-      const resolved = resolveMarkdownImageSource(source, document?.path ?? null);
+      const resolved = resolveMarkdownImageSource(
+        source,
+        document?.path ?? null,
+        getNotesMediaReloadKey(),
+      );
 
       if (
         resolved?.startsWith("shadowing-media://vault/") &&
@@ -257,6 +272,10 @@ export function NotesEditorPane({
     },
     [document?.path],
   );
+
+  useEffect(() => {
+    refreshNotesMixedRendering(viewRef.current);
+  }, [mediaReloadKey]);
 
   useEffect(() => {
     if (editorMode === "wysiwyg") {

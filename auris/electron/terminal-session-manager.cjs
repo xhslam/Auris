@@ -5,6 +5,7 @@ const path = require("node:path");
 
 const DEFAULT_COLS = 80;
 const DEFAULT_ROWS = 24;
+const MAX_OUTPUT_BUFFER_LENGTH = 200_000;
 const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
 let nextSessionNumber = 1;
@@ -262,8 +263,15 @@ function createTerminalSessionManager(options = {}) {
   }
 
   function emitData(sessionId, data) {
+    const normalizedData = toTerminalData(data);
+    const session = sessions.get(sessionId);
+    if (session) {
+      session.output = `${session.output ?? ""}${normalizedData}`.slice(
+        -MAX_OUTPUT_BUFFER_LENGTH,
+      );
+    }
     emitter.emit("data", {
-      data: toTerminalData(data),
+      data: normalizedData,
       sessionId,
     });
   }
@@ -306,6 +314,11 @@ function createTerminalSessionManager(options = {}) {
     const cols = normalizePositiveInteger(input.cols, DEFAULT_COLS);
     const rows = normalizePositiveInteger(input.rows, DEFAULT_ROWS);
     const childEnv = createTerminalEnvironment(env, cwd, platform);
+    const workspaceInstanceId =
+      typeof input.workspaceInstanceId === "string" &&
+      input.workspaceInstanceId.trim()
+        ? input.workspaceInstanceId.trim()
+        : null;
 
     // Probe each PTY candidate with a real spawn. On Windows node-pty resolves
     // conpty.node lazily inside the WindowsPtyAgent constructor, so a package
@@ -350,6 +363,8 @@ function createTerminalSessionManager(options = {}) {
           ptyPackage: candidate.name,
           rows,
           shell,
+          output: "",
+          workspaceInstanceId,
         });
 
         pty.onData((data) => emitData(sessionId, data));
@@ -364,6 +379,8 @@ function createTerminalSessionManager(options = {}) {
           id: sessionId,
           rows,
           shell,
+          output: "",
+          workspaceInstanceId,
         };
       }
     }
@@ -412,6 +429,8 @@ function createTerminalSessionManager(options = {}) {
         id: sessionId,
         rows,
         shell,
+        output: "",
+        workspaceInstanceId,
       };
     }
 
@@ -423,6 +442,8 @@ function createTerminalSessionManager(options = {}) {
       process: child,
       rows,
       shell,
+      output: "",
+      workspaceInstanceId,
     });
 
     child.stdout?.on("data", (data) => emitData(sessionId, data));
@@ -444,6 +465,8 @@ function createTerminalSessionManager(options = {}) {
       id: sessionId,
       rows,
       shell,
+      output: "",
+      workspaceInstanceId,
     };
   }
 
@@ -521,8 +544,10 @@ function createTerminalSessionManager(options = {}) {
       // ptyPackage is null for pipe sessions; it lets the UI and bug reports
       // distinguish "real ConPTY via node-pty" from a silent pipe fallback.
       ptyPackage: session.ptyPackage ?? null,
+      output: session.output ?? "",
       rows: session.rows ?? DEFAULT_ROWS,
       shell: session.shell,
+      workspaceInstanceId: session.workspaceInstanceId ?? null,
     }));
   }
 

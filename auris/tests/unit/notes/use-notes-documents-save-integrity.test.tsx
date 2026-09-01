@@ -66,6 +66,48 @@ describe("useNotesDocuments save integrity", () => {
     resetNotesRecoveryMigrationForTests();
   });
 
+  it("revalidates the latest disk version before applying a conflict decision", async () => {
+    const localSource = "# Daily\n\nLocal edit";
+    const remoteV1 = "# Daily\n\nRemote v1";
+    const remoteV2 = "# Daily\n\nRemote v2";
+    const refreshSnapshot = vi.fn(async () => createSnapshot(remoteV2));
+    const setErrorMessage = vi.fn();
+    const client = createClient({
+      readFile: vi.fn(async () => remoteV2),
+      writeFile: vi.fn(async () => undefined),
+    });
+    const { result, rerender } = renderHook(
+      ({ snapshot }) =>
+        useNotesDocuments({
+          client,
+          refreshSnapshot,
+          searchQuery: "",
+          setErrorMessage,
+          setWorkspace: vi.fn(),
+          snapshot,
+          workspace: createWorkspace(),
+        }),
+      { initialProps: { snapshot: createSnapshot() } },
+    );
+
+    act(() => result.current.handleDocumentChange(NOTE_PATH, localSource));
+    rerender({ snapshot: createSnapshot(remoteV1) });
+    await waitFor(() =>
+      expect(result.current.writeConflict?.remoteRawSource).toBe(remoteV1),
+    );
+
+    await act(async () => result.current.handleKeepWriteConflict());
+
+    expect(refreshSnapshot).toHaveBeenCalledWith({
+      eagerPaths: [NOTE_PATH],
+      showLoading: false,
+    });
+    expect(result.current.writeConflict?.remoteRawSource).toBe(remoteV2);
+    expect(setErrorMessage).toHaveBeenCalledWith(
+      "文件状态已再次变化，已重新读取磁盘内容，请按最新状态处理冲突。",
+    );
+  });
+
   it("keeps a missing-file recovery draft open and recreates it only on manual save", async () => {
     const recoveredPath = "notes/recovered.md";
     const recoveredSource = "# Recovered\n\nUnsaved";

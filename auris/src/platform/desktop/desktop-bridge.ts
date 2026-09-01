@@ -182,6 +182,7 @@ export type DesktopTerminalSessionInput = {
   rows?: number;
   sessionId?: string;
   shell?: string;
+  workspaceInstanceId?: string | null;
 };
 
 export type DesktopTerminalSessionRecord = {
@@ -189,8 +190,10 @@ export type DesktopTerminalSessionRecord = {
   cols?: number;
   cwd: string | null;
   id: string;
+  output?: string;
   rows?: number;
   shell: string;
+  workspaceInstanceId?: string | null;
 };
 
 export type DesktopTerminalDataEvent = {

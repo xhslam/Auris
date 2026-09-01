@@ -2,6 +2,7 @@ const path = require("node:path");
 
 const DEFAULT_COLS = 80;
 const DEFAULT_ROWS = 24;
+const MAX_WORKSPACE_INSTANCE_ID_LENGTH = 1024;
 
 function normalizeTerminalString(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -9,6 +10,16 @@ function normalizeTerminalString(value) {
 
 function normalizeTerminalSize(value, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+function normalizeWorkspaceInstanceId(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized &&
+    normalized.length <= MAX_WORKSPACE_INSTANCE_ID_LENGTH &&
+    !/[\u0000-\u001f\u007f-\u009f]/.test(normalized)
+    ? normalized
+    : null;
 }
 
 function getPathAdapter(...values) {
@@ -55,6 +66,9 @@ function resolveTerminalCwd({ homePath, requestedCwd, vaultPath }) {
 }
 
 function createTerminalSessionInput(input, context) {
+  const workspaceInstanceId = normalizeWorkspaceInstanceId(
+    input?.workspaceInstanceId,
+  );
   return {
     cols: normalizeTerminalSize(input?.cols, DEFAULT_COLS),
     cwd: resolveTerminalCwd({
@@ -64,6 +78,7 @@ function createTerminalSessionInput(input, context) {
     }),
     rows: normalizeTerminalSize(input?.rows, DEFAULT_ROWS),
     sessionId: normalizeTerminalString(input?.sessionId) ?? undefined,
+    ...(workspaceInstanceId ? { workspaceInstanceId } : {}),
   };
 }
 
@@ -71,5 +86,6 @@ module.exports = {
   createTerminalSessionInput,
   normalizeTerminalString,
   normalizeTerminalSize,
+  normalizeWorkspaceInstanceId,
   resolveTerminalCwd,
 };

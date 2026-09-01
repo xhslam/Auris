@@ -65,6 +65,47 @@ function createClient(onRead?: (path: string) => void): VaultClient {
 }
 
 describe("vault-store", () => {
+  it("serializes refreshes so an older read cannot publish after a newer event", async () => {
+    let releaseFirstList: (() => void) | null = null;
+    let generation = 0;
+    const client: VaultClient = {
+      ...createClient(),
+      listEntries: vi.fn(async () => {
+        generation += 1;
+        const current = generation;
+        if (current === 1) {
+          await new Promise<void>((resolve) => {
+            releaseFirstList = resolve;
+          });
+        }
+        return [
+          {
+            kind: "file",
+            mtime: `2026-09-01T00:00:0${current}.000Z`,
+            name: `generation-${current}.md`,
+            path: `generation-${current}.md`,
+            size: current,
+          },
+        ];
+      }),
+      readFile: async (path) => `# ${path}`,
+    };
+    const store = createVaultStore(client);
+
+    const first = store.refresh();
+    const second = store.refresh();
+    await Promise.resolve();
+
+    expect(client.listEntries).toHaveBeenCalledTimes(1);
+    releaseFirstList?.();
+    await Promise.all([first, second]);
+
+    expect(client.listEntries).toHaveBeenCalledTimes(2);
+    expect(store.getSnapshot().entries.map((entry) => entry.path)).toEqual([
+      "generation-2.md",
+    ]);
+  });
+
   it("keeps startup reads bounded for a large vault", async () => {
     const readFile = vi.fn(async (path: string) => `# ${path}`);
     const client = {
