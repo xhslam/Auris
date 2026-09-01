@@ -199,6 +199,14 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 
 验证完成：侧栏、桌面外壳和几何契约 3 个文件共 36 项 Vitest 通过；定向 ESLint、`git diff --check` 和 `npm run build` 通过。Playwright 在 1440×900 运行时测得折叠轨道 `x=8, y=8, 30×884`、首个活动项 `x=9, y=48, 28×28`、图标 14×14，Night 背景、活动、指示色分别为 `#2B2E33`、`#333D4B`、`#E55E51`；展开态为 240×884、16px 圆角且七个标签可见。1280×720 下 `/`、`/notes`、`/reading`、`/video`、`/settings` 均返回 200、各有且仅有一个正确活动入口；六主题保持同一几何。未替换已安装包，也未关闭用户正在运行的 Auris 实例；未触碰现有词库、笔记存储和其他未提交改动。
 
+## Engineering trajectory: Notes 数学公式 AST pipeline 与 VMark 式源码交互（2026-09-01）
+
+用户的「学习卡点与方法识别笔记」在磁盘上保存了完整的 `\(...\)` / `\[...\]` LaTeX，数据未损坏；异常来自富文本导入使用 `markdown-it` 先执行 Markdown escape，使公式没有成为独立节点。实现新增共享 `notes-markdown-dialect.ts`，用受保护的扫描器在解析前将 AI 常用分隔符规范为 `$` / `$$`，同时屏蔽 fenced/indented/inline code、转义反斜杠、URL 和 Markdown link destination；共享 dialect 固定为 `remark-parse + remark-frontmatter + remark-gfm + remark-math`。
+
+富文本导入现在从 MDAST 的 `inlineMath` / `math` 节点生成 ProseMirror `math_inline` / `math_block` 原子节点，`content` 属性保留未转义的原始 LaTeX；序列化统一输出 canonical `$...$` / `$$...$$`。阅读面板和 HTML 导出改用同一 dialect，KaTeX 显式使用 `strict: false` 与 `throwOnError: false`，全局 KaTeX CSS 保持加载。CodeMirror 混合预览同步支持两种兼容分隔符，且不会误渲染代码中的示例。
+
+参考 VMark 的原子节点交互新增 `notes-math-node-view.ts`：行内公式默认只显示 KaTeX，点击后原位显示 LaTeX 源码并在上方显示实时预览，Enter/失焦保存、Escape 取消；块公式使用多行源码编辑器与实时预览。新增/扩展回归覆盖用户列出的积分、绝对值、多行 `\boxed` 链路、canonical delimiter、代码保护、货币符号防误判、混合预览与点击源码编辑。定向 Vitest 8 个文件、48 项通过；定向 ESLint、`git diff --check`、Next 生产构建、桌面隐私审计与 packaged MCP sidecar smoke 均通过。未改写用户笔记源文件；macOS arm64 本地包已替换 `/Applications/Auris.app` 并启动，`/notes` 返回 200，旧包备份为 `/Applications/Auris.app.backup-1.0.4-before-math-ast`。本地没有 Developer ID 证书，因此该同版本开发包未签名且未发布 GitHub Release。
+
 ## Engineering trajectory: 胶囊侧边栏结构列修正（2026-08-25）
 
 用户指出上一轮虽然复刻了胶囊本身，却把侧栏实现成覆盖页面的固定浮层；浏览器验收还通过强制桌面运行态与 Night 主题掩盖了真实组合关系。修正将侧栏定义为桌面壳的第一列：折叠列宽 52px（8px 左距 + 30px 轨道 + 14px 间隔），功能页面固定从第二列 `x=52` 开始；展开时第一列同步变为 262px，240px 导航与页面共同重排，不再遮挡页面。侧栏在列内使用 8px 外边距维持 `30×calc(100vh - 16px)` 胶囊几何。

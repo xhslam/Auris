@@ -13,15 +13,14 @@
  * The pipeline is frozen once per module load and reused for every render.
  */
 
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
 import remarkRehype from "remark-rehype";
 import rehypeKatex from "rehype-katex";
 import rehypeStringify from "rehype-stringify";
 import { visit } from "unist-util-visit";
+import {
+  createNotesMarkdownProcessor,
+  normalizeNotesMathDelimiters,
+} from "@/features/notes/markdown/notes-markdown-dialect";
 import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
@@ -327,13 +326,12 @@ function rehypeReadingMathClasses() {
 // Frozen pipeline — built once, reused for every renderMarkdown() call
 // ─────────────────────────────────────────────────────────────────────────────
 
-const pipeline = unified()
-  .use(remarkParse)
-  .use(remarkFrontmatter, ["yaml"])
-  .use(remarkGfm)
-  .use(remarkMath)
+const pipeline = createNotesMarkdownProcessor()
   .use(remarkRehype)
-  .use(rehypeKatex)
+  .use(rehypeKatex, {
+    strict: false,
+    throwOnError: false,
+  })
   .use(rehypeHeadingAnchorsAndToc)
   .use(rehypeCallouts)
   .use(rehypeSoftLineBreaks)
@@ -398,7 +396,9 @@ export function renderMarkdown(
   source: string,
   options?: RemarkRenderOptions,
 ): string {
-  const rawHtml = String(pipeline.processSync(source));
+  const rawHtml = String(
+    pipeline.processSync(normalizeNotesMathDelimiters(source)),
+  );
   return postProcessWikiLinks(
     rawHtml,
     options?.wikiLinkExists,

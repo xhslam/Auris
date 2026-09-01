@@ -27,6 +27,7 @@ import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
 } from "@/features/notes/documents/wiki-link-navigation";
+import { findCompatibleMathDelimiterSpans } from "@/features/notes/markdown/notes-markdown-dialect";
 
 const HEADING_PATTERN = /^(#{1,6})\s+/;
 const TASK_PATTERN = /^(\s*)([-*+])\s+\[([ xX])\](\s*)/;
@@ -37,7 +38,9 @@ const QUOTE_PATTERN = /^(\s{0,3}>\s?)(.*)$/;
 const HORIZONTAL_RULE_PATTERN = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
 const FENCE_PATTERN = /^(\s{0,3})(`{3,}|~{3,})(.*)$/;
 const IMAGE_PATTERN = /^\s*!\[([^\]]*)\]\((.*)\)\s*$/;
-const MATH_FENCE_PATTERN = /^\s*\$\$\s*$/;
+const MATH_BLOCK_OPEN_PATTERN = /^\s*(\$\$|\\\[)\s*$/;
+const MATH_DOLLAR_CLOSE_PATTERN = /^\s*\$\$\s*$/;
+const MATH_BRACKET_CLOSE_PATTERN = /^\s*\\\]\s*$/;
 
 type EditableLineRange = {
   from: number;
@@ -441,6 +444,18 @@ function collectInlineMathSpans(line: {
   text: string;
 }): InlineSpan[] {
   const spans: InlineSpan[] = [];
+
+  for (const span of findCompatibleMathDelimiterSpans(line.text)) {
+    if (span.kind !== "inline") continue;
+    spans.push({
+      decoration: Decoration.replace({
+        widget: new MathInlinePreviewWidget({ text: span.content }),
+      }),
+      from: line.from + span.start,
+      to: line.from + span.end,
+    });
+  }
+
   let searchStart = 0;
 
   while (searchStart < line.text.length) {
@@ -551,7 +566,7 @@ function addInlineDecorations(
 ) {
   // Fast path: the vast majority of lines contain neither inline math nor a
   // wiki link, so skip the scans/allocation/sort entirely for them.
-  const hasMath = line.text.includes("$");
+  const hasMath = line.text.includes("$") || line.text.includes("\\(");
   const hasWikiLink = line.text.includes("[[");
 
   if (!hasMath && !hasWikiLink) {
@@ -709,6 +724,7 @@ function buildMixedLineDecorations(
     | null = null;
   let activeMathBlock:
     | {
+        delimiter: "bracket" | "dollar";
         from: number;
         startLineNumber: number;
         textLines: string[];
@@ -753,7 +769,11 @@ function buildMixedLineDecorations(
     }
 
     if (activeMathBlock) {
-      if (MATH_FENCE_PATTERN.test(line.text)) {
+      const isClosingDelimiter =
+        activeMathBlock.delimiter === "dollar"
+          ? MATH_DOLLAR_CLOSE_PATTERN.test(line.text)
+          : MATH_BRACKET_CLOSE_PATTERN.test(line.text);
+      if (isClosingDelimiter) {
         if (
           !isRangeEditable(
             editableRange,
@@ -790,8 +810,10 @@ function buildMixedLineDecorations(
       continue;
     }
 
-    if (MATH_FENCE_PATTERN.test(line.text)) {
+    const mathBlockOpen = line.text.match(MATH_BLOCK_OPEN_PATTERN);
+    if (mathBlockOpen) {
       activeMathBlock = {
+        delimiter: mathBlockOpen[1] === "$$" ? "dollar" : "bracket",
         from: line.from,
         startLineNumber: lineNumber,
         textLines: [],

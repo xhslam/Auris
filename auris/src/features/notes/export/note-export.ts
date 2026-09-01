@@ -1,6 +1,5 @@
-import katex from "katex";
-import MarkdownIt from "markdown-it";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
+import { renderMarkdown } from "@/features/notes/rendering/remark-renderer";
 
 function escapeHtml(value: string) {
   return value
@@ -11,36 +10,15 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
-const markdownRenderer = MarkdownIt({
-  breaks: false,
-  html: false,
-  linkify: true,
-  highlight(source, language) {
-    const normalizedLanguage = language.trim().toLowerCase();
-
-    if (normalizedLanguage === "math" || normalizedLanguage === "latex" || normalizedLanguage === "katex") {
-      return katex.renderToString(source, {
-        displayMode: true,
-        strict: false,
-        throwOnError: false,
-      });
-    }
-
-    if (normalizedLanguage === "mermaid") {
-      return `<pre class="mermaid">${escapeHtml(source)}</pre>`;
-    }
-
-    return "";
-  },
-}).enable("table");
-
 function getDocumentTitle(document: NoteDocument) {
   return document.parsed.title ?? document.basename;
 }
 
 export function buildNoteHtmlExport(document: NoteDocument) {
   const title = getDocumentTitle(document);
-  const renderedBody = markdownRenderer.render(document.rawSource);
+  const renderedBody = renderMarkdown(document.rawSource, {
+    wikiLinkClickable: false,
+  }).replace(/(<h[1-6]) id="[^"]+"/gu, "$1");
 
   return [
     "<!doctype html>",

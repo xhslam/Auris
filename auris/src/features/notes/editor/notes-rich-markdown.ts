@@ -1,4 +1,3 @@
-import MarkdownIt from "markdown-it";
 import {
   DOMParser,
   type DOMOutputSpec,
@@ -16,199 +15,142 @@ import { schema as basicSchema } from "prosemirror-schema-basic";
 import { tableNodes } from "prosemirror-tables";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
 import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
 } from "@/features/notes/documents/wiki-link-navigation";
 import { renderMathMarkup } from "@/features/notes/editor/code-block-preview";
+import {
+  createNotesMarkdownProcessor,
+  normalizeNotesMathDelimiters,
+} from "@/features/notes/markdown/notes-markdown-dialect";
 
-// markdown-it plugin: tokenize `$$ ... $$` block math (vmark-style, mirrored
-// from this codebase's existing remark-math/CodeMirror math handling) into a
-// custom block token rendered as a <div data-math-block> element, which the
-// ProseMirror DOMParser then maps onto the `math_block` node.
-function mathBlockMarkdownPlugin(md: MarkdownIt) {
-  md.block.ruler.before(
-    "fence",
-    "math_block",
-    (state, startLine, endLine, silent) => {
-      const startPos = state.bMarks[startLine] + state.tShift[startLine];
-      const max = state.eMarks[startLine];
+type HtmlAstNode = {
+  children?: HtmlAstNode[];
+  properties?: Record<string, unknown>;
+  tagName?: string;
+  type: string;
+  value?: string;
+};
 
-      if (state.src.slice(startPos, startPos + 2) !== "$$") {
-        return false;
-      }
+function textContent(node: HtmlAstNode): string {
+  if (node.type === "text") return node.value ?? "";
+  return (node.children ?? []).map(textContent).join("");
+}
 
-      const firstLineContent = state.src.slice(startPos + 2, max).trim();
-      let endContentLine = -1;
-      let singleLine = false;
+function wikiLinkNodes(value: string): HtmlAstNode[] {
+  const nodes: HtmlAstNode[] = [];
+  const pattern = /\[\[([^\]\n]+)\]\]/gu;
+  let cursor = 0;
 
-      if (firstLineContent.endsWith("$$") && firstLineContent.length >= 2) {
-        endContentLine = startLine;
-        singleLine = true;
-      } else {
-        for (let nextLine = startLine + 1; nextLine < endLine; nextLine += 1) {
-          const lineStart = state.bMarks[nextLine] + state.tShift[nextLine];
-          const lineMax = state.eMarks[nextLine];
+  for (const match of value.matchAll(pattern)) {
+    const index = match.index ?? 0;
+    const token = match[1];
+    if (!token.trim() || token.includes("[")) continue;
 
-          if (state.src.slice(lineStart, lineMax).trim() === "$$") {
-            endContentLine = nextLine;
-            break;
-          }
+    if (index > cursor) {
+      nodes.push({ type: "text", value: value.slice(cursor, index) });
+    }
+
+    nodes.push({
+      children: [{ type: "text", value: getWikiLinkLabel(token) }],
+      properties: {
+        className: ["notes-v2__wikilink"],
+        dataWikilinkTarget: parseWikiLinkTarget(token),
+        dataWikilinkToken: token,
+      },
+      tagName: "a",
+      type: "element",
+    });
+    cursor = index + match[0].length;
+  }
+
+  if (cursor === 0) return [{ type: "text", value }];
+  if (cursor < value.length) {
+    nodes.push({ type: "text", value: value.slice(cursor) });
+  }
+  return nodes;
+}
+
+/** Preserve Auris semantic atoms while converting the shared MDAST to HTML. */
+function rehypeRichEditorAtoms() {
+  return (tree: HtmlAstNode) => {
+    const transform = (parent: HtmlAstNode, opaque = false) => {
+      if (!parent.children) return;
+
+      const next: HtmlAstNode[] = [];
+      for (const child of parent.children) {
+        const childOpaque =
+          opaque ||
+          (child.type === "element" &&
+            ["a", "code", "pre"].includes(child.tagName ?? ""));
+
+        if (
+          !childOpaque &&
+          child.type === "element" &&
+          child.tagName === "p" &&
+          textContent(child).trim().toUpperCase() === "[TOC]"
+        ) {
+          next.push({
+            children: [],
+            properties: {
+              className: ["notes-v2__rich-toc"],
+              dataNotesToc: "true",
+            },
+            tagName: "nav",
+            type: "element",
+          });
+          continue;
         }
+
+        if (!childOpaque && child.type === "text" && child.value?.includes("[[")) {
+          next.push(...wikiLinkNodes(child.value));
+          continue;
+        }
+
+        transform(child, childOpaque);
+        next.push(child);
       }
+      parent.children = next;
+    };
 
-      if (endContentLine < 0) {
-        return false;
-      }
-
-      if (silent) {
-        return true;
-      }
-
-      const content = singleLine
-        ? firstLineContent.slice(0, -2).trim()
-        : state.getLines(startLine + 1, endContentLine, state.blkIndent, false).trim();
-
-      const token = state.push("math_block", "", 0);
-      token.content = content;
-      token.map = [startLine, endContentLine + 1];
-      state.line = endContentLine + 1;
-      return true;
-    },
-    { alt: [] },
-  );
-
-  md.renderer.rules.math_block = (tokens, index) =>
-    `<div data-math-block="${md.utils.escapeHtml(tokens[index].content)}"></div>\n`;
-}
-
-// markdown-it plugin: tokenize inline `$...$` math into a custom inline token
-// rendered as a <span data-math-inline> element, mapped onto `math_inline`.
-function mathInlineMarkdownPlugin(md: MarkdownIt) {
-  md.inline.ruler.before("escape", "math_inline", (state, silent) => {
-    const start = state.pos;
-    const src = state.src;
-
-    if (
-      src.charCodeAt(start) !== 0x24 /* $ */ ||
-      src.charCodeAt(start + 1) === 0x24
-    ) {
-      return false;
-    }
-
-    let pos = start + 1;
-    let end = -1;
-
-    while (pos < state.posMax) {
-      const code = src.charCodeAt(pos);
-
-      if (code === 0x24 && src.charCodeAt(pos - 1) !== 0x5c /* \ */) {
-        end = pos;
-        break;
-      }
-
-      if (code === 0x0a /* \n */) {
-        return false;
-      }
-
-      pos += 1;
-    }
-
-    if (end < 0) {
-      return false;
-    }
-
-    const content = src.slice(start + 1, end);
-
-    if (!content.trim() || /^\s|\s$/.test(content)) {
-      return false;
-    }
-
-    if (!silent) {
-      const token = state.push("math_inline", "", 0);
-      token.content = content;
-    }
-
-    state.pos = end + 1;
-    return true;
-  });
-
-  md.renderer.rules.math_inline = (tokens, index) =>
-    `<span data-math-inline="${md.utils.escapeHtml(tokens[index].content)}"></span>`;
-}
-
-// markdown-it plugin: tokenize Obsidian-style `[[wiki links]]` into a custom
-// inline token that renders as an <a data-wikilink-*> element, which the
-// ProseMirror DOMParser then maps onto the `wiki_link` node.
-function wikiLinkMarkdownPlugin(md: MarkdownIt) {
-  md.inline.ruler.before("link", "wikilink", (state, silent) => {
-    const start = state.pos;
-    const src = state.src;
-
-    if (
-      src.charCodeAt(start) !== 0x5b /* [ */ ||
-      src.charCodeAt(start + 1) !== 0x5b
-    ) {
-      return false;
-    }
-
-    const end = src.indexOf("]]", start + 2);
-
-    if (end < 0) {
-      return false;
-    }
-
-    const inner = src.slice(start + 2, end);
-
-    if (!inner.trim() || inner.includes("[") || inner.includes("\n")) {
-      return false;
-    }
-
-    if (!silent) {
-      const token = state.push("wikilink", "", 0);
-      token.content = inner;
-    }
-
-    state.pos = end + 2;
-    return true;
-  });
-
-  md.renderer.rules.wikilink = (tokens, index) => {
-    const inner = tokens[index].content;
-    const target = parseWikiLinkTarget(inner);
-    const label = getWikiLinkLabel(inner);
-
-    return `<a class="notes-v2__wikilink" data-wikilink-token="${md.utils.escapeHtml(
-      inner,
-    )}" data-wikilink-target="${md.utils.escapeHtml(target)}">${md.utils.escapeHtml(
-      label,
-    )}</a>`;
+    transform(tree);
   };
 }
 
-// A standalone VMark [TOC] marker is parsed as an atom instead of prose.
-function tableOfContentsMarkdownPlugin(md: MarkdownIt) {
-  md.block.ruler.before("paragraph", "notes_toc", (state, startLine, _endLine, silent) => {
-    const start = state.bMarks[startLine] + state.tShift[startLine];
-    const end = state.eMarks[startLine];
-    if (state.src.slice(start, end).trim().toUpperCase() !== "[TOC]") return false;
-    if (!silent) state.push("notes_toc", "nav", 0);
-    state.line = startLine + 1;
-    return true;
-  });
-  md.renderer.rules.notes_toc = () =>
-    '<nav class="notes-v2__rich-toc" data-notes-toc="true"></nav>';
+function mathElement(tagName: "div" | "span", property: string, value: string) {
+  return {
+    children: [],
+    properties: { [property]: value },
+    tagName,
+    type: "element" as const,
+  };
 }
-const markdownRenderer = MarkdownIt({
-  html: false,
-  linkify: true,
-  breaks: false,
-})
-  .enable("table")
-  .use(wikiLinkMarkdownPlugin)
-  .use(mathBlockMarkdownPlugin)
-  .use(mathInlineMarkdownPlugin)
-  .use(tableOfContentsMarkdownPlugin);
+
+const richMarkdownPipeline = createNotesMarkdownProcessor()
+  .use(remarkRehype, {
+    handlers: {
+      inlineMath(_state, node) {
+        return mathElement(
+          "span",
+          "dataMathInline",
+          (node as { value?: string }).value ?? "",
+        );
+      },
+      math(_state, node) {
+        return mathElement(
+          "div",
+          "dataMathBlock",
+          (node as { value?: string }).value ?? "",
+        );
+      },
+    },
+  })
+  .use(rehypeRichEditorAtoms)
+  .use(rehypeStringify)
+  .freeze();
 
 // Inline atom node modelling a `[[wiki link]]`. `token` holds the full inner
 // text (e.g. `target#heading|alias`) so the link round-trips losslessly back
@@ -257,35 +199,35 @@ const wikiLinkNodeSpec: NodeSpec = {
   },
 };
 
-// Block atom node modelling a `$$ ... $$` math block. `source` holds the raw
+// Block atom node modelling a `$$ ... $$` math block. `content` holds the raw
 // LaTeX so the node round-trips losslessly back to markdown; rendering reuses
 // the same KaTeX helper as the CodeMirror/reading-mode math previews so the
 // formula looks identical across all three editor modes.
 const mathBlockNodeSpec: NodeSpec = {
   atom: true,
   attrs: {
-    source: { default: "" },
+    content: { default: "" },
   },
   group: "block",
   parseDOM: [
     {
       getAttrs(dom: HTMLElement) {
-        return { source: dom.getAttribute("data-math-block") ?? "" };
+        return { content: dom.getAttribute("data-math-block") ?? "" };
       },
       tag: "div[data-math-block]",
     },
   ],
   selectable: true,
   toDOM(node: ProseMirrorNode): DOMOutputSpec {
-    const source = node.attrs.source as string;
+    const content = node.attrs.content as string;
     const wrapper = document.createElement("div");
     wrapper.className = "notes-v2__math-block";
-    wrapper.setAttribute("data-math-block", source);
+    wrapper.setAttribute("data-math-block", content);
 
     try {
-      wrapper.innerHTML = renderMathMarkup(source, true);
+      wrapper.innerHTML = renderMathMarkup(content, true);
     } catch {
-      wrapper.textContent = source;
+      wrapper.textContent = content;
     }
 
     return wrapper;
@@ -296,29 +238,29 @@ const mathBlockNodeSpec: NodeSpec = {
 const mathInlineNodeSpec: NodeSpec = {
   atom: true,
   attrs: {
-    source: { default: "" },
+    content: { default: "" },
   },
   group: "inline",
   inline: true,
   parseDOM: [
     {
       getAttrs(dom: HTMLElement) {
-        return { source: dom.getAttribute("data-math-inline") ?? "" };
+        return { content: dom.getAttribute("data-math-inline") ?? "" };
       },
       tag: "span[data-math-inline]",
     },
   ],
   selectable: true,
   toDOM(node: ProseMirrorNode): DOMOutputSpec {
-    const source = node.attrs.source as string;
+    const content = node.attrs.content as string;
     const wrapper = document.createElement("span");
     wrapper.className = "notes-v2__math-inline";
-    wrapper.setAttribute("data-math-inline", source);
+    wrapper.setAttribute("data-math-inline", content);
 
     try {
-      wrapper.innerHTML = renderMathMarkup(source, false);
+      wrapper.innerHTML = renderMathMarkup(content, false);
     } catch {
-      wrapper.textContent = source;
+      wrapper.textContent = content;
     }
 
     return wrapper;
@@ -488,11 +430,11 @@ export const notesRichMarkdownSerializer = new MarkdownSerializer(
       state.write(`[[${token}]]`);
     },
     math_block(state, node) {
-      state.write(`$$\n${node.attrs.source as string}\n$$`);
+      state.write(`$$\n${node.attrs.content as string}\n$$`);
       state.closeBlock(node);
     },
     math_inline(state, node) {
-      state.write(`$${node.attrs.source as string}$`);
+      state.write(`$${node.attrs.content as string}$`);
     },
     toc(state, node) {
       state.write("[TOC]");
@@ -549,7 +491,9 @@ export function parseNotesRichMarkdown(source: string) {
   }
 
   const container = document.createElement("div");
-  container.innerHTML = markdownRenderer.render(source);
+  container.innerHTML = String(
+    richMarkdownPipeline.processSync(normalizeNotesMathDelimiters(source)),
+  );
   return DOMParser.fromSchema(notesRichEditorSchema).parse(container);
 }
 

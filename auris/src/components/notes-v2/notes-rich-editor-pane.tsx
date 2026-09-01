@@ -44,6 +44,10 @@ import {
 import { createNotesRichInputRules } from "@/features/notes/editor/notes-rich-input-rules";
 import { createNotesRichKeymap } from "@/features/notes/editor/notes-rich-keymap";
 import {
+  createNotesMathBlockNodeView,
+  createNotesMathInlineNodeView,
+} from "@/features/notes/editor/notes-math-node-view";
+import {
   replaceAllNotesRichSearchMatches,
   replaceNextNotesRichSearchMatch,
   selectNextNotesRichSearchMatch,
@@ -1049,6 +1053,10 @@ export function NotesRichEditorPane({
       },
       nodeViews: {
         code_block: (node) => new RichCodeBlockView(node),
+        math_block: (node, mathView, getPos) =>
+          createNotesMathBlockNodeView(node, mathView, getPos),
+        math_inline: (node, mathView, getPos) =>
+          createNotesMathInlineNodeView(node, mathView, getPos),
         toc: () => new RichTableOfContentsView(() => viewState.current),
       },
       state: createNotesRichEditorState(

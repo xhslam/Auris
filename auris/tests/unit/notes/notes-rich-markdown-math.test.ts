@@ -3,6 +3,24 @@ import {
   parseNotesRichMarkdown,
   serializeNotesRichMarkdown,
 } from "@/features/notes/editor/notes-rich-markdown";
+import {
+  normalizeNotesMathDelimiters,
+  parseNotesMarkdownAst,
+} from "@/features/notes/markdown/notes-markdown-dialect";
+import { renderMarkdown } from "@/features/notes/rendering/remark-renderer";
+
+function collectMathNodes(source: string) {
+  const nodes: Array<{ content: string; type: string }> = [];
+  parseNotesRichMarkdown(source).descendants((node) => {
+    if (node.type.name === "math_inline" || node.type.name === "math_block") {
+      nodes.push({
+        content: node.attrs.content as string,
+        type: node.type.name,
+      });
+    }
+  });
+  return nodes;
+}
 
 describe("notes-rich-markdown math", () => {
   it("parses a $$ block formula into a math_block node", () => {
@@ -48,5 +66,132 @@ describe("notes-rich-markdown math", () => {
     });
 
     expect(nodes).not.toContain("math_inline");
+  });
+
+  it("does not misread paired currency signs as inline math", () => {
+    const source = "Prices moved from $100 to $200 today.";
+
+    expect(collectMathNodes(source)).toHaveLength(0);
+    expect(serializeNotesRichMarkdown(parseNotesRichMarkdown(source))).toBe(source);
+  });
+
+  it.each([
+    String.raw`卡在 \(\int \frac{2\ln x-1}{2x^3}\,dx\)。`,
+    String.raw`卡在 \(\int y^{-3}e^{-1/y^2}\,dy\)。`,
+    String.raw`追问 \(\left(-\frac1{y^2}\right)'\) 怎么来。`,
+    String.raw`追问 \(e^{-3\ln|y|}\) 中绝对值为什么能处理掉。`,
+  ])("parses compatible inline delimiters as math_inline: %s", (source) => {
+    const nodes = collectMathNodes(source);
+
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].type).toBe("math_inline");
+    expect(nodes[0].content).toContain("\\");
+    expect(serializeNotesRichMarkdown(parseNotesRichMarkdown(source))).toMatch(
+      /\$[^$]+\$/u,
+    );
+  });
+
+  it("parses a compatible display integral as math_block", () => {
+    const source = String.raw`面积题需要计算：
+
+\[
+\int_0^1 -x\ln x\,dx
+\]`;
+    const nodes = collectMathNodes(source);
+
+    expect(nodes).toEqual([
+      {
+        content: String.raw`\int_0^1 -x\ln x\,dx`,
+        type: "math_block",
+      },
+    ]);
+  });
+
+  it("preserves a multiline boxed formula as one math_block node", () => {
+    const source = String.raw`\[
+\boxed{
+\text{负指数改写}
+\to
+\text{幂函数求导/积分}
+\to
+\text{识别内层导数}
+\to
+\text{换元或分部积分}
+\to
+\text{处理符号、绝对值与定义域}
+}
+\]`;
+    const nodes = collectMathNodes(source);
+
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toEqual({
+      content: String.raw`\boxed{
+\text{负指数改写}
+\to
+\text{幂函数求导/积分}
+\to
+\text{识别内层导数}
+\to
+\text{换元或分部积分}
+\to
+\text{处理符号、绝对值与定义域}
+}`,
+      type: "math_block",
+    });
+  });
+
+  it("uses the same AST node types for canonical dollar delimiters", () => {
+    const source = String.raw`行内 $\frac{1}{x}$
+
+$$
+\int_0^1 x\,dx
+$$`;
+    const ast = parseNotesMarkdownAst(source) as unknown as {
+      children: Array<{ children?: Array<{ type: string }>; type: string }>;
+    };
+    const astTypes = ast.children.flatMap((node) => [
+      node.type,
+      ...(node.children ?? []).map((child) => child.type),
+    ]);
+
+    expect(astTypes).toContain("inlineMath");
+    expect(astTypes).toContain("math");
+    expect(collectMathNodes(source).map((node) => node.type)).toEqual([
+      "math_inline",
+      "math_block",
+    ]);
+  });
+
+  it("does not recognize compatible delimiters inside inline or fenced code", () => {
+    const source = String.raw`代码示例：\`\(x^2\)\`
+
+\`\`\`text
+\[
+x^2
+\]
+\`\`\``.replaceAll("\\`", "`");
+    const doc = parseNotesRichMarkdown(source);
+
+    expect(collectMathNodes(source)).toHaveLength(0);
+    expect(serializeNotesRichMarkdown(doc)).toContain(String.raw`\(x^2\)`);
+    expect(serializeNotesRichMarkdown(doc)).toContain(String.raw`\[
+x^2
+\]`);
+  });
+
+  it("protects escaped backslashes, URLs, and Markdown destinations", () => {
+    const source = String.raw`escaped \\(x^2\), https://example.com/\(x\), [docs](https://example.com/\(y\))`;
+
+    expect(normalizeNotesMathDelimiters(source)).toBe(source);
+    expect(collectMathNodes(source)).toHaveLength(0);
+  });
+
+  it("renders compatible delimiters through KaTeX and tolerates one bad formula", () => {
+    const html = renderMarkdown(
+      String.raw`正常 \(\frac{1}{x}\) 错误 \(\notARealCommand{\)`,
+    );
+
+    expect(html).toContain("katex");
+    expect(html).toContain("katex-error");
   });
 });
