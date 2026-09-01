@@ -211,7 +211,7 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 
 本轮依据 `docs/vmark-sync/feature-gap-report-2026-09-01.md` 实施三项已验证的架构无关保证，不整仓复制 VMark。Markdown 媒体解析改为 HTTP(S)、安全栅格图 data URL 和 Vault 内相对路径的明确白名单，Vault 变化会推进 reload key 并重建 CodeMirror 图片 decoration。Vault snapshot refresh 改为可继续的 Promise chain；Keep/Reload 前会即时重读目标文件，以 dirty、path 和最新磁盘内容阻止过期决策。Terminal owner 贯通 renderer、desktop bridge、Electron manager 和 recovery store；可见会话、上限、编号与最后活跃项按 Workspace 计算，收起面板只断开 xterm view，不终止 shell，主进程保留最近 200,000 字符供重新打开时回放。
 
-验证覆盖对抗性媒体源、单调 reload key、确定性 refresh race、冲突决策前二次变更、Workspace session selector/last-active、owner 持久化、有界输出回放和面板卸载不 kill。定向 Vitest、ESLint、三个 Electron CJS `node --check`、`git diff --check` 与 Next 生产构建的完整结果记录在 `docs/vmark-sync/implementation-status-2026-09-01.md`。Workspace Rail 当前的「关闭」只是临时移出列表且会在 refresh 后恢复，因此本轮没有将它扩张为销毁 Workspace 并 kill 其会话。未提交或推送 Git，用户已有词库与笔记改动未触碰。
+验证覆盖对抗性媒体源、单调 reload key、确定性 refresh race、冲突决策前二次变更、Workspace session selector/last-active、owner 持久化、有界输出回放和面板卸载不 kill。定向 Vitest、ESLint、三个 Electron CJS `node --check`、`git diff --check` 与 Next 生产构建的完整结果记录在 `docs/vmark-sync/implementation-status-2026-09-01.md`。Workspace Rail 当前的「关闭」只是临时移出列表且会在 refresh 后恢复，因此本轮没有将它扩张为销毁 Workspace 并 kill 其会话。用户后续明确授权集成：产品代码提交 `0a20a6a` 已推送至 `origin/main`，全量 2,879 项测试通过；macOS arm64 本地包已重建、替换 `/Applications/Auris.app` 并通过 `/` 与 `/notes` HTTP 200 验证，旧包保留在 `/Applications/Auris.app.backup-1.0.4-before-vmark-0959`。用户已有词库与笔记改动未触碰。
 
 ## Engineering trajectory: 胶囊侧边栏结构列修正（2026-08-25）
 

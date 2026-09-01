@@ -37,4 +37,11 @@
 
 - Workspace Rail 的「关闭」当前只是从 rail 临时移除，不是真实销毁 Workspace，且 refresh 后会恢复；因此本轮没有把它错误解释为「kill 该 Workspace 全部 shell」。
 - 没有移植 Tauri/WebKitGTK/Linux print/StrictMode ready/browser chrome 几何等平台专属代码，没有启动 P2 全局 UI primitive 重构。
-- 未创建 commit，未推送远端，未改写用户词库与笔记数据。
+- 实施完成后由用户明确授权集成：产品代码已提交为 `0a20a6a` 并推送到 `origin/main`；用户词库与笔记数据仍未纳入提交。
+
+## 提交与本地应用更新
+
+- 提交前全量 Vitest：387 个测试文件、2,879 项全部通过；secret safety check 通过。
+- GitHub `origin/main` 已指向产品代码提交 `0a20a6ae82a53ce7869ad345b82c2bfa810574c4`。
+- 基于该产品代码重建 macOS arm64 包；本地 `/Applications/Auris.app` 已替换并启动，`/` 与 `/notes` 运行时检查均返回 HTTP 200。
+- 旧应用保留在 `/Applications/Auris.app.backup-1.0.4-before-vmark-0959`；本机无 Developer ID 证书，新包为本地未签名构建。
