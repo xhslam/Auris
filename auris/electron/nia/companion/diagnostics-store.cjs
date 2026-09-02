@@ -4,9 +4,26 @@ const DEFAULT_CAPACITY = 100;
 const REDACTED = "[REDACTED]";
 const REDACTED_SDP = "[REDACTED SDP]";
 
-const SECRET_KEY = /(?:^|_)(?:access_token|refresh_token|token|authorization|bearer|client_secret|secret|api_key)$/i;
 const SDP_KEY = /(?:^|_)(?:offer|answer|sdp)$/i;
 const BODY_KEY = /(?:^|_)(?:body|content|transcript_body)$/i;
+const SAFE_CREDENTIAL_METADATA_SUFFIX = /_(?:count|type)$/;
+
+function normalizeKey(key) {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function isCredentialKey(normalizedKey) {
+  if (SAFE_CREDENTIAL_METADATA_SUFFIX.test(normalizedKey)) return false;
+  const segments = normalizedKey.split("_");
+  if (segments.some((segment) => segment === "token" || segment === "secret" || segment === "authorization" || segment === "bearer")) {
+    return true;
+  }
+  return /(?:^|_)(?:api_key)(?:_|$)/.test(normalizedKey);
+}
 
 function redactString(value) {
   if (/^v=0(?:\r?\n|$)/.test(value) || /(?:^|\r?\n)m=(?:audio|video)\s/m.test(value)) return REDACTED_SDP;
@@ -22,9 +39,9 @@ function redactString(value) {
 }
 
 function sanitize(value, key = "", seen = new WeakSet(), depth = 0, transcriptContext = false) {
-  const normalizedKey = key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+  const normalizedKey = normalizeKey(key);
   const insideTranscript = transcriptContext || /(?:^|_)transcript(?:_|$)/.test(normalizedKey);
-  if (SECRET_KEY.test(normalizedKey)) return REDACTED;
+  if (isCredentialKey(normalizedKey)) return REDACTED;
   if (SDP_KEY.test(normalizedKey)) return REDACTED_SDP;
   if (BODY_KEY.test(normalizedKey)) return REDACTED;
   if (value === null || typeof value === "number" || typeof value === "boolean") return value;

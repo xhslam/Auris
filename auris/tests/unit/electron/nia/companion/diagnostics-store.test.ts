@@ -82,6 +82,35 @@ describe("companion diagnostics store", () => {
     expect(JSON.parse(entry.detail.encoded)).toEqual({ access_token: "[REDACTED]", status: 401 });
   });
 
+  it("redacts credential value key variants while preserving safe counters, types, and lookalikes", () => {
+    const store = createDiagnosticsStore({ now: () => Date.parse("2026-09-02T10:00:00.000Z"), capacity: 10 });
+    store.note({
+      component: "credential",
+      code: "CODEX_AUTH_UNREADABLE",
+      recovery: "Run `codex` once.",
+      detail: {
+        accessTokenValue: "arbitrary-access-value",
+        clientSecretValue: "arbitrary-client-secret",
+        refresh_token_value: "arbitrary-refresh-value",
+        "api-key-value": "arbitrary-api-key",
+        accessTokenCount: 2,
+        clientSecretType: "ephemeral",
+        tokenizerType: "byte-pair",
+        secretaryName: "safe role label",
+      },
+    });
+
+    const detail = store.list()[0].detail;
+    expect(detail.accessTokenValue).toBe("[REDACTED]");
+    expect(detail.clientSecretValue).toBe("[REDACTED]");
+    expect(detail.refresh_token_value).toBe("[REDACTED]");
+    expect(detail["api-key-value"]).toBe("[REDACTED]");
+    expect(detail.accessTokenCount).toBe(2);
+    expect(detail.clientSecretType).toBe("ephemeral");
+    expect(detail.tokenizerType).toBe("byte-pair");
+    expect(detail.secretaryName).toBe("safe role label");
+  });
+
   it("publishes immutable snapshots, supports unsubscribe, and notifies on clear", () => {
     const store = createDiagnosticsStore({ now: () => Date.parse("2026-09-02T10:00:00.000Z"), capacity: 5 });
     const listener = vi.fn();
