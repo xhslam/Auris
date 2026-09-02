@@ -10,6 +10,7 @@ const workflowIpc = require("../../../../electron/workflows/workflow-ipc.cjs");
 const browserStatusIpc = require("../../../../electron/browser/browser-status-ipc.cjs");
 const browserIpc = require("../../../../electron/browser/browser-ipc.cjs");
 const notesRecoveryIpc = require("../../../../electron/notes/notes-recovery-ipc.cjs");
+const companionIpc = require("../../../../electron/nia/companion/companion-ipc.cjs");
 
 type NiaPreload = {
   invoke(command: string, payload?: Record<string, unknown>): Promise<unknown>;
@@ -58,6 +59,7 @@ function loadMainPreload() {
       if (String(id).includes("browser-ipc")) return browserIpc;
       if (String(id).includes("browser-status-ipc")) return browserStatusIpc;
       if (String(id).includes("notes-recovery-ipc")) return notesRecoveryIpc;
+      if (String(id).includes("companion-ipc")) return companionIpc;
       throw new Error(`Unexpected require: ${id}`);
     },
     setTimeout,

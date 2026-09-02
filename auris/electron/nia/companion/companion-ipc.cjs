@@ -5,6 +5,8 @@ const crypto = require("node:crypto");
 const COMMAND_CHANNEL = "auris:nia-companion:command";
 const EVENT_CHANNEL = "auris:nia-companion:event";
 const REPORT_CHANNEL = "auris:nia-companion:report";
+const HOST_COMMAND_CHANNEL = "shadowing:nia-companion:host-command";
+const HOST_EVENT_CHANNEL = "shadowing:nia-companion:host-event";
 const MAX_SESSION_HANDLES = 4;
 const MAX_OFFER_LENGTH = 200_000;
 
@@ -140,7 +142,7 @@ function createCompanionIpc({
   }
 
   return Object.freeze({
-    channels: Object.freeze({ COMMAND_CHANNEL, EVENT_CHANNEL, REPORT_CHANNEL }),
+  channels: Object.freeze({ COMMAND_CHANNEL, EVENT_CHANNEL, REPORT_CHANNEL }),
     dispose,
     register,
     send,
@@ -151,6 +153,8 @@ function createCompanionIpc({
 module.exports = {
   COMMAND_CHANNEL,
   EVENT_CHANNEL,
+  HOST_COMMAND_CHANNEL,
+  HOST_EVENT_CHANNEL,
   REPORT_CHANNEL,
   createCompanionIpc,
 };

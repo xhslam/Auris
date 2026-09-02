@@ -10,6 +10,10 @@ const {
   NIA_IPC_COMMANDS,
 } = require("./nia/nia-ipc.cjs");
 const {
+  HOST_COMMAND_CHANNEL: NIA_COMPANION_HOST_COMMAND_CHANNEL,
+  HOST_EVENT_CHANNEL: NIA_COMPANION_HOST_EVENT_CHANNEL,
+} = require("./nia/companion/companion-ipc.cjs");
+const {
   WORKFLOW_COMMAND_CHANNEL,
   WORKFLOW_EVENT_CHANNEL,
   WORKFLOW_COMMANDS,
@@ -125,6 +129,28 @@ const niaStandaloneBridge = Object.freeze({
     return () => niaStandaloneListeners.delete(listener);
   },
 });
+const NIA_COMPANION_HOST_ALLOWED = new Set(["snapshot", "wake", "rest", "mute", "text"]);
+const niaCompanionHostListeners = new Map();
+const niaCompanionHostBridge = Object.freeze({
+  invoke(command, payload = {}) {
+    if (!NIA_COMPANION_HOST_ALLOWED.has(command)) return Promise.reject(new TypeError("Unsupported Nia companion command"));
+    return invoke(NIA_COMPANION_HOST_COMMAND_CHANNEL, { command, payload });
+  },
+  subscribe(listener) {
+    if (typeof listener !== "function" || niaCompanionHostListeners.has(listener)) return false;
+    const wrapper = (_event, value) => listener(value);
+    niaCompanionHostListeners.set(listener, wrapper);
+    ipcRenderer.on(NIA_COMPANION_HOST_EVENT_CHANNEL, wrapper);
+    return true;
+  },
+  unsubscribe(listener) {
+    const wrapper = niaCompanionHostListeners.get(listener);
+    if (!wrapper) return false;
+    niaCompanionHostListeners.delete(listener);
+    ipcRenderer.removeListener(NIA_COMPANION_HOST_EVENT_CHANNEL, wrapper);
+    return true;
+  },
+});
 const workflowWrappers = new Map();
 const workflowBridge = Object.freeze({
   invoke(command, payload = {}) {
@@ -220,6 +246,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     },
   },
   nia: niaBridge,
+  niaCompanion: niaCompanionHostBridge,
   niaStandalone: niaStandaloneBridge,
   workflows: workflowBridge,
   aiDock: {

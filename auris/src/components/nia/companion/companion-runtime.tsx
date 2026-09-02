@@ -9,7 +9,8 @@ type CompanionCommand =
   | { type: "close"; generation: number; reason?: string }
   | { type: "text"; generation: number; text: string }
   | { type: "reminder"; generation: number; reminder: { count: number; items: unknown[] } }
-  | { type: "config"; generation: number; config: Record<string, unknown> | null };
+  | { type: "config"; generation: number; config: Record<string, unknown> | null }
+  | { type: "mute"; generation: number; muted: boolean };
 
 declare global {
   interface Window { niaCompanion?: CompanionBridge }
@@ -71,6 +72,8 @@ export function CompanionRuntime() {
         transport.sendReminder(command.reminder);
       } else if (command.type === "config") {
         transport.sendConfig(command.config);
+      } else if (command.type === "mute") {
+        transport.setMuted(command.muted);
       }
     };
     bridge.subscribe(onCommand);

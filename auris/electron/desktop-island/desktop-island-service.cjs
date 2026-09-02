@@ -56,6 +56,10 @@ class DesktopIslandService {
     return { ...this.settings };
   }
 
+  getSnapshot() {
+    return this.snapshot ? structuredClone(this.snapshot) : null;
+  }
+
   updateSettings(patch) {
     this.settings = normalizeDesktopIslandSettings({ ...this.settings, ...patch }, this.settings);
     if (!this.settings.enabled) this.expanded = false;
