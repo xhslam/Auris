@@ -163,6 +163,36 @@ describe("Realtime credential exchange and SDP proxy", () => {
     expect(result).toMatchObject({ ok: false, error: { code: "CODEX_UPSTREAM_TIMEOUT" } });
   });
 
+  it("keeps the session deadline active until a stalled response body is consumed", async () => {
+    let fireDeadline: (() => void) | undefined;
+    let bodyStarted = false;
+    let bodySignal: AbortSignal | undefined;
+    const clearTimeoutImpl = vi.fn();
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => ({
+      ok: true,
+      status: 200,
+      text: () => {
+        bodyStarted = true;
+        bodySignal = init.signal as AbortSignal;
+        return new Promise<string>(() => undefined);
+      },
+    } as Response));
+
+    const pending = exchangeRealtimeSession({
+      credential: await credential(),
+      fetchImpl,
+      setTimeoutImpl: (callback: () => void) => { fireDeadline = callback; return 41; },
+      clearTimeoutImpl,
+    });
+    await vi.waitFor(() => expect(bodyStarted).toBe(true));
+    expect(clearTimeoutImpl).not.toHaveBeenCalled();
+    fireDeadline?.();
+
+    await expect(pending).resolves.toMatchObject({ ok: false, error: { code: "CODEX_UPSTREAM_TIMEOUT" } });
+    expect(bodySignal?.aborted).toBe(true);
+    expect(clearTimeoutImpl).toHaveBeenCalledWith(41);
+  });
+
   it("proxies the offer with Mochi's request shape and returns the SDP answer", async () => {
     const minted = await exchangeRealtimeSession({
       credential: await credential(),
@@ -183,5 +213,41 @@ describe("Realtime credential exchange and SDP proxy", () => {
       }),
     );
     expect(result).toEqual({ ok: true, answer: "v=0 answer\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111" });
+  });
+
+  it("keeps the SDP deadline active until a stalled answer body is consumed", async () => {
+    const minted = await exchangeRealtimeSession({
+      credential: await credential(),
+      fetchImpl: async () => response(200, JSON.stringify({ value: "ek_fixture-secret" })),
+    });
+    if (!minted.ok) throw new Error("fixture session failed");
+    let fireDeadline: (() => void) | undefined;
+    let bodyStarted = false;
+    let bodySignal: AbortSignal | undefined;
+    const clearTimeoutImpl = vi.fn();
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => ({
+      ok: true,
+      status: 201,
+      text: () => {
+        bodyStarted = true;
+        bodySignal = init.signal as AbortSignal;
+        return new Promise<string>(() => undefined);
+      },
+    } as Response));
+
+    const pending = proxyRealtimeSdp({
+      offer: "v=0 offer",
+      session: minted.session,
+      fetchImpl,
+      setTimeoutImpl: (callback: () => void) => { fireDeadline = callback; return 42; },
+      clearTimeoutImpl,
+    });
+    await vi.waitFor(() => expect(bodyStarted).toBe(true));
+    expect(clearTimeoutImpl).not.toHaveBeenCalled();
+    fireDeadline?.();
+
+    await expect(pending).resolves.toMatchObject({ ok: false, error: { code: "REALTIME_SDP_TIMEOUT" } });
+    expect(bodySignal?.aborted).toBe(true);
+    expect(clearTimeoutImpl).toHaveBeenCalledWith(42);
   });
 });

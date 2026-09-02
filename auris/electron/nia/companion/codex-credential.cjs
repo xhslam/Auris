@@ -115,21 +115,34 @@ async function requestWithDeadline(fetchImpl, url, init, dependencies) {
   const controller = new AbortControllerImpl();
   let timer;
   try {
-    const pending = fetchImpl(url, { ...init, signal: controller.signal });
-    timer = setTimeoutImpl(() => controller.abort(), deadlineMs);
-    const response = await pending;
-    return { ok: true, response };
-  } catch {
-    return { ok: false, timedOut: controller.signal.aborted };
+    const request = (async () => {
+      const response = await fetchImpl(url, { ...init, signal: controller.signal });
+      const body = await readBody(response, controller.signal);
+      return { response, body };
+    })();
+    const timeout = new Promise((resolve) => {
+      timer = setTimeoutImpl(() => {
+        controller.abort();
+        resolve({ ok: false, timedOut: true });
+      }, deadlineMs);
+    });
+    return await Promise.race([
+      request.then(
+        (value) => ({ ok: true, ...value }),
+        () => ({ ok: false, timedOut: controller.signal.aborted }),
+      ),
+      timeout,
+    ]);
   } finally {
     if (timer !== undefined) clearTimeoutImpl(timer);
   }
 }
 
-async function readBody(response) {
+async function readBody(response, signal) {
   try {
     return await response.text();
   } catch {
+    if (signal.aborted) throw new DOMException("The request deadline expired.", "AbortError");
     return null;
   }
 }
@@ -188,10 +201,9 @@ async function exchangeRealtimeSession({
     );
   }
 
-  const raw = await readBody(request.response);
   let body;
   try {
-    body = raw === null ? null : JSON.parse(raw);
+    body = request.body === null ? null : JSON.parse(request.body);
   } catch {
     body = null;
   }
@@ -257,7 +269,7 @@ async function proxyRealtimeSdp({
     );
   }
 
-  const answer = await readBody(request.response);
+  const answer = request.body;
   if (answer === null) {
     return error(
       "REALTIME_SDP_UNREADABLE",
