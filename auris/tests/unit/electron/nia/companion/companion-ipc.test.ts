@@ -10,13 +10,14 @@ const {
 } = require("../../../../../electron/nia/companion/companion-ipc.cjs");
 
 function fakeIpcMain() {
-  const handlers = new Map<string, Function>();
-  const listeners = new Map<string, Function>();
+  type Handler = (...args: unknown[]) => unknown;
+  const handlers = new Map<string, Handler>();
+  const listeners = new Map<string, Handler>();
   return {
     handlers,
     listeners,
-    handle: vi.fn((channel: string, handler: Function) => handlers.set(channel, handler)),
-    on: vi.fn((channel: string, handler: Function) => listeners.set(channel, handler)),
+    handle: vi.fn((channel: string, handler: Handler) => handlers.set(channel, handler)),
+    on: vi.fn((channel: string, handler: Handler) => listeners.set(channel, handler)),
     removeHandler: vi.fn((channel: string) => handlers.delete(channel)),
     removeListener: vi.fn((channel: string) => listeners.delete(channel)),
   };
@@ -25,8 +26,8 @@ function fakeIpcMain() {
 describe("Nia companion IPC", () => {
   it("keeps credential/session keys in main and exposes only an opaque handle", async () => {
     const ipcMain = fakeIpcMain();
-    const sent: any[] = [];
-    const window = { window: () => ({ webContents: { send: (_channel: string, value: any) => sent.push(value) } }) };
+    const sent: unknown[] = [];
+    const window = { window: () => ({ webContents: { send: (_channel: string, value: unknown) => sent.push(value) } }) };
     const credential = Object.freeze({ type: "codex-oauth" });
     const session = Object.freeze({ type: "realtime-session" });
     const service = createCompanionIpc({
@@ -34,11 +35,11 @@ describe("Nia companion IPC", () => {
       companionWindow: window,
       isTrustedSender: () => true,
       readCredential: vi.fn(async () => ({ ok: true, credential })),
-      exchangeRealtimeSession: vi.fn(async ({ credential: value }: any) => {
+      exchangeRealtimeSession: vi.fn(async ({ credential: value }: { credential: unknown }) => {
         expect(value).toBe(credential);
         return { ok: true, session, model: "gpt-realtime-2.1", expiresAt: Date.now() + 60_000 };
       }),
-      proxyRealtimeSdp: vi.fn(async ({ session: value }: any) => {
+      proxyRealtimeSdp: vi.fn(async ({ session: value }: { session: unknown }) => {
         expect(value).toBe(session);
         return { ok: true, answer: "v=0" };
       }),
@@ -78,4 +79,3 @@ describe("Nia companion IPC", () => {
     expect(EVENT_CHANNEL).toBe("auris:nia-companion:event");
   });
 });
-
