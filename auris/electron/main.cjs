@@ -461,7 +461,11 @@ async function initializeNiaCompanionSubsystem() {
       niaCompanionCoordinator?.report?.(report);
       sendNiaCompanionHostEvent({ type: "report", report });
     },
-    onReady: () => writeStartupLog("nia-companion:renderer-ready"),
+    onReady: () => {
+      writeStartupLog("nia-companion:renderer-ready");
+      if (desktopConfig.niaCompanion?.enabled !== false) niaCompanionReminderScheduler?.start?.();
+    },
+    onWake: () => niaCompanionCoordinator?.open?.({ reason: "body-click" }),
   });
 
   niaCompanionCoordinator = createRealtimeCoordinator({
@@ -510,8 +514,6 @@ async function initializeNiaCompanionSubsystem() {
       }
     },
   });
-  if (desktopConfig.niaCompanion?.enabled !== false) niaCompanionReminderScheduler.start();
-
   try {
     await niaCompanionWindow.load();
     installMediaPermissionHandlers(niaCompanionWindow.window());

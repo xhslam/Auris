@@ -61,7 +61,7 @@ export function CompanionRuntime() {
             audio.srcObject = stream;
             void audio.play().catch(() => undefined);
           },
-        });
+        }, { microphone: command.reason !== "scheduled-reminder" });
       } else if (command.type === "close") {
         transport.close(command.generation);
         setStatus("resting");
@@ -87,9 +87,11 @@ export function CompanionRuntime() {
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0 || !bridge) return;
+    if ((event.target as HTMLElement).closest("button")) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setDragging(true);
     void bridge.pointerCapture(true);
+    void bridge.wake();
     void bridge.dragBegin(event.screenX, event.screenY);
   };
 
@@ -105,6 +107,9 @@ export function CompanionRuntime() {
     void bridge.pointerCapture(false);
   };
 
+  const onPointerEnter = () => { void bridge?.pointerCapture(true); };
+  const onPointerLeave = () => { if (!isDragging) void bridge?.pointerCapture(false); };
+
   return (
     <main
       aria-label="Nia desktop companion"
@@ -112,6 +117,8 @@ export function CompanionRuntime() {
       data-dragging={isDragging ? "true" : "false"}
       onPointerCancel={endPointer}
       onPointerDown={onPointerDown}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
       onPointerMove={onPointerMove}
       onPointerUp={endPointer}
     >

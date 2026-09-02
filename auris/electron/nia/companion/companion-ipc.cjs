@@ -29,6 +29,7 @@ function createCompanionIpc({
   onReport = () => undefined,
   onReady = () => undefined,
   onOpenNia = () => undefined,
+  onWake = () => undefined,
 } = {}) {
   if (!ipcMain || typeof ipcMain.handle !== "function" || typeof ipcMain.on !== "function") {
     throw new TypeError("ipcMain is required.");
@@ -109,6 +110,7 @@ function createCompanionIpc({
     }
     if (command === "drag-end") return companionWindow.endDrag?.() ?? false;
     if (command === "open-nia") return onOpenNia();
+    if (command === "wake") return onWake();
     throw new TypeError("Unsupported Nia companion command.");
   }
 
@@ -142,7 +144,7 @@ function createCompanionIpc({
   }
 
   return Object.freeze({
-  channels: Object.freeze({ COMMAND_CHANNEL, EVENT_CHANNEL, REPORT_CHANNEL }),
+    channels: Object.freeze({ COMMAND_CHANNEL, EVENT_CHANNEL, REPORT_CHANNEL }),
     dispose,
     register,
     send,
