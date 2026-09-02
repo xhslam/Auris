@@ -4,6 +4,7 @@ import { NiaPanel } from "@/components/nia/nia-panel";
 import { NiaOperationsPanel } from "@/components/nia/nia-operations-panel";
 import { NiaLiveSurface } from "@/components/nia/nia-live-surface";
 import { NiaModelRoutingPanel, loadNiaRoutingPreference } from "@/components/nia/nia-model-routing-panel";
+import { NiaCompanionHistory } from "@/components/nia/nia-companion-history";
 import { getNiaStandaloneBridge } from "@/features/nia/nia-standalone-bridge";
 import { formatNiaContextCardsForPrompt } from "@/features/nia/nia-context-card";
 import { listNiaToolsForContext } from "@/features/nia/nia-tool-registry";
@@ -66,6 +67,7 @@ export function NiaStandaloneSurface() {
       </section>
       <NiaOperationsPanel onMemoryContextChange={setMemoryContext} />
       <NiaLiveSurface />
+      <NiaCompanionHistory />
       <NiaModelRoutingPanel onPreferenceChange={setRoutingPreference} preference={routingPreference} />
       {isContextDrawerOpen ? (
         <aside aria-label="Nia context drawer" className="nia-standalone__context-drawer">

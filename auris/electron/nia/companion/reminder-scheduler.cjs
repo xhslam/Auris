@@ -75,8 +75,8 @@ function createReminderScheduler({
     const day = dateKey(current);
     const currentMinute = minutes(current);
     const due = slots.filter((slot) => slot <= currentMinute);
-    if (due.length === 0 || lastFired[day] !== undefined) return false;
-    return fire(due[due.length - 1], "catch-up");
+    if (slots.length === 0 || lastFired[day] !== undefined) return false;
+    return fire(due.length > 0 ? due[due.length - 1] : slots[slots.length - 1], "catch-up");
   }
   function tick() {
     if (!running) return;
@@ -110,4 +110,3 @@ function createReminderScheduler({
 }
 
 module.exports = { createReminderScheduler, dateKey, inQuietHours, normalizeTimes, parseClock };
-

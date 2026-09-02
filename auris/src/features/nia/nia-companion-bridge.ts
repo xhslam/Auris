@@ -5,7 +5,7 @@ export type NiaCompanionHostEvent =
   | { type: "report"; report: { type?: string; text?: string; message?: string; error?: { message?: string } } };
 
 export type NiaCompanionHostBridge = {
-  invoke: (command: "snapshot" | "wake" | "rest" | "mute" | "text", payload?: Record<string, unknown>) => Promise<unknown>;
+  invoke: (command: "snapshot" | "wake" | "rest" | "mute" | "text" | "conversations" | "conversation-turns", payload?: Record<string, unknown>) => Promise<unknown>;
   subscribe: (listener: (event: unknown) => void) => boolean;
   unsubscribe: (listener: (event: unknown) => void) => boolean;
 };
@@ -17,4 +17,3 @@ type HostWindow = Window & {
 export function getNiaCompanionHostBridge(host: Window = window): NiaCompanionHostBridge | null {
   return (host as HostWindow).shadowingDesktop?.niaCompanion ?? null;
 }
-

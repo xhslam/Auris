@@ -3618,6 +3618,10 @@ function registerDesktopHandlers() {
     const payload = request && request.payload && typeof request.payload === "object" ? request.payload : {};
     if (!niaCompanionCoordinator) return { state: "resting" };
     if (command === "snapshot") return niaCompanionCoordinator.snapshot();
+    if (command === "conversations") return niaCompanionConversationStore?.list?.({ personaId: "nia", limit: 32 }) ?? [];
+    if (command === "conversation-turns") {
+      return niaCompanionConversationStore?.turns?.({ personaId: "nia", conversationId: String(payload.conversationId ?? "") }) ?? [];
+    }
     if (command === "wake") return niaCompanionCoordinator.open({ reason: "nia-page" });
     if (command === "rest") return niaCompanionCoordinator.rest("nia-page");
     if (command === "mute") return niaCompanionCoordinator.setMuted?.(payload.muted === true) ?? false;

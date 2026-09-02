@@ -129,7 +129,7 @@ const niaStandaloneBridge = Object.freeze({
     return () => niaStandaloneListeners.delete(listener);
   },
 });
-const NIA_COMPANION_HOST_ALLOWED = new Set(["snapshot", "wake", "rest", "mute", "text"]);
+const NIA_COMPANION_HOST_ALLOWED = new Set(["snapshot", "wake", "rest", "mute", "text", "conversations", "conversation-turns"]);
 const niaCompanionHostListeners = new Map();
 const niaCompanionHostBridge = Object.freeze({
   invoke(command, payload = {}) {
