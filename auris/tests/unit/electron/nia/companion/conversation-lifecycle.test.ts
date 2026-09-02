@@ -23,7 +23,7 @@ describe("Nia conversation lifecycle", () => {
     expect(store.rows).toEqual([]);
     expect(talk.file("user", "")).toBe(false);
     expect(talk.file("user", "开始")).toBe(true);
-    expect(store.rows.map((row: any) => row.type)).toEqual(["begin", "tool", "say"]);
+    expect(store.rows.map((row) => (row as { type?: string }).type)).toEqual(["begin", "tool", "say"]);
   });
 
   it("ends before persona changes and allows a fresh conversation after deletion", () => {
@@ -32,7 +32,7 @@ describe("Nia conversation lifecycle", () => {
     talk.file("user", "一");
     const token = talk.liveToken();
     talk.wear("other");
-    expect(store.rows.map((row: any) => row.type)).toEqual(["begin", "say", "end"]);
+    expect(store.rows.map((row) => (row as { type?: string }).type)).toEqual(["begin", "say", "end"]);
     expect(talk.isLive()).toBe(false);
     talk.file("user", "二");
     expect(talk.isLive()).toBe(true);

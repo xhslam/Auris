@@ -10,8 +10,8 @@ export type CompanionTransportReport =
 
 export type CompanionBridge = {
   ready: (payload?: Record<string, unknown>) => boolean;
-  subscribe: (listener: (command: any) => void) => boolean;
-  unsubscribe: (listener: (command: any) => void) => boolean;
+  subscribe: (listener: (command: unknown) => void) => boolean;
+  unsubscribe: (listener: (command: unknown) => void) => boolean;
   openSession: () => Promise<{ ok: boolean; sessionId?: string; expiresAt?: number | null; error?: { code?: string; message?: string; recovery?: string } }>;
   sdp: (sessionId: string, offer: string) => Promise<{ ok: boolean; answer?: string; error?: { code?: string; message?: string; recovery?: string } }>;
   report: (report: CompanionTransportReport) => boolean;
@@ -162,21 +162,29 @@ export class NiaRealtimeTransport {
   }
 
   private handleServerEvent(raw: unknown) {
-    let event: any;
-    try { event = typeof raw === "string" ? JSON.parse(raw) : raw; } catch { return; }
+    let event: Record<string, unknown>;
+    try {
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return;
+      event = parsed as Record<string, unknown>;
+    } catch { return; }
     const generation = this.generation;
-    if (event?.type === "conversation.item.input_audio_transcription.completed") {
-      this.emit({ type: "heard", generation, text: typeof event.transcript === "string" ? event.transcript : "", itemId: event.item_id });
+    const type = typeof event.type === "string" ? event.type : "";
+    const error = event.error && typeof event.error === "object" && !Array.isArray(event.error)
+      ? event.error as Record<string, unknown>
+      : null;
+    if (type === "conversation.item.input_audio_transcription.completed") {
+      this.emit({ type: "heard", generation, text: typeof event.transcript === "string" ? event.transcript : "", itemId: typeof event.item_id === "string" ? event.item_id : undefined });
       return;
     }
-    if (event?.type === "response.audio_transcript.done" || event?.type === "response.output_text.done") {
-      this.emit({ type: "said", generation, text: typeof event.transcript === "string" ? event.transcript : (typeof event.text === "string" ? event.text : ""), responseId: event.response_id, itemId: event.item_id });
+    if (type === "response.audio_transcript.done" || type === "response.output_text.done") {
+      this.emit({ type: "said", generation, text: typeof event.transcript === "string" ? event.transcript : (typeof event.text === "string" ? event.text : ""), responseId: typeof event.response_id === "string" ? event.response_id : undefined, itemId: typeof event.item_id === "string" ? event.item_id : undefined });
       return;
     }
-    if (event?.type === "response.created") this.emit({ type: "state", generation, state: "thinking" });
-    else if (event?.type === "response.audio.delta") this.emit({ type: "state", generation, state: "speaking" });
-    else if (event?.type === "response.done") this.emit({ type: "state", generation, state: "listening" });
-    else if (event?.type === "error") this.emit(errorReport(generation, event.error?.code ?? "REALTIME_EVENT_ERROR", event.error?.message ?? "Realtime returned an error.", "Rest Nia, then wake her again."));
+    if (type === "response.created") this.emit({ type: "state", generation, state: "thinking" });
+    else if (type === "response.audio.delta") this.emit({ type: "state", generation, state: "speaking" });
+    else if (type === "response.done") this.emit({ type: "state", generation, state: "listening" });
+    else if (type === "error") this.emit(errorReport(generation, typeof error?.code === "string" ? error.code : "REALTIME_EVENT_ERROR", typeof error?.message === "string" ? error.message : "Realtime returned an error.", "Rest Nia, then wake her again."));
   }
 
   private emit(report: CompanionTransportReport) {

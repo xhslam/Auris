@@ -47,7 +47,9 @@ export function CompanionRuntime() {
         if (report.type === "said") setStatus("speaking");
       }
     };
-    const onCommand = (command: CompanionCommand) => {
+    const onCommand = (raw: unknown) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw) || typeof (raw as { type?: unknown }).type !== "string") return;
+      const command = raw as CompanionCommand;
       if (command.type === "open") {
         setStatus("opening");
         void transport.open(command.generation, {
