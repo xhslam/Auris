@@ -114,6 +114,21 @@ const { createNiaIpc } = require("./nia/nia-ipc.cjs");
 const { createNiaDefinitionStore } = require("./nia/nia-definition-store.cjs");
 const { BUILT_IN_NIA_DEFINITIONS } = require("./shared/nia-builtin-definitions.cjs");
 const { createNiaWorkflowRuntime } = require("./workflows/nia-workflow-runtime.cjs");
+const {
+  createCompanionWindow,
+} = require("./nia/companion/companion-window.cjs");
+const {
+  createCompanionIpc,
+} = require("./nia/companion/companion-ipc.cjs");
+const {
+  readCodexCredential,
+  exchangeRealtimeSession,
+  proxyRealtimeSdp,
+} = require("./nia/companion/codex-credential.cjs");
+const { createConversationStore } = require("./nia/companion/conversation-db.cjs");
+const { createConversationLifecycle } = require("./nia/companion/conversation-lifecycle.cjs");
+const { createDiagnosticsStore } = require("./nia/companion/diagnostics-store.cjs");
+const { createRealtimeCoordinator } = require("./nia/companion/realtime-coordinator.cjs");
 const { createBrowserWorkflowApiService } = require("./workflows/browser-workflow-api-service.cjs");
 const { createBrowserWorkflowRuntime } = require("./workflows/browser-workflow-runtime.cjs");
 const {
@@ -277,6 +292,12 @@ let browserStateRepository = null;
 let niaIpc = null;
 let niaProviderRuntime = null;
 let niaDefinitions = null;
+let niaCompanionWindow = null;
+let niaCompanionIpc = null;
+let niaCompanionCoordinator = null;
+let niaCompanionConversationStore = null;
+let niaCompanionConversation = null;
+let niaCompanionDiagnostics = null;
 let browserOperationGuard = null;
 let workflowIpc = null;
 let browserWorkflowRuntime = null;
@@ -380,6 +401,87 @@ function initializeNiaSubsystem() {
   });
   niaIpc.register();
   return niaIpc;
+}
+
+function isTrustedNiaCompanionEvent(event) {
+  const target = niaCompanionWindow?.window?.();
+  const sender = event?.sender;
+  return Boolean(
+    target
+    && sender === target.webContents
+    && isTrustedDesktopOrigin(event?.senderFrame?.url, getSenderUrl(event)),
+  );
+}
+
+async function initializeNiaCompanionSubsystem() {
+  if (niaCompanionIpc) return niaCompanionIpc;
+
+  const baseDir = path.join(app.getPath("userData"), "nia", "companion");
+  niaCompanionDiagnostics = createDiagnosticsStore({ capacity: 64 });
+  niaCompanionConversationStore = createConversationStore({
+    databasePath: path.join(baseDir, "conversations.db"),
+  });
+  niaCompanionConversationStore.recoverOpen();
+  niaCompanionConversation = createConversationLifecycle({
+    store: niaCompanionConversationStore,
+    personaId: "nia",
+    source: "realtime",
+    log: (message) => writeStartupLog(`nia-companion:${message}`),
+  });
+
+  niaCompanionWindow = createCompanionWindow({
+    BrowserWindow,
+    screen,
+    app,
+    startNextServer,
+    preloadPath: path.join(__dirname, "nia", "companion-preload.cjs"),
+    positionPath: path.join(baseDir, "position.json"),
+    onNavigateToNia: () => { void openMainRoute("/nia"); },
+  });
+
+  niaCompanionIpc = createCompanionIpc({
+    ipcMain,
+    companionWindow: niaCompanionWindow,
+    isTrustedSender: isTrustedNiaCompanionEvent,
+    readCredential: () => readCodexCredential(),
+    exchangeRealtimeSession,
+    proxyRealtimeSdp,
+    getSnapshot: () => niaCompanionCoordinator?.snapshot?.() ?? { state: "resting" },
+    onReport: (report) => niaCompanionCoordinator?.report?.(report),
+    onReady: () => writeStartupLog("nia-companion:renderer-ready"),
+  });
+
+  niaCompanionCoordinator = createRealtimeCoordinator({
+    credentialBroker: { read: () => readCodexCredential() },
+    transport: {
+      send(command) {
+        if (!niaCompanionIpc) return false;
+        // The coordinator receives an opaque credential handle during its
+        // preflight, but it must never cross into the companion renderer.
+        const safe = { ...command };
+        delete safe.credential;
+        return niaCompanionIpc.send(safe);
+      },
+    },
+    conversation: niaCompanionConversation,
+    diagnostics: niaCompanionDiagnostics,
+  });
+  niaCompanionIpc.register();
+
+  try {
+    await niaCompanionWindow.load();
+    installMediaPermissionHandlers(niaCompanionWindow.window());
+    niaCompanionWindow.show();
+  } catch (error) {
+    niaCompanionDiagnostics.note({
+      component: "window",
+      code: "COMPANION_WINDOW_UNAVAILABLE",
+      recovery: "Open Nia from Auris to try the desktop companion again.",
+      detail: { message: error instanceof Error ? error.message : String(error) },
+    });
+    writeStartupLog(`nia-companion:window-error ${error?.stack ?? error}`);
+  }
+  return niaCompanionIpc;
 }
 
 function resolveTrustedAssistantCaller(event) {
@@ -4344,12 +4446,13 @@ app.whenReady().then(async () => {
   initializeBrowserSubsystem(nextServerUrl);
   await browserWindowManager?.attachEmbeddedHost?.({ hostWindow: mainWindow });
   initializeNiaSubsystem();
+  await initializeNiaCompanionSubsystem();
   initializeWorkflowSubsystem();
   initializeBrowserStatusSubsystem();
   installApplicationMenu();
 
   app.on("activate", async () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    if (!mainWindow || mainWindow.isDestroyed()) {
       await ensureMainWindow();
       return;
     }
@@ -4381,6 +4484,16 @@ app.on("window-all-closed", async () => {
 });
 
 app.on("before-quit", async () => {
+  niaCompanionCoordinator?.dispose?.();
+  niaCompanionCoordinator = null;
+  niaCompanionIpc?.dispose?.();
+  niaCompanionIpc = null;
+  niaCompanionWindow?.dispose?.();
+  niaCompanionWindow = null;
+  niaCompanionConversationStore?.close?.();
+  niaCompanionConversationStore = null;
+  niaCompanionConversation = null;
+  niaCompanionDiagnostics = null;
   desktopIslandService?.dispose();
   desktopIslandService = null;
   const closeAttempt = getCloseAttemptTracker().begin("before-quit");

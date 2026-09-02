@@ -70,7 +70,9 @@ function createCompanionIpc({
     if (!result?.ok) return result;
     pruneHandles();
     const handle = randomHandle();
-    const expiresAt = Number.isFinite(result.expiresAt) ? result.expiresAt : null;
+    const expiresAt = Number.isFinite(result.expiresAt)
+      ? (result.expiresAt < 1_000_000_000_000 ? result.expiresAt * 1_000 : result.expiresAt)
+      : null;
     sessionHandles.set(handle, { session: result.session, expiresAt });
     pruneHandles();
     return Object.freeze({ ok: true, sessionId: handle, expiresAt, model: result.model });
