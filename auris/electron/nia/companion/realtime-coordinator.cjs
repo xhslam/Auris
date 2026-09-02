@@ -151,6 +151,11 @@ function createRealtimeCoordinator({
       pendingText = null;
       transport.send({ type: "text", generation, text });
     }
+    if (pendingReminder !== null && state === "listening" && report.type === "opened") {
+      const reminder = pendingReminder;
+      pendingReminder = null;
+      transport.send({ type: "reminder", generation, reminder });
+    }
     return publish();
   }
 

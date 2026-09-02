@@ -20,6 +20,7 @@ export type CompanionBridge = {
   dragTo: (x: number, y: number) => Promise<unknown>;
   dragEnd: () => Promise<unknown>;
   openNia: () => Promise<unknown>;
+  wake: () => Promise<unknown>;
 };
 
 type TransportHandlers = {
@@ -64,12 +65,13 @@ export class NiaRealtimeTransport {
   private sessionId: string | null = null;
   private handlers: TransportHandlers | null = null;
 
-  async open(generation: number, handlers: TransportHandlers): Promise<boolean> {
+  async open(generation: number, handlers: TransportHandlers, options: { microphone?: boolean } = {}): Promise<boolean> {
     this.close(generation, false);
     this.generation = generation;
     this.handlers = handlers;
     const bridge = bridgeForWindow();
-    if (!bridge || typeof RTCPeerConnection === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+    const microphone = options.microphone !== false;
+    if (!bridge || typeof RTCPeerConnection === "undefined" || (microphone && !navigator.mediaDevices?.getUserMedia)) {
       this.emit(errorReport(generation, "REALTIME_UNSUPPORTED", "This companion cannot start local Realtime audio.", "Use a recent Auris desktop build, then wake Nia again."));
       return false;
     }
@@ -81,10 +83,14 @@ export class NiaRealtimeTransport {
     }
     this.sessionId = session.sessionId;
     try {
-      this.microphone = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.microphone = microphone ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
       const peer = new RTCPeerConnection();
       this.peer = peer;
-      for (const track of this.microphone.getAudioTracks()) peer.addTrack(track, this.microphone);
+      if (this.microphone) {
+        for (const track of this.microphone.getAudioTracks()) peer.addTrack(track, this.microphone);
+      } else {
+        peer.addTransceiver("audio", { direction: "recvonly" });
+      }
       peer.ontrack = (event) => {
         const [stream] = event.streams;
         if (stream) handlers.playAudio(stream);
