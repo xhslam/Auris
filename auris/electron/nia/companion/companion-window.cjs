@@ -35,13 +35,22 @@ function createCompanionWindow({
 
   function displayForPlacement(placement) {
     const displays = screen.getAllDisplays?.() ?? [screen.getPrimaryDisplay()];
-    return displays.find((display) => String(display.id) === String(placement?.displayId)) ?? screen.getPrimaryDisplay();
+    const byId = displays.find((display) => String(display.id) === String(placement?.displayId));
+    if (byId) return byId;
+    const point = { x: Number(placement?.x), y: Number(placement?.y) };
+    const byPoint = displays.find((display) => {
+      const area = display.workArea;
+      return Number.isFinite(point.x) && Number.isFinite(point.y)
+        && point.x >= area.x && point.x < area.x + area.width
+        && point.y >= area.y && point.y < area.y + area.height;
+    });
+    return byPoint ?? screen.getPrimaryDisplay();
   }
 
   function create() {
     if (window && !window.isDestroyed?.()) return window;
-    const display = screen.getPrimaryDisplay();
     const saved = readPlacement(positionPath);
+    const display = displayForPlacement(saved ?? {});
     const placement = clampPlacement(saved ?? defaultPlacement(display.workArea), display.workArea);
     window = new BrowserWindow({
       width: 320,
