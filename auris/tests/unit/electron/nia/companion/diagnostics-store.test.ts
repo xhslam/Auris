@@ -51,6 +51,37 @@ describe("companion diagnostics store", () => {
     expect(store.list()[0].detail.transcript.role).toBe("user");
   });
 
+  it("redacts project keys, encoded auth JSON, and nested transcript text without hiding safe prose", () => {
+    const store = createDiagnosticsStore({ now: () => Date.parse("2026-09-02T10:00:00.000Z"), capacity: 10 });
+    const projectKey = "sk-proj-fixture-do-not-keep";
+    const encodedToken = "opaque-json-access-token";
+    const safeText = "The access token documentation is safe ordinary text without a credential value.";
+    store.note({
+      component: "transport",
+      code: "REALTIME_SDP_REFUSED",
+      recovery: "Try again.",
+      detail: {
+        providerMessage: `upstream mentioned ${projectKey}`,
+        encoded: JSON.stringify({ access_token: encodedToken, status: 401 }),
+        transcript: { role: "assistant", segment: { text: "private nested transcript words" } },
+        safeText,
+        tokenCount: 128,
+        contentType: "application/json",
+      },
+    });
+
+    const [entry] = store.list();
+    const serialized = JSON.stringify(entry);
+    expect(serialized).not.toContain(projectKey);
+    expect(serialized).not.toContain(encodedToken);
+    expect(serialized).not.toContain("private nested transcript words");
+    expect(entry.detail.safeText).toBe(safeText);
+    expect(entry.detail.tokenCount).toBe(128);
+    expect(entry.detail.contentType).toBe("application/json");
+    expect(entry.detail.transcript.role).toBe("assistant");
+    expect(JSON.parse(entry.detail.encoded)).toEqual({ access_token: "[REDACTED]", status: 401 });
+  });
+
   it("publishes immutable snapshots, supports unsubscribe, and notifies on clear", () => {
     const store = createDiagnosticsStore({ now: () => Date.parse("2026-09-02T10:00:00.000Z"), capacity: 5 });
     const listener = vi.fn();

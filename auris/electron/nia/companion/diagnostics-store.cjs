@@ -4,9 +4,9 @@ const DEFAULT_CAPACITY = 100;
 const REDACTED = "[REDACTED]";
 const REDACTED_SDP = "[REDACTED SDP]";
 
-const SECRET_KEY = /(?:^|_)(?:access_?token|refresh_?token|token|authorization|bearer|client_?secret|secret|api_?key)(?:_|$)/i;
-const SDP_KEY = /(?:^|_)(?:offer|answer|sdp)(?:_|$)/i;
-const BODY_KEY = /(?:^|_)(?:body|content|transcript_?body)(?:_|$)/i;
+const SECRET_KEY = /(?:^|_)(?:access_token|refresh_token|token|authorization|bearer|client_secret|secret|api_key)$/i;
+const SDP_KEY = /(?:^|_)(?:offer|answer|sdp)$/i;
+const BODY_KEY = /(?:^|_)(?:body|content|transcript_body)$/i;
 
 function redactString(value) {
   if (/^v=0(?:\r?\n|$)/.test(value) || /(?:^|\r?\n)m=(?:audio|video)\s/m.test(value)) return REDACTED_SDP;
@@ -17,18 +17,28 @@ function redactString(value) {
       (_match, label) => `${label}=${REDACTED}`,
     )
     .replace(/\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, REDACTED)
-    .replace(/\b(?:sk|ek)_[A-Za-z0-9_-]+\b/g, REDACTED)
+    .replace(/\b(?:sk|ek)[_-][A-Za-z0-9_-]+\b/g, REDACTED)
     .slice(0, 1_000);
 }
 
-function sanitize(value, key = "", seen = new WeakSet(), depth = 0) {
+function sanitize(value, key = "", seen = new WeakSet(), depth = 0, transcriptContext = false) {
   const normalizedKey = key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+  const insideTranscript = transcriptContext || /(?:^|_)transcript(?:_|$)/.test(normalizedKey);
   if (SECRET_KEY.test(normalizedKey)) return REDACTED;
   if (SDP_KEY.test(normalizedKey)) return REDACTED_SDP;
   if (BODY_KEY.test(normalizedKey)) return REDACTED;
   if (value === null || typeof value === "number" || typeof value === "boolean") return value;
   if (typeof value === "string") {
-    if (/transcript/i.test(key)) return REDACTED;
+    if (insideTranscript && /^(?:transcript|text|body|content|delta|value)$/.test(normalizedKey)) return REDACTED;
+    const trimmed = value.trim();
+    if (depth < 8 && ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]")))) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object") {
+          return JSON.stringify(sanitize(parsed, key, seen, depth + 1, insideTranscript));
+        }
+      } catch { /* It is ordinary text, not encoded structured detail. */ }
+    }
     return redactString(value);
   }
   if (typeof value === "undefined") return null;
@@ -40,11 +50,11 @@ function sanitize(value, key = "", seen = new WeakSet(), depth = 0) {
     return { name: value.name, message: redactString(value.message) };
   }
   if (Array.isArray(value)) {
-    return value.slice(0, 50).map((entry) => sanitize(entry, key, seen, depth + 1));
+    return value.slice(0, 50).map((entry) => sanitize(entry, key, seen, depth + 1, insideTranscript));
   }
   const result = {};
   for (const [childKey, childValue] of Object.entries(value).slice(0, 50)) {
-    result[childKey] = sanitize(childValue, childKey, seen, depth + 1);
+    result[childKey] = sanitize(childValue, childKey, seen, depth + 1, insideTranscript);
   }
   return result;
 }
