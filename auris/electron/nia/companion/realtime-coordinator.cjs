@@ -25,6 +25,7 @@ function createRealtimeCoordinator({
   let conversationId = null;
   let pendingText = null;
   let pendingReminder = null;
+  let muted = false;
   let rotationTimer = null;
   let disposed = false;
   let lastConfig = null;
@@ -35,6 +36,7 @@ function createRealtimeCoordinator({
       conversationId,
       expiresAt,
       generation,
+      muted,
       pendingReminder,
       pendingText: pendingText !== null,
       sessionId,
@@ -115,6 +117,7 @@ function createRealtimeCoordinator({
         sessionId = typeof report.sessionId === "string" ? report.sessionId : null;
         expiresAt = Number.isFinite(report.expiresAt) ? report.expiresAt : null;
         state = "listening";
+        if (muted) transport.send({ type: "mute", generation, muted: true });
         armRotation(expiresAt);
         break;
       case "state":
@@ -175,6 +178,13 @@ function createRealtimeCoordinator({
     if (state === "listening") transport.send({ type: "config", generation, config: lastConfig });
   }
 
+  function setMuted(value) {
+    muted = value === true;
+    if (state !== "resting") transport.send({ type: "mute", generation, muted });
+    publish();
+    return muted;
+  }
+
   function rest(reason = "user") {
     if (disposed) return;
     cancelRotation();
@@ -186,6 +196,7 @@ function createRealtimeCoordinator({
     expiresAt = null;
     pendingText = null;
     pendingReminder = null;
+    muted = false;
     state = "resting";
     publish();
   }
@@ -207,7 +218,7 @@ function createRealtimeCoordinator({
     lastConfig = null;
   }
 
-  return Object.freeze({ dispose, open, queueReminder, report, rest, sendText, setConfig, snapshot, subscribe, wake: open });
+  return Object.freeze({ dispose, open, queueReminder, report, rest, sendText, setConfig, setMuted, snapshot, subscribe, wake: open });
 }
 
 module.exports = { createRealtimeCoordinator, DEFAULT_ROTATION_LEAD_MS };

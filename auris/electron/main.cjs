@@ -118,6 +118,8 @@ const {
   createCompanionWindow,
 } = require("./nia/companion/companion-window.cjs");
 const {
+  HOST_COMMAND_CHANNEL,
+  HOST_EVENT_CHANNEL,
   createCompanionIpc,
 } = require("./nia/companion/companion-ipc.cjs");
 const {
@@ -129,6 +131,7 @@ const { createConversationStore } = require("./nia/companion/conversation-db.cjs
 const { createConversationLifecycle } = require("./nia/companion/conversation-lifecycle.cjs");
 const { createDiagnosticsStore } = require("./nia/companion/diagnostics-store.cjs");
 const { createRealtimeCoordinator } = require("./nia/companion/realtime-coordinator.cjs");
+const { createReminderScheduler } = require("./nia/companion/reminder-scheduler.cjs");
 const { createBrowserWorkflowApiService } = require("./workflows/browser-workflow-api-service.cjs");
 const { createBrowserWorkflowRuntime } = require("./workflows/browser-workflow-runtime.cjs");
 const {
@@ -298,6 +301,7 @@ let niaCompanionCoordinator = null;
 let niaCompanionConversationStore = null;
 let niaCompanionConversation = null;
 let niaCompanionDiagnostics = null;
+let niaCompanionReminderScheduler = null;
 let browserOperationGuard = null;
 let workflowIpc = null;
 let browserWorkflowRuntime = null;
@@ -413,6 +417,12 @@ function isTrustedNiaCompanionEvent(event) {
   );
 }
 
+function sendNiaCompanionHostEvent(value) {
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+  mainWindow.webContents.send(HOST_EVENT_CHANNEL, value);
+  return true;
+}
+
 async function initializeNiaCompanionSubsystem() {
   if (niaCompanionIpc) return niaCompanionIpc;
 
@@ -447,7 +457,10 @@ async function initializeNiaCompanionSubsystem() {
     exchangeRealtimeSession,
     proxyRealtimeSdp,
     getSnapshot: () => niaCompanionCoordinator?.snapshot?.() ?? { state: "resting" },
-    onReport: (report) => niaCompanionCoordinator?.report?.(report),
+    onReport: (report) => {
+      niaCompanionCoordinator?.report?.(report);
+      sendNiaCompanionHostEvent({ type: "report", report });
+    },
     onReady: () => writeStartupLog("nia-companion:renderer-ready"),
   });
 
@@ -466,7 +479,38 @@ async function initializeNiaCompanionSubsystem() {
     conversation: niaCompanionConversation,
     diagnostics: niaCompanionDiagnostics,
   });
+  niaCompanionCoordinator.subscribe((snapshot) => {
+    sendNiaCompanionHostEvent({ type: "snapshot", snapshot });
+  });
   niaCompanionIpc.register();
+
+  const reminderStatePath = path.join(baseDir, "reminder-state.json");
+  let reminderState = {};
+  try { reminderState = JSON.parse(fsSync.readFileSync(reminderStatePath, "utf8")); } catch { /* first launch */ }
+  niaCompanionReminderScheduler = createReminderScheduler({
+    ...(desktopConfig.niaCompanion ?? {}),
+    state: reminderState,
+    getPending: () => {
+      const snapshot = desktopIslandService?.getSnapshot?.();
+      return {
+        count: snapshot?.review?.actionableCount ?? 0,
+        items: snapshot?.review?.items ?? [],
+      };
+    },
+    onReminder: (reminder) => {
+      niaCompanionCoordinator?.queueReminder?.(reminder);
+      void niaCompanionCoordinator?.open?.({ reason: "scheduled-reminder" });
+    },
+    saveState: (nextState) => {
+      try {
+        fsSync.mkdirSync(path.dirname(reminderStatePath), { recursive: true });
+        fsSync.writeFileSync(reminderStatePath, JSON.stringify(nextState), { mode: 0o600 });
+      } catch (error) {
+        writeStartupLog(`nia-companion:reminder-state-error ${error?.stack ?? error}`);
+      }
+    },
+  });
+  if (desktopConfig.niaCompanion?.enabled !== false) niaCompanionReminderScheduler.start();
 
   try {
     await niaCompanionWindow.load();
@@ -1010,6 +1054,7 @@ function createDefaultDesktopConfig() {
       expandOnHover: true,
       privacyMode: false,
     }),
+    niaCompanion: normalizeNiaCompanionSettings(),
     // 用户历史上通过目录选择器授权过的 vault 根，供 Workspace Rail 免对话框切换。
     // 它同时是 `vault:set-root` 的白名单——见 setVaultRoot() 的安全说明。
     knownVaultRoots: [],
@@ -1017,6 +1062,19 @@ function createDefaultDesktopConfig() {
     pluginsEnabled: {},
     videoLibraryPath: null,
     vaultPath: null,
+  };
+}
+
+function normalizeNiaCompanionSettings(value = {}) {
+  const source = value && typeof value === "object" ? value : {};
+  const reminderTimes = Array.isArray(source.reminderTimes)
+    ? source.reminderTimes.filter((item) => typeof item === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(item)).slice(0, 8)
+    : [];
+  return {
+    enabled: source.enabled !== false,
+    reminderTimes: reminderTimes.length > 0 ? [...new Set(reminderTimes)] : ["09:00", "14:00", "20:00"],
+    dndStart: typeof source.dndStart === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(source.dndStart) ? source.dndStart : "23:00",
+    dndEnd: typeof source.dndEnd === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(source.dndEnd) ? source.dndEnd : "07:30",
   };
 }
 
@@ -2154,6 +2212,7 @@ async function readDesktopConfig() {
         parsed?.desktopIsland,
         createDefaultDesktopConfig().desktopIsland,
       ),
+      niaCompanion: normalizeNiaCompanionSettings(parsed?.niaCompanion),
       knownVaultRoots: normalizeKnownVaultRoots(parsed?.knownVaultRoots),
       mcp: normalizeMcpPolicy(parsed?.mcp),
       pluginsEnabled:
@@ -2183,6 +2242,7 @@ async function writeDesktopConfig(nextConfig) {
       nextConfig.desktopIsland,
       createDefaultDesktopConfig().desktopIsland,
     ),
+    niaCompanion: normalizeNiaCompanionSettings(nextConfig.niaCompanion),
     knownVaultRoots: normalizeKnownVaultRoots(nextConfig.knownVaultRoots),
     mcp: normalizeMcpPolicy(nextConfig.mcp),
     pluginsEnabled: nextConfig.pluginsEnabled ?? {},
@@ -3550,6 +3610,19 @@ function registerDesktopHandlers() {
     store: getNotesRecoveryStore(),
   });
 
+  ipcMain.handle(HOST_COMMAND_CHANNEL, async (event, request = {}) => {
+    requireTrustedMainFrameEvent(event);
+    const command = request && typeof request.command === "string" ? request.command : "";
+    const payload = request && request.payload && typeof request.payload === "object" ? request.payload : {};
+    if (!niaCompanionCoordinator) return { state: "resting" };
+    if (command === "snapshot") return niaCompanionCoordinator.snapshot();
+    if (command === "wake") return niaCompanionCoordinator.open({ reason: "nia-page" });
+    if (command === "rest") return niaCompanionCoordinator.rest("nia-page");
+    if (command === "mute") return niaCompanionCoordinator.setMuted?.(payload.muted === true) ?? false;
+    if (command === "text") return niaCompanionCoordinator.sendText(String(payload.text ?? ""));
+    throw new TypeError("Unsupported Nia companion host command.");
+  });
+
   ipcMain.handle("shadowing:desktop-island:get-settings", async (event) => {
     requireTrustedMainFrameEvent(event);
     return desktopIslandService?.getSettings() ?? desktopConfig.desktopIsland;
@@ -4484,6 +4557,8 @@ app.on("window-all-closed", async () => {
 });
 
 app.on("before-quit", async () => {
+  niaCompanionReminderScheduler?.stop?.();
+  niaCompanionReminderScheduler = null;
   niaCompanionCoordinator?.dispose?.();
   niaCompanionCoordinator = null;
   niaCompanionIpc?.dispose?.();

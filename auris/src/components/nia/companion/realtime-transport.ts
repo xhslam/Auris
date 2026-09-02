@@ -139,6 +139,11 @@ export class NiaRealtimeTransport {
     return true;
   }
 
+  setMuted(muted: boolean) {
+    for (const track of this.microphone?.getAudioTracks() ?? []) track.enabled = !muted;
+    return true;
+  }
+
   close(generation = this.generation, report = true) {
     const oldGeneration = this.generation;
     this.channel?.close();
