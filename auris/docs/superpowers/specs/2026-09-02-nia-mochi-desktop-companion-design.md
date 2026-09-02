@@ -20,6 +20,9 @@
 - 保留现有 Nia 的上下文、确认记忆、任务、模型路由、浏览器工具和操作审计能力；
 - `/nia` 只提供黑色主题，并使用已经确认的 Apple 风格沉浸式布局。
 
+本设计的 Mochi 行为基准固定为本机源码提交
+`faa334001541fc74093288821df5cfbff96f6797`。后续若上游 Mochi 继续变化，不自动扩大本次范围；只有经过明确审查的上游变化才进入实施计划。直接迁移的 MIT 代码必须保留适当的来源和许可证说明。
+
 ## 2. 已确认的产品决定
 
 ### 2.1 桌面存在方式
@@ -97,12 +100,12 @@ Electron 主进程
 │   ├── 指针穿透与拖动
 │   ├── 显示器位置恢复
 │   └── 主窗口打开/聚焦 /nia
-├── NiaRealtimeSessionService
-│   ├── 唯一活动 Realtime 会话
+├── NiaRealtimeCoordinator
+│   ├── 唯一活动会话的 generation 与期望状态
 │   ├── Codex OAuth credential broker
-│   ├── SDP 与会话更新代理
-│   ├── 重连、休眠、唤醒和退出
-│   └── 工具调用分发
+│   ├── SDP 代理
+│   ├── 重连、休眠、唤醒和退出协调
+│   └── 工具调用与 renderer 报告分发
 ├── NiaConversationStore
 │   ├── SQLite 会话、轮次与工具事件
 │   ├── 搜索、导出与删除
@@ -115,13 +118,23 @@ Electron 主进程
 └── NiaStateBroadcaster
     ├── 桌面人物 renderer
     └── Auris /nia renderer
+
+持续存在的桌面人物 renderer
+└── NiaRealtimeTransport
+    ├── RTCPeerConnection 与 data channel
+    ├── 麦克风 MediaStreamTrack
+    ├── 远端 Audio 与播放进度
+    ├── Realtime frame 解析
+    └── 向主进程报告转写、输出、打断和状态
 ```
 
-主进程是会话和人物生命周期的唯一事实来源。桌面人物与 `/nia` 页面是两个显示端：
+此处采用与 Mochi 一致的所有权边界：Electron 主进程不能直接持有浏览器的 `RTCPeerConnection`、`MediaStreamTrack`、data channel 或 `Audio` 对象。持续存在的桌面人物 renderer 是唯一 transport owner；主进程拥有长期凭据、SDP 代理、会话 generation、持久化和期望生命周期，并通过受限 IPC 命令 transport 打开、更新或关闭。
+
+桌面人物 renderer 即使窗口被隐藏也不卸载，因此 transport 可以继续存在。`/nia` 页面只是第二个显示与控制端，绝不创建 peer。主进程根据 transport 报告形成规范化会话状态，并广播给两个表面：
 
 - 它们可以订阅同一状态快照和增量事件；
 - 它们可以发送经过校验的用户意图；
-- 它们不能各自创建 Realtime peer；
+- 只有桌面人物 renderer 可以创建 Realtime peer；
 - 任意一个显示端卸载都不会隐式结束会话；
 - 页面导航不会影响主进程会话；
 - 事件必须包含稳定的 session、conversation、turn 和 response 标识，避免跨表面乱序。
@@ -198,7 +211,7 @@ Electron 主进程
 
 ### 7.1 单例会话
 
-主进程维护一个 `NiaRealtimeSessionService`，任何时刻最多一个活动会话。桌面人物和 `/nia` 通过 IPC 订阅该服务。
+主进程维护一个 `NiaRealtimeCoordinator`，持续存在的桌面人物 renderer 维护一个 `NiaRealtimeTransport`。Coordinator 通过 generation 和握手确认保证任何时刻最多承认一个活动会话；transport 负责唯一的 WebRTC 和媒体对象。`/nia` 只通过 IPC 订阅 coordinator 的规范化状态。
 
 服务状态至少包含：
 
@@ -210,7 +223,7 @@ Electron 主进程
 - 当前 persona、确认记忆、页面上下文和能力授权版本；
 - 提醒请求队列。
 
-重复唤醒、重连与页面订阅不得创建孤立 peer。新一代会话建立成功后才替换旧一代；失败不得覆盖仍可用的活动连接。
+重复唤醒、重连与页面订阅不得创建孤立 peer。每次打开命令携带 generation；transport 必须关闭或拒绝旧 generation 的异步结果。新一代会话建立成功后才被 coordinator 承认为活动连接；失败不得覆盖仍可用的连接。人物 renderer 崩溃或重新加载时，主进程使旧 generation 失效、结束对应 conversation，并在 renderer 恢复后按持久化休眠偏好决定是否重新建立会话。
 
 ### 7.2 生命周期
 
@@ -218,7 +231,7 @@ Electron 主进程
 - 唤醒建立会话并应用人物提示词、确认记忆、当前上下文、能力清单、voice 和 turn detection。
 - `session.updated` 等服务端确认必须被观察，不能把发送配置等同于配置已经生效。
 - 会话临近平台时限时，主进程预备下一会话并安全切换。
-- 休眠、退出或不可恢复失败必须关闭 peer、麦克风 track、数据通道、音频对象和事件订阅。
+- 休眠、退出或不可恢复失败时，主进程向 transport 发送关闭命令；transport 负责关闭 peer、麦克风 track、数据通道、音频对象和事件订阅，并回报完成。renderer 被系统直接销毁时由平台释放媒体资源，主进程仍必须结束 conversation 并清除权威活动状态。
 - 页面关闭、路由跳转、桌面人物隐藏不关闭会话。
 
 ### 7.3 上下文更新
@@ -239,6 +252,25 @@ Realtime 可使用统一工具注册表，第一阶段至少接入：
 - 在既有授权范围内调用 Nia 浏览器/工作流工具。
 
 工具调用只在主进程或现有受控服务中执行。renderer 只转发调用意图和展示结果。所有工具参数必须按现有 schema 校验；破坏性或外部副作用操作继续遵守既有审批机制。
+
+### 7.5 文字输入与 REST/CLI 的边界
+
+底部统一对话坞属于“陪伴会话”：
+
+- Realtime 已连接时，文字经主进程校验后转交唯一 transport，以 Realtime conversation item 进入当前语音会话，并请求同一人物用当前 voice/会话上下文回答；
+- Nia 正在休眠时，用户主动按下发送等同于一次明确唤醒。Coordinator 只保留这一条待发送文本，待 session 配置得到服务端确认后再交给 transport；
+- Codex 登录、Realtime 或麦克风链路失败时，编辑内容保留并显示不可用状态，不自动改走 API Key、REST 或 CLI，也不把未发送文本写成已发生的 companion turn；
+- 页面离开不丢失已提交的陪伴轮次，未提交草稿只属于页面 UI。
+
+现有 REST/CLI 文本能力作为“高级代理运行”保留：
+
+- 继续使用现有 provider router、`useNiaSession`、浏览器工具循环和既有 Nia history；
+- 在右侧高级区域单独呈现，不伪装成当前 Realtime 陪伴会话；
+- REST/CLI 响应不写入 companion conversation SQLite，也不自动进入 Realtime 上下文；
+- Realtime 失败时不会自动触发高级代理运行；用户必须在高级区域明确发起；
+- 高级代理运行需要把结果带入陪伴会话时，使用显式“发送给 Nia/加入上下文”动作并经过长度限制，而不是隐式合并两份历史。
+
+这样保留原 Nia 的文本代理能力，同时避免同一输入因运行环境不同而悄悄进入两套 provider 和两份互相矛盾的会话记录。
 
 ## 8. 会话档案与记忆
 
@@ -340,8 +372,9 @@ Realtime 可使用统一工具注册表，第一阶段至少接入：
 
 | 原能力 | 新位置/处理 |
 | --- | --- |
-| 文字对话 | 底部统一对话坞，进入主进程同一会话 |
-| Realtime 语音 | 主进程单例服务 |
+| 陪伴文字对话 | 底部统一对话坞，进入唯一 Realtime transport 的同一会话 |
+| REST/CLI 文字代理 | 右侧“高级代理运行”，保留原 provider/history，绝不作为 Realtime 回退 |
+| Realtime 语音 | 主进程 coordinator + 桌面人物 renderer 的唯一 transport |
 | 当前上下文 | 右侧“上下文”抽屉 |
 | 候选/确认/撤销记忆 | 右侧“记忆”抽屉，保留原审核语义 |
 | Nia 任务 | 右侧“任务”抽屉 |
@@ -357,7 +390,7 @@ Realtime 可使用统一工具注册表，第一阶段至少接入：
 - 人物隐藏不改变 session；休眠才结束 session。
 - 系统睡眠前安全暂停/关闭麦克风和 peer；系统恢复后依据休眠偏好和 token 状态恢复，不无条件打开麦克风。
 - `before-quit` 设置真实退出标志，防止普通窗口 `close` 被误判为退出。
-- 真正退出时按顺序停止提醒、结束 conversation、关闭 Realtime、销毁人物窗口、关闭 SQLite。
+- 真正退出时按顺序停止提醒、命令人物 transport 关闭 Realtime、结束 conversation、销毁人物窗口、关闭 SQLite；关闭命令有短超时，不能让损坏的 renderer 阻止退出。
 - 未能完整执行的退出由下次启动的数据库修复兜底。
 
 ## 12. 安全与隐私边界
@@ -407,6 +440,8 @@ Realtime 可使用统一工具注册表，第一阶段至少接入：
 - 桌面人物点击打开 `/nia` 且会话保持；
 - 气泡关闭、复制和进入档案行为；
 - 历史列表、搜索、导出和删除；
+- 陪伴文字输入进入活动 Realtime；休眠发送会明确唤醒；失败时不自动转向 REST/CLI；
+- 高级 REST/CLI 运行仍可使用，但不污染 companion conversation；
 - 原 Nia 上下文、记忆、任务、路由和工具入口仍可达；
 - 减少动态效果和键盘操作。
 
@@ -441,8 +476,8 @@ Realtime 可使用统一工具注册表，第一阶段至少接入：
 
 后续实施计划应按可验证的纵向阶段推进：
 
-1. 主进程 Codex credential broker 与 Realtime 会话单例；
-2. SQLite conversation 生命周期和 frame 归档；
+1. 主进程 Codex credential broker、Realtime coordinator 与人物 renderer 单例 transport；
+2. SQLite conversation 生命周期和 turn／事件归档；
 3. Mochi 式透明桌面人物窗口及状态动作；
 4. `/nia` 订阅统一会话并完成黑色页面重构；
 5. 原 Nia 功能迁入抽屉并接入统一工具；
