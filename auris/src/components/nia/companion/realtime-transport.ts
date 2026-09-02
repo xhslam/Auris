@@ -75,8 +75,14 @@ export class NiaRealtimeTransport {
       this.emit(errorReport(generation, "REALTIME_UNSUPPORTED", "This companion cannot start local Realtime audio.", "Use a recent Auris desktop build, then wake Nia again."));
       return false;
     }
-    const session = await bridge.openSession();
-    if (!session.ok || !session.sessionId) {
+    let session: Awaited<ReturnType<CompanionBridge["openSession"]>> | null = null;
+    try {
+      session = await bridge.openSession();
+    } catch (cause) {
+      this.emit(errorReport(generation, "CODEX_SESSION_UNAVAILABLE", cause instanceof Error ? cause.message : "The Codex login could not start a Realtime session.", "Run codex once to refresh the login, then wake Nia again."));
+      return false;
+    }
+    if (!session?.ok || !session.sessionId) {
       const detail = session.error;
       this.emit(errorReport(generation, detail?.code ?? "CODEX_SESSION_UNAVAILABLE", detail?.message ?? "The Codex login could not start a Realtime session.", detail?.recovery));
       return false;
