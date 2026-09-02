@@ -13,7 +13,7 @@
 - Nia 以独立透明 Electron 窗口悬浮在整个 macOS 桌面上；
 - 切换到其他 Auris 页面或其他应用后仍持续显示；
 - 关闭 Auris 主窗口不终止 Nia，只有真正退出 Auris 才消失；
-- Realtime 会话、人物状态和会话保存由 Electron 主进程统一拥有；
+- Electron 主进程拥有 Realtime 的权威生命周期、人物状态协调和会话保存，持续存在的人物 renderer 独占 WebRTC/media transport；
 - 使用 Codex CLI 已登录账户的本地 OAuth 缓存建立 Realtime 会话，不使用 API Key；
 - 语音、文字、工具调用、打断和会话档案按 Mochi 的生命周期处理；
 - Nia 可以按既有 Review 数据定时语音提醒用户复习；
