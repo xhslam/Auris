@@ -18,7 +18,7 @@ export function renderNiaMarkdown(markdown: string) {
 }
 
 export function NiaResponse({ content }: { content: string }) {
-  if (!content) return <p className="nia-response nia-response--empty">Nia&apos;s response will appear here.</p>;
+  if (!content) return <p className="nia-response nia-response--empty">Nia 的回复会显示在这里。</p>;
   return (
     <div
       aria-label="Nia response"

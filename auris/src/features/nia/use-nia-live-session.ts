@@ -28,7 +28,7 @@ export function useNiaLiveSession() {
   useEffect(() => {
     const bridge = getNiaCompanionHostBridge(window);
     if (!bridge) {
-      setError("Nia Live is available in the Auris desktop companion.");
+      setError("GPT Live 需要在 Auris 桌面版中使用。");
       return;
     }
     const onEvent = (raw: unknown) => {
@@ -75,7 +75,7 @@ export function useNiaLiveSession() {
   const start = useCallback(async () => {
     const bridge = getNiaCompanionHostBridge(window);
     if (!bridge) {
-      setError("Nia Live is available in the Auris desktop companion.");
+      setError("GPT Live 需要在 Auris 桌面版中使用。");
       setStatus("failed");
       return false;
     }

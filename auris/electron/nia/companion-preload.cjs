@@ -17,6 +17,7 @@ const allowedCommands = new Set([
   "drag-end",
   "open-nia",
   "wake",
+  "menu",
 ]);
 
 function invoke(command, payload = {}) {
@@ -36,6 +37,7 @@ const bridge = Object.freeze({
   dragEnd: () => invoke("drag-end"),
   openNia: () => invoke("open-nia"),
   wake: () => invoke("wake"),
+  showMenu: () => invoke("menu"),
   subscribe(listener) {
     if (typeof listener !== "function" || eventListeners.has(listener)) return false;
     const wrapper = (_event, value) => listener(value);

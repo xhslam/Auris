@@ -12,6 +12,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
   if (typeof personaId !== "string" || personaId.trim() === "") throw new TypeError("A personaId is required.");
   let conversationId = null;
   let wearing = personaId.trim();
+  let saving = true;
   const pendingTools = [];
 
   function flushTools() {
@@ -20,7 +21,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
   }
 
   function ensure() {
-    if (conversationId || !keeps(wearing)) return conversationId;
+    if (conversationId || !saving || !keeps(wearing)) return conversationId;
     conversationId = store.begin({ personaId: wearing, source, startedAt: now() });
     flushTools();
     log(`conversation begun for ${wearing}`);
@@ -28,7 +29,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
   }
 
   function file(speaker, text, metadata = {}) {
-    if (!keeps(wearing)) return false;
+    if (!saving || !keeps(wearing)) return false;
     if (typeof text !== "string" || (text.trim() === "" && !metadata.cut)) return false;
     const id = ensure();
     if (!id) return false;
@@ -37,6 +38,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
 
   function tool(name, callId, status = "arrived", at = now()) {
     if (typeof name !== "string" || typeof callId !== "string") return false;
+    if (!conversationId && !saving) return false;
     const record = { callId, name, status, at };
     if (!conversationId) {
       pendingTools.push(record);
@@ -66,12 +68,19 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
     pendingTools.length = 0;
   }
 
+  function setSaving(enabled) {
+    saving = enabled !== false;
+    if (!saving) pendingTools.length = 0;
+    return saving;
+  }
+
   return Object.freeze({
     end,
     file,
     forget,
     isLive: () => conversationId !== null,
     liveToken: () => conversationId,
+    setSaving,
     tool,
     wear,
   });

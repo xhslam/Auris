@@ -78,4 +78,21 @@ describe("Nia companion IPC", () => {
     expect(ipcMain.listeners.has(`${REPORT_CHANNEL}:ready`)).toBe(true);
     expect(EVENT_CHANNEL).toBe("auris:nia-companion:event");
   });
+
+  it("routes the companion right-click request only from its trusted renderer", async () => {
+    const ipcMain = fakeIpcMain();
+    const onMenu = vi.fn(() => true);
+    const service = createCompanionIpc({
+      ipcMain,
+      companionWindow: { window: () => null },
+      isTrustedSender: () => true,
+      readCredential: async () => ({ ok: false }),
+      exchangeRealtimeSession: async () => ({ ok: false }),
+      proxyRealtimeSdp: async () => ({ ok: false }),
+      onMenu,
+    });
+    service.register();
+    await expect(ipcMain.handlers.get(COMMAND_CHANNEL)!({ sender: {} }, { command: "menu" })).resolves.toBe(true);
+    expect(onMenu).toHaveBeenCalledOnce();
+  });
 });

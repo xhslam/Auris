@@ -1,12 +1,16 @@
 "use client";
 
+import { createNiaRealtimePendingTurns, type NiaSettledRealtimeTurn } from "@/features/nia/nia-realtime-pending";
+import { createNiaRealtimeSessionUpdate, parseNiaRealtimeServerEvent } from "@/features/nia/nia-realtime-protocol";
+import { isNiaLiveVoice } from "@/features/nia/nia-live-session-config";
+
 export type CompanionTransportReport =
   | { type: "opened"; generation: number; sessionId: string; expiresAt: number | null }
   | { type: "state"; generation: number; state: string }
-  | { type: "heard" | "said"; generation: number; text: string; responseId?: string; itemId?: string; cut?: boolean }
-  | { type: "tool"; generation: number; name: string; callId: string; status?: string }
+  | { type: "heard" | "said"; generation: number; text: string; at?: number; responseId?: string; itemId?: string; cut?: boolean }
+  | { type: "tool"; generation: number; name: string; callId: string; at?: number; status?: string }
   | { type: "failed"; generation: number; code: string; message: string; recovery?: string }
-  | { type: "closed"; generation: number };
+  | { type: "closed"; generation: number; at?: number };
 
 export type CompanionBridge = {
   ready: (payload?: Record<string, unknown>) => boolean;
@@ -21,6 +25,7 @@ export type CompanionBridge = {
   dragEnd: () => Promise<unknown>;
   openNia: () => Promise<unknown>;
   wake: () => Promise<unknown>;
+  showMenu: () => Promise<unknown>;
 };
 
 type TransportHandlers = {
@@ -57,18 +62,35 @@ function waitForIceGathering(peer: RTCPeerConnection): Promise<void> {
   });
 }
 
+function closeRealtimeResources(peer: RTCPeerConnection | null, channel: RTCDataChannel | null, microphone: MediaStream | null) {
+  if (channel) channel.onmessage = null;
+  channel?.close();
+  if (peer) peer.onconnectionstatechange = null;
+  peer?.close();
+  for (const track of microphone?.getTracks() ?? []) track.stop();
+}
+
 export class NiaRealtimeTransport {
   private peer: RTCPeerConnection | null = null;
   private microphone: MediaStream | null = null;
   private channel: RTCDataChannel | null = null;
   private generation = 0;
   private sessionId: string | null = null;
+  private expiresAt: number | null = null;
   private handlers: TransportHandlers | null = null;
+  private pending = createNiaRealtimePendingTurns();
+  private configurationTimer: number | null = null;
+  private configured = false;
+  private operation = 0;
 
   async open(generation: number, handlers: TransportHandlers, options: { microphone?: boolean } = {}): Promise<boolean> {
-    this.close(generation, false);
+    this.flushPending(generation);
+    this.shutdownMedia();
     this.generation = generation;
     this.handlers = handlers;
+    this.pending = createNiaRealtimePendingTurns();
+    this.configured = false;
+    const operation = ++this.operation;
     const bridge = bridgeForWindow();
     const microphone = options.microphone !== false;
     if (!bridge || typeof RTCPeerConnection === "undefined" || (microphone && !navigator.mediaDevices?.getUserMedia)) {
@@ -79,54 +101,87 @@ export class NiaRealtimeTransport {
     try {
       session = await bridge.openSession();
     } catch (cause) {
+      if (operation !== this.operation) return false;
       this.emit(errorReport(generation, "CODEX_SESSION_UNAVAILABLE", cause instanceof Error ? cause.message : "The Codex login could not start a Realtime session.", "Run codex once to refresh the login, then wake Nia again."));
       return false;
     }
+    if (operation !== this.operation) return false;
     if (!session?.ok || !session.sessionId) {
       const detail = session.error;
       this.emit(errorReport(generation, detail?.code ?? "CODEX_SESSION_UNAVAILABLE", detail?.message ?? "The Codex login could not start a Realtime session.", detail?.recovery));
       return false;
     }
     this.sessionId = session.sessionId;
+    this.expiresAt = session.expiresAt ?? null;
+    let localMicrophone: MediaStream | null = null;
+    let localPeer: RTCPeerConnection | null = null;
+    let localChannel: RTCDataChannel | null = null;
     try {
-      this.microphone = microphone ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
-      const peer = new RTCPeerConnection();
-      this.peer = peer;
-      if (this.microphone) {
-        for (const track of this.microphone.getAudioTracks()) peer.addTrack(track, this.microphone);
-      } else {
-        peer.addTransceiver("audio", { direction: "recvonly" });
+      localMicrophone = microphone ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
+      if (operation !== this.operation) {
+        closeRealtimeResources(null, null, localMicrophone);
+        return false;
       }
-      peer.ontrack = (event) => {
+      localPeer = new RTCPeerConnection();
+      if (localMicrophone) {
+        for (const track of localMicrophone.getAudioTracks()) localPeer.addTrack(track, localMicrophone);
+      } else {
+        localPeer.addTransceiver("audio", { direction: "recvonly" });
+      }
+      localPeer.ontrack = (event) => {
+        if (operation !== this.operation) return;
         const [stream] = event.streams;
         if (stream) handlers.playAudio(stream);
       };
-      peer.onconnectionstatechange = () => {
-        if (["failed", "disconnected", "closed"].includes(peer.connectionState)) {
+      localPeer.onconnectionstatechange = () => {
+        if (operation !== this.operation) return;
+        if (["failed", "disconnected", "closed"].includes(localPeer?.connectionState ?? "closed")) {
           this.emit(errorReport(generation, "REALTIME_CONNECTION_LOST", "The Realtime connection ended.", "Wake Nia again to reconnect."));
         }
       };
-      const channel = peer.createDataChannel("oai-events");
-      this.channel = channel;
-      channel.onmessage = (event) => this.handleServerEvent(event.data);
-      channel.onopen = () => {
-        this.emit({ type: "state", generation, state: "listening" });
-        this.sendSessionUpdate();
-      };
-      const offer = await peer.createOffer();
-      await peer.setLocalDescription(offer);
-      await waitForIceGathering(peer);
-      const localOffer = peer.localDescription?.sdp;
+      localChannel = localPeer.createDataChannel("oai-events");
+      const offer = await localPeer.createOffer();
+      await localPeer.setLocalDescription(offer);
+      await waitForIceGathering(localPeer);
+      const localOffer = localPeer.localDescription?.sdp;
       if (!localOffer) throw new Error("No local WebRTC offer was produced.");
       const answer = await bridge.sdp(session.sessionId, localOffer);
+      if (operation !== this.operation) {
+        closeRealtimeResources(localPeer, localChannel, localMicrophone);
+        return false;
+      }
       if (!answer.ok || !answer.answer) {
         throw new Error(answer.error?.message ?? "The Realtime SDP exchange failed.");
       }
-      await peer.setRemoteDescription({ type: "answer", sdp: answer.answer });
-      this.emit({ type: "opened", generation, sessionId: session.sessionId, expiresAt: session.expiresAt ?? null });
+      await localPeer.setRemoteDescription({ type: "answer", sdp: answer.answer });
+      if (operation !== this.operation) {
+        closeRealtimeResources(localPeer, localChannel, localMicrophone);
+        return false;
+      }
+      this.microphone = localMicrophone;
+      this.peer = localPeer;
+      this.channel = localChannel;
+      localChannel.onmessage = (event) => this.handleServerEvent(event.data);
+      const configure = () => {
+        if (operation !== this.operation || this.channel !== localChannel) return;
+        this.sendSessionUpdate();
+        this.armConfigurationConfirmation(generation);
+      };
+      localChannel.onopen = configure;
+      if (localChannel.readyState === "open") configure();
       return true;
     } catch (cause) {
+      if (operation !== this.operation) {
+        closeRealtimeResources(localPeer, localChannel, localMicrophone);
+        return false;
+      }
+      const committed = Boolean(
+        (localPeer && this.peer === localPeer)
+        || (localChannel && this.channel === localChannel)
+        || (localMicrophone && this.microphone === localMicrophone),
+      );
       this.close(generation, false);
+      if (!committed) closeRealtimeResources(localPeer, localChannel, localMicrophone);
       this.emit(errorReport(generation, "REALTIME_CONNECT_FAILED", cause instanceof Error ? cause.message : "The Realtime connection could not start.", "Check microphone permission and wake Nia again."));
       return false;
     }
@@ -136,7 +191,7 @@ export class NiaRealtimeTransport {
     const value = text.trim().slice(0, 20_000);
     if (!value || this.channel?.readyState !== "open") return false;
     this.send({ type: "conversation.item.create", item: { type: "message", role: "user", content: [{ type: "input_text", text: value }] } });
-    this.send({ type: "response.create", response: { modalities: ["text", "audio"] } });
+    this.send({ type: "response.create" });
     return true;
   }
 
@@ -157,15 +212,10 @@ export class NiaRealtimeTransport {
   }
 
   close(generation = this.generation, report = true) {
-    const oldGeneration = this.generation;
-    this.channel?.close();
-    this.channel = null;
-    this.peer?.close();
-    this.peer = null;
-    for (const track of this.microphone?.getTracks() ?? []) track.stop();
-    this.microphone = null;
-    this.sessionId = null;
-    if (report && oldGeneration) this.emit({ type: "closed", generation, });
+    this.operation += 1;
+    this.flushPending(generation);
+    this.shutdownMedia();
+    if (report) this.emit({ type: "closed", generation, at: Date.now() });
   }
 
   private send(payload: Record<string, unknown>) {
@@ -175,33 +225,112 @@ export class NiaRealtimeTransport {
   }
 
   private sendSessionUpdate() {
-    this.send({ type: "session.update", session: { modalities: ["text", "audio"], input_audio_transcription: { model: "gpt-4o-mini-transcribe" }, turn_detection: { type: "server_vad" } } });
+    let savedVoice: string | null = null;
+    try { savedVoice = window.localStorage.getItem("auris.nia.voice"); } catch { /* storage preference is optional */ }
+    this.send(createNiaRealtimeSessionUpdate({ voice: isNiaLiveVoice(savedVoice) ? savedVoice : "ballad" }));
   }
 
   private handleServerEvent(raw: unknown) {
-    let event: Record<string, unknown>;
-    try {
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return;
-      event = parsed as Record<string, unknown>;
-    } catch { return; }
     const generation = this.generation;
-    const type = typeof event.type === "string" ? event.type : "";
-    const error = event.error && typeof event.error === "object" && !Array.isArray(event.error)
-      ? event.error as Record<string, unknown>
-      : null;
-    if (type === "conversation.item.input_audio_transcription.completed") {
-      this.emit({ type: "heard", generation, text: typeof event.transcript === "string" ? event.transcript : "", itemId: typeof event.item_id === "string" ? event.item_id : undefined });
-      return;
+    const event = parseNiaRealtimeServerEvent(raw);
+    switch (event.kind) {
+      case "session-created":
+        if (event.expiresAt !== null) this.expiresAt = event.expiresAt;
+        return;
+      case "session-updated":
+        this.clearConfigurationTimer();
+        if (!this.configured && this.sessionId) {
+          this.configured = true;
+          this.emit({ type: "opened", generation, sessionId: this.sessionId, expiresAt: this.expiresAt });
+          this.emit({ type: "state", generation, state: "listening" });
+        }
+        return;
+      case "heard":
+        this.emit({ type: "heard", generation, text: event.transcript, at: Date.now(), itemId: event.itemId });
+        return;
+      case "item-added":
+        this.pending.began(event.itemId, event.responseId);
+        return;
+      case "saying":
+        this.emit({ type: "state", generation, state: "speaking" });
+        return;
+      case "said":
+        this.emitSettled(this.pending.said(event.itemId, event.transcript, Date.now(), event.responseId), generation);
+        return;
+      case "truncated":
+        this.emitSettled(this.pending.truncated(event.itemId, Date.now()), generation);
+        return;
+      case "audio-buffer":
+        if (event.phase === "started") this.emit({ type: "state", generation, state: "speaking" });
+        if (event.phase === "stopped") {
+          for (const turn of this.pending.finished(event.responseId)) this.emitSettled(turn, generation);
+          this.emit({ type: "state", generation, state: "listening" });
+        }
+        if (event.phase === "cleared") this.emit({ type: "state", generation, state: "listening" });
+        return;
+      case "tool":
+        this.emit({ type: "tool", generation, name: event.name, callId: event.callId, at: Date.now() });
+        return;
+      case "response-created":
+        this.emit({ type: "state", generation, state: "thinking" });
+        return;
+      case "response-done":
+        return;
+      case "error":
+        this.emit(errorReport(generation, event.code, event.message, "Rest Nia, then wake her again."));
+        return;
+      case "malformed":
+        this.emit(errorReport(generation, "REALTIME_PROTOCOL_MALFORMED", `${event.type} is missing ${event.missing.join(", ")}.`, "Rest Nia, then wake her again."));
+        return;
+      case "other":
+      case "unreadable":
+        return;
     }
-    if (type === "response.audio_transcript.done" || type === "response.output_text.done") {
-      this.emit({ type: "said", generation, text: typeof event.transcript === "string" ? event.transcript : (typeof event.text === "string" ? event.text : ""), responseId: typeof event.response_id === "string" ? event.response_id : undefined, itemId: typeof event.item_id === "string" ? event.item_id : undefined });
-      return;
-    }
-    if (type === "response.created") this.emit({ type: "state", generation, state: "thinking" });
-    else if (type === "response.audio.delta") this.emit({ type: "state", generation, state: "speaking" });
-    else if (type === "response.done") this.emit({ type: "state", generation, state: "listening" });
-    else if (type === "error") this.emit(errorReport(generation, typeof error?.code === "string" ? error.code : "REALTIME_EVENT_ERROR", typeof error?.message === "string" ? error.message : "Realtime returned an error.", "Rest Nia, then wake her again."));
+  }
+
+  private emitSettled(turn: NiaSettledRealtimeTurn | null, generation: number) {
+    if (!turn) return;
+    this.emit({
+      type: "said",
+      generation,
+      text: turn.text,
+      at: turn.at || Date.now(),
+      cut: turn.cut,
+      itemId: turn.itemId,
+      responseId: turn.responseId ?? undefined,
+    });
+  }
+
+  private flushPending(generation: number) {
+    for (const turn of this.pending.flush()) this.emitSettled(turn, generation);
+  }
+
+  private armConfigurationConfirmation(generation: number) {
+    this.clearConfigurationTimer();
+    this.configurationTimer = window.setTimeout(() => {
+      this.configurationTimer = null;
+      if (this.generation !== generation || this.configured) return;
+      this.emit(errorReport(generation, "REALTIME_SESSION_NOT_CONFIGURED", "Realtime did not confirm Nia's audio and transcription configuration.", "Rest Nia, then wake her again."));
+    }, 5_000);
+  }
+
+  private clearConfigurationTimer() {
+    if (this.configurationTimer !== null) window.clearTimeout(this.configurationTimer);
+    this.configurationTimer = null;
+  }
+
+  private shutdownMedia() {
+    this.clearConfigurationTimer();
+    const channel = this.channel;
+    const peer = this.peer;
+    const microphone = this.microphone;
+    this.channel = null;
+    this.peer = null;
+    this.microphone = null;
+    closeRealtimeResources(peer, channel, microphone);
+    this.sessionId = null;
+    this.expiresAt = null;
+    this.configured = false;
   }
 
   private emit(report: CompanionTransportReport) {

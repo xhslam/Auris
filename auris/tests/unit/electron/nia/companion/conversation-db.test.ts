@@ -20,6 +20,8 @@ describe("Nia conversation store", () => {
     db.end(id, Date.parse("2026-09-02T10:01:00Z"));
     expect(db.list({ personaId: "nia" })[0]).toMatchObject({ id, endedAt: "2026-09-02T10:01:00.000Z", turnCount: 2 });
     expect(db.turns({ personaId: "nia", conversationId: id }).map((turn: { speaker: string }) => turn.speaker)).toEqual(["user", "nia"]);
+    expect(db.tools({ personaId: "nia", conversationId: id })).toEqual([expect.objectContaining({ callId: "call-1", name: "list_due_reviews" })]);
+    expect(db.tools({ personaId: "other", conversationId: id })).toEqual([]);
     expect(db.exportFor({ personaId: "nia" })[0].tools).toEqual([expect.objectContaining({ callId: "call-1", name: "list_due_reviews" })]);
     db.close();
   });
@@ -44,5 +46,20 @@ describe("Nia conversation store", () => {
     expect(db.deleteConversation({ personaId: "nia", conversationId: id })).toBe(true);
     expect(db.list({ personaId: "nia" })).toEqual([]);
     db.close();
+  });
+
+  it("persists the conversation-saving preference across restarts", () => {
+    const root = mkdtempSync(join(tmpdir(), "nia-conversation-preference-"));
+    roots.push(root);
+    const databasePath = join(root, "conversations.db");
+    const first = createConversationStore({ databasePath });
+
+    expect(first.getConversationSaving()).toBe(true);
+    expect(first.setConversationSaving(false)).toBe(false);
+    first.close();
+
+    const second = createConversationStore({ databasePath });
+    expect(second.getConversationSaving()).toBe(false);
+    second.close();
   });
 });

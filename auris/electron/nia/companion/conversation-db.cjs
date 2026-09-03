@@ -54,6 +54,10 @@ const SCHEMA = `
     PRIMARY KEY (conversation_id, ref_type, ref_id),
     FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
   );
+  CREATE TABLE IF NOT EXISTS companion_preferences (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `;
 
 function requireText(value, label, max = MAX_TEXT) {
@@ -110,6 +114,11 @@ function createConversationStore({ databasePath, now = Date.now } = {}) {
     SELECT ?, ?, ?, ?, ?, ?
     WHERE EXISTS (SELECT 1 FROM conversations WHERE id = ?)
   `);
+  const readPreferenceStatement = database.prepare("SELECT value FROM companion_preferences WHERE key = ?");
+  const writePreferenceStatement = database.prepare(`
+    INSERT INTO companion_preferences (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `);
 
   function list({ personaId, limit = MAX_RESULTS } = {}) {
     const persona = requireText(personaId, "personaId", 120);
@@ -132,6 +141,17 @@ function createConversationStore({ databasePath, now = Date.now } = {}) {
       FROM turns t JOIN conversations c ON c.id = t.conversation_id
       WHERE t.conversation_id = ? AND c.persona_id = ?
       ORDER BY t.at ASC, t.id ASC
+    `).all(id, persona);
+  }
+
+  function tools({ personaId, conversationId } = {}) {
+    const persona = requireText(personaId, "personaId", 120);
+    const id = requireText(conversationId, "conversationId", 120);
+    return database.prepare(`
+      SELECT u.call_id AS callId, u.name, u.status, u.at
+      FROM tool_uses u JOIN conversations c ON c.id = u.conversation_id
+      WHERE u.conversation_id = ? AND c.persona_id = ?
+      ORDER BY u.at ASC, u.id ASC
     `).all(id, persona);
   }
 
@@ -159,10 +179,7 @@ function createConversationStore({ databasePath, now = Date.now } = {}) {
     return list({ personaId: persona, limit: MAX_RESULTS }).map((conversation) => ({
       ...conversation,
       turns: turns({ personaId: persona, conversationId: conversation.id }),
-      tools: database.prepare(`
-        SELECT call_id AS callId, name, status, at FROM tool_uses
-        WHERE conversation_id = ? ORDER BY at ASC, id ASC
-      `).all(conversation.id),
+      tools: tools({ personaId: persona, conversationId: conversation.id }),
     }));
   }
 
@@ -172,6 +189,17 @@ function createConversationStore({ databasePath, now = Date.now } = {}) {
     const result = database.prepare("DELETE FROM conversations WHERE id = ? AND persona_id = ?").run(id, persona);
     database.exec("PRAGMA wal_checkpoint(TRUNCATE);");
     return Number(result.changes ?? 0) > 0;
+  }
+
+  function getConversationSaving() {
+    const preference = readPreferenceStatement.get("save-conversations");
+    return preference?.value !== "false";
+  }
+
+  function setConversationSaving(enabled) {
+    const value = enabled !== false;
+    writePreferenceStatement.run("save-conversations", String(value));
+    return value;
   }
 
   function close() {
@@ -212,7 +240,7 @@ function createConversationStore({ databasePath, now = Date.now } = {}) {
     return Number(result.changes ?? 0) > 0;
   }
 
-  return Object.freeze({ begin, close, deleteConversation, end: (conversationId, endedAt) => endStatement.run(iso(endedAt ?? now(), "endedAt"), requireText(conversationId, "conversationId", 120)), exportFor, list, recoverOpen, say, search, tool, turns });
+  return Object.freeze({ begin, close, deleteConversation, end: (conversationId, endedAt) => endStatement.run(iso(endedAt ?? now(), "endedAt"), requireText(conversationId, "conversationId", 120)), exportFor, getConversationSaving, list, recoverOpen, say, search, setConversationSaving, tool, tools, turns });
 }
 
 module.exports = { createConversationStore };

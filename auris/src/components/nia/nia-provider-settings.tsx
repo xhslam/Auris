@@ -40,6 +40,7 @@ function slugify(value: string) {
 
 export function NiaProviderSettings({
   configMessage = null,
+  defaultOpen,
   historyEnabled,
   model,
   onHistoryEnabledChange,
@@ -52,8 +53,10 @@ export function NiaProviderSettings({
   onTestConnection,
   providerId,
   providers,
+  summary = "模型设置",
 }: {
   configMessage?: string | null;
+  defaultOpen?: boolean;
   historyEnabled: boolean;
   model: string | null;
   onHistoryEnabledChange: (enabled: boolean) => void;
@@ -72,6 +75,7 @@ export function NiaProviderSettings({
   }) => void | Promise<boolean>;
   providerId: string | null;
   providers: readonly NiaProviderSummary[];
+  summary?: string;
 }) {
   const provider = providers.find((entry) => entry.id === providerId) ?? null;
   const models = provider?.supportedModels?.length
@@ -79,7 +83,7 @@ export function NiaProviderSettings({
     : provider?.defaultModel
       ? [provider.defaultModel]
       : [];
-  const openByDefault = providers.length === 0;
+  const openByDefault = defaultOpen ?? providers.length === 0;
   const [kind, setKind] = useState<"rest" | "cli">("rest");
   const [protocol, setProtocol] = useState<NiaRestProtocol>("anthropic");
   const [adapterId, setAdapterId] = useState<NiaCliAdapterId>("claude");
@@ -143,20 +147,20 @@ export function NiaProviderSettings({
 
   return (
     <details className="nia-provider-settings" open={openByDefault || undefined}>
-      <summary>Provider · 模型设置</summary>
+      <summary>{summary}</summary>
       <label>
-        Provider · 提供商
+        提供商
         <select
           aria-label="Nia provider"
           onChange={(event) => onProviderChange(event.target.value)}
           value={providerId ?? ""}
         >
-          {providers.length === 0 ? <option value="">No provider configured</option> : null}
+          {providers.length === 0 ? <option value="">尚未配置提供商</option> : null}
           {providers.map((entry) => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
         </select>
       </label>
       <label>
-        Model · 模型
+        模型
         <select
           aria-label="Nia model"
           disabled={models.length === 0}
@@ -177,11 +181,11 @@ export function NiaProviderSettings({
             )}
             type="button"
           >
-            Test · 测试连接
+            测试连接
           </button>
           {provider.kind === "rest" && onSetSessionApiKey ? (
             <label>
-              Session API key · 内存密钥
+              临时 API Key
               <input
                 aria-label="Nia session API key"
                 autoComplete="off"
@@ -201,7 +205,7 @@ export function NiaProviderSettings({
                 }}
                 type="button"
               >
-                Store key · 保存密钥
+                保存临时密钥
               </button>
             </label>
           ) : null}
@@ -212,14 +216,14 @@ export function NiaProviderSettings({
                 onChange={(event) => void onRememberOnThisMac(provider.id, event.target.checked)}
                 type="checkbox"
               />
-              Remember on this Mac · 记住本机
+              记住在这台 Mac 上
             </label>
           ) : null}
           {provider.hasSecretRef || provider.hasSessionApiKey ? (
             <p role="status">
-              {provider.hasSessionApiKey ? "Session key ready · 内存密钥就绪" : null}
+              {provider.hasSessionApiKey ? "临时密钥已就绪" : null}
               {provider.hasSessionApiKey && provider.hasSecretRef ? " · " : null}
-              {provider.hasSecretRef ? "Keychain remembered · 已进钥匙串" : null}
+              {provider.hasSecretRef ? "已安全保存在钥匙串" : null}
             </p>
           ) : null}
         </div>
@@ -230,16 +234,16 @@ export function NiaProviderSettings({
           onChange={(event) => onHistoryEnabledChange(event.target.checked)}
           type="checkbox"
         />
-        Save local history · 保存本地会话
+        保存文字模型本地历史
       </label>
       {provider?.capabilities?.independentToolAuthority === true ? (
-        <p role="status">This provider may retain independent tool authority.</p>
+        <p role="status">此提供商可能拥有独立的工具调用权限。</p>
       ) : null}
       {canConfigure ? (
         <fieldset className="nia-provider-settings__draft">
-          <legend>Add provider · 添加提供商</legend>
+          <legend>添加提供商</legend>
           <label>
-            Kind · 类型
+            类型
             <select
               aria-label="Nia provider kind"
               onChange={(event) => setKind(event.target.value as "rest" | "cli")}
@@ -251,7 +255,7 @@ export function NiaProviderSettings({
           </label>
           {kind === "rest" ? (
             <label>
-              Protocol · 协议
+              协议
               <select
                 aria-label="Nia REST protocol"
                 onChange={(event) => applyProtocolDefaults(event.target.value as NiaRestProtocol)}
@@ -264,7 +268,7 @@ export function NiaProviderSettings({
             </label>
           ) : (
             <label>
-              Adapter · 适配器
+              适配器
               <select
                 aria-label="Nia CLI adapter"
                 onChange={(event) => {
@@ -282,7 +286,7 @@ export function NiaProviderSettings({
             </label>
           )}
           <label>
-            Label · 名称
+            名称
             <input
               aria-label="Nia provider label"
               onChange={(event) => setLabel(event.target.value)}
@@ -291,7 +295,7 @@ export function NiaProviderSettings({
           </label>
           {kind === "rest" ? (
             <label>
-              Endpoint · 接口
+              接口地址
               <input
                 aria-label="Nia provider endpoint"
                 onChange={(event) => setEndpoint(event.target.value)}
@@ -300,7 +304,7 @@ export function NiaProviderSettings({
             </label>
           ) : null}
           <label>
-            Default model · 默认模型
+            默认模型
             <input
               aria-label="Nia provider default model"
               onChange={(event) => setDefaultModel(event.target.value)}
@@ -310,12 +314,12 @@ export function NiaProviderSettings({
           {kind === "rest" ? (
             <>
               <label>
-                API key · 密钥
+                API Key
                 <input
                   aria-label="Nia provider API key"
                   autoComplete="off"
                   onChange={(event) => setApiKey(event.target.value)}
-                  placeholder="Optional · 可选"
+                  placeholder="可选"
                   type="password"
                   value={apiKey}
                 />
@@ -326,12 +330,12 @@ export function NiaProviderSettings({
                   onChange={(event) => setRemember(event.target.checked)}
                   type="checkbox"
                 />
-                Remember on this Mac · 记住本机
+                记住在这台 Mac 上
               </label>
             </>
           ) : null}
           <button disabled={saving || !label.trim() || !defaultModel.trim()} onClick={() => void saveDraft()} type="button">
-            {saving ? "Saving…" : "Save · 保存"}
+            {saving ? "正在保存…" : "保存"}
           </button>
         </fieldset>
       ) : null}

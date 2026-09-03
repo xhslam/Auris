@@ -21,6 +21,8 @@ type DesktopAppFrameProps = {
   subtitle: string;
   title: string;
   windowTitle?: string | null;
+  /** Keep the rail visible for focused workspaces such as Nia. */
+  sidebarVisible?: boolean;
 };
 
 const SIDEBAR_EXPANDED_SESSION_KEY = "auris.desktop.sidebar-expanded";
@@ -59,6 +61,7 @@ export function DesktopAppFrame({
   children,
   persistActiveWorkspace = true,
   windowTitle = null,
+  sidebarVisible = false,
 }: DesktopAppFrameProps) {
   const router = useRouter();
   const { desktopBridge, hasHydratedDesktopBridge } = useHydratedDesktopBridge();
@@ -112,7 +115,7 @@ export function DesktopAppFrame({
         data-app-theme={appTheme}
         data-desktop-runtime={desktopBridge ? "true" : "false"}
         data-sidebar-expanded={isSidebarExpanded ? "true" : "false"}
-        data-sidebar-visible="false"
+        data-sidebar-visible={sidebarVisible ? "true" : "false"}
         data-workspace={activeWorkspace}
       >
         <DesktopAppSidebar
@@ -120,7 +123,7 @@ export function DesktopAppFrame({
           activeWorkspace={activeWorkspace}
           isExpanded={isSidebarExpanded}
           isPersistentRail
-          isVisible={false}
+          isVisible={sidebarVisible}
           onToggleExpanded={handleToggleSidebarExpanded}
         />
 

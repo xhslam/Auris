@@ -75,6 +75,15 @@ describe("DesktopAppSidebar", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
+  it("renders the Nia navigation glyph", () => {
+    render(<DesktopAppSidebar activeNavId="nia" activeWorkspace="workspace" isVisible />);
+
+    const niaLink = screen.getByRole("link", { name: "Nia" });
+
+    expect(niaLink).toHaveAttribute("href", "/nia");
+    expect(niaLink.querySelector(".desktop-app-sidebar__glyph")).not.toBeNull();
+  });
+
   it("marks the rail as hidden without removing the navigation targets from the DOM", () => {
     const { container } = render(
       <DesktopAppSidebar activeNavId="notes" activeWorkspace="notes" isVisible={false} />,

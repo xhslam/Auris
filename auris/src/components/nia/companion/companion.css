@@ -4,8 +4,15 @@
 
 html,
 body {
-  background: transparent;
+  background: transparent !important;
   overflow: hidden;
+}
+
+html:has(.nia-companion),
+body:has(.nia-companion),
+body:has(.nia-companion) .app-shell,
+body:has(.nia-companion) .app-shell__body {
+  background: transparent !important;
 }
 
 body {
@@ -28,9 +35,20 @@ body {
 }
 
 .nia-companion__figure {
+  cursor: grab;
   height: 250px;
   position: relative;
   width: 260px;
+}
+
+.nia-companion__spoken-status {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .nia-companion__halo {
@@ -176,3 +194,147 @@ body {
 @keyframes nia-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px) rotate(1deg); } }
 @keyframes nia-body { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-1deg); } }
 
+/* Mochi-inspired companion silhouette: a friendly rounded character rather than a window/robot. */
+.nia-companion__halo {
+  background: radial-gradient(circle, rgba(139, 124, 255, 0.34), rgba(92, 74, 202, 0.12) 42%, transparent 70%);
+  filter: blur(20px);
+  height: 244px;
+  left: 8px;
+  top: 4px;
+  width: 244px;
+}
+
+.nia-companion__head {
+  animation: nia-companion-float 4.4s ease-in-out infinite;
+  background: radial-gradient(circle at 30% 16%, #b1a7ff 0%, #8876ed 32%, #5b4abd 100%);
+  border: 1px solid rgba(229, 225, 255, 0.48);
+  border-radius: 52% 52% 47% 47% / 56% 56% 44% 44%;
+  box-shadow: 0 22px 42px rgba(24, 14, 74, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.18);
+  height: 144px;
+  left: 52px;
+  top: 14px;
+  width: 156px;
+}
+
+.nia-companion__head::before,
+.nia-companion__head::after {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  content: "";
+  height: 10px;
+  position: absolute;
+  top: 78px;
+  width: 17px;
+}
+
+.nia-companion__head::before { left: 20px; }
+.nia-companion__head::after { right: 20px; }
+
+.nia-companion__eye {
+  background: #fbfaff;
+  border-radius: 50%;
+  box-shadow: 0 1px 8px rgba(255, 255, 255, 0.42);
+  height: 30px;
+  top: 54px;
+  width: 22px;
+}
+
+.nia-companion__eye::after {
+  background: #2b2459;
+  height: 10px;
+  left: 6px;
+  top: 10px;
+  width: 10px;
+}
+
+.nia-companion__eye--left { left: 39px; }
+.nia-companion__eye--right { right: 39px; }
+
+.nia-companion__mouth {
+  border-color: rgba(32, 24, 77, 0.8);
+  border-radius: 0 0 15px 15px;
+  height: 10px;
+  left: 66px;
+  top: 103px;
+  width: 26px;
+}
+
+.nia-companion__body {
+  animation: nia-companion-body 4.4s ease-in-out infinite;
+  background: linear-gradient(166deg, #7a68d9, #453691 82%);
+  border: 1px solid rgba(222, 216, 255, 0.32);
+  border-radius: 48% 48% 34% 34% / 54% 54% 34% 34%;
+  bottom: 4px;
+  box-shadow: 0 22px 48px rgba(24, 14, 74, 0.5), inset 0 0 25px rgba(255, 255, 255, 0.1);
+  height: 112px;
+  left: 47px;
+  width: 166px;
+}
+
+.nia-companion__arm {
+  background: linear-gradient(180deg, #7869d0, #49388f);
+  border-color: rgba(226, 220, 255, 0.28);
+  border-radius: 999px;
+  height: 72px;
+  top: 21px;
+  width: 27px;
+}
+
+.nia-companion__arm--left { left: -13px; transform: rotate(13deg); }
+.nia-companion__arm--right { right: -13px; transform: rotate(-13deg); }
+
+.nia-companion__chest {
+  border-color: rgba(243, 240, 255, 0.62);
+  box-shadow: 0 0 14px rgba(190, 180, 255, 0.4);
+  height: 12px;
+  left: 77px;
+  top: 45px;
+  width: 12px;
+}
+
+.nia-companion--thinking .nia-companion__head {
+  animation: nia-companion-thinking 1.2s ease-in-out infinite;
+}
+
+.nia-companion--thinking .nia-companion__eye::after {
+  transform: translateY(-3px);
+}
+
+.nia-companion--speaking .nia-companion__mouth {
+  animation: nia-companion-mouth 0.32s ease-in-out infinite alternate;
+}
+
+.nia-companion--opening .nia-companion__head,
+.nia-companion--attending .nia-companion__head {
+  animation-duration: 2.2s;
+}
+
+@keyframes nia-companion-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(1deg); }
+}
+
+@keyframes nia-companion-body {
+  0%, 100% { transform: translateY(0) scaleX(1); }
+  50% { transform: translateY(-3px) scaleX(1.015); }
+}
+
+@keyframes nia-companion-thinking {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35% { transform: translateY(-5px) rotate(-3deg); }
+  70% { transform: translateY(-2px) rotate(3deg); }
+}
+
+@keyframes nia-companion-mouth {
+  from { transform: scaleY(0.7); }
+  to { transform: scaleY(1.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nia-companion__head,
+  .nia-companion__body,
+  .nia-companion--thinking .nia-companion__head,
+  .nia-companion--speaking .nia-companion__mouth {
+    animation: none;
+  }
+}

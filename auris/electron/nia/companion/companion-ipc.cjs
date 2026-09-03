@@ -30,6 +30,7 @@ function createCompanionIpc({
   onReady = () => undefined,
   onOpenNia = () => undefined,
   onWake = () => undefined,
+  onMenu = () => undefined,
 } = {}) {
   if (!ipcMain || typeof ipcMain.handle !== "function" || typeof ipcMain.on !== "function") {
     throw new TypeError("ipcMain is required.");
@@ -111,6 +112,7 @@ function createCompanionIpc({
     if (command === "drag-end") return companionWindow.endDrag?.() ?? false;
     if (command === "open-nia") return onOpenNia();
     if (command === "wake") return onWake();
+    if (command === "menu") return onMenu();
     throw new TypeError("Unsupported Nia companion command.");
   }
 

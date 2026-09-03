@@ -1,11 +1,12 @@
 "use client";
 
 export type NiaCompanionHostEvent =
-  | { type: "snapshot"; snapshot: { state?: string; muted?: boolean } }
+  | { type: "snapshot"; snapshot: { state?: string; muted?: boolean; visible?: boolean } }
+  | { type: "visibility"; visible: boolean }
   | { type: "report"; report: { type?: string; text?: string; message?: string; error?: { message?: string } } };
 
 export type NiaCompanionHostBridge = {
-  invoke: (command: "snapshot" | "wake" | "rest" | "mute" | "text" | "conversations" | "conversation-turns", payload?: Record<string, unknown>) => Promise<unknown>;
+  invoke: (command: "snapshot" | "wake" | "rest" | "mute" | "text" | "conversations" | "conversation-turns" | "conversation-detail" | "conversation-search" | "conversation-saving" | "companion-visibility", payload?: Record<string, unknown>) => Promise<unknown>;
   subscribe: (listener: (event: unknown) => void) => boolean;
   unsubscribe: (listener: (event: unknown) => void) => boolean;
 };

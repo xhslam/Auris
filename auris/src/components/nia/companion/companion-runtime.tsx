@@ -116,6 +116,11 @@ export function CompanionRuntime() {
       className={`nia-companion nia-companion--${status}`}
       data-dragging={isDragging ? "true" : "false"}
       onPointerCancel={endPointer}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        if (!(event.target as HTMLElement).closest(".nia-companion__figure")) return;
+        void bridge?.showMenu();
+      }}
       onPointerDown={onPointerDown}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
@@ -123,16 +128,12 @@ export function CompanionRuntime() {
       onPointerUp={endPointer}
     >
       <audio aria-hidden="true" ref={audioRef} />
-      <button className="nia-companion__bubble" onClick={() => void bridge?.openNia()} type="button">
-        <span>{readableStatus(status)}</span>
-        {lastText ? <small>{lastText}</small> : null}
-      </button>
+      <p aria-live="polite" className="nia-companion__spoken-status">{readableStatus(status)}{lastText ? `：${lastText}` : ""}</p>
       <div className="nia-companion__figure" role="img" aria-label="Nia">
         <i className="nia-companion__halo" />
         <div className="nia-companion__head"><i className="nia-companion__eye nia-companion__eye--left" /><i className="nia-companion__eye nia-companion__eye--right" /><i className="nia-companion__mouth" /></div>
         <div className="nia-companion__body"><i className="nia-companion__arm nia-companion__arm--left" /><i className="nia-companion__arm nia-companion__arm--right" /><i className="nia-companion__chest" /></div>
       </div>
-      <button aria-label="Open Nia conversation" className="nia-companion__open" onClick={() => void bridge?.openNia()} type="button">↗</button>
     </main>
   );
 }

@@ -160,6 +160,7 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
           />
         </svg>
       );
+    case "nia":
     case "assistant":
       return (
         <svg

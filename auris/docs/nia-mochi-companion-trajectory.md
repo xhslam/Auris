@@ -29,3 +29,137 @@
 - 当前提醒时间与 DND 使用安全的本地配置默认值，设置 UI 仍可继续补齐；应用退出时不创建系统级唤醒任务。
 - 本次未删除用户既有词汇、Markdown 或其他未提交文件。
 
+## Nia 工作台与 Mochi 式角色页（2026-09-03）
+
+### Interpretation
+
+在保留原有 Nia provider、工作流、上下文、记忆、任务、Realtime 和复习提醒能力的前提下，把 `/nia` 提升为独立的中文学习工作台；截图只作为 Mochi 信息架构与 Auris 深色视觉参考，不迁移 Mochi 的私有运行时。
+
+### Implementation path
+
+- `src/components/nia/nia-workspace-surface.tsx` 新增 Nia 工作台：中央卡通角色与思考/回应动作、复习提醒卡、实时区、会话区，以及「上下文 / 记忆 / 任务 / 工具」四个信息页签。
+- `src/app/nia/nia.css` 统一为 Auris 暗夜金调与紫色角色强调色，并提供紫/金/蓝三种可保存外观主题；设置弹层补齐角色称呼、语音、保存会话、提醒时间和勿扰说明。
+- `desktop-shell-fixtures.ts` 和 `DesktopAppFrame` 将 Nia 纳入现有侧栏导航，未改变其它页面的导航契约。
+- `electron/nia/companion/companion.css` 将桌面悬浮角色改为圆润 Mochi 式小生物；思考时抬眼轻摆、回应时做口型，保留拖动、置顶、跨工作区与点击唤醒。
+- 历史搜索通过 `conversation-search` 查询既有 SQLite；新增 `conversation-saving` 由 UI 偏好驱动生命周期，仅停止新会话写入，不删除历史记录。
+
+### Checks
+
+- `node --check`：Electron main/preload、会话生命周期与 Realtime coordinator 通过。
+- 定向 ESLint：Nia 工作台、悬浮角色、侧栏与 `/nia` 路由通过。
+- 定向 Vitest：Nia 面板 7 项通过；companion 9 个文件、36 项通过。
+- `npm run build`：Next 生产构建成功，包含 `/nia` 与 `/nia/companion`。
+- 本地浏览器已检查 `/nia` 的侧栏、中文四页签、复习卡、角色动画状态和设置弹层；验证用开发服务器已停止。
+
+### Risks and assumptions
+
+- GPT Live 仍只使用 Electron 主进程中的 Codex 登录凭据交换与 WebRTC，不回退到 API key。
+- 浏览器环境没有 Electron bridge 时，Realtime 和 SQLite 搜索会按既有能力显示不可用提示；桌面运行时才执行真实语音和会话归档。
+- 角色外观按钮改变的是 Nia 工作台的强调色；悬浮角色保持 Nia 的紫色识别色，避免主题切换导致跨窗口识别不一致。
+
+## Nia 侧栏边界与 Mochi 式会话归档（2026-09-03）
+
+### Interpretation
+
+本轮把用户提供的 Mochi 截图视为界面参考，并以 `/Users/apple/Desktop/xiaolai-source/mochi` 的实际源码验证行为。目标不是复制白色界面，而是把 Mochi 的本地会话信息架构迁移到 Auris 暗色 Nia 工作台，同时为现有固定侧栏留出真实空间，并隐藏滚动条而不禁用滚动。
+
+### Implementation path
+
+- `src/components/nia/nia-conversation-archive.tsx` 新增中文会话归档：本地月份/日期条、当日会话列表、完整逐轮记录、工具调用摘要与跨日期全文搜索。默认打开今天有内容的日期，否则打开最近一次有记录的日期；标题只取真实 subject 或开场语，不虚构摘要。
+- `electron/nia/companion/conversation-db.cjs`、`electron/main.cjs`、`electron/preload.cjs` 与 `src/features/nia/nia-companion-bridge.ts` 补齐按 persona 隔离的会话详情命令，一次返回 turns 与 tool uses，继续复用已有 SQLite，不建立第二套存储。
+- `src/components/nia/nia-workspace-surface.tsx` 在顶部、当前会话区和工具页提供归档入口；原有上下文、记忆、任务、工具、Realtime、复习提醒和设置均保留。
+- `src/app/nia/nia.css` 为桌面固定侧栏预留 `14px + 74px + 14px` 边界；Nia 页面及内部滚动容器统一隐藏 WebKit/Firefox 滚动条，但保留鼠标、触控板和键盘滚动。归档沿用 Auris 黑色材质、紫色强调与角色小头像，没有复制 Mochi 的白色视觉。
+- 未加入尚无安全撤销/导出链路的删除与导出假按钮；归档当前呈现的操作均由现有真实 bridge 支持。
+
+### Checks
+
+- Nia、桌面侧栏与 companion 定向 Vitest：15 个文件、59 项通过；包含归档详情、全文搜索、SQLite 工具记录与常驻侧栏契约。
+- 定向 ESLint、Electron main/preload/SQLite 模块 `node --check` 与 `git diff --check` 通过。
+- `npm run build` 成功，生产路由包含 `/nia` 与 `/nia/companion`。
+
+### Risks and assumptions
+
+- 归档和全文搜索只在 Electron 桌面 bridge 可用时读取真实 SQLite；普通网页预览会显示明确的桌面版提示。
+- 当前列表命令有既有条数上限；搜索仍覆盖 SQLite 全文索引。后续数据量显著增加时可在同一存储上补游标分页，无需改变归档信息架构。
+- 本次未启动或保留开发服务器，也未修改用户的词汇索引、Markdown 与报告文件。
+
+## Nia 文字 Provider 设置收口（2026-09-03）
+
+用户在开发预览中确认主会话区仍暴露旧的 Provider 配置。代码验证该模块只服务 REST/CLI 键盘文字通道，与 Codex 登录的 GPT Live 无关；其中本地历史开关也不是 Mochi 式 SQLite 归档。
+
+实现将 `NiaPanel` 拆为默认自持 session 与可注入共享 session 的两种入口。Nia 工作台持有唯一文字 session：主会话区通过 `showProviderSettings={false}` 隐藏旧配置，同一 session 的 Provider、模型、密钥、CLI 与文字历史设置迁入齿轮弹层中的“高级文字模型”，默认折叠，并明确说明不会影响 GPT Live。其它嵌入 Nia 的页面继续保留原有默认行为。
+
+定向 ESLint 通过；Provider 与 Nia Panel 两个测试文件共 8 项通过，新增主会话区隐藏 Provider 的回归断言。开发服务器 `/nia` 首屏包含“自由对话”且不再输出 Provider 设置；热更新无报错，开发版继续保持运行。
+
+## Proma 式文字模型 SidePane（2026-09-03）
+
+### Interpretation
+
+用户进一步明确：API Key 连接与键盘文字对话不应继续藏在设置弹层，也不应占据 Nia 主舞台，而要参考 Proma 的右侧并排工作区。GPT Live 仍使用 Codex 登录链路；API Key 只服务独立文字通道。
+
+### Implementation path
+
+- 新增 `src/components/nia/nia-text-side-pane.tsx`，把文字通道组织为“对话 / 连接”两个中文页签。侧栏与主舞台并排、可收起、无遮罩；未配置时给出明确连接入口，配置后显示当前服务商和模型。
+- `src/components/nia/nia-workspace-surface.tsx` 继续只创建一个 `useNiaSession`。文字侧栏开合、页签切换和从齿轮设置跳转都复用该 session，避免重复订阅 provider 事件或丢失会话状态；原“上下文 / 记忆 / 任务 / 工具”面板在侧栏关闭后恢复。
+- Provider、模型、REST/CLI、连接测试、临时密钥、macOS 钥匙串记忆和文字历史开关全部复用现有 `NiaProviderSettings` 与 bridge，没有建立第二套密钥存储或聊天后端。
+- `src/app/nia/nia.css` 新增 Auris 黑色材质的 SidePane、响应式宽度、中文连接空态与键盘焦点；主舞台移除重复文字聊天区，只保留卡通 Nia 与 GPT Live。滚动能力保留，滚动条继续隐藏。
+- 同步将文字 Composer、Provider 配置、回复空态和 GPT Live 主要文案改为中文；Live 卡片补齐稳定的两列布局，避免窄窗口中默认块级内容挤成一行。
+
+### Checks
+
+- Nia Panel、Provider Settings 与新 SidePane：3 个测试文件、11 项通过。
+- 定向 ESLint 与 `git diff --check` 通过。
+- 开发版热更新后实测：顶部按钮展开/收起侧栏；未连接空态跳转连接页；设置弹层的“打开连接侧栏”会关闭弹层并直接落到连接页；主舞台不再重复显示文字聊天。
+
+### Risks and assumptions
+
+- 普通浏览器预览没有 Electron provider bridge，会明确显示桌面文字服务不可用；真实 API Key、钥匙串和模型调用须在 Auris 桌面开发版内验证。
+- 当前 SidePane 使用与既有信息面板相同的右侧槽位，打开文字通道时暂时替换信息面板，收起后恢复；这是为了在现有窗口最小宽度内保持主舞台可读。
+- 开发服务器仍在运行，因此本轮没有同时执行会占用同一 `.next` 目录的生产构建；类型与运行时编译已由开发版热更新、定向 ESLint 和组件回归覆盖。
+
+## Mochi 式桌面右键菜单与纯图案主舞台（2026-09-03）
+
+### Interpretation
+
+本轮将 Mochi 截图中的“角色是桌面入口、菜单承载操作”迁移到 Auris：Nia 主页面左侧只保留可交互的卡通角色与 Auris 原有学习工作台，实时语音、静音、休息、隐藏和退出不再以大块控制卡占据主舞台；右键桌面形象才显示中文操作菜单。现有 GPT Live（Codex 登录）、文字 Provider、会话 SQLite、复习提醒与固定侧栏均保持不变。
+
+### Implementation path
+
+- 新增 `electron/nia/companion/companion-menu.cjs`，按角色是否处于实时状态生成中文菜单：打开 Nia、开始实时语音／静音、让 Nia 休息、隐藏桌面形象、退出 Auris；菜单内容由纯函数生成，便于在不启动 Electron 的情况下回归。
+- `companion-ipc.cjs`、`companion-preload.cjs` 与 `realtime-transport.ts` 增加受信任的 `menu` 命令；渲染层仅在 `.nia-companion__figure` 上拦截右键并交给主进程，主进程通过原生 `Menu.popup` 承载实际动作，避免网页仿制菜单和权限绕过。
+- `companion-window.cjs` 同时设置 `transparent`、`backgroundColor: "#00000000"` 与原生 `setBackgroundColor`，让悬浮人物只显示图案；拖动、跨工作区置顶与点击穿透策略继续沿用已有窗口服务。
+- `nia-workspace-surface.tsx` 移除主舞台中的 Live 控制卡和重复聊天卡，保留 Nia 动作头像、复习/上下文/记忆/任务/工具与文字 SidePane；在设置中加入“显示桌面形象”开关，可从隐藏状态恢复。
+- `companion.css` 保留圆润紫色角色、眼睛/身体/口型动作和隐藏滚动条；主页面 `nia.css` 令左侧成为纯图案舞台，并继续预留固定侧栏边界。
+
+### Checks
+
+- `node --check`：Electron main/preload、companion window/IPC/menu 通过。
+- 定向 Vitest：6 个文件、17 项通过，覆盖菜单静止/活动文案、IPC 菜单路由、窗口可见性及 Nia 页面/Provider/SidePane 回归。
+- 定向 ESLint 与 `git diff --check` 通过；ESLint 仅报告仓库既有的 CommonJS/CSS ignore 警告，无错误。
+- Electron 开发版实测：桌面窗口保持透明，角色悬浮在其它窗口之上；从角色移出再移入后右键可打开原生中文菜单，截图中显示“打开 Nia / 开始实时语音 / 隐藏桌面形象 / 退出 Auris”。
+
+### Risks and assumptions
+
+- 右键菜单由 macOS 原生窗口菜单绘制；若系统辅助功能或鼠标事件权限被关闭，需先允许 Auris 接收指针事件。菜单本身不改变 Realtime 凭据链路。
+- 菜单中的“退出 Auris”是明确的应用退出动作；“隐藏桌面形象”只隐藏 companion，主应用和会话仍继续运行，可从 Nia 设置恢复。
+- 当前只验证了静止角色菜单的真实桌面截图；活动态的“取消静音／让 Nia 休息”文案由单元测试覆盖，需在有效 Codex Realtime 会话下再做一次人工验收。
+
+## Nia 实时通话归档链路修复（2026-09-03）
+
+### Diagnosis
+
+本机 Nia SQLite 通过完整性检查，但会话、turn 和 tool 表均为 0；因此问题不在建表或 SQLite 写入。与 `/Users/apple/Desktop/xiaolai-source/mochi` 对照后确认两个前置断点：Auris 仍发送旧的顶层 `modalities` / `input_audio_transcription` / `turn_detection` 会话形状，并监听已更名的 `response.audio_transcript.done`；结束通话时主进程又会立即结算会话，没有等渲染层回传尾部转写。
+
+### Implementation path
+
+- 新增 `src/features/nia/nia-realtime-protocol.ts`，使用 Mochi 已验证的 GA `session.update` 结构：`output_modalities`、嵌套 `audio.input.transcription`、降噪、VAD、语音与 Nia instructions；仅收到 `session.updated` 后才宣告通话已打开。
+- 实时事件改为 `response.output_audio_transcript.*`、`response.output_audio.delta`、`response.output_item.added`、`conversation.item.truncated` 与 `output_audio_buffer.*`；已知事件缺字段时会显式报错，不再静默丢弃。
+- 新增 `nia-realtime-pending.ts`，以 item/response 关系处理 transcript、自然播放完成和打断事件的乱序到达；正常关闭与 session rotation 前都先 flush 可归档 turn。
+- `realtime-coordinator.cjs` 将会话结算延后到 renderer `closed` 确认，保留 3 秒超时兜底；关闭窗口内仍接受 heard/said/tool 报告。同时修正 rotation 后又关闭新 transport 的代际问题。
+- “保存新对话”开关现在会在每个 turn 入库前重新检查；通话中关闭后的新 turn 不再继续写入，已有历史不删除。
+
+### Checks and remaining boundary
+
+- Realtime 协议、乱序 turn、transport 关闭 flush、coordinator 延迟结算和 SQLite lifecycle 均有回归覆盖；Nia unit/companion/archive 共 33 个文件、174 项通过。
+- 定向 ESLint、Electron CJS `node --check`、`git diff --check` 和 Next 生产构建通过。
+- 归档内容是用户与 Nia 的文字转写、打断标记和工具记录，不是麦克风原始音频。修复后的真实麦克风会话仍需在重启 Electron 主进程后说一轮，再从“会话记录”或 SQLite 核验。

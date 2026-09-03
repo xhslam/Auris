@@ -24,10 +24,10 @@ describe("Nia provider settings", () => {
         ]}
       />,
     );
-    await user.click(screen.getByText("Provider · 模型设置"));
+    await user.click(screen.getByText("模型设置"));
     await user.selectOptions(screen.getByLabelText("Nia provider"), "p2");
     await user.selectOptions(screen.getByLabelText("Nia model"), "m2");
-    await user.click(screen.getByRole("checkbox", { name: "Save local history · 保存本地会话" }));
+    await user.click(screen.getByRole("checkbox", { name: "保存文字模型本地历史" }));
     expect(onProviderChange).toHaveBeenCalledWith("p2");
     expect(onModelChange).toHaveBeenCalledWith("m2");
     expect(onHistoryEnabledChange).toHaveBeenCalledWith(true);
@@ -54,8 +54,8 @@ describe("Nia provider settings", () => {
     await user.clear(screen.getByLabelText("Nia provider default model"));
     await user.type(screen.getByLabelText("Nia provider default model"), "claude-sonnet-4-5");
     await user.type(screen.getByLabelText("Nia provider API key"), "sk-test");
-    await user.click(screen.getByRole("checkbox", { name: "Remember on this Mac · 记住本机" }));
-    await user.click(screen.getByRole("button", { name: "Save · 保存" }));
+    await user.click(screen.getByRole("checkbox", { name: "记住在这台 Mac 上" }));
+    await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(onSaveRestProvider).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -60,6 +60,7 @@ function createCompanionWindow({
       show: false,
       frame: false,
       transparent: true,
+      backgroundColor: "#00000000",
       resizable: false,
       hasShadow: false,
       skipTaskbar: true,
@@ -72,6 +73,10 @@ function createCompanionWindow({
         sandbox: false,
       },
     });
+    // Keep the native backing surface transparent as well as the renderer DOM.
+    // Without this, a transparent BrowserWindow can still flash or retain a
+    // black backing rectangle on macOS while the page is painting.
+    window.setBackgroundColor?.("#00000000");
     window.setAlwaysOnTop?.(true, "screen-saver");
     window.setVisibleOnAllWorkspaces?.(true, { visibleOnFullScreen: true });
     window.setIgnoreMouseEvents?.(true, { forward: true });
@@ -107,6 +112,11 @@ function createCompanionWindow({
     window.hide();
     visible = false;
     return true;
+  }
+
+  function isVisible() {
+    if (!window || window.isDestroyed?.()) return false;
+    return typeof window.isVisible === "function" ? window.isVisible() : visible;
   }
 
   function setPointerCapture(on) {
@@ -154,7 +164,7 @@ function createCompanionWindow({
     dragging = null;
   }
 
-  return Object.freeze({ beginDrag, create, dispose, dragTo, endDrag, hide, load, openNia, setPointerCapture, show, window: () => window });
+  return Object.freeze({ beginDrag, create, dispose, dragTo, endDrag, hide, isVisible, load, openNia, setPointerCapture, show, window: () => window });
 }
 
 module.exports = { createCompanionWindow };

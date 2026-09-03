@@ -13,7 +13,7 @@ function fakeWindow(options: Record<string, unknown>) {
     getBounds: () => bounds,
     setPosition: (x: number, y: number) => { bounds = { ...bounds, x, y }; },
     setAlwaysOnTop: vi.fn(), setVisibleOnAllWorkspaces: vi.fn(), setIgnoreMouseEvents: vi.fn(),
-    show: vi.fn(), showInactive: vi.fn(), hide: vi.fn(), destroy: vi.fn(), isDestroyed: () => false,
+    show: vi.fn(), showInactive: vi.fn(), hide: vi.fn(), destroy: vi.fn(), isDestroyed: () => false, isVisible: () => true,
     loadURL: vi.fn(async () => undefined),
     fire: (event: string) => listeners.get(event)?.(),
   };
@@ -32,5 +32,6 @@ describe("companion window policy", () => {
     expect(target.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, { visibleOnFullScreen: true });
     expect(target.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
     expect(target.loadURL).toHaveBeenCalledWith("http://localhost:3000/nia/companion");
+    expect(service.isVisible()).toBe(true);
   });
 });

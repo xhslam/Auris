@@ -15,13 +15,31 @@ import type {
   NiaDocumentContext,
   NiaSelectionContext,
 } from "@/features/nia/nia-context";
-import { useNiaSession } from "@/features/nia/use-nia-session";
+import { useNiaSession, type NiaSession } from "@/features/nia/use-nia-session";
 import { routeNiaTextRequest, type NiaRoutingPreference } from "@/features/nia/nia-model-router";
 import { recordNiaTextUsage } from "@/features/nia/nia-usage-store";
 
 export type NiaContextRequest = "selection" | "document" | "browser";
 
-export function NiaPanel({
+export type NiaPanelProps = {
+  host?: unknown;
+  onApplyProposal?: (proposal: NiaApplyProposal) => { ok: boolean; reason?: string } | void;
+  onRequestContext?: (kind: NiaContextRequest) => NiaContext | null;
+  supportedContexts?: readonly NiaContextRequest[];
+  healProposal?: WorkflowHealProposal | null;
+  onAcceptHeal?: (candidateIndex: number) => void;
+  onRejectHeal?: () => void;
+  browserTarget?: Readonly<{ windowId: string; tabId: string }> | null;
+  externalPrompt?: string | null;
+  onExternalPromptConsumed?: () => void;
+  externalContext?: NiaContext | null;
+  externalContextToken?: number;
+  persistentContext?: string;
+  routingPreference?: NiaRoutingPreference;
+  showProviderSettings?: boolean;
+};
+
+function NiaPanelContent({
   host = typeof window === "undefined" ? globalThis : window,
   onApplyProposal,
   onRequestContext,
@@ -36,15 +54,9 @@ export function NiaPanel({
   externalContextToken = 0,
   persistentContext = "",
   routingPreference = "auto",
-}: {
-  host?: unknown;
-  onApplyProposal?: (proposal: NiaApplyProposal) => { ok: boolean; reason?: string } | void;
-  onRequestContext?: (kind: NiaContextRequest) => NiaContext | null;
-  supportedContexts?: readonly NiaContextRequest[];
-  healProposal?: WorkflowHealProposal | null;
-  onAcceptHeal?: (candidateIndex: number) => void;
-  onRejectHeal?: () => void;
-  browserTarget?: Readonly<{ windowId: string; tabId: string }> | null;
+  session,
+  showProviderSettings = true,
+}: NiaPanelProps & { session: NiaSession }) {
   /**
    * 由面板外部（当前是 Nia 动作选择器）投进来的、已经合成好的提示词。
    *
@@ -55,18 +67,6 @@ export function NiaPanel({
    * session 同时有 start 在飞时会认领同一个 runId——选择器的回复会同时流进面板的
    * 消息列表。因此整个窗口只能有一个 session，外部提交必须走它。
    */
-  externalPrompt?: string | null;
-  /** 提交后回调，让调用方清空 `externalPrompt`，避免重复提交。 */
-  onExternalPromptConsumed?: () => void;
-  /** 独立 Nia Surface 交接的、用户可见的显式上下文。 */
-  externalContext?: NiaContext | null;
-  /** 每次上下文切换递增，避免同一对象被静默吞掉。 */
-  externalContextToken?: number;
-  /** 仅由独立工作区合成：已确认记忆和其它显式上下文卡片。 */
-  persistentContext?: string;
-  routingPreference?: NiaRoutingPreference;
-}) {
-  const session = useNiaSession(host);
   const [context, setContext] = useState<NiaContext | null>(null);
   const [showApply, setShowApply] = useState(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
@@ -119,9 +119,9 @@ export function NiaPanel({
   ]);
 
   const contextLabels: Record<NiaContextRequest, string> = {
-    selection: "Attach selection · 选区",
-    document: "Attach document · 文档",
-    browser: "Attach browser · 页面",
+    selection: "附加选区",
+    document: "附加文档",
+    browser: "附加页面",
   };
 
   return (
@@ -134,7 +134,7 @@ export function NiaPanel({
         </div>
         <span aria-live="polite">{session.status}</span>
       </header>
-      <NiaProviderSettings
+      {showProviderSettings ? <NiaProviderSettings
         configMessage={session.configMessage}
         historyEnabled={session.historyEnabled}
         model={session.model}
@@ -148,7 +148,7 @@ export function NiaPanel({
         onTestConnection={session.testConnection}
         providerId={session.providerId}
         providers={session.providers}
-      />
+      /> : null}
       {supportedContexts.length > 0 ? (
         <div aria-label="Nia context" className="nia-panel__context">
           {supportedContexts.map((kind) => (
@@ -170,7 +170,7 @@ export function NiaPanel({
             onChange={(event) => setEnableBrowserTools(event.target.checked)}
             type="checkbox"
           />
-          <span>Allow browser automation · 允许浏览操作</span>
+          <span>允许浏览器操作</span>
         </label>
       ) : null}
       {routingMessage ? <p aria-live="polite" className="nia-panel__tool-status">{routingMessage}</p> : null}
@@ -197,17 +197,17 @@ export function NiaPanel({
         }}
       />
       {!session.available ? (
-        <p aria-live="polite">Nia bridge unavailable in this window · 当前窗口桥接不可用</p>
+        <p aria-live="polite">当前窗口无法连接 Nia 文字服务。</p>
       ) : session.providers.length === 0 ? (
-        <p aria-live="polite">Configure a provider above to start · 请先在上方配置模型</p>
+        <p aria-live="polite">{showProviderSettings ? "请先在上方配置模型。" : "文字对话尚未配置，请前往“连接”页签添加 API Key。"}</p>
       ) : null}
       {session.error ? <p role="alert">{session.error}</p> : null}
       <NiaResponse content={displayedResponse} />
       <div className="nia-panel__response-actions">
-        <button disabled={!displayedResponse} onClick={() => void navigator.clipboard?.writeText(displayedResponse)} type="button">Copy · 复制</button>
-        <button disabled={!session.response} onClick={() => void session.retry()} type="button">Retry · 重试</button>
+        <button disabled={!displayedResponse} onClick={() => void navigator.clipboard?.writeText(displayedResponse)} type="button">复制</button>
+        <button disabled={!session.response} onClick={() => void session.retry()} type="button">重试</button>
         {noteContext && onApplyProposal ? (
-          <button disabled={!session.response} onClick={() => setShowApply(true)} type="button">Apply · 应用</button>
+          <button disabled={!session.response} onClick={() => setShowApply(true)} type="button">应用</button>
         ) : null}
       </div>
       {showApply && noteContext ? (
@@ -220,7 +220,7 @@ export function NiaPanel({
       ) : null}
       {session.historyEnabled && session.history.length > 0 ? (
         <details>
-          <summary>History</summary>
+          <summary>历史记录</summary>
           <ol>
             {session.history.map((record) => (
               <li key={record.id}>
@@ -243,4 +243,13 @@ export function NiaPanel({
       ) : null}
     </aside>
   );
+}
+
+export function NiaPanel(props: NiaPanelProps) {
+  const session = useNiaSession(props.host);
+  return <NiaPanelContent {...props} session={session} />;
+}
+
+export function NiaPanelWithSession({ session, ...props }: NiaPanelProps & { session: NiaSession }) {
+  return <NiaPanelContent {...props} session={session} />;
 }

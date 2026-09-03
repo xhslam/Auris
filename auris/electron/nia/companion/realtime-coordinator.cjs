@@ -1,6 +1,7 @@
 "use strict";
 
 const DEFAULT_ROTATION_LEAD_MS = 5 * 60_000;
+const DEFAULT_CLOSE_GRACE_MS = 3_000;
 const MAX_PENDING_TEXT = 1;
 
 function createRealtimeCoordinator({
@@ -12,12 +13,16 @@ function createRealtimeCoordinator({
   setTimeoutImpl = setTimeout,
   clearTimeoutImpl = clearTimeout,
   rotationLeadMs = DEFAULT_ROTATION_LEAD_MS,
+  closeGraceMs = DEFAULT_CLOSE_GRACE_MS,
   personaId = "nia",
+  initialConversationSaving = true,
+  saveConversationSaving = () => undefined,
 } = {}) {
   if (!credentialBroker || typeof credentialBroker.read !== "function") throw new TypeError("Credential broker is required.");
   if (!transport || typeof transport.send !== "function") throw new TypeError("A companion transport is required.");
   if (!conversation || typeof conversation.file !== "function") throw new TypeError("Conversation lifecycle is required.");
   if (typeof now !== "function") throw new TypeError("Coordinator clock must be a function.");
+  if (typeof saveConversationSaving !== "function") throw new TypeError("Conversation preference persistence must be a function.");
   let generation = 0;
   let state = "resting";
   let sessionId = null;
@@ -26,7 +31,11 @@ function createRealtimeCoordinator({
   let pendingText = null;
   let pendingReminder = null;
   let muted = false;
+  let savingConversations = initialConversationSaving !== false;
+  conversation.setSaving?.(savingConversations);
   let rotationTimer = null;
+  let closeTimer = null;
+  let closingGeneration = null;
   let disposed = false;
   let lastConfig = null;
   const listeners = new Set();
@@ -39,6 +48,7 @@ function createRealtimeCoordinator({
       muted,
       pendingReminder,
       pendingText: pendingText !== null,
+      savingConversations,
       sessionId,
       state,
     });
@@ -61,6 +71,24 @@ function createRealtimeCoordinator({
     rotationTimer = null;
   }
 
+  function finishClosing(at = now()) {
+    if (closeTimer !== null) clearTimeoutImpl(closeTimer);
+    closeTimer = null;
+    closingGeneration = null;
+    if (conversation.isLive?.()) conversation.end(at);
+  }
+
+  function armCloseGrace(expectedGeneration) {
+    if (closeTimer !== null) clearTimeoutImpl(closeTimer);
+    closingGeneration = expectedGeneration;
+    closeTimer = setTimeoutImpl(() => {
+      closeTimer = null;
+      if (closingGeneration !== expectedGeneration) return;
+      closingGeneration = null;
+      if (conversation.isLive?.()) conversation.end(now());
+    }, closeGraceMs);
+  }
+
   function armRotation(at) {
     cancelRotation();
     if (!Number.isFinite(at)) return;
@@ -78,7 +106,6 @@ function createRealtimeCoordinator({
     const previous = sessionId;
     const result = await open({ reason: "rotate", replace: true });
     if (!result || generation === expectedGeneration || !sessionId) return false;
-    try { transport.send({ type: "close", generation: expectedGeneration, reason: "rotated" }); } catch { /* renderer may be closing */ }
     if (previous && previous === sessionId) note("REALTIME_ROTATION_STALLED", "Realtime rotation did not replace the old session.", "Rest Nia, then wake her again.");
     return true;
   }
@@ -86,6 +113,7 @@ function createRealtimeCoordinator({
   async function open({ reason = "wake", replace = false } = {}) {
     if (disposed) return false;
     if (!replace && ["opening", "listening", "attending", "thinking", "speaking", "working"].includes(state)) return true;
+    if (closingGeneration !== null) finishClosing();
     const requested = ++generation;
     state = "opening";
     sessionId = null;
@@ -111,7 +139,8 @@ function createRealtimeCoordinator({
   }
 
   function report(report) {
-    if (disposed || !report || report.generation !== generation) return false;
+    if (disposed || !report || (report.generation !== generation && report.generation !== closingGeneration)) return false;
+    if (report.generation === closingGeneration && !["heard", "said", "tool", "closed"].includes(report.type)) return false;
     switch (report.type) {
       case "opened":
         sessionId = typeof report.sessionId === "string" ? report.sessionId : null;
@@ -134,7 +163,7 @@ function createRealtimeCoordinator({
         break;
       case "closed":
         cancelRotation();
-        if (conversation.isLive?.()) conversation.end(report.at ?? now());
+        finishClosing(report.at ?? now());
         sessionId = null;
         expiresAt = null;
         state = "resting";
@@ -190,13 +219,22 @@ function createRealtimeCoordinator({
     return muted;
   }
 
+  function setConversationSaving(value) {
+    savingConversations = value === true;
+    conversation.setSaving?.(savingConversations);
+    try { saveConversationSaving(savingConversations); } catch (error) {
+      note("CONVERSATION_PREFERENCE_SAVE_FAILED", "The conversation-saving preference could not be persisted.", "Try the setting again.", { message: error instanceof Error ? error.message : String(error) });
+    }
+    publish();
+    return savingConversations;
+  }
+
   function rest(reason = "user") {
     if (disposed) return;
     cancelRotation();
     const oldGeneration = generation;
-    generation += 1;
     try { transport.send({ type: "close", generation: oldGeneration, reason }); } catch { /* best effort */ }
-    if (conversation.isLive?.()) conversation.end(now());
+    armCloseGrace(oldGeneration);
     sessionId = null;
     expiresAt = null;
     pendingText = null;
@@ -217,13 +255,16 @@ function createRealtimeCoordinator({
     if (disposed) return;
     disposed = true;
     cancelRotation();
+    if (closeTimer !== null) clearTimeoutImpl(closeTimer);
+    closeTimer = null;
+    closingGeneration = null;
     try { transport.send({ type: "close", generation, reason: "quit" }); } catch { /* best effort */ }
     if (conversation.isLive?.()) conversation.end(now());
     listeners.clear();
     lastConfig = null;
   }
 
-  return Object.freeze({ dispose, open, queueReminder, report, rest, sendText, setConfig, setMuted, snapshot, subscribe, wake: open });
+  return Object.freeze({ dispose, open, queueReminder, report, rest, sendText, setConfig, setConversationSaving, setMuted, snapshot, subscribe, wake: open });
 }
 
-module.exports = { createRealtimeCoordinator, DEFAULT_ROTATION_LEAD_MS };
+module.exports = { createRealtimeCoordinator, DEFAULT_CLOSE_GRACE_MS, DEFAULT_ROTATION_LEAD_MS };

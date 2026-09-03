@@ -468,3 +468,5 @@ export function useNiaSession(host: unknown = typeof window === "undefined" ? gl
     upsertRestProvider,
   };
 }
+
+export type NiaSession = ReturnType<typeof useNiaSession>;

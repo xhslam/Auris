@@ -47,18 +47,18 @@ describe("Nia panel", () => {
     render(<NiaPanel host={fixture.host} />);
     await waitFor(() => expect(screen.getByLabelText("Nia prompt")).toBeEnabled());
     await user.type(screen.getByLabelText("Nia prompt"), "Summarize this");
-    await user.click(screen.getByRole("button", { name: "Send · 发送" }));
+    await user.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(fixture.invoke).toHaveBeenCalledWith("start", expect.objectContaining({
       prompt: "Summarize this",
       providerId: "p1",
       modelOverride: "model-a",
     })));
-    await user.click(screen.getByRole("button", { name: "Stop · 停止" }));
+    await user.click(screen.getByRole("button", { name: "停止" }));
     await waitFor(() => expect(fixture.invoke).toHaveBeenCalledWith("cancel", { runId: "run-1" }));
     fixture.emit({ type: "delta", runId: "run-1", text: "Hel" });
     fixture.emit({ type: "completed", runId: "run-1", text: "Hello" });
     expect(await screen.findByText("Hello")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Retry · 重试" }));
+    await user.click(screen.getByRole("button", { name: "重试" }));
     expect(fixture.invoke.mock.calls.filter((call) => call[0] === "start")).toHaveLength(2);
   });
 
@@ -78,9 +78,9 @@ describe("Nia panel", () => {
     );
     await waitFor(() => expect(screen.getByLabelText("Nia prompt")).toBeEnabled());
     expect(onRequestContext).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: "Attach browser · 页面" }));
+    await user.click(screen.getByRole("button", { name: "附加页面" }));
     await user.type(screen.getByLabelText("Nia prompt"), "Read reference");
-    await user.click(screen.getByRole("button", { name: "Send · 发送" }));
+    await user.click(screen.getByRole("button", { name: "发送" }));
     expect(fixture.invoke).toHaveBeenCalledWith("start", expect.objectContaining({
       prompt: expect.stringContaining("Explicit browser reference"),
     }));
@@ -107,9 +107,9 @@ describe("Nia panel", () => {
       />,
     );
     await waitFor(() => expect(screen.getByLabelText("Nia prompt")).toBeEnabled());
-    await user.click(screen.getByRole("checkbox", { name: /Allow browser automation/u }));
+    await user.click(screen.getByRole("checkbox", { name: "允许浏览器操作" }));
     await user.type(screen.getByLabelText("Nia prompt"), "Open docs");
-    await user.click(screen.getByRole("button", { name: "Send · 发送" }));
+    await user.click(screen.getByRole("button", { name: "发送" }));
     expect(fixture.invoke).toHaveBeenCalledWith("start", expect.objectContaining({
       prompt: "Open docs",
       enableBrowserTools: true,
@@ -132,20 +132,20 @@ describe("Nia panel", () => {
     await waitFor(() => expect(screen.getByLabelText("Nia prompt")).toBeEnabled());
 
     await user.type(screen.getByLabelText("Nia prompt"), "First request");
-    await user.click(screen.getByRole("button", { name: "Send · 发送" }));
+    await user.click(screen.getByRole("button", { name: "发送" }));
     fixture.emit({ type: "failed", runId: "run-1", message: "Provider offline" });
     expect(await screen.findByRole("alert")).toHaveTextContent("Provider offline");
-    expect(screen.queryByText("History")).not.toBeInTheDocument();
+    expect(screen.queryByText("历史记录")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("checkbox", { name: "Save local history · 保存本地会话" }));
+    await user.click(screen.getByRole("checkbox", { name: "保存文字模型本地历史" }));
     await user.type(screen.getByLabelText("Nia prompt"), "Saved request");
-    await user.click(screen.getByRole("button", { name: "Send · 发送" }));
+    await user.click(screen.getByRole("button", { name: "发送" }));
     fixture.emit({ type: "completed", runId: "run-1", text: "Saved response" });
     expect(await screen.findByText("Saved response")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Copy · 复制" }));
+    await user.click(screen.getByRole("button", { name: "复制" }));
     expect(await navigator.clipboard.readText()).toBe("Saved response");
 
-    await user.click(screen.getByText("History"));
+    await user.click(screen.getByText("历史记录"));
     await user.click(screen.getByRole("button", { name: "Saved request" }));
     expect(screen.getByLabelText("Nia response")).toHaveTextContent("Saved response");
   });
@@ -166,7 +166,15 @@ describe("Nia panel", () => {
         }}
       />,
     );
-    expect(await screen.findByText(/Configure a provider above to start/u)).toBeInTheDocument();
+    expect(await screen.findByText("请先在上方配置模型。")).toBeInTheDocument();
     expect(screen.getByLabelText("Nia prompt")).toBeDisabled();
+  });
+
+  it("can keep legacy provider controls out of the primary conversation surface", async () => {
+    const fixture = hostFixture();
+    render(<NiaPanel host={fixture.host} showProviderSettings={false} />);
+
+    await waitFor(() => expect(screen.getByLabelText("Nia prompt")).toBeEnabled());
+    expect(screen.queryByText("模型设置")).not.toBeInTheDocument();
   });
 });

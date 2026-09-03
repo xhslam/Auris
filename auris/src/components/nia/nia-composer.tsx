@@ -24,21 +24,21 @@ export function NiaComposer({
         setPrompt("");
       }}
     >
-      <label className="nia-composer__label" htmlFor="nia-prompt">Ask Nia · 提问</label>
+      <label className="nia-composer__label" htmlFor="nia-prompt">和 Nia 说点什么</label>
       <textarea
         aria-label="Nia prompt"
         disabled={disabled}
         id="nia-prompt"
         onChange={(event) => setPrompt(event.target.value)}
-        placeholder="Ask, rewrite, summarize, or plan…"
+        placeholder="提问、改写、总结或制定计划…"
         rows={4}
         value={prompt}
       />
       <div className="nia-composer__actions">
         {isStreaming ? (
-          <button onClick={onStop} type="button">Stop · 停止</button>
+          <button onClick={onStop} type="button">停止</button>
         ) : (
-          <button disabled={disabled || !prompt.trim()} type="submit">Send · 发送</button>
+          <button disabled={disabled || !prompt.trim()} type="submit">发送</button>
         )}
       </div>
     </form>

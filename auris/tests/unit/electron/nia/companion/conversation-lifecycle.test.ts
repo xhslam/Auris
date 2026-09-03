@@ -40,4 +40,17 @@ describe("Nia conversation lifecycle", () => {
     expect(talk.isLive()).toBe(false);
     expect(token).toBe("c-1");
   });
+
+  it("applies the saving switch to the next turn without deleting earlier history", () => {
+    const store = fakeStore();
+    const talk = createConversationLifecycle({ store, personaId: "nia", now: () => 10 });
+    expect(talk.setSaving(false)).toBe(false);
+    expect(talk.file("user", "暂不记录")).toBe(false);
+    expect(store.rows).toEqual([]);
+    expect(talk.setSaving(true)).toBe(true);
+    expect(talk.file("user", "恢复记录")).toBe(true);
+    talk.setSaving(false);
+    expect(talk.file("nia", "关闭后不再记录")).toBe(false);
+    expect(store.rows.map((row) => (row as { type?: string }).type)).toEqual(["begin", "say"]);
+  });
 });

@@ -160,6 +160,17 @@ describe("DesktopAppFrame", () => {
     expect(screen.queryByTestId("desktop-sidebar-reveal-zone")).not.toBeInTheDocument();
   });
 
+  it("can reserve a permanently visible rail for focused workspaces", () => {
+    const { container } = render(
+      <DesktopAppFrame activeWorkspace="workspace" sidebarVisible subtitle="Nia" title="Nia">
+        <main>Nia workspace</main>
+      </DesktopAppFrame>,
+    );
+
+    expect(container.querySelector(".desktop-app-shell")).toHaveAttribute("data-sidebar-visible", "true");
+    expect(screen.getByTestId("desktop-sidebar")).toHaveAttribute("data-visible", "true");
+  });
+
   it("does not use hover/focus reveal for the persistent rail", () => {
     const { container } = render(
       <DesktopAppFrame activeWorkspace="home" subtitle="Home" title="Workbench">

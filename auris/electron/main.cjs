@@ -132,6 +132,7 @@ const { createConversationLifecycle } = require("./nia/companion/conversation-li
 const { createDiagnosticsStore } = require("./nia/companion/diagnostics-store.cjs");
 const { createRealtimeCoordinator } = require("./nia/companion/realtime-coordinator.cjs");
 const { createReminderScheduler } = require("./nia/companion/reminder-scheduler.cjs");
+const { createCompanionMenuTemplate } = require("./nia/companion/companion-menu.cjs");
 const { createBrowserWorkflowApiService } = require("./workflows/browser-workflow-api-service.cjs");
 const { createBrowserWorkflowRuntime } = require("./workflows/browser-workflow-runtime.cjs");
 const {
@@ -466,6 +467,28 @@ async function initializeNiaCompanionSubsystem() {
       if (desktopConfig.niaCompanion?.enabled !== false) niaCompanionReminderScheduler?.start?.();
     },
     onWake: () => niaCompanionCoordinator?.open?.({ reason: "body-click" }),
+    onMenu: () => {
+      const target = niaCompanionWindow?.window?.();
+      if (!target || target.isDestroyed?.()) return false;
+      const snapshot = niaCompanionCoordinator?.snapshot?.() ?? { state: "resting", muted: false };
+      const template = createCompanionMenuTemplate({
+        appName: "Auris",
+        snapshot,
+        handlers: {
+          onOpen: () => { void openMainRoute("/nia"); },
+          onWake: () => { void niaCompanionCoordinator?.open?.({ reason: "context-menu" }); },
+          onRest: () => niaCompanionCoordinator?.rest?.("context-menu"),
+          onToggleMute: () => niaCompanionCoordinator?.setMuted?.(snapshot.muted !== true),
+          onHide: () => {
+            niaCompanionWindow?.hide?.();
+            sendNiaCompanionHostEvent({ type: "visibility", visible: false });
+          },
+          onQuit: () => app.quit(),
+        },
+      });
+      Menu.buildFromTemplate(template).popup({ window: target });
+      return true;
+    },
   });
 
   niaCompanionCoordinator = createRealtimeCoordinator({
@@ -482,6 +505,8 @@ async function initializeNiaCompanionSubsystem() {
     },
     conversation: niaCompanionConversation,
     diagnostics: niaCompanionDiagnostics,
+    initialConversationSaving: niaCompanionConversationStore.getConversationSaving(),
+    saveConversationSaving: (enabled) => niaCompanionConversationStore.setConversationSaving(enabled),
   });
   niaCompanionCoordinator.subscribe((snapshot) => {
     sendNiaCompanionHostEvent({ type: "snapshot", snapshot });
@@ -3617,14 +3642,35 @@ function registerDesktopHandlers() {
     const command = request && typeof request.command === "string" ? request.command : "";
     const payload = request && request.payload && typeof request.payload === "object" ? request.payload : {};
     if (!niaCompanionCoordinator) return { state: "resting" };
-    if (command === "snapshot") return niaCompanionCoordinator.snapshot();
-    if (command === "conversations") return niaCompanionConversationStore?.list?.({ personaId: "nia", limit: 32 }) ?? [];
+    if (command === "snapshot") return { ...niaCompanionCoordinator.snapshot(), visible: niaCompanionWindow?.isVisible?.() !== false };
+    if (command === "conversations") return niaCompanionConversationStore?.list?.({ personaId: "nia", limit: 100 }) ?? [];
     if (command === "conversation-turns") {
       return niaCompanionConversationStore?.turns?.({ personaId: "nia", conversationId: String(payload.conversationId ?? "") }) ?? [];
     }
+    if (command === "conversation-detail") {
+      const conversationId = String(payload.conversationId ?? "");
+      return {
+        tools: niaCompanionConversationStore?.tools?.({ personaId: "nia", conversationId }) ?? [],
+        turns: niaCompanionConversationStore?.turns?.({ personaId: "nia", conversationId }) ?? [],
+      };
+    }
+    if (command === "conversation-search") {
+      const query = String(payload.query ?? "").trim();
+      return query
+        ? niaCompanionConversationStore?.search?.({ personaId: "nia", query, limit: 100 }) ?? []
+        : [];
+    }
+    if (command === "conversation-saving") return niaCompanionCoordinator.setConversationSaving?.(payload.enabled !== false) ?? false;
     if (command === "wake") return niaCompanionCoordinator.open({ reason: "nia-page" });
     if (command === "rest") return niaCompanionCoordinator.rest("nia-page");
     if (command === "mute") return niaCompanionCoordinator.setMuted?.(payload.muted === true) ?? false;
+    if (command === "companion-visibility") {
+      const visible = payload.visible !== false;
+      if (visible) niaCompanionWindow?.show?.();
+      else niaCompanionWindow?.hide?.();
+      sendNiaCompanionHostEvent({ type: "visibility", visible });
+      return visible;
+    }
     if (command === "text") return niaCompanionCoordinator.sendText(String(payload.text ?? ""));
     throw new TypeError("Unsupported Nia companion host command.");
   });

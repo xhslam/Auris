@@ -87,6 +87,14 @@ export const DESKTOP_NAV_ITEMS: DesktopNavItem[] = [
     label: "每日回顾",
   },
   {
+    description: "陪你学习、对话与回顾",
+    group: "primary",
+    href: "/nia",
+    id: "nia",
+    label: "Nia",
+    runtimeWorkspace: "workspace",
+  },
+  {
     description: "双语精读、词链和批注",
     group: "primary",
     href: "/reading",
