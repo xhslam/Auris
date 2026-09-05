@@ -163,3 +163,28 @@
 - Realtime 协议、乱序 turn、transport 关闭 flush、coordinator 延迟结算和 SQLite lifecycle 均有回归覆盖；Nia unit/companion/archive 共 33 个文件、174 项通过。
 - 定向 ESLint、Electron CJS `node --check`、`git diff --check` 和 Next 生产构建通过。
 - 归档内容是用户与 Nia 的文字转写、打断标记和工具记录，不是麦克风原始音频。修复后的真实麦克风会话仍需在重启 Electron 主进程后说一轮，再从“会话记录”或 SQLite 核验。
+
+## Nia 对齐 Mochi v0.1.19：Shell PATH 探测与 IPC 类型契约重构（2026-09-05）
+
+### Interpretation
+
+对照 `Mochi_Update_Report_v0.1.19.md` 与最新 Mochi 源码（`faa3340` ➔ `97ddef3`），Mochi 的两次核心升级聚焦于两项系统级机制：
+1. **运行时环境修复（v0.1.19）**：解决 macOS GUI 启动时仅继承 launchd 精简 PATH，导致无法识别通过 `mise`、`nvm`、`asdf`、`fnm`、`pnpm` 等安装的 Codex/Node CLI 问题。
+2. **IPC 类型通信契约重构（v0.1.18）**：消除 Electron 主进程与渲染端在 IPC 通信中的类型漂移，建立单一事实源契约与强类型请求/响应映射。
+
+### Implementation path
+
+- 新增 `electron/nia/companion/shell-path.cjs`：在 macOS/Linux 应用就绪阶段通过交互式登录 Shell（`$SHELL -ilc 'printf %s "$PATH"'`）探测真实环境，4000ms 超时门限，过滤 Banner 并安全合并环境变量（launchd 原生路径前置、用户 Shell 路径后置去重）。
+- `electron/main.cjs`：在 `app.whenReady()` 首行执行 Shell PATH 拓宽，确保后续的 Codex 探测、CLI 适配器（`claude`/`codex`/`gemini`）以及 Node shim 脚本可无障碍运行。
+- 新增 `src/features/nia/nia-companion-answers.ts`：对齐 Mochi `Answers` 单一事实源模型，将所有 11 个宿主窗口陪伴命令（`snapshot`、`conversations`、`conversation-turns`、`conversation-detail`、`conversation-search`、`conversation-saving`、`wake`、`rest`、`mute`、`companion-visibility`、`text`）及陪伴窗口会话协商命令（`open-session`、`sdp` 等）返回值进行严格强类型定义。
+- 新增 `electron/nia/companion/companion-answers.cjs`：提供强类型宿主命令调度器 `createNiaCompanionHostDispatcher`，集中处理所有陪伴指令。
+- 更新 `src/features/nia/nia-companion-bridge.ts`：将 `invoke` 方法重构为基于 `NiaCompanionHostAnswers` 的泛型自动类型推导，消除前端 `unknown` 及不安全的类型断言。
+- 更新 `src/components/nia/nia-conversation-archive.tsx` 和 `src/components/nia/companion/realtime-transport.ts`：统一消费共享契约模型，移除内部重复类型定义与裸 cast。
+- 更新 `docs/third-party/mochi.md` 补齐新模块的开源衍生说明。
+
+### Checks
+
+- 新增单测：`tests/unit/electron/nia/companion/shell-path.test.ts`（10 项全通）、`tests/unit/electron/nia/companion/companion-answers.test.ts`（6 项全通）。
+- 全量 Nia 测试：54 个测试文件、319 项测试全部通过。
+- 语法与静态检查：`node --check`、定向 ESLint（0 errors, 0 warnings）、`npm run quality:desktop-ipc`、`git diff --check` 通过。
+- 生产构建：`npm run build` 成功完成。

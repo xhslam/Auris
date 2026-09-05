@@ -3,6 +3,7 @@
 import { createNiaRealtimePendingTurns, type NiaSettledRealtimeTurn } from "@/features/nia/nia-realtime-pending";
 import { createNiaRealtimeSessionUpdate, parseNiaRealtimeServerEvent } from "@/features/nia/nia-realtime-protocol";
 import { isNiaLiveVoice } from "@/features/nia/nia-live-session-config";
+import type { NiaVoiceAnswer, NiaVoiceOpened } from "@/features/nia/nia-companion-answers";
 
 export type CompanionTransportReport =
   | { type: "opened"; generation: number; sessionId: string; expiresAt: number | null }
@@ -16,8 +17,8 @@ export type CompanionBridge = {
   ready: (payload?: Record<string, unknown>) => boolean;
   subscribe: (listener: (command: unknown) => void) => boolean;
   unsubscribe: (listener: (command: unknown) => void) => boolean;
-  openSession: () => Promise<{ ok: boolean; sessionId?: string; expiresAt?: number | null; error?: { code?: string; message?: string; recovery?: string } }>;
-  sdp: (sessionId: string, offer: string) => Promise<{ ok: boolean; answer?: string; error?: { code?: string; message?: string; recovery?: string } }>;
+  openSession: () => Promise<NiaVoiceOpened>;
+  sdp: (sessionId: string, offer: string) => Promise<NiaVoiceAnswer>;
   report: (report: CompanionTransportReport) => boolean;
   pointerCapture: (enabled: boolean) => Promise<unknown>;
   dragBegin: (x: number, y: number) => Promise<unknown>;
@@ -32,6 +33,16 @@ type TransportHandlers = {
   report: (report: CompanionTransportReport) => void;
   playAudio: (stream: MediaStream) => void;
 };
+
+// A live conversation must never be negotiated as receive-only.  In
+// particular, a reminder can wake Nia before its owner clicks the companion;
+// if that session lacks a local track, later wakes only reuse the deaf session.
+// These are the same voice-oriented capture constraints used by Mochi.
+export const NIA_REALTIME_MICROPHONE_CONSTRAINTS: MediaTrackConstraints = Object.freeze({
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+});
 
 declare global {
   interface Window { niaCompanion?: CompanionBridge }
@@ -83,7 +94,7 @@ export class NiaRealtimeTransport {
   private configured = false;
   private operation = 0;
 
-  async open(generation: number, handlers: TransportHandlers, options: { microphone?: boolean } = {}): Promise<boolean> {
+  async open(generation: number, handlers: TransportHandlers): Promise<boolean> {
     this.flushPending(generation);
     this.shutdownMedia();
     this.generation = generation;
@@ -92,12 +103,11 @@ export class NiaRealtimeTransport {
     this.configured = false;
     const operation = ++this.operation;
     const bridge = bridgeForWindow();
-    const microphone = options.microphone !== false;
-    if (!bridge || typeof RTCPeerConnection === "undefined" || (microphone && !navigator.mediaDevices?.getUserMedia)) {
+    if (!bridge || typeof RTCPeerConnection === "undefined" || !navigator.mediaDevices?.getUserMedia) {
       this.emit(errorReport(generation, "REALTIME_UNSUPPORTED", "This companion cannot start local Realtime audio.", "Use a recent Auris desktop build, then wake Nia again."));
       return false;
     }
-    let session: Awaited<ReturnType<CompanionBridge["openSession"]>> | null = null;
+    let session: NiaVoiceOpened | null = null;
     try {
       session = await bridge.openSession();
     } catch (cause) {
@@ -106,8 +116,8 @@ export class NiaRealtimeTransport {
       return false;
     }
     if (operation !== this.operation) return false;
-    if (!session?.ok || !session.sessionId) {
-      const detail = session.error;
+    if (!session || !session.ok) {
+      const detail = session?.error;
       this.emit(errorReport(generation, detail?.code ?? "CODEX_SESSION_UNAVAILABLE", detail?.message ?? "The Codex login could not start a Realtime session.", detail?.recovery));
       return false;
     }
@@ -117,17 +127,15 @@ export class NiaRealtimeTransport {
     let localPeer: RTCPeerConnection | null = null;
     let localChannel: RTCDataChannel | null = null;
     try {
-      localMicrophone = microphone ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null;
+      localMicrophone = await navigator.mediaDevices.getUserMedia({
+        audio: NIA_REALTIME_MICROPHONE_CONSTRAINTS,
+      });
       if (operation !== this.operation) {
         closeRealtimeResources(null, null, localMicrophone);
         return false;
       }
       localPeer = new RTCPeerConnection();
-      if (localMicrophone) {
-        for (const track of localMicrophone.getAudioTracks()) localPeer.addTrack(track, localMicrophone);
-      } else {
-        localPeer.addTransceiver("audio", { direction: "recvonly" });
-      }
+      for (const track of localMicrophone.getAudioTracks()) localPeer.addTrack(track, localMicrophone);
       localPeer.ontrack = (event) => {
         if (operation !== this.operation) return;
         const [stream] = event.streams;
@@ -150,7 +158,7 @@ export class NiaRealtimeTransport {
         closeRealtimeResources(localPeer, localChannel, localMicrophone);
         return false;
       }
-      if (!answer.ok || !answer.answer) {
+      if (!answer.ok) {
         throw new Error(answer.error?.message ?? "The Realtime SDP exchange failed.");
       }
       await localPeer.setRemoteDescription({ type: "answer", sdp: answer.answer });

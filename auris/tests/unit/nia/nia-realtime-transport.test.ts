@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { NiaRealtimeTransport, type CompanionBridge, type CompanionTransportReport } from "@/components/nia/companion/realtime-transport";
+import {
+  NIA_REALTIME_MICROPHONE_CONSTRAINTS,
+  NiaRealtimeTransport,
+  type CompanionBridge,
+  type CompanionTransportReport,
+} from "@/components/nia/companion/realtime-transport";
 
 type TransportHarness = {
   generation: number;
@@ -69,6 +74,7 @@ describe("Nia Realtime transport event wiring", () => {
     const resolvers: Array<(stream: MediaStream) => void> = [];
     const getUserMedia = vi.fn(() => new Promise<MediaStream>((resolve) => resolvers.push(resolve)));
     const peers: Array<{ closed: boolean }> = [];
+    const addTrack = vi.fn();
 
     class PeerMock {
       iceGatheringState: RTCIceGatheringState = "complete";
@@ -80,7 +86,7 @@ describe("Nia Realtime transport event wiring", () => {
       constructor() { peers.push(this); }
       addEventListener() {}
       removeEventListener() {}
-      addTrack() {}
+      addTrack(track: MediaStreamTrack, stream: MediaStream) { addTrack(track, stream); }
       addTransceiver() {}
       createDataChannel() { return { readyState: "open", send: vi.fn(), close: vi.fn(), onmessage: null, onopen: null } as unknown as RTCDataChannel; }
       async createOffer() { return { type: "offer", sdp: "offer" } as RTCSessionDescriptionInit; }
@@ -107,6 +113,13 @@ describe("Nia Realtime transport event wiring", () => {
       const secondOpen = transport.open(2, handlers);
       await vi.waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(2));
 
+      expect(getUserMedia).toHaveBeenNthCalledWith(1, {
+        audio: NIA_REALTIME_MICROPHONE_CONSTRAINTS,
+      });
+      expect(getUserMedia).toHaveBeenNthCalledWith(2, {
+        audio: NIA_REALTIME_MICROPHONE_CONSTRAINTS,
+      });
+
       resolvers[1]?.(streams[1]);
       await expect(secondOpen).resolves.toBe(true);
       resolvers[0]?.(streams[0]);
@@ -114,6 +127,7 @@ describe("Nia Realtime transport event wiring", () => {
 
       expect(peers).toHaveLength(1);
       expect(peers[0]?.closed).toBe(false);
+      expect(addTrack).toHaveBeenCalledWith(tracks[1], streams[1]);
       expect(tracks[0].stop).toHaveBeenCalledOnce();
       expect(tracks[1].stop).not.toHaveBeenCalled();
     } finally {

@@ -7,6 +7,10 @@ import {
   normalizeNotesMathDelimiters,
   parseNotesMarkdownAst,
 } from "@/features/notes/markdown/notes-markdown-dialect";
+import {
+  DEFAULT_KATEX_MACROS,
+  renderMathMarkup,
+} from "@/features/notes/editor/code-block-preview";
 import { renderMarkdown } from "@/features/notes/rendering/remark-renderer";
 
 function collectMathNodes(source: string) {
@@ -193,5 +197,37 @@ x^2
 
     expect(html).toContain("katex");
     expect(html).toContain("katex-error");
+  });
+
+  it("renders centernot macro defensively without katex-error", () => {
+    expect(DEFAULT_KATEX_MACROS["\\centernot"]).toBe("\\not");
+
+    const markup = renderMathMarkup(
+      String.raw`AB = AC \centernot\implies B = C`,
+      false,
+    );
+    expect(markup).toContain("katex");
+    expect(markup).not.toContain("katex-error");
+
+    const html = renderMarkdown(
+      String.raw`公式 $AB = AC \centernot\implies B = C$ 正常渲染`,
+    );
+    expect(html).toContain("katex");
+    expect(html).not.toContain("katex-error");
+  });
+
+  it("renders standard nRightarrow formula without katex-error", () => {
+    const markup = renderMathMarkup(
+      String.raw`AB = AC \nRightarrow B = C`,
+      false,
+    );
+    expect(markup).toContain("katex");
+    expect(markup).not.toContain("katex-error");
+
+    const html = renderMarkdown(
+      String.raw`公式 $AB = AC \nRightarrow B = C$ 正常渲染`,
+    );
+    expect(html).toContain("katex");
+    expect(html).not.toContain("katex-error");
   });
 });

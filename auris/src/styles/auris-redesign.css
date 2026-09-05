@@ -2825,17 +2825,18 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
  * ========================================================================== */
 .reading-minimal,
 .reading-minimal[data-theme="light"] {
-  --reading-background: #0b0b0c;
-  --reading-foreground: #dcd8cf;
-  --reading-muted: #6e6a62;
-  --reading-border: rgba(255, 255, 255, 0.08);
-  --reading-panel: #0c0c0e;
-  --reading-panel-foreground: #cbc6ba;
-  --reading-accent: #c7a86a;
-  --reading-accent-soft: rgba(199, 168, 106, 0.16);
-  --reading-accent-line: #c7a86a;
-  --reading-toolbar: rgba(11, 11, 12, 0.82);
-  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.4);
+  background: var(--app-bg) !important;
+  --reading-background: var(--app-bg);
+  --reading-foreground: var(--app-ink, #233229);
+  --reading-muted: var(--app-muted, #51655a);
+  --reading-border: var(--app-line, rgba(73, 96, 82, 0.2));
+  --reading-panel: var(--app-surface, #f4f7f1);
+  --reading-panel-foreground: var(--app-text, #233229);
+  --reading-accent: var(--accent, #365d3f);
+  --reading-accent-soft: var(--app-fill-strong, rgba(54, 93, 63, 0.12));
+  --reading-accent-line: var(--accent, #365d3f);
+  --reading-toolbar: color-mix(in srgb, var(--app-bg) 92%, transparent);
+  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.14);
 }
 
 /* 标题：无衬线中等，与全局字体对齐 */

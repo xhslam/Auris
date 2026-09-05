@@ -2,37 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { getNiaCompanionHostBridge } from "@/features/nia/nia-companion-bridge";
-
-type Conversation = {
-  id: string;
-  startedAt: string;
-  endedAt?: string | null;
-  opening?: string | null;
-  source?: string;
-  subject?: string | null;
-  turnCount?: number;
-};
-
-type Turn = {
-  at: string;
-  cut?: number;
-  id: string;
-  speaker: "user" | "nia" | "system";
-  text: string;
-};
-
-type ToolUse = { at: string; callId: string; name: string; status: string };
-type ConversationDetail = { tools: ToolUse[]; turns: Turn[] };
-type SearchHit = {
-  at: string;
-  conversationId: string;
-  speaker: string;
-  startedAt: string;
-  subject?: string | null;
-  text: string;
-  turnId: string;
-};
+import {
+  getNiaCompanionHostBridge,
+  type NiaCompanionConversationDetail as ConversationDetail,
+  type NiaCompanionConversationSummary as Conversation,
+  type NiaCompanionSearchHit as SearchHit,
+  type NiaCompanionToolUse as ToolUse,
+} from "@/features/nia/nia-companion-bridge";
 
 function startOfLocalDay(value: string | number) {
   const date = new Date(value);
@@ -128,7 +104,7 @@ export function NiaConversationArchive({
     let active = true;
     void bridge.invoke("conversations").then((value) => {
       if (!active) return;
-      const next = Array.isArray(value) ? value as Conversation[] : [];
+      const next = Array.isArray(value) ? value : [];
       setConversations(next);
       const initialConversation = initialConversationId
         ? next.find((item) => item.id === initialConversationId) ?? null
@@ -149,7 +125,7 @@ export function NiaConversationArchive({
         setDetailLoading(true);
         void bridge.invoke("conversation-detail", { conversationId: initialConversation.id }).then((detailValue) => {
           if (!active || detailRequest.current !== request) return;
-          const detailResult = detailValue && typeof detailValue === "object" ? detailValue as Partial<ConversationDetail> : {};
+          const detailResult = detailValue && typeof detailValue === "object" ? detailValue : { tools: [], turns: [] };
           setDetail({
             tools: Array.isArray(detailResult.tools) ? detailResult.tools : [],
             turns: Array.isArray(detailResult.turns) ? detailResult.turns : [],
@@ -173,7 +149,7 @@ export function NiaConversationArchive({
     }
     const timer = window.setTimeout(() => {
       void bridge.invoke("conversation-search", { query: term }).then((value) => {
-        setHits(Array.isArray(value) ? value as SearchHit[] : []);
+        setHits(Array.isArray(value) ? value : []);
         setSearchReady(true);
       }).catch(() => {
         setHits([]);

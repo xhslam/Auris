@@ -1,6 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+} from "react";
+import {
+  DEFAULT_NIA_COMPANION_SCALE,
+  loadNiaCompanionScale,
+  subscribeToNiaCompanionScale,
+} from "@/features/nia/nia-companion-scale";
 import { NiaRealtimeTransport, type CompanionBridge, type CompanionTransportReport } from "./realtime-transport";
 import "./companion.css";
 
@@ -31,9 +43,15 @@ export function CompanionRuntime() {
   const [status, setStatus] = useState("resting");
   const [lastText, setLastText] = useState("");
   const [isDragging, setDragging] = useState(false);
+  const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
   const transportRef = useRef<NiaRealtimeTransport | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const bridge = useMemo(() => (typeof window === "undefined" ? null : window.niaCompanion ?? null), []);
+
+  useEffect(() => {
+    setCompanionScale(loadNiaCompanionScale());
+    return subscribeToNiaCompanionScale(setCompanionScale);
+  }, []);
 
   useEffect(() => {
     if (!bridge) return;
@@ -61,7 +79,7 @@ export function CompanionRuntime() {
             audio.srcObject = stream;
             void audio.play().catch(() => undefined);
           },
-        }, { microphone: command.reason !== "scheduled-reminder" });
+        });
       } else if (command.type === "close") {
         transport.close(command.generation);
         setStatus("resting");
@@ -129,7 +147,14 @@ export function CompanionRuntime() {
     >
       <audio aria-hidden="true" ref={audioRef} />
       <p aria-live="polite" className="nia-companion__spoken-status">{readableStatus(status)}{lastText ? `：${lastText}` : ""}</p>
-      <div className="nia-companion__figure" role="img" aria-label="Nia">
+      <div
+        className="nia-companion__figure"
+        role="img"
+        aria-label="Nia"
+        style={{
+          "--nia-companion-scale": companionScale / 100,
+        } as CSSProperties}
+      >
         <i className="nia-companion__halo" />
         <div className="nia-companion__head"><i className="nia-companion__eye nia-companion__eye--left" /><i className="nia-companion__eye nia-companion__eye--right" /><i className="nia-companion__mouth" /></div>
         <div className="nia-companion__body"><i className="nia-companion__arm nia-companion__arm--left" /><i className="nia-companion__arm nia-companion__arm--right" /><i className="nia-companion__chest" /></div>

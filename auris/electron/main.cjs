@@ -127,6 +127,13 @@ const {
   exchangeRealtimeSession,
   proxyRealtimeSdp,
 } = require("./nia/companion/codex-credential.cjs");
+const {
+  shellPath,
+  widenPath,
+} = require("./nia/companion/shell-path.cjs");
+const {
+  createNiaCompanionHostDispatcher,
+} = require("./nia/companion/companion-answers.cjs");
 const { createConversationStore } = require("./nia/companion/conversation-db.cjs");
 const { createConversationLifecycle } = require("./nia/companion/conversation-lifecycle.cjs");
 const { createDiagnosticsStore } = require("./nia/companion/diagnostics-store.cjs");
@@ -3637,42 +3644,16 @@ function registerDesktopHandlers() {
     store: getNotesRecoveryStore(),
   });
 
+  const dispatchNiaCompanionHostCommand = createNiaCompanionHostDispatcher({
+    getCoordinator: () => niaCompanionCoordinator,
+    getWindow: () => niaCompanionWindow,
+    getConversationStore: () => niaCompanionConversationStore,
+    sendHostEvent: sendNiaCompanionHostEvent,
+  });
+
   ipcMain.handle(HOST_COMMAND_CHANNEL, async (event, request = {}) => {
     requireTrustedMainFrameEvent(event);
-    const command = request && typeof request.command === "string" ? request.command : "";
-    const payload = request && request.payload && typeof request.payload === "object" ? request.payload : {};
-    if (!niaCompanionCoordinator) return { state: "resting" };
-    if (command === "snapshot") return { ...niaCompanionCoordinator.snapshot(), visible: niaCompanionWindow?.isVisible?.() !== false };
-    if (command === "conversations") return niaCompanionConversationStore?.list?.({ personaId: "nia", limit: 100 }) ?? [];
-    if (command === "conversation-turns") {
-      return niaCompanionConversationStore?.turns?.({ personaId: "nia", conversationId: String(payload.conversationId ?? "") }) ?? [];
-    }
-    if (command === "conversation-detail") {
-      const conversationId = String(payload.conversationId ?? "");
-      return {
-        tools: niaCompanionConversationStore?.tools?.({ personaId: "nia", conversationId }) ?? [],
-        turns: niaCompanionConversationStore?.turns?.({ personaId: "nia", conversationId }) ?? [],
-      };
-    }
-    if (command === "conversation-search") {
-      const query = String(payload.query ?? "").trim();
-      return query
-        ? niaCompanionConversationStore?.search?.({ personaId: "nia", query, limit: 100 }) ?? []
-        : [];
-    }
-    if (command === "conversation-saving") return niaCompanionCoordinator.setConversationSaving?.(payload.enabled !== false) ?? false;
-    if (command === "wake") return niaCompanionCoordinator.open({ reason: "nia-page" });
-    if (command === "rest") return niaCompanionCoordinator.rest("nia-page");
-    if (command === "mute") return niaCompanionCoordinator.setMuted?.(payload.muted === true) ?? false;
-    if (command === "companion-visibility") {
-      const visible = payload.visible !== false;
-      if (visible) niaCompanionWindow?.show?.();
-      else niaCompanionWindow?.hide?.();
-      sendNiaCompanionHostEvent({ type: "visibility", visible });
-      return visible;
-    }
-    if (command === "text") return niaCompanionCoordinator.sendText(String(payload.text ?? ""));
-    throw new TypeError("Unsupported Nia companion host command.");
+    return dispatchNiaCompanionHostCommand(request);
   });
 
   ipcMain.handle("shadowing:desktop-island:get-settings", async (event) => {
@@ -4525,6 +4506,15 @@ async function pickSystemFile(options) {
 
 app.whenReady().then(async () => {
   writeStartupLog("app:ready");
+  try {
+    const fromShell = await shellPath({ platform: process.platform, env: process.env });
+    if (fromShell) {
+      process.env.PATH = widenPath(process.env.PATH, fromShell);
+      writeStartupLog("app:path-widened");
+    }
+  } catch (error) {
+    writeStartupLog(`app:shell-path-error ${error?.message ?? error}`);
+  }
   await readDesktopConfig();
   const desktopIslandNativeHost = new MacDesktopIslandNativeHost({
     app,

@@ -5,6 +5,7 @@ import {
 } from "@/components/nia/nia-workspace-surface";
 import { __resetNiaStandaloneStoreForTests } from "@/features/nia/nia-standalone-store";
 import { __resetNiaTaskStoreForTests } from "@/features/nia/nia-task-store";
+import { loadNiaCompanionScale } from "@/features/nia/nia-companion-scale";
 
 vi.mock("@/features/home-learning/use-home-learning-summary", () => ({
   useHomeLearningSummary: () => ({
@@ -54,6 +55,24 @@ describe("NiaWorkspaceSurface split layout", () => {
     } finally {
       Reflect.deleteProperty(window, "shadowingDesktop");
     }
+  });
+
+  it("puts the desktop companion size slider inside Nia settings", async () => {
+    render(<NiaWorkspaceSurface />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const slider = screen.getByRole("slider", { name: "桌面形象大小" });
+
+    expect(slider).toHaveValue("100");
+    expect(screen.getByText("100%")).toBeInTheDocument();
+
+    fireEvent.change(slider, { target: { value: "80" } });
+    await waitFor(() => expect(loadNiaCompanionScale()).toBe(80));
+    expect(screen.getByText("80%")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "使用她的原始大小" }));
+    expect(slider).toHaveValue("100");
+    expect(loadNiaCompanionScale()).toBe(100);
   });
 
   it("resizes both boards by pointer or keyboard and restores the default on double click", async () => {

@@ -19,6 +19,14 @@ import { getNiaStandaloneBridge } from "@/features/nia/nia-standalone-bridge";
 import { listNiaToolsForContext } from "@/features/nia/nia-tool-registry";
 import { useNiaStandaloneStore } from "@/features/nia/nia-standalone-store";
 import { getNiaCompanionHostBridge } from "@/features/nia/nia-companion-bridge";
+import {
+  DEFAULT_NIA_COMPANION_SCALE,
+  MAX_NIA_COMPANION_SCALE,
+  MIN_NIA_COMPANION_SCALE,
+  NIA_COMPANION_SCALE_STEP,
+  loadNiaCompanionScale,
+  saveNiaCompanionScale,
+} from "@/features/nia/nia-companion-scale";
 import { activeNiaMemories, formatNiaConfirmedMemoriesForPrompt, loadNiaMemories, type NiaMemoryRecord } from "@/features/nia/nia-memory-service";
 import { useHomeLearningSummary } from "@/features/home-learning/use-home-learning-summary";
 import { useNiaTaskStore } from "@/features/nia/nia-task-store";
@@ -94,6 +102,7 @@ export function NiaWorkspaceSurface() {
   const [routingPreference, setRoutingPreference] = useState(loadNiaRoutingPreference);
   const [companion, setCompanion] = useState<CompanionSnapshot>({ state: "resting", muted: false });
   const [companionVisible, setCompanionVisible] = useState(true);
+  const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [archiveConversationId, setArchiveConversationId] = useState<string | null>(null);
@@ -125,6 +134,7 @@ export function NiaWorkspaceSurface() {
     hydrateTasks();
     try {
       setVoice(window.localStorage.getItem("auris.nia.voice") || "ballad");
+      setCompanionScale(loadNiaCompanionScale());
       const storedAccent = window.localStorage.getItem("auris.nia.accent-theme");
       if (storedAccent === "violet" || storedAccent === "gold" || storedAccent === "blue") setAccentTheme(storedAccent);
     } catch { /* in-memory defaults are enough */ }
@@ -238,6 +248,9 @@ export function NiaWorkspaceSurface() {
     setVoice(next);
     try { window.localStorage.setItem("auris.nia.voice", next); } catch { /* best effort */ }
   };
+  const setSelectedCompanionScale = (next: number) => {
+    setCompanionScale(saveNiaCompanionScale(next));
+  };
   const setSelectedAccent = (next: NiaAccentTheme) => {
     setAccentTheme(next);
     try { window.localStorage.setItem("auris.nia.accent-theme", next); } catch { /* best effort */ }
@@ -296,7 +309,7 @@ export function NiaWorkspaceSurface() {
         </aside>}
       </div>}
 
-      {settingsOpen ? <div className="nia-workspace__settings-backdrop" role="presentation"><section aria-label="Nia 角色设置" className="nia-workspace__settings" role="dialog"><header><div><span>角色设置 · CHARACTER</span><h2>Nia</h2><p>这些设置会影响 Nia 的陪伴方式。</p></div><button aria-label="关闭设置" onClick={() => setSettingsOpen(false)} type="button">×</button></header><div className="nia-workspace__settings-section"><label>称呼<input defaultValue="Nia" maxLength={40} /></label><div><span>外观</span><div className="nia-workspace__colour-options"><button aria-label="紫色主题" aria-pressed={accentTheme === "violet"} className="nia-workspace__colour nia-workspace__colour--violet" onClick={() => setSelectedAccent("violet")} type="button" /><button aria-label="金色主题" aria-pressed={accentTheme === "gold"} className="nia-workspace__colour nia-workspace__colour--gold" onClick={() => setSelectedAccent("gold")} type="button" /><button aria-label="蓝色主题" aria-pressed={accentTheme === "blue"} className="nia-workspace__colour nia-workspace__colour--blue" onClick={() => setSelectedAccent("blue")} type="button" /></div></div></div><div className="nia-workspace__settings-section"><span>语音</span><div className="nia-workspace__voice-options">{voiceOptions.map((option) => <button aria-pressed={voice === option} key={option} onClick={() => setSelectedVoice(option)} type="button">{option}</button>)}</div><small>点击语音名称可试听（当前实时会话在下一次唤醒时使用）。</small></div><div className="nia-workspace__settings-section nia-workspace__settings-row"><div><strong>显示桌面形象</strong><small>隐藏后可在这里重新显示 Nia。</small></div><button aria-pressed={companionVisible} className="nia-workspace__switch" onClick={() => { const visible = !companionVisible; setCompanionVisible(visible); void getNiaCompanionHostBridge(window)?.invoke("companion-visibility", { visible }); }} type="button"><i /></button></div><div className="nia-workspace__settings-section nia-workspace__settings-row"><div><strong>保存新对话</strong><small>关闭后不会删除已保存的历史。</small></div><button aria-pressed={saveConversations} className="nia-workspace__switch" onClick={() => setSaved(!saveConversations)} type="button"><i /></button></div><div className="nia-workspace__settings-section"><span>提醒时间</span><div className="nia-workspace__reminder-times"><b>09:00</b><b>14:00</b><b>20:00</b></div><small>复习提醒会在桌面上唤醒 Nia；勿扰时段 23:00–07:30。</small></div><div className="nia-workspace__settings-section nia-workspace__settings-section--text-link"><div><strong>文字模型与 API Key</strong><small>在独立侧栏里连接服务商并进行键盘对话，不影响 GPT Live。</small></div><button onClick={() => { setSettingsOpen(false); openTextPane("connection"); }} type="button">打开连接侧栏</button></div><footer><button onClick={() => setSettingsOpen(false)} type="button">完成</button></footer></section></div> : null}
+      {settingsOpen ? <div className="nia-workspace__settings-backdrop" role="presentation"><section aria-label="Nia 角色设置" className="nia-workspace__settings" role="dialog"><header><div><span>角色设置 · CHARACTER</span><h2>Nia</h2><p>这些设置会影响 Nia 的陪伴方式。</p></div><button aria-label="关闭设置" onClick={() => setSettingsOpen(false)} type="button">×</button></header><div className="nia-workspace__settings-section"><label>称呼<input defaultValue="Nia" maxLength={40} /></label><div><span>外观</span><div className="nia-workspace__colour-options"><button aria-label="紫色主题" aria-pressed={accentTheme === "violet"} className="nia-workspace__colour nia-workspace__colour--violet" onClick={() => setSelectedAccent("violet")} type="button" /><button aria-label="金色主题" aria-pressed={accentTheme === "gold"} className="nia-workspace__colour nia-workspace__colour--gold" onClick={() => setSelectedAccent("gold")} type="button" /><button aria-label="蓝色主题" aria-pressed={accentTheme === "blue"} className="nia-workspace__colour nia-workspace__colour--blue" onClick={() => setSelectedAccent("blue")} type="button" /></div></div></div><div className="nia-workspace__settings-section nia-workspace__scale-section"><div className="nia-workspace__scale-heading"><span>桌面形象大小</span><output aria-live="polite">{companionScale}%</output></div><div className="nia-workspace__scale-controls"><input aria-label="桌面形象大小" max={MAX_NIA_COMPANION_SCALE} min={MIN_NIA_COMPANION_SCALE} onChange={(event) => setSelectedCompanionScale(Number(event.target.value))} step={NIA_COMPANION_SCALE_STEP} type="range" value={companionScale} /><button disabled={companionScale === DEFAULT_NIA_COMPANION_SCALE} onClick={() => setSelectedCompanionScale(DEFAULT_NIA_COMPANION_SCALE)} type="button">使用她的原始大小</button></div><small>只调整桌面悬浮玩偶，不会缩放 Nia 窗口或其他界面。</small></div><div className="nia-workspace__settings-section"><span>语音</span><div className="nia-workspace__voice-options">{voiceOptions.map((option) => <button aria-pressed={voice === option} key={option} onClick={() => setSelectedVoice(option)} type="button">{option}</button>)}</div><small>点击语音名称可试听（当前实时会话在下一次唤醒时使用）。</small></div><div className="nia-workspace__settings-section nia-workspace__settings-row"><div><strong>显示桌面形象</strong><small>隐藏后可在这里重新显示 Nia。</small></div><button aria-pressed={companionVisible} className="nia-workspace__switch" onClick={() => { const visible = !companionVisible; setCompanionVisible(visible); void getNiaCompanionHostBridge(window)?.invoke("companion-visibility", { visible }); }} type="button"><i /></button></div><div className="nia-workspace__settings-section nia-workspace__settings-row"><div><strong>保存新对话</strong><small>关闭后不会删除已保存的历史。</small></div><button aria-pressed={saveConversations} className="nia-workspace__switch" onClick={() => setSaved(!saveConversations)} type="button"><i /></button></div><div className="nia-workspace__settings-section"><span>提醒时间</span><div className="nia-workspace__reminder-times"><b>09:00</b><b>14:00</b><b>20:00</b></div><small>复习提醒会在桌面上唤醒 Nia；勿扰时段 23:00–07:30。</small></div><div className="nia-workspace__settings-section nia-workspace__settings-section--text-link"><div><strong>文字模型与 API Key</strong><small>在独立侧栏里连接服务商并进行键盘对话，不影响 GPT Live。</small></div><button onClick={() => { setSettingsOpen(false); openTextPane("connection"); }} type="button">打开连接侧栏</button></div><footer><button onClick={() => setSettingsOpen(false)} type="button">完成</button></footer></section></div> : null}
     </main>
   );
 }

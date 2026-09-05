@@ -515,9 +515,122 @@ Proma 灵动岛为 Agent 运行状态监视器（idle/working/waiting），仅�
 ### Reading 页头避让桌面灵动岛（2026-08-30）
 
 用户截图显示 Reading 大标题末尾进入顶部原生「今日任务／回顾复习」灵动岛的阴影区域。`reading-library.css` 现在仅对桌面运行时的 Reading 画布保留 82–104px 顶部安全区，标题与右侧排序、导入控件整组下移，不缩小标题或改动全局灵动岛。新增 CSS 契约回归防止安全区被误删。Reading 组件与样式定向 Vitest 2 个文件、24 项通过，定向 ESLint 与 `git diff --check` 通过。未提交或推送 Git 改动。
-
 ## Engineering trajectory: Reading 完形标题彻底归一为阅读理解（2026-08-30）
 
 用户反馈文章中的 `## 完形填空` 仍会唤起旧完形格式。根因是已删除 `cloze` 类型与展示样式后，解析器仍保留独立的完形别名、专属解析分支和序列化回写分支。`reading-exam-parse.ts` 现在只在输入边界兼容 `## 完形填空` 与 `## 题型: 完形填空`，立即将它们规范化为 `## 题型: 阅读理解`；后续与普通阅读理解共用完全相同的解析、数据类型、布局和序列化通道，不再保留完形标签或分支。
 
-更新 `tests/unit/reading/reading-import.test.ts` 覆盖两种旧标题、紧凑题型文档、0–10 精读文档及保存往返；断言产物始终为 `type: reading`、label 为「阅读理解」，且保存结果不再出现独立 `## 完形填空`。Reading 定向 Vitest 3 个文件、35 项通过，定向 ESLint、`git diff --check` 与 Next.js 生产构建通过。未提交或推送 Git 改动，工作树其他未提交内容保持不变。
+更新 `tests/unit/reading/reading-import.test.ts` 覆盖两种旧标题、紧凑题型文档、0–10 精读文档及保存往返；断言产物始终为 `type: reading`、label 为「阅读理解」，且保存结果不再出现独立 `## 完形填空`。Reading 定向 3 个文件、35 项通过，定向 ESLint、`git diff --check` 与 Next.js 生产构建通过。未提交或推送 Git 改动，工作树其他未提交内容保持不变。
+
+## Engineering trajectory: Nia 与 Reading 页面背景与全局主题统一（2026-09-04）
+
+用户反馈 Nia 页面（`/nia`）与 Reading 页面（`/reading`）两个大页面的背景与其他页面不一致，要求修改一致。
+
+### 根因分析与分解
+
+1. **全局主题契约**：Auris 外壳（`.desktop-app-shell` 与 `.desktop-app-frame`）及 Home、Notes、Flash、Review、Settings、Video 均统一绑定 CSS 变量 `var(--app-bg)`。在 6 套应用主题中：`white` (`#f4f2ec`)、`paper` (`#efe9d8`)、`mint` (`#edf3e8`)、`sepia` (`#f1e7d0`)、`night` (`#1b1c1f`)、`solarized` (`#002b36`)。
+2. **Nia 页面背景不一致**：
+   - `auris/src/app/nia/nia.css` 声明了 `:root { color-scheme: dark; }` 与 `html:has(.nia-workspace), body:has(.nia-workspace) { background: #0b0b0c !important; }`，直接强行将根文档涂抹为硬编码极黑 `#0b0b0c`。
+   - `.nia-workspace` 变量 `--nia-bg: #0b0b0c;` 且未接入外壳的 6 套主题，卡片亦使用硬编码纯黑半透明。
+   - `nia.css` 给 `.desktop-app-frame` 增加了冗余的 `padding-left: calc(14px + ...)`，在桌面端留出 102px 空白凹陷，导致底层背景泄漏。
+3. **Reading 页面背景不一致**：
+   - 库视图 `auris/src/components/reading/reading-library.css`：在 `night` 主题下硬编码为 `#0b0b0c`（偏离全局 night 的 `#1b1c1f`）；在 `white` 下为 `#f6f4ee`（偏离 `#f4f2ec`）；`.reading-library` 使用 `background: var(--reading-background)` 且 `min-height: 100vh`。
+   - 阅读器工作台 `auris/styles/auris-redesign.css`：`.reading-minimal, .reading-minimal[data-theme="light"]` 硬编码设置 `--reading-background: #0b0b0c;`，导致任何文章点开均强制黑底。
+   - 阅读器样式 `auris/src/components/reading/reading-workbench.css`：默认 light 阅读器主题使用 `--reading-background: #f7f5ee !important;` 阻断了全局主题继承。
+
+### 改动文件与角色
+
+1. `auris/src/app/nia/nia.css`：
+   - 移除 `:root { color-scheme: dark; }` 与 `html/body` 的 `#0b0b0c !important` 覆盖。
+   - `.nia-workspace` 采用 `background: var(--app-bg, var(--nia-bg));`，`min-height: 100%`。
+   - 为 `.desktop-app-shell[data-app-theme="${theme}"] .nia-workspace` 建立全部 6 套主题的 `--nia-bg`、`--nia-surface`、`--nia-line`、`--nia-text` 规范，`--nia-bg` 严格对齐 `--app-bg`。
+   - 审查卡、实时卡、聊天卡、检查器和设置面板统一采用 `var(--nia-surface)`。
+   - 移除 `.desktop-app-frame` 的 `padding-left` 偏移，保持与桌面网格无缝贴合。
+2. `auris/src/components/reading/reading-library.css`：
+   - `.reading-library` 采用 `background: var(--app-bg, var(--reading-background));`，`min-height: 100%`。
+   - 对齐全部 6 套主题令牌：`night` 下修正为 `#1b1c1f`（面板 `#212226`、高亮面板 `#282a30`）；`white` 下修正为 `#f4f2ec`（面板 `#fbfaf6`）；`mint` 与 `sepia` 面板对齐 `--app-surface`。
+3. `auris/src/styles/auris-redesign.css`：
+   - 将 `.reading-minimal, .reading-minimal[data-theme="light"]` 中的 `--reading-background: #0b0b0c;` 替换为 `background: var(--app-bg) !important;` 及 `--reading-background: var(--app-bg);`，解决文章阅读器漆黑底色问题。
+4. `auris/src/components/reading/reading-workbench.css`：
+   - `.reading-minimal` 基类采用 `background: var(--app-bg, var(--reading-background));`，`min-height: 100%`。
+   - 移除 `[data-reader-theme="light"]` 中的硬编码 `#f7f5ee !important;`，改为使用 `var(--app-bg)` 并允许外壳主题自由透传；保留用户明确指定的非默认阅读主题（如 dark/sepia/contrast）覆盖。
+   - 对齐 white 与 night 的 `--reading-background` 与 `--reading-panel`。
+5. `auris/tests/unit/appearance/app-theme.test.ts`：
+   - 扩展断言，确保全部 6 套应用主题（white, paper, mint, sepia, night, solarized）均包含 `.nia-workspace` 规则。
+
+### 验证与测试结果
+
+- `git diff --check`：无空白或格式异常。
+- 定向 ESLint：`src/app/nia/` 及 `tests/unit/appearance/app-theme.test.ts` 0 错误 0 警告。
+- 定向 Vitest：`tests/unit/appearance/`、`tests/unit/theme-contrast-styles.test.ts`、`tests/unit/reading/`、`tests/component/reading/`、`tests/component/nia/` 共 21 个测试文件、167 项测试全部通过（包含 WCAG AA 颜色对比度回归）。
+- 生产构建：`npm run build` 成功完成，23 个路由全部生成，包含 `/nia` 与 `/reading`。
+- 未提交或推送 Git 改动。
+
+## Engineering trajectory: 笔记数学公式展示错误排查与修复（2026-09-04）
+
+### 任务解读与根因分析
+用户提供截屏（包含报错气泡 `AB = AC \centernot\implies B = C` 及 `Invalid LaTeX syntax: Unknown command: \centernot`），要求排查 note 页面是否存在展示错误并补齐。
+
+排查发现：
+1. **笔记源文件错误**：用户正在查看/编辑的笔记 `/Users/apple/Desktop/个人操作系统/notes/线代核心背诵骨架_向量与方程组.md` 第 75 行书写了 `$AB = AC \centernot\implies B = C$`。在标准 LaTeX 中 `\centernot` 依赖外部包 `\usepackage{centernot}`，而 KaTeX 默认不支持 `\centernot` 命令，导致编辑器在公式悬浮/渲染时触发 `Unknown command: \centernot`，无法正确渲染为数学公式。
+2. **知识点与内容缺失**：该段标题为 `2. **$AB = 0$ 不代表 $A=0$ 或 $B=0$**：`，但正文仅有约去矩阵一句，且缺少对“乘积为零不代表因子为零”的明确命题表述与核心秩不等式；同时考场高危坑点缺少关于“两两无关推不出整体无关”的重要考点。
+
+### 实现路径与修改文件
+1. `/Users/apple/Desktop/个人操作系统/notes/线代核心背诵骨架_向量与方程组.md`：
+   - 将不可解析的 `$AB = AC \centernot\implies B = C$` 替换为 KaTeX/AMS-LaTeX 原生标准支持的 `$AB = AC \nRightarrow B = C$`（渲染为干净的 $\nRightarrow$ 符号）。
+   - 补齐与标题对应的第一条结论：“乘积为零不代表因子为零：$AB = 0 \nRightarrow A = 0 \text{ 或 } B = 0$（存在非零矩阵相乘得零矩阵，此时必有秩不等式 $r(A) + r(B) \le n$）”。
+   - 完善第二条消去律解释：“不可随意约去/消去矩阵：$AB = AC \nRightarrow B = C$（矩阵没有直接除法，除非 $A$ 可逆，方可两端左乘 $A^{-1}$ 得到 $B = C$）”。
+   - 补充第 4 项经典高危考点：“‘两两无关’ $\nRightarrow$ ‘整体无关’：向量组中任意两两向量线性无关 $\nRightarrow$ 整个向量组线性无关”。
+2. `auris/src/features/notes/editor/code-block-preview.ts` 与 `auris/src/features/notes/rendering/remark-renderer.ts`：
+   - 导出并注入 `DEFAULT_KATEX_MACROS = { "\\centernot": "\\not" }` 到 `renderMathMarkup` 及 `rehypeKatex`，提供渲染层防御性兼容，即使笔记输入 `\centernot` 也能降级渲染为否定箭头而不报错。
+3. `auris/tests/unit/notes/notes-rich-markdown-math.test.ts`：
+   - 新增 `\centernot` 宏兼容渲染测试和标准 `\nRightarrow` 公式渲染测试。
+
+### 验证与测试结果
+- 脚本全量遍历 `/Users/apple/Desktop/个人操作系统/notes/` 下全部 Markdown 文件，确认经修复后所有数学公式 100% 通过 KaTeX 语法校验，无报错。
+- 定向 ESLint：`code-block-preview.ts`、`remark-renderer.ts` 与 `notes-rich-markdown-math.test.ts` 0 错误 0 警告。
+- 定向 Vitest：`tests/unit/notes/` 89 个测试文件、763 项测试全部通过。
+
+## Engineering trajectory: Nia 定时唤醒后的麦克风链路修复（2026-09-05）
+
+用户反馈 Nia 无法听见说话，并要求与 Mochi 实现对照。审查确认 Auris 已有 macOS 麦克风用途说明；实际差异在实时会话策略：定时提醒以 `microphone: false` 建立 `recvonly` WebRTC 会话，后续点击唤醒会复用该已连接会话，因而没有本地音轨可上传。Mochi 则对所有实时会话始终请求麦克风。
+
+`auris/src/components/nia/companion/companion-runtime.tsx` 不再为定时提醒关闭麦克风；`realtime-transport.ts` 移除可创建无麦克风会话的分支，所有会话均加入本地音轨，并采用 Mochi 的回声消除、降噪、自动增益采集约束。`tests/unit/nia/nia-realtime-transport.test.ts` 断言每次连接均使用这些约束。定向 Vitest 3 项、定向 ESLint、`git diff --check` 和 `npm run build` 均通过；随后完成 `desktop:assemble` 与 `electron-builder --mac --publish never`，新包位于 `auris/release/mac-arm64/Auris.app`，并核验其包含修复后的 bundle。用户关闭后，已终止 4 个遗留的 Auris 笔记后台子进程，将旧版移至 `/Applications/Auris.app.backup-20260905-1026`，安装并成功启动新版 `/Applications/Auris.app`；新版主/渲染/本地 Next 服务及 Nia companion renderer 均已在启动日志中确认。未提交或推送 Git 改动。
+
+## Engineering trajectory: Nia 对齐 Mochi v0.1.19：Shell PATH 探测与 IPC 类型契约重构（2026-09-05）
+
+### 任务解读与根因分析
+根据用户提供的 Mochi 更新报告（`Mochi_Update_Report_v0.1.19.md`）及本地 Mochi 最新源码（`faa3340` ➔ `97ddef3`），梳理出 Mochi 0.1.18 与 0.1.19 两大核心架构升级点：
+1. **运行时环境修复（v0.1.19, `80bf695`）**：macOS GUI 应用（从 Finder、Dock 或 Spotlight 启动）仅继承 launchd 精简 PATH（`/usr/bin:/bin:/usr/sbin:/sbin`）。用户通过 `mise`、`nvm`、`asdf`、`fnm`、`pnpm`、`bun` 或 Homebrew 安装的 Codex CLI 和 Node.js 无法在 GUI 进程中被探测到。此外，即使找到 npm shim 脚本（`#!/usr/bin/env node`），也会因找不到 `node` 而报错 `unusable — it could not be run`。Mochi 采用交互式登录 Shell（`-ilc`）探测并在应用就绪时拓宽 PATH。
+2. **IPC 类型通信契约重构（v0.1.18, `4c1d6f0` / `7af24c8`）**：Electron 官方 `ipcMain.handle` 与 `ipcRenderer.invoke` 均为弱类型或 `unknown`，原先两端各自定义类型并依赖不安全的类型断言（如 `as Conversation[]`），造成静默类型漂移（Type Drift）。Mochi 通过构建单一事实源 `Answers` 表与强类型注册器 `answer()` 解决此隐患。
+
+Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛点：主进程在 GUI 启动时未探测 Shell PATH，导致 CLI 适配器和 Codex 探测受限；渲染端 `nia-companion-bridge.ts` 与 `nia-conversation-archive.tsx` 则依赖裸断言与 `Promise<unknown>`，未与主进程形成强类型绑定。
+
+### 实现路径与修改文件
+1. `auris/electron/nia/companion/shell-path.cjs`（新增）：
+   - 实现 `shellPath({ platform, env, run, timeoutMs })`：非 Windows 环境下异步执行 `$SHELL -ilc 'printf %s "$PATH"'`，设置 4000ms 超时，提取包含 `/` 的末行非空文本（规避终端启动 Banner），失败时安全回退 `null`。
+   - 实现 `widenPath(current, fromShell)`：保持当前 launchd PATH 前置（避免外部脚本劫持系统二进制），将交互式 Shell 的路径追加在后并使用 `Set` 去重。
+2. `auris/electron/main.cjs`：
+   - 在 `app.whenReady()` 首行执行 Shell PATH 探测与拓宽，使后续的系统二进制检测（`codex`、`claude`、`gemini`、`pandoc`）、Nia CLI 适配器注册与 Node shim 脚本均可正常解析。
+   - 接入统一的陪伴命令分发器 `createNiaCompanionHostDispatcher`。
+3. `auris/src/features/nia/nia-companion-answers.ts`（新增）：
+   - 对齐 Mochi `Answers` 架构，建立 Nia companion 的单一事实源强类型契约。
+   - 严格声明 11 个宿主命令（`snapshot`、`conversations`、`conversation-turns`、`conversation-detail`、`conversation-search`、`conversation-saving`、`wake`、`rest`、`mute`、`companion-visibility`、`text`）及陪伴窗口会话协商命令（`open-session`、`sdp` 等）的输入 Payload 与输出返回值类型（`NiaCompanionHostAnswers`、`NiaCompanionWindowAnswers`、`NiaVoiceOpened`、`NiaVoiceAnswer` 等）。
+4. `auris/electron/nia/companion/companion-answers.cjs`（新增）：
+   - 主进程端的强类型命令分发器与处理器封装，保证主进程响应与 `NiaCompanionHostAnswers` 契约严格对齐。
+5. `auris/src/features/nia/nia-companion-bridge.ts`：
+   - 重构 `NiaCompanionHostBridge`：`invoke` 方法改为泛型 `<C extends NiaCompanionHostCommand>(command: C, payload?: NiaCompanionHostPayloads[C]): Promise<NiaCompanionHostAnswers[C]>`，由 TypeScript 编译期自动推导对应返回值类型。
+6. `auris/src/components/nia/nia-conversation-archive.tsx`：
+   - 移除原组件内重复声明的本地类型与所有不安全手动断言（`as Conversation[]`、`as Partial<ConversationDetail>`、`as SearchHit[]`），直接复用共享契约类型。
+7. `auris/src/components/nia/companion/realtime-transport.ts`：
+   - 引入强类型 `NiaVoiceOpened` 与 `NiaVoiceAnswer` 联合类型，淘汰不规范的 `ReturnType` 提取与空值保护冗余。
+8. `auris/docs/third-party/mochi.md`：
+   - 记录新增派生模块的 MIT 来源与开源说明（commit `80bf695` 与 `4c1d6f0`）。
+
+### 验证与测试结果
+- 新增单元测试：
+  - `tests/unit/electron/nia/companion/shell-path.test.ts`：覆盖交互式登录 Shell、Banner 过滤、超时容错、Windows 跳过与 PATH 去重合并等 10 项测试，全部通过。
+  - `tests/unit/electron/nia/companion/companion-answers.test.ts`：覆盖 11 项宿主命令的分发调度、空值保护与异常分支等 6 项测试，全部通过。
+- 全量 Nia 测试：54 个测试文件、319 项测试全部通过。
+- 语法与静态检查：`node --check` 检查通过；ESLint 0 错误 0 警告；`npm run quality:desktop-ipc` 契约验证通过；`git diff --check` 无格式异常。
+- 生产构建：`npm run build` 成功通过。
+- 未提交或推送 Git 改动。

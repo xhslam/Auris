@@ -30,6 +30,10 @@ const readingCss = readFileSync(
   path.join(process.cwd(), "src", "components", "reading", "reading-library.css"),
   "utf8",
 );
+const niaCss = readFileSync(
+  path.join(process.cwd(), "src", "app", "nia", "nia.css"),
+  "utf8",
+);
 
 function hasRule(css: string, selector: string) {
   return new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{`).test(css);
@@ -74,7 +78,7 @@ describe("application theme contract", () => {
     expect(screen.getByTestId("theme")).toHaveTextContent("solarized");
   });
 
-  it.each(APP_THEME_IDS)("provides %s tokens to shell, Notes, home, life stage, and reading", (theme) => {
+  it.each(APP_THEME_IDS)("provides %s tokens to shell, Notes, home, life stage, reading, and nia", (theme) => {
     expect(hasRule(globalsCss, `.desktop-app-shell[data-app-theme="${theme}"]`)).toBe(true);
     expect(hasRule(globalsCss, `.desktop-app-frame .notes-v2[data-notes-theme="${theme}"]`)).toBe(true);
     expect(
@@ -85,5 +89,6 @@ describe("application theme contract", () => {
     ).toBe(true);
     expect(hasRule(homeV3Css, `.desktop-app-shell[data-app-theme="${theme}"] .home-v3`)).toBe(true);
     expect(hasRule(readingCss, `.desktop-app-shell[data-app-theme="${theme}"] .reading-library`)).toBe(true);
+    expect(hasRule(niaCss, `.desktop-app-shell[data-app-theme="${theme}"] .nia-workspace`)).toBe(true);
   });
 });

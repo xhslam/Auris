@@ -9,11 +9,16 @@ mermaid.initialize({
   theme: "neutral",
 });
 
+export const DEFAULT_KATEX_MACROS: Record<string, string> = {
+  "\\centernot": "\\not",
+};
+
 export function renderMathMarkup(text: string, displayMode: boolean) {
   return katex.renderToString(text, {
     displayMode,
     strict: false,
     throwOnError: false,
+    macros: DEFAULT_KATEX_MACROS,
   });
 }
 

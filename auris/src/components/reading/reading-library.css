@@ -1,28 +1,28 @@
 .reading-library {
-  --reading-background: #edf3e8;
+  --reading-background: var(--app-bg, #edf3e8);
   --reading-foreground: #233229;
   --reading-muted: #627067;
   --reading-faint: rgba(35, 50, 41, 0.42);
   --reading-border: rgba(73, 96, 82, 0.2);
-  --reading-panel: #f2f6ee;
+  --reading-panel: var(--app-surface, #f4f7f1);
   --reading-panel-strong: #f7faf4;
   --reading-accent: #365d3f;
   --reading-accent-ink: #fffaf2;
   --reading-accent-soft: rgba(54, 93, 63, 0.12);
   --reading-shadow: 0 18px 58px rgba(31, 48, 37, 0.09);
-  min-height: 100vh;
+  min-height: 100%;
   color: var(--reading-foreground);
-  background: var(--reading-background);
+  background: var(--app-bg, var(--reading-background));
   font-family: var(--auris-font-sans);
 }
 
 .desktop-app-shell[data-app-theme="white"] .reading-library {
-  --reading-background: #f6f4ee;
+  --reading-background: #f4f2ec;
   --reading-foreground: #2b2a26;
   --reading-muted: #6c675d;
   --reading-faint: rgba(43, 42, 38, 0.4);
   --reading-border: rgba(40, 35, 25, 0.15);
-  --reading-panel: #fbfaf4;
+  --reading-panel: #fbfaf6;
   --reading-panel-strong: #fffef9;
   --reading-accent: #765214;
   --reading-accent-soft: rgba(118, 82, 20, 0.1);
@@ -35,7 +35,7 @@
   --reading-muted: #71644f;
   --reading-faint: rgba(58, 51, 36, 0.4);
   --reading-border: rgba(90, 70, 35, 0.2);
-  --reading-panel: #f5efe0;
+  --reading-panel: #f5f0e3;
   --reading-panel-strong: #faf4e6;
   --reading-accent: #6f4f18;
   --reading-accent-soft: rgba(111, 79, 24, 0.1);
@@ -48,7 +48,7 @@
   --reading-muted: #627067;
   --reading-faint: rgba(35, 50, 41, 0.42);
   --reading-border: rgba(73, 96, 82, 0.2);
-  --reading-panel: #f2f6ee;
+  --reading-panel: #f4f7f1;
   --reading-panel-strong: #f7faf4;
   --reading-accent: #365d3f;
   --reading-accent-soft: rgba(54, 93, 63, 0.12);
@@ -61,7 +61,7 @@
   --reading-muted: #756048;
   --reading-faint: rgba(74, 59, 40, 0.4);
   --reading-border: rgba(104, 78, 43, 0.22);
-  --reading-panel: #f6eeda;
+  --reading-panel: #f6eed9;
   --reading-panel-strong: #fbf3df;
   --reading-accent: #684817;
   --reading-accent-soft: rgba(104, 72, 23, 0.1);
@@ -69,15 +69,15 @@
 }
 
 .desktop-app-shell[data-app-theme="night"] .reading-library {
-  --reading-background: #0b0b0c;
+  --reading-background: #1b1c1f;
   --reading-foreground: #ece8df;
   --reading-muted: #9a958b;
   --reading-faint: rgba(236, 232, 223, 0.34);
-  --reading-border: rgba(255, 255, 255, 0.09);
-  --reading-panel: #111113;
-  --reading-panel-strong: #151518;
-  --reading-accent: #c7a86a;
-  --reading-accent-soft: rgba(199, 168, 106, 0.11);
+  --reading-border: rgba(255, 255, 255, 0.12);
+  --reading-panel: #212226;
+  --reading-panel-strong: #282a30;
+  --reading-accent: #d4b56e;
+  --reading-accent-soft: rgba(212, 181, 110, 0.14);
   --reading-shadow: 0 20px 64px rgba(0, 0, 0, 0.35);
 }
 

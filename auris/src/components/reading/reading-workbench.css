@@ -1,5 +1,5 @@
 .reading-minimal {
-  --reading-background: #fbfaf7;
+  --reading-background: var(--app-bg, #fbfaf7);
   --reading-foreground: #26231f;
   --reading-muted: #858178;
   --reading-border: #e4e0d8;
@@ -8,11 +8,11 @@
   --reading-accent: #c66f4d;
   --reading-accent-soft: #f7e6de;
   --reading-accent-line: #b96545;
-  --reading-toolbar: rgba(251, 250, 247, 0.92);
+  --reading-toolbar: color-mix(in srgb, var(--app-bg, #fbfaf7) 92%, transparent);
   --reading-shadow: 0 20px 70px rgba(45, 40, 32, 0.12);
-  min-height: 100vh;
+  min-height: 100%;
   color: var(--reading-foreground);
-  background: var(--reading-background);
+  background: var(--app-bg, var(--reading-background));
   font-family: var(--auris-font-sans);
 }
 
@@ -32,16 +32,17 @@
 
 /* Reader Settings themes deliberately override the global app palette inside the book. */
 .reading-minimal[data-reader-theme="light"] {
-  --reading-background: #f7f5ee !important;
-  --reading-foreground: #262621 !important;
-  --reading-muted: #696960 !important;
-  --reading-border: rgba(42, 42, 35, 0.15) !important;
-  --reading-panel: #fdfbf5 !important;
-  --reading-panel-foreground: #302f29 !important;
-  --reading-accent: #2f6154 !important;
-  --reading-accent-soft: rgba(47, 97, 84, 0.12) !important;
-  --reading-accent-line: #2f6154 !important;
-  --reading-toolbar: rgba(247, 245, 238, 0.9) !important;
+  --reading-background: var(--app-bg, #f7f5ee);
+  background: var(--app-bg, var(--reading-background));
+  --reading-foreground: var(--app-ink, #262621);
+  --reading-muted: var(--app-muted, #696960);
+  --reading-border: var(--app-line, rgba(42, 42, 35, 0.15));
+  --reading-panel: var(--app-surface, #fdfbf5);
+  --reading-panel-foreground: var(--app-text, #302f29);
+  --reading-accent: var(--accent, #2f6154);
+  --reading-accent-soft: var(--app-fill-strong, rgba(47, 97, 84, 0.12));
+  --reading-accent-line: var(--accent, #2f6154);
+  --reading-toolbar: color-mix(in srgb, var(--app-bg, #f7f5ee) 90%, transparent);
 }
 
 .reading-minimal[data-reader-theme="dark"] {
@@ -129,16 +130,16 @@
    故手动切夜间时仍以阅读器自身的夜间为准。
    ────────────────────────────────────────────────────────────────────────── */
 .desktop-app-shell[data-app-theme="white"] .reading-minimal[data-theme="light"] {
-  --reading-background: #f6f4ee;
+  --reading-background: #f4f2ec;
   --reading-foreground: #2b2a26;
   --reading-muted: #5f5a50;
   --reading-border: rgba(40, 35, 25, 0.16);
-  --reading-panel: #fbfaf4;
+  --reading-panel: #fbfaf6;
   --reading-panel-foreground: #2b2a26;
   --reading-accent: #765214;
   --reading-accent-soft: rgba(118, 82, 20, 0.12);
   --reading-accent-line: #5f400d;
-  --reading-toolbar: rgba(246, 244, 238, 0.94);
+  --reading-toolbar: rgba(244, 242, 236, 0.94);
   --reading-shadow: 0 20px 70px rgba(45, 40, 32, 0.12);
 }
 
@@ -161,7 +162,7 @@
   --reading-foreground: #233229;
   --reading-muted: #51655a;
   --reading-border: rgba(73, 96, 82, 0.22);
-  --reading-panel: #f2f6ee;
+  --reading-panel: #f4f7f1;
   --reading-panel-foreground: #233229;
   --reading-accent: #365d3f;
   --reading-accent-soft: rgba(54, 93, 63, 0.12);
@@ -175,7 +176,7 @@
   --reading-foreground: #4a3b28;
   --reading-muted: #654d31;
   --reading-border: rgba(104, 78, 43, 0.24);
-  --reading-panel: #f6eeda;
+  --reading-panel: #f6eed9;
   --reading-panel-foreground: #4a3b28;
   --reading-accent: #684817;
   --reading-accent-soft: rgba(104, 72, 23, 0.12);
@@ -189,7 +190,7 @@
   --reading-foreground: #e9e7ec;
   --reading-muted: #b6b4bd;
   --reading-border: rgba(255, 255, 255, 0.14);
-  --reading-panel: #232428;
+  --reading-panel: #212226;
   --reading-panel-foreground: #e9e7ec;
   --reading-accent: #d4b56e;
   --reading-accent-soft: rgba(212, 181, 110, 0.14);

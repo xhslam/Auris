@@ -20,6 +20,15 @@ for the complete terms.
   `src/shared/realtime-wire.json` at the pinned commit. Auris adapts the code to
   CommonJS, injected dependencies, explicit deadlines, discriminated public
   errors, and opaque main-process-only credential/session handles.
+- `electron/nia/companion/shell-path.cjs` derives its interactive login shell PATH
+  probing (`-ilc 'printf %s "$PATH"'`), timeout bounding, banner filtering,
+  and safe non-shadowing PATH widening from Mochi's `src/main/shell-path.ts`
+  and `src/main/shell-path.test.ts` at commit `80bf695`.
+- `electron/nia/companion/companion-answers.cjs` and
+  `src/features/nia/nia-companion-answers.ts` derive the single-source-of-truth
+  request/response contract table and typed host-command dispatcher pattern
+  from Mochi's `src/shared/answers.ts` and `src/main/ipc/answer.ts` at commit
+  `4c1d6f0`, eliminating type drift between main process and renderer.
 
 `electron/nia/companion/diagnostics-store.cjs` is an Auris-specific passive,
 redacted diagnostics facility and is not copied from Mochi. The corresponding

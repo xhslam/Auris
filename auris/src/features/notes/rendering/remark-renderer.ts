@@ -25,6 +25,7 @@ import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
 } from "@/features/notes/documents/wiki-links";
+import { DEFAULT_KATEX_MACROS } from "@/features/notes/editor/code-block-preview";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -331,6 +332,7 @@ const pipeline = createNotesMarkdownProcessor()
   .use(rehypeKatex, {
     strict: false,
     throwOnError: false,
+    macros: DEFAULT_KATEX_MACROS,
   })
   .use(rehypeHeadingAnchorsAndToc)
   .use(rehypeCallouts)

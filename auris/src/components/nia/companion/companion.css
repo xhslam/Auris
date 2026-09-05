@@ -38,6 +38,9 @@ body {
   cursor: grab;
   height: 250px;
   position: relative;
+  transform: scale(var(--nia-companion-scale, 1));
+  transform-origin: center bottom;
+  transition: transform 160ms ease-out;
   width: 260px;
 }
 
