@@ -35,6 +35,17 @@ describe("NiaWorkspaceSurface split layout", () => {
     expect(screen.queryByText("当前主题")).not.toBeInTheDocument();
   });
 
+  it("keeps the tool catalogue in the main stage and routing in a non-duplicated inspector", () => {
+    render(<NiaWorkspaceSurface />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "工具" }));
+
+    expect(screen.getByRole("article", { name: "可用工具与模型路由" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "工具连接概览" })).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Nia model routing and usage")).toHaveLength(1);
+    expect(screen.getAllByText("独立陪伴模式")).toHaveLength(1);
+  });
+
   it("uses the main-process snapshot as the conversation-saving authority", async () => {
     window.localStorage.setItem("auris.nia.save-conversations", "true");
     const invoke = vi.fn(async (command: string) => command === "snapshot"
@@ -81,12 +92,12 @@ describe("NiaWorkspaceSurface split layout", () => {
     Object.defineProperty(body, "clientWidth", { configurable: true, value: 1_200 });
     const separator = screen.getByRole("separator", { name: "调整两个板块宽度" });
 
-    fireEvent.keyDown(separator, { key: "ArrowLeft" });
+    fireEvent.keyDown(separator, { key: "ArrowRight" });
     expect(separator).toHaveAttribute("aria-valuenow", "336");
     expect(body.style.getPropertyValue("--nia-side-pane-width")).toBe("336px");
 
     fireEvent.pointerDown(separator, { button: 0, clientX: 600, pointerId: 1 });
-    fireEvent.pointerMove(window, { clientX: 520, pointerId: 1 });
+    fireEvent.pointerMove(window, { clientX: 680, pointerId: 1 });
     expect(separator).toHaveAttribute("aria-valuenow", "416");
     expect(body).toHaveAttribute("data-resizing", "true");
 
@@ -98,5 +109,49 @@ describe("NiaWorkspaceSurface split layout", () => {
     await waitFor(() => {
       expect(window.localStorage.getItem("auris.nia.inspector-width")).toBe("320");
     });
+  });
+
+  it("renders all setting sections in the scrollable body and closes via close button, footer button, backdrop, or Escape", async () => {
+    const { container } = render(<NiaWorkspaceSurface />);
+
+    // Open settings
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const dialog = screen.getByRole("dialog", { name: "Nia 角色设置" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+
+    // Verify all sections are inside settings-body
+    const settingsBody = container.querySelector(".nia-workspace__settings-body");
+    expect(settingsBody).toBeInTheDocument();
+    expect(settingsBody).toContainElement(screen.getByText("称呼"));
+    expect(settingsBody).toContainElement(screen.getByText("外观"));
+    expect(settingsBody).toContainElement(screen.getByRole("slider", { name: "桌面形象大小" }));
+    expect(settingsBody).toContainElement(screen.getByText("语音"));
+    expect(settingsBody).toContainElement(screen.getByText("显示桌面形象"));
+    expect(settingsBody).toContainElement(screen.getByText("保存新对话"));
+    expect(settingsBody).toContainElement(screen.getByText("提醒时间"));
+    expect(settingsBody).toContainElement(screen.getByText("文字模型与 API Key"));
+
+    // Close via close button (×)
+    fireEvent.click(screen.getByRole("button", { name: "关闭设置" }));
+    expect(screen.queryByRole("dialog", { name: "Nia 角色设置" })).not.toBeInTheDocument();
+
+    // Reopen & close via footer "完成" button
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    expect(screen.getByRole("dialog", { name: "Nia 角色设置" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "完成" }));
+    expect(screen.queryByRole("dialog", { name: "Nia 角色设置" })).not.toBeInTheDocument();
+
+    // Reopen & close via backdrop click
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const backdrop = container.querySelector(".nia-workspace__settings-backdrop") as HTMLDivElement;
+    expect(backdrop).toBeInTheDocument();
+    fireEvent.click(backdrop);
+    expect(screen.queryByRole("dialog", { name: "Nia 角色设置" })).not.toBeInTheDocument();
+
+    // Reopen & close via Escape key
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    expect(screen.getByRole("dialog", { name: "Nia 角色设置" })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Nia 角色设置" })).not.toBeInTheDocument();
   });
 });

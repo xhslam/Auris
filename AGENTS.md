@@ -565,6 +565,16 @@ Proma 灵动岛为 Agent 运行状态监视器（idle/working/waiting），仅�
 - 生产构建：`npm run build` 成功完成，23 个路由全部生成，包含 `/nia` 与 `/reading`。
 - 未提交或推送 Git 改动。
 
+## Engineering trajectory: Nia 满高工作台与能力视图重排（2026-09-07）
+
+用户截图中的“展示卡住”由两个独立问题叠加：`DesktopAppFrame` 仍保留了旧的两行 Grid，而 Nia 只占自动高度行，使会话面板停在上半屏；工具视图则在主区和检查器重复渲染同一份工具列表与模型路由，且右侧的 `nia-routing` / 分隔条样式在前次整理中缺失。
+
+改动保留现有语音陪伴、会话日历与 SQLite 归档、文字对话、工具权限、模型路由和角色设置契约。`auris/src/app/nia/nia.css` 为 Nia 建立单行满视口框架、可调宽左右双区和 820px 以下纵向堆叠，补齐分隔条、空态形象、能力卡片与模型路由样式。`auris/src/components/nia/nia-workspace-surface.tsx` 将工具主区收敛为唯一能力目录，右侧改为已连接/等待上下文统计、当前上下文说明与唯一模型路由面板。组件测试增加了“工具目录与路由不重复”回归断言。
+
+验证通过：Nia 定向 Vitest 2 个文件共 10 项、定向 ESLint、`git diff --check` 与 `npm run build`。真实浏览器在 1280×720 下确认工作台、主区和检查器均到达视口底部、无横向溢出，8 张能力卡正常双列滚动且路由面板只有 1 个；760px 下确认单列堆叠且隐藏无意义的竖向分隔条。未改动已有 `electron/main.cjs` 内容，未提交或推送 Git 改动。
+
+用户追加要求左右互换后，桌面端改为左侧 320px 可调宽会话/工具资料栏、右侧自适应主展示区；拖拽和方向键语义同步反转，向右拖或按右键会增大左栏。两栏都明确使用 `calc(100dvh - 68px)` 的剩余视口高度并内部滚动。真实浏览器 1280×720 实测：左栏 320×616px，右栏 896×616px，两者顶底对齐且横向溢出为 0；定向组件测试 7 项、ESLint 与 `git diff --check` 通过。
+
 ## Engineering trajectory: 笔记数学公式展示错误排查与修复（2026-09-04）
 
 ### 任务解读与根因分析
@@ -634,3 +644,82 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
 - 语法与静态检查：`node --check` 检查通过；ESLint 0 错误 0 警告；`npm run quality:desktop-ipc` 契约验证通过；`git diff --check` 无格式异常。
 - 生产构建：`npm run build` 成功通过。
 - 未提交或推送 Git 改动。
+
+## Engineering trajectory: Nia 页面对齐 Mochi 布局重构（2026-09-06）
+
+### 任务解读与需求分解
+用户反馈 Auris 的 `/nia` 页面布局较差，要求依照 Mochi（`xiaolai/mochi`，路径 `/Users/apple/Desktop/xiaolai-source/mochi/src/renderer/history/`）的布局进行重新设计，并提出两条明确指令：
+1. **左侧大娃娃彻底移除**：Nia 陪伴娃娃本身在桌面上有独立的透明悬浮窗口（`/nia/companion`），在主工作台 `/nia` 中占据左侧 70% 的静态/微动大娃娃属于空间浪费与多余元素，应当直接删除。
+2. **右侧删除记忆与任务的交互**：移除与纯对话历史阅读无关的“记忆”（Memory）及“任务”（Tasks）标签页与操作面板。
+3. **引入 Mochi 历史会话阅读布局**：
+   - 左侧主视口转换为 Mochi 风格的纯净对话阅读台（Reading Stage）：支持按轮次（turns）气泡展示（User 气泡与 Nia 气泡）、切片标识（Cut）、相对时间戳、一键全文复制、工具调用摘要（Tool Call Pills）及空状态提示。
+   - 右侧检查器（默认 320px，支持拖拽与双击复位）集成 Mochi 标志性的月历日期带（Calendar Daystrip）：月度切换（`‹ 2026年9月 ›`）、按日选择网格、会话活动点提示（dots），点击特定日期快速筛选对应日期的会话，以及实时 SQLite 全文搜索输入框。
+   - 顶部保留 Mochi 状态栏语气、实时连接状态指示、文字对话侧抽屉（SidePane）开关与 Nia 陪伴设置入口。
+
+### 实现路径与修改文件
+1. `auris/src/components/nia/nia-workspace-surface.tsx`：
+   - 移除 `NiaAvatar` 引用与庞大的 Hero Doll DOM 结构；
+   - 移除记忆（Memory）与任务（Tasks）相关的 Tab 切换、状态监听器与管理面板；
+   - 左区构建 `nia-workspace__reading-stage`：包含会话详情头部（标题、创建时间、轮次、时长）、一键复制全文、逐轮气泡对话（展示用户与 Nia 头像、消息内容、截断切片、工具调用折叠）、以及底部随选会话状态；
+   - 右区重构为紧凑的历史检查器：集成日历日期带组件（计算当月天数、会话分布高亮、日期切换）、全文搜索栏（Debounced 触发 SQLite 搜索）与高亮会话列表；
+   - 维持既有的板块拖拽分割条（`aria-label="调整两个板块宽度"`）、快捷键（`ArrowLeft`/`ArrowRight`）及双击复位为 320px 的契约；保留设置弹层（陪伴比例、保存设置）。
+2. `auris/src/app/nia/nia.css`：
+   - 清理已废弃的 Hero Doll 与动画规则（`nia-workspace__hero` 等）；
+   - 新增 Mochi 风格的阅读台样式（`.nia-workspace__reading-stage`、`.nia-workspace__transcript-head`、`.nia-workspace__turns`、`.nia-workspace__turn--user/nia`、`.nia-workspace__turn-bubble`、`.nia-workspace__tools-stage`）；
+   - 新增 Mochi 风格的日期带与搜索样式（`.nia-workspace__calendar`、`.nia-workspace__calendar-head`、`.nia-workspace__days`、`.nia-workspace__search-pill`）。
+
+### 验证与测试结果
+- **单元与组件测试**：
+  - `npx vitest run tests/component/nia/ tests/unit/nia/`：32 个测试文件、160 项测试全部通过（包含分割条宽度拖拽、键盘调整、双击复位、会话列表及工具注册等）。
+- **静态代码检查与格式**：
+  - `npx eslint src/components/nia/nia-workspace-surface.tsx`：0 错误 0 警告。
+  - `git diff --check`：无格式或空白问题。
+- **生产构建验证**：
+  - `npm run build`：Next.js 16.1.7 (webpack) 生产构建成功，生成包括 `/nia` 在内的 23 个页面路由。
+- **开发版启动保障**：修复 `auris/electron/main.cjs` 中 `createMainWindow` 与 `openMainRoute` 在 Next.js 首次编译重定向或快速换页时抛出良性 `ERR_ABORTED` 导致主进程误退出的问题，增加导航中断容错保护。
+- 未提交或推送 Git 改动。
+
+## Engineering trajectory: Nia 角色设置弹窗残缺与滚动截断修复（2026-09-06）
+
+### 任务解读与问题根因
+用户截图反馈 Auris 的 Nia 角色设置弹窗（`NiaWorkspaceSurface` 中的设置模态窗）界面显示残缺：
+1. **视口截断与负边距遮挡**：设置弹窗外层蒙层原采用 `position: absolute; inset: 0;` 挂在带有 `overflow: hidden; height: 100%;` 的 `<main className="nia-workspace">` 内，并设置 `align-items: center; justify-content: center;`。当弹窗内容高度（约 750px）超出工作区容器视口高度（笔记本或浏览器内通常为 580-680px）时，Flexbox 垂直居中导致弹窗顶部负偏移越界、底部正偏移越界，被 `.nia-workspace` 的 `overflow: hidden` 两端生硬裁切——顶部标题、CHARACTER 标识与关闭按钮 `×` 滚出屏幕上方；底部“保存新对话”被截断，“提醒时间”、“文字模型与 API Key”以及“完成”按钮完全隐藏在屏幕外，用户既看不到全部设置项也无法正常关闭弹窗。
+2. **滚动条缺失与数据丢失**：`nia.css` 具有全局无头样式 `.nia-workspace * { scrollbar-width: none; }` 和 `*::-webkit-scrollbar { display: none; }`，导致弹窗内部无可见滚动条提示；同时因外层居中裁切，即使滚轮滚动也无法将负偏移的头部拉回视口内。
+3. **缺少快捷关闭通道**：蒙层未绑定点击关闭事件（点击空白区域无反应），未监听 `Escape` 键盘关闭，在关闭按钮和底部完成按钮被裁切后导致用户被彻底困在残缺弹窗内。
+4. **样式丢失**：此前提交清理过程中 `.nia-workspace__settings-backdrop` 及相关设置类样式被误漏，导致部分类名未获得预期的卡片与布局约束。
+
+### 实现路径与修改文件
+1. `auris/src/app/nia/nia.css`：
+   - 蒙层改为全屏固定定位 `position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 24px 16px;`，配合 `backdrop-filter: blur(8px)`，脱离 `.nia-workspace` 的局部裁切盒；
+   - 弹窗卡片 `.nia-workspace__settings` 采用 `display: flex; flex-direction: column; margin: auto; max-height: min(720px, calc(100vh - 48px)); overflow: hidden;`，确保在任何视口高度下卡片均不会溢出视口；
+   - 弹窗拆分为三段式固定架构：
+     - 固定顶部 `<header>`（`flex-shrink: 0; border-bottom: 1px solid var(--nia-line);`）：常驻展示“角色设置 · CHARACTER”、“Nia”、副标题以及独立的关闭圆形按钮 `×`；
+     - 独立内部滚动容器 `.nia-workspace__settings-body`（`flex: 1 1 auto; overflow-y: auto; min-height: 0;`）：强制恢复显式微型滚动条（`scrollbar-width: thin !important` 及定制 WebKit 滚动条），包含称呼、外观颜色圆圈、桌面形象大小滑块、语音徽章、显示桌面形象开关、保存新对话开关、提醒时间徽标和文字模型侧栏链接 7 个分区；
+     - 固定底栏 `<footer>`（`flex-shrink: 0; border-top: 1px solid var(--nia-line);`）：常驻展示紫调“完成”按钮；
+   - 增加 `@media (max-width: 520px)` 移动端及极小视口自适应规则，并配置淡入与微缩放平滑动画。
+2. `auris/src/components/nia/nia-workspace-surface.tsx`：
+   - 弹窗 DOM 重构为 `<header>` + `<div className="nia-workspace__settings-body">` + `<footer>` 结构；
+   - 弹窗 `section` 补充 `aria-modal="true"`；
+   - 蒙层增加 `onClick` 事件处理（仅在点击蒙层自身而非弹窗内部时关闭 `settingsOpen`）；
+   - 增加 `useEffect` 监听 `keydown` 事件：当设置弹窗处于开启状态时，按 `Escape` 键自动关闭设置。
+3. `auris/tests/component/nia/nia-workspace-surface.test.tsx`：
+   - 新增专项测试用例：验证所有 8 个设置元素均正确渲染在滚动容器 `.nia-workspace__settings-body` 内；
+   - 覆盖全部 4 种关闭交互模式（点击顶部关闭按钮 `×`、点击底栏“完成”按钮、点击外部蒙层、按键盘 `Escape` 键）。
+
+### 验证与测试结果
+- **单元与组件测试**：
+  - `npm run test -- tests/component/nia/nia-workspace-surface.test.tsx`：7 项测试全部通过（包含新增的滚动区域与 4 种关闭通道测试）。
+  - `npm run test -- nia`：全量 60 个测试文件、360 项测试全部通过。
+- **静态代码检查与格式**：
+  - `npx eslint src/components/nia/nia-workspace-surface.tsx tests/component/nia/nia-workspace-surface.test.tsx`：0 错误 0 警告。
+  - `node --check electron/main.cjs`：语法检查通过。
+  - `git diff --check`：无格式或空格问题。
+- **生产构建验证**：
+  - `npm run build`：Next.js 16.1.7 (webpack) 生产构建顺利通过，所有 23 个路由正常编译打包。
+- **本地应用打包与替换**：
+  - 执行 `npm run desktop:island:build` 与 `npm run desktop:assemble` 成功完成独立运行时依赖装配与隐私审计。
+  - 执行 `npx electron-builder --mac --arm64 --publish never` 完成 macOS arm64 应用程序打包。
+  - 成功替换本地 `/Applications/Auris.app`，旧版本安全备份至 `/Applications/Auris.app.backup-1.0.4-before-nia-settings-fix`。
+  - 从安装包独立编译产物中确认 `.nia-workspace__settings-body` 等样式与逻辑均已生效。
+- 代码合并/提交至 `main` 分支并成功推送到 GitHub `origin/main`。
+

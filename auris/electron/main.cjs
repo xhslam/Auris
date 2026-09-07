@@ -3554,8 +3554,16 @@ async function createMainWindow() {
 
   const initialRoutePath = "/";
   const initialUrl = new URL(initialRoutePath, `${targetUrl}/`).toString();
-  await mainWindow.loadURL(initialUrl);
-  writeStartupLog(`createMainWindow:loaded ${initialUrl}`);
+  try {
+    await mainWindow.loadURL(initialUrl);
+    writeStartupLog(`createMainWindow:loaded ${initialUrl}`);
+  } catch (error) {
+    if (error?.code === "ERR_ABORTED" || String(error?.message).includes("ERR_ABORTED")) {
+      writeStartupLog(`createMainWindow:loadURL-aborted ${error?.message ?? error}`);
+    } else {
+      throw error;
+    }
+  }
   if (browserWindowManager?.attachEmbeddedHost) {
     await browserWindowManager.attachEmbeddedHost({ hostWindow: mainWindow });
   }
@@ -3582,7 +3590,11 @@ async function openMainRoute(routePath) {
   mainWindow.show();
   mainWindow.focus();
   const targetUrl = new URL(normalizeRoutePath(routePath), `${nextServerUrl}/`).toString();
-  await mainWindow.loadURL(targetUrl);
+  try {
+    await mainWindow.loadURL(targetUrl);
+  } catch (error) {
+    writeStartupLog(`openMainRoute:loadURL-error ${error?.message ?? error}`);
+  }
 }
 
 function navigateToRoute(routePath) {
