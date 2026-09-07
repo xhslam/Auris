@@ -5,7 +5,7 @@ import {
 } from "@/features/nia/nia-realtime-protocol";
 
 describe("Nia Realtime protocol", () => {
-  it("uses the GA session shape verified by Mochi", () => {
+  it("uses the GA session shape and turn-taking configuration verified by Mochi v0.1.20", () => {
     expect(createNiaRealtimeSessionUpdate({ voice: "ballad" })).toEqual({
       type: "session.update",
       session: {
@@ -16,12 +16,29 @@ describe("Nia Realtime protocol", () => {
           output: { voice: "ballad" },
           input: {
             noise_reduction: { type: "far_field" },
-            turn_detection: { type: "semantic_vad" },
+            turn_detection: { type: "semantic_vad", interrupt_response: true },
             transcription: { model: "gpt-transcribe" },
           },
         },
         tool_choice: "none",
       },
+    });
+
+    // When eagerness is auto, eagerness is omitted to let service tune default, while interrupt_response is explicitly sent
+    expect(createNiaRealtimeSessionUpdate({
+      turnTaking: { eagerness: "auto", interruptible: false },
+    }).session.audio.input.turn_detection).toEqual({
+      type: "semantic_vad",
+      interrupt_response: false,
+    });
+
+    // When eagerness is specified, eagerness is explicitly sent
+    expect(createNiaRealtimeSessionUpdate({
+      turnTaking: { eagerness: "low", interruptible: true },
+    }).session.audio.input.turn_detection).toEqual({
+      type: "semantic_vad",
+      eagerness: "low",
+      interrupt_response: true,
     });
   });
 

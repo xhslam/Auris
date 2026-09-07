@@ -29,6 +29,11 @@ for the complete terms.
   request/response contract table and typed host-command dispatcher pattern
   from Mochi's `src/shared/answers.ts` and `src/main/ipc/answer.ts` at commit
   `4c1d6f0`, eliminating type drift between main process and renderer.
+- `src/features/nia/nia-realtime-protocol.ts` derives its turn-taking and hearing
+  configuration (`semantic_vad`, `interrupt_response` trade-off for multi-speaker
+  rooms, and `eagerness` wait thresholds: auto, low, medium, high) from Mochi's
+  `src/shared/turn-taking.ts` and `src/renderer/settings/pane/hearing.ts` at commit
+  `7490218`.
 
 `electron/nia/companion/diagnostics-store.cjs` is an Auris-specific passive,
 redacted diagnostics facility and is not copied from Mochi. The corresponding

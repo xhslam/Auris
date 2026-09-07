@@ -128,8 +128,23 @@ describe("NiaWorkspaceSurface split layout", () => {
     expect(settingsBody).toContainElement(screen.getByText("语音"));
     expect(settingsBody).toContainElement(screen.getByText("显示桌面形象"));
     expect(settingsBody).toContainElement(screen.getByText("保存新对话"));
+    expect(settingsBody).toContainElement(screen.getByText("允许中途打断"));
+    expect(settingsBody).toContainElement(screen.getByText("回答前等待时长"));
     expect(settingsBody).toContainElement(screen.getByText("提醒时间"));
     expect(settingsBody).toContainElement(screen.getByText("文字模型与 API Key"));
+
+    // Toggle 允许中途打断
+    const interruptSwitch = screen.getByRole("button", { name: "允许中途打断" });
+    expect(interruptSwitch).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(interruptSwitch);
+    expect(window.localStorage.getItem("auris.nia.interruptible")).toBe("false");
+
+    // Select 回答前等待时长
+    const slowerWait = screen.getByRole("button", { name: /等待更久/ });
+    expect(slowerWait).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(slowerWait);
+    expect(slowerWait).toHaveAttribute("aria-pressed", "true");
+    expect(window.localStorage.getItem("auris.nia.eagerness")).toBe("low");
 
     // Close via close button (×)
     fireEvent.click(screen.getByRole("button", { name: "关闭设置" }));

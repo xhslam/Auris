@@ -664,6 +664,56 @@ body:has(.nia-workspace)::-webkit-scrollbar,
   font-weight: 600;
 }
 
+.nia-workspace__eagerness-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nia-workspace__eagerness-options button {
+  appearance: none;
+  background: var(--nia-surface-3);
+  border: 1px solid var(--nia-line);
+  border-radius: 10px;
+  color: var(--nia-text-2);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font: inherit;
+  gap: 3px;
+  padding: 8px 12px;
+  text-align: left;
+  transition: all 120ms ease;
+}
+
+.nia-workspace__eagerness-options button:hover {
+  border-color: var(--nia-accent);
+  color: var(--nia-text);
+}
+
+.nia-workspace__eagerness-options button[aria-pressed="true"] {
+  background: var(--nia-surface-2);
+  border-color: var(--nia-accent);
+  color: var(--nia-text);
+}
+
+.nia-workspace__eagerness-options button strong {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.nia-workspace__eagerness-options button small {
+  color: var(--nia-muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.nia-workspace__eagerness-options button[aria-pressed="true"] strong {
+  color: var(--nia-accent);
+}
+
 .nia-workspace__reminder-times b {
   cursor: default;
   font-family: var(--auris-font-mono);

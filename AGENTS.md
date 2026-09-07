@@ -723,3 +723,41 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
   - 从安装包独立编译产物中确认 `.nia-workspace__settings-body` 等样式与逻辑均已生效。
 - 代码合并/提交至 `main` 分支并成功推送到 GitHub `origin/main`。
 
+## Engineering trajectory: Nia 对齐 Mochi v0.1.20 听力打断与响应节奏（2026-09-07）
+
+### 任务解读与范围控制
+根据 Mochi v0.1.20 更新报告及 `/Users/apple/Desktop/xiaolai-source/mochi` 源码，对齐 Auris 的 Nia 伴读系统。用户明确要求「只对齐 mochi 相关的」，严格隔离任何无关功能（如既有的 notes/vmark 暂存修改）。
+核心痛点与 Mochi 设计对齐：
+1. **中途打断控制 (`interruptible`)**：在多设备、家庭或公共场合嘈杂环境下，避免他人闲聊或背景杂音频繁打断 Nia 正在朗读/讲解的长句。
+2. **回答前等待时长 (`eagerness`)**：提供自适应调优（`auto`）与低/中/高（`low` / `medium` / `high`）四档阈值，控制判定用户说完话后的等待门限（最多 8s / 4s / 2s）。
+3. **协议语义契约**：
+   - `eagerness === "auto"` 时不在 `turn_detection` 中传递 `eagerness` 字段，以尊重 Realtime 服务端默认模型自适应调优；非 auto 档位显式发送；
+   - `interrupt_response` 显式随 `turnTaking.interruptible` 传递布尔值（默认 `true`）。
+
+### 实现路径与修改文件
+1. `auris/src/features/nia/nia-realtime-protocol.ts`：
+   - 增加 `NIA_TURN_EAGERNESS`、`NiaTurnEagerness` 与 `NiaTurnTaking` 协议接口；
+   - 新增 `createNiaTurnDetectionConfig`，规范化处理 `semantic_vad` 下的 `eagerness` 与 `interrupt_response`；
+   - 更新 `createNiaRealtimeSessionUpdate`，支持传入 `turnTaking` 配置。
+2. `auris/src/components/nia/companion/realtime-transport.ts`：
+   - 在 WebSocket 连接就绪发送 `session.update` 时，从本地存储（`auris.nia.interruptible` 与 `auris.nia.eagerness`）读取最新配置并传入 `turnTaking`。
+3. `auris/src/components/nia/nia-workspace-surface.tsx`：
+   - 设置弹窗状态增加 `interruptible` 与 `eagerness` 及 `localStorage` 响应式读写；
+   - 在角色设置弹窗滚动区新增「允许中途打断」（带开启/关闭动态说明文案，对齐 Mochi）与「回答前等待时长」（四档选项按钮网格）。
+4. `auris/src/app/nia/nia.css`：
+   - 新增 `.nia-workspace__eagerness-options` 网格布局与选中高亮态。
+5. `auris/docs/third-party/mochi.md`：
+   - 补充 Mochi v0.1.20 的 turn-taking 衍生协议设计说明与对照。
+6. 测试与用例更新：
+   - `auris/tests/unit/nia/nia-realtime-protocol.test.ts`：增加默认参数、auto 策略与自定义阈值的断言。
+   - `auris/tests/component/nia/nia-workspace-surface.test.tsx`：增加对打断开关和等待时长网格的点击交互与持久化断言。
+
+### 验证与测试结果
+- **单元与组件测试**：`npm run test -- nia` 60 个测试文件、360 项测试全部 PASS。
+- **代码规范与检查**：`npx eslint` 0 error 0 warning；`git diff --check` 无格式问题。
+- **生产构建验证**：`npm run build` Next.js 生产构建通过（23 个路由）。
+- **本地应用打包与替换**：
+  - 执行 `npm run desktop:island:build` 与 `npm run desktop:assemble` 完成独立依赖装配；
+  - 执行 `npx electron-builder --mac --arm64 --publish never` 完成 macOS arm64 打包；
+  - 成功替换本地 `/Applications/Auris.app`，并验证安装包内的独立编译包中包含完整的打断控制与等待时长逻辑。
+

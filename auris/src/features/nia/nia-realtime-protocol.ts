@@ -27,7 +27,45 @@ function missingStrings(value: Record<string, unknown>, fields: readonly string[
   return fields.filter((field) => typeof value[field] !== "string");
 }
 
-export function createNiaRealtimeSessionUpdate({ voice = "ballad" }: { voice?: NiaLiveVoice } = {}) {
+export const NIA_TURN_EAGERNESS = ["auto", "low", "medium", "high"] as const;
+export type NiaTurnEagerness = (typeof NIA_TURN_EAGERNESS)[number];
+
+export interface NiaTurnTaking {
+  readonly eagerness?: NiaTurnEagerness;
+  readonly interruptible?: boolean;
+}
+
+export function isNiaTurnEagerness(value: unknown): value is NiaTurnEagerness {
+  return typeof value === "string" && (NIA_TURN_EAGERNESS as readonly string[]).includes(value);
+}
+
+export function readNiaTurnEagerness(value: unknown): NiaTurnEagerness {
+  return isNiaTurnEagerness(value) ? value : "auto";
+}
+
+export function readNiaInterruptible(value: unknown): boolean {
+  return value !== false;
+}
+
+export function createNiaTurnDetectionConfig(turnTaking?: NiaTurnTaking): {
+  readonly type: "semantic_vad";
+  readonly eagerness?: NiaTurnEagerness;
+  readonly interrupt_response: boolean;
+} {
+  const eagerness = readNiaTurnEagerness(turnTaking?.eagerness);
+  const interruptible = readNiaInterruptible(turnTaking?.interruptible);
+  return eagerness === "auto"
+    ? { type: "semantic_vad", interrupt_response: interruptible }
+    : { type: "semantic_vad", eagerness, interrupt_response: interruptible };
+}
+
+export function createNiaRealtimeSessionUpdate({
+  voice = "ballad",
+  turnTaking,
+}: {
+  voice?: NiaLiveVoice;
+  turnTaking?: NiaTurnTaking;
+} = {}) {
   return {
     type: "session.update",
     session: {
@@ -38,7 +76,7 @@ export function createNiaRealtimeSessionUpdate({ voice = "ballad" }: { voice?: N
         output: { voice },
         input: {
           noise_reduction: { type: "far_field" },
-          turn_detection: { type: "semantic_vad" },
+          turn_detection: createNiaTurnDetectionConfig(turnTaking),
           transcription: { model: NIA_REALTIME_TRANSCRIPTION_MODEL },
         },
       },

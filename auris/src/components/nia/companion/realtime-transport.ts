@@ -1,7 +1,11 @@
 "use client";
 
 import { createNiaRealtimePendingTurns, type NiaSettledRealtimeTurn } from "@/features/nia/nia-realtime-pending";
-import { createNiaRealtimeSessionUpdate, parseNiaRealtimeServerEvent } from "@/features/nia/nia-realtime-protocol";
+import {
+  createNiaRealtimeSessionUpdate,
+  isNiaTurnEagerness,
+  parseNiaRealtimeServerEvent,
+} from "@/features/nia/nia-realtime-protocol";
 import { isNiaLiveVoice } from "@/features/nia/nia-live-session-config";
 import type { NiaVoiceAnswer, NiaVoiceOpened } from "@/features/nia/nia-companion-answers";
 
@@ -234,8 +238,24 @@ export class NiaRealtimeTransport {
 
   private sendSessionUpdate() {
     let savedVoice: string | null = null;
-    try { savedVoice = window.localStorage.getItem("auris.nia.voice"); } catch { /* storage preference is optional */ }
-    this.send(createNiaRealtimeSessionUpdate({ voice: isNiaLiveVoice(savedVoice) ? savedVoice : "ballad" }));
+    let savedInterruptible: string | null = null;
+    let savedEagerness: string | null = null;
+    try {
+      savedVoice = window.localStorage.getItem("auris.nia.voice");
+      savedInterruptible = window.localStorage.getItem("auris.nia.interruptible");
+      savedEagerness = window.localStorage.getItem("auris.nia.eagerness");
+    } catch { /* storage preference is optional */ }
+
+    const interruptible = savedInterruptible === null ? true : savedInterruptible !== "false";
+    const eagerness = isNiaTurnEagerness(savedEagerness) ? savedEagerness : "auto";
+
+    this.send(createNiaRealtimeSessionUpdate({
+      voice: isNiaLiveVoice(savedVoice) ? savedVoice : "ballad",
+      turnTaking: {
+        interruptible,
+        eagerness,
+      },
+    }));
   }
 
   private handleServerEvent(raw: unknown) {

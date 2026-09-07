@@ -33,6 +33,7 @@ import {
 } from "@/features/nia/nia-companion-scale";
 import { useHomeLearningSummary } from "@/features/home-learning/use-home-learning-summary";
 import { useNiaSession } from "@/features/nia/use-nia-session";
+import { isNiaTurnEagerness, type NiaTurnEagerness } from "@/features/nia/nia-realtime-protocol";
 
 type InspectorTab = "conversations" | "tools";
 type NiaAccentTheme = "violet" | "gold" | "blue";
@@ -160,6 +161,8 @@ export function NiaWorkspaceSurface() {
   const [accentTheme, setAccentTheme] = useState<NiaAccentTheme>("violet");
   const [voice, setVoice] = useState("ballad");
   const [saveConversations, setSaveConversations] = useState(true);
+  const [interruptible, setInterruptible] = useState(true);
+  const [eagerness, setEagerness] = useState<NiaTurnEagerness>("auto");
   const [inspectorWidth, setInspectorWidth] = useState(NIA_INSPECTOR_DEFAULT_WIDTH);
   const [layoutHydrated, setLayoutHydrated] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -212,6 +215,10 @@ export function NiaWorkspaceSurface() {
       setCompanionScale(loadNiaCompanionScale());
       const storedAccent = window.localStorage.getItem("auris.nia.accent-theme");
       if (storedAccent === "violet" || storedAccent === "gold" || storedAccent === "blue") setAccentTheme(storedAccent);
+      const storedInterruptible = window.localStorage.getItem("auris.nia.interruptible");
+      if (storedInterruptible !== null) setInterruptible(storedInterruptible !== "false");
+      const storedEagerness = window.localStorage.getItem("auris.nia.eagerness");
+      if (isNiaTurnEagerness(storedEagerness)) setEagerness(storedEagerness);
     } catch { /* in-memory defaults are enough */ }
   }, []);
 
@@ -975,6 +982,7 @@ export function NiaWorkspaceSurface() {
                   <small>隐藏后可在这里重新显示 Nia。</small>
                 </div>
                 <button
+                  aria-label="显示桌面形象"
                   aria-pressed={companionVisible}
                   className="nia-workspace__switch"
                   onClick={() => {
@@ -993,6 +1001,7 @@ export function NiaWorkspaceSurface() {
                   <small>关闭后不会删除已保存的历史。</small>
                 </div>
                 <button
+                  aria-label="保存新对话"
                   aria-pressed={saveConversations}
                   className="nia-workspace__switch"
                   onClick={() => setSaved(!saveConversations)}
@@ -1000,6 +1009,60 @@ export function NiaWorkspaceSurface() {
                 >
                   <i />
                 </button>
+              </div>
+              <div className="nia-workspace__settings-section nia-workspace__settings-row">
+                <div>
+                  <strong>允许中途打断</strong>
+                  <small>
+                    {interruptible
+                      ? "任何声音都会在句子中途打断她。"
+                      : "坚持讲完当前句子，他人闲聊不会打断；自己的插话也会暂时被忽略。"}
+                  </small>
+                </div>
+                <button
+                  aria-label="允许中途打断"
+                  aria-pressed={interruptible}
+                  className="nia-workspace__switch"
+                  onClick={() => {
+                    const next = !interruptible;
+                    setInterruptible(next);
+                    try {
+                      window.localStorage.setItem("auris.nia.interruptible", String(next));
+                    } catch { /* storage optional */ }
+                  }}
+                  type="button"
+                >
+                  <i />
+                </button>
+              </div>
+              <div className="nia-workspace__settings-section">
+                <span>回答前等待时长</span>
+                <div className="nia-workspace__eagerness-options">
+                  {(
+                    [
+                      { id: "auto", label: "自动决定", hint: "自适应平衡" },
+                      { id: "low", label: "等待更久", hint: "最多8秒 · 嘈杂环境" },
+                      { id: "medium", label: "标准", hint: "最多4秒" },
+                      { id: "high", label: "较快响应", hint: "最多2秒 · 安静桌面" },
+                    ] as const
+                  ).map((option) => (
+                    <button
+                      aria-pressed={eagerness === option.id}
+                      key={option.id}
+                      onClick={() => {
+                        setEagerness(option.id);
+                        try {
+                          window.localStorage.setItem("auris.nia.eagerness", option.id);
+                        } catch { /* storage optional */ }
+                      }}
+                      type="button"
+                    >
+                      <strong>{option.label}</strong>
+                      <small>{option.hint}</small>
+                    </button>
+                  ))}
+                </div>
+                <small>控制判定你说完话的等待门限（在下一次唤醒时生效）。</small>
               </div>
               <div className="nia-workspace__settings-section">
                 <span>提醒时间</span>
