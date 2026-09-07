@@ -1,5 +1,5 @@
 {
-  "entryCount": 5787,
+  "entryCount": 5789,
   "entries": [
     {
       "definition": "重要的；基本的",
@@ -283741,6 +283741,34 @@
         "year": 2020,
         "questionNumber": 7
       }
+    },
+    {
+      "word": "Analogous",
+      "fileName": "5977-analogous.md",
+      "lookupKey": "analogous",
+      "partOfSpeech": "形容词",
+      "pronunciations": ["/əˈnæl.ə.ɡəs/"],
+      "definition": "类似的；可类比的",
+      "sections": [
+        {"title": "当前语境", "lines": ["考研英语一 2022 完形填空：a plant nervous system, analogous to that in animals（Q9）；表示可作结构或功能类比，而非本质相同。"]},
+        {"title": "用法边界", "lines": ["典型搭配：be analogous to。similar 泛指相像；analogous 强调不同体系中的对应关系。"]},
+        {"title": "一语道破", "lines": ["“Analogy builds a bridge; it does not erase the river. 类比搭桥，不抹去两岸的差异。”"]}
+      ],
+      "source": {"kaoyan": "考研英语一 2022 完形填空", "year": 2022, "questionNumber": 9}
+    },
+    {
+      "word": "Superficially",
+      "fileName": "5978-superficially.md",
+      "lookupKey": "superficially",
+      "partOfSpeech": "副词",
+      "pronunciations": ["/ˌsuːpəˈfɪʃəli/"],
+      "definition": "表面上地；肤浅地",
+      "sections": [
+        {"title": "当前语境", "lines": ["考研英语一 2022 完形填空：only superficially similar（Q14）；承认表象相似，否认本质等同。"]},
+        {"title": "用法边界", "lines": ["典型搭配：superficially similar/plausible。它限制认识层次，不等于 literally 或 temporarily。"]},
+        {"title": "一语道破", "lines": ["“What resembles at the surface may diverge at the source. 表面相像，根源未必相同。”"]}
+      ],
+      "source": {"kaoyan": "考研英语一 2022 完形填空", "year": 2022, "questionNumber": 14}
     }
   ]
 }
