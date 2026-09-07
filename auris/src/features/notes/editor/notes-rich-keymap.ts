@@ -1,4 +1,4 @@
-import { setBlockType, toggleMark, wrapIn } from "prosemirror-commands";
+import { setBlockType, splitBlock, toggleMark, wrapIn } from "prosemirror-commands";
 import {
   liftListItem,
   sinkListItem,
@@ -6,7 +6,7 @@ import {
   wrapInList,
 } from "prosemirror-schema-list";
 import type { Schema } from "prosemirror-model";
-import type { Command } from "prosemirror-state";
+import { TextSelection, type Command } from "prosemirror-state";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WYSIWYG (ProseMirror) formatting keymap.
@@ -63,6 +63,13 @@ export function createNotesRichKeymap(schema: Schema): Record<string, Command> {
     bind("Mod-E", toggleMark(schema.marks.code));
   }
 
+  const strikeMark = schema.marks.strikethrough || schema.marks.s;
+  if (strikeMark) {
+    bind("Mod-Shift-x", toggleMark(strikeMark));
+    bind("Mod-Shift-X", toggleMark(strikeMark));
+    bind("Mod-Alt-s", toggleMark(strikeMark));
+  }
+
   // ── Headings & paragraph ────────────────────────────────────────────────────
   if (schema.nodes.heading) {
     for (let level = 1; level <= 6; level += 1) {
@@ -94,11 +101,38 @@ export function createNotesRichKeymap(schema: Schema): Record<string, Command> {
     bind("Mod-Shift-9", wrapInList(schema.nodes.ordered_list));
   }
 
-  // List-item editing: split on Enter, indent/outdent on Tab. Each command
-  // returns false outside a list, so the bindings fall through to baseKeymap.
+  // Safe block split for cross-block selections (aligned with vmark audit F5).
+  const handleCrossBlockEnter: Command = (state, dispatch, view) => {
+    const { selection } = state;
+    if (selection.empty) return false;
+    if (!(selection instanceof TextSelection)) return false;
+
+    const { $from, $to } = selection;
+    if ($from.sameParent($to)) return false;
+
+    return splitBlock(state, dispatch, view);
+  };
+
+  // Enter key: inside a list item, split the list item.
+  // When a non-collapsed selection spans across blocks, splitBlock safely (F5).
+  // Otherwise, return false to fall through to baseKeymap.
+  const enterCommand: Command = (state, dispatch, view) => {
+    if (
+      schema.nodes.list_item &&
+      splitListItem(schema.nodes.list_item)(state, dispatch, view)
+    ) {
+      return true;
+    }
+    if (handleCrossBlockEnter(state, dispatch, view)) {
+      return true;
+    }
+    return false;
+  };
+  bind("Enter", enterCommand);
+
+  // Tab indent/outdent in lists
   if (schema.nodes.list_item) {
     const listItem = schema.nodes.list_item;
-    bind("Enter", splitListItem(listItem));
     bind("Tab", sinkListItem(listItem));
     bind("Shift-Tab", liftListItem(listItem));
     bind("Mod-]", sinkListItem(listItem));

@@ -47,6 +47,24 @@ function sameDocument(left, right) {
   return left.path === right.path && left.vaultRoot === right.vaultRoot;
 }
 
+function salvageJsonArrayObjects(raw) {
+  if (typeof raw !== "string") return [];
+  const objects = [];
+  const regex = /\{[\s\S]*?\}(?=(?:\s*,\s*\{|\s*\]))/g;
+  let match;
+  while ((match = regex.exec(raw)) !== null) {
+    try {
+      const parsed = JSON.parse(match[0]);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        objects.push(parsed);
+      }
+    } catch {
+      // Ignore unparseable fragments
+    }
+  }
+  return objects;
+}
+
 async function readJsonArray(fileSystem, targetPath, fallbackPath) {
   try {
     const value = JSON.parse(await fileSystem.readFile(targetPath, "utf8"));
@@ -63,12 +81,20 @@ async function readJsonArray(fileSystem, targetPath, fallbackPath) {
         const fallback = JSON.parse(
           await fileSystem.readFile(fallbackPath, "utf8"),
         );
-        return Array.isArray(fallback) ? fallback : [];
+        if (Array.isArray(fallback)) return fallback;
+      } catch {
+        // Fallback also failed, proceed to salvage
+      }
+    }
+    if (error?.code === "ENOENT") return [];
+    if (error instanceof SyntaxError) {
+      try {
+        const raw = await fileSystem.readFile(targetPath, "utf8");
+        return salvageJsonArrayObjects(raw);
       } catch {
         return [];
       }
     }
-    if (error?.code === "ENOENT" || error instanceof SyntaxError) return [];
     throw error;
   }
 }
@@ -180,6 +206,95 @@ function validWorkspaceSession(value) {
     validWorkspaceValue(value.vaultRoot) &&
     validWorkspaceState(value.workspace)
   );
+}
+
+function repairWorkspaceState(value) {
+  if (!value || typeof value !== "object") return null;
+
+  const openTabs = Array.isArray(value.openTabs)
+    ? Array.from(
+        new Set(
+          value.openTabs.filter(
+            (tab) => typeof tab === "string" && tab.trim().length > 0,
+          ),
+        ),
+      )
+    : [];
+
+  const activePath =
+    typeof value.activePath === "string" && openTabs.includes(value.activePath)
+      ? value.activePath
+      : openTabs[0] ?? null;
+
+  const commandHistory = Array.isArray(value.commandHistory)
+    ? value.commandHistory.filter((item) => typeof item === "string")
+    : [];
+
+  const editorModesByPath =
+    value.editorModesByPath &&
+    typeof value.editorModesByPath === "object" &&
+    !Array.isArray(value.editorModesByPath)
+      ? Object.fromEntries(
+          Object.entries(value.editorModesByPath).filter(
+            ([docPath, mode]) =>
+              typeof docPath === "string" &&
+              ["source", "split", "wysiwyg"].includes(mode),
+          ),
+        )
+      : {};
+
+  const leftSidebarCollapsed = Boolean(value.leftSidebarCollapsed);
+  const leftSidebarMode = ["files", "outline", "search"].includes(
+    value.leftSidebarMode,
+  )
+    ? value.leftSidebarMode
+    : "files";
+
+  const pinnedTabs = Array.isArray(value.pinnedTabs)
+    ? Array.from(
+        new Set(
+          value.pinnedTabs.filter(
+            (tab) => typeof tab === "string" && tab.trim().length > 0,
+          ),
+        ),
+      )
+    : [];
+
+  const recentFiles = Array.isArray(value.recentFiles)
+    ? Array.from(
+        new Set(
+          value.recentFiles.filter(
+            (file) => typeof file === "string" && file.trim().length > 0,
+          ),
+        ),
+      )
+    : [];
+
+  const rightSidebarCollapsed = Boolean(value.rightSidebarCollapsed);
+  const validRightSidebarModes = [
+    "backlinks",
+    "learning",
+    "properties",
+    "terminal",
+  ];
+  const rightSidebarMode = validRightSidebarModes.includes(
+    value.rightSidebarMode,
+  )
+    ? value.rightSidebarMode
+    : "properties";
+
+  return {
+    activePath,
+    commandHistory,
+    editorModesByPath,
+    leftSidebarCollapsed,
+    leftSidebarMode,
+    openTabs,
+    pinnedTabs,
+    recentFiles,
+    rightSidebarCollapsed,
+    rightSidebarMode,
+  };
 }
 
 function parseHistoryLines(source) {
@@ -305,16 +420,53 @@ function createNotesRecoveryStore({
       recoveryPath,
       recoveryBackupPath,
     );
-    return drafts.filter(
-      (draft) =>
-        validDocumentInput(draft) && typeof draft.capturedAt === "string",
-    );
+    return drafts
+      .filter((draft) => validDocumentInput(draft))
+      .map((draft) => ({
+        ...draft,
+        captureId:
+          typeof draft.captureId === "string" ? draft.captureId : randomId(),
+        capturedAt:
+          typeof draft.capturedAt === "string"
+            ? draft.capturedAt
+            : now().toISOString(),
+      }));
   }
 
   async function readWorkspaceSessions() {
-    return (
-      await readJsonArray(fileSystem, workspacePath, workspaceBackupPath)
-    ).filter(validWorkspaceSession);
+    const rawSessions = await readJsonArray(
+      fileSystem,
+      workspacePath,
+      workspaceBackupPath,
+    );
+    const validSessions = [];
+    for (const raw of rawSessions) {
+      if (
+        !raw ||
+        typeof raw !== "object" ||
+        !validWorkspaceValue(raw.vaultRoot)
+      ) {
+        continue;
+      }
+      if (validWorkspaceSession(raw)) {
+        validSessions.push(raw);
+        continue;
+      }
+      // Salvage workspace when strict validation fails (aligned with vmark audit B6)
+      const repaired = repairWorkspaceState(raw.workspace);
+      if (repaired) {
+        validSessions.push({
+          capturedAt:
+            typeof raw.capturedAt === "string"
+              ? raw.capturedAt
+              : now().toISOString(),
+          schemaVersion: HOT_EXIT_SCHEMA_VERSION,
+          vaultRoot: raw.vaultRoot,
+          workspace: repaired,
+        });
+      }
+    }
+    return validSessions;
   }
 
   async function maybeCompactHistory(events) {

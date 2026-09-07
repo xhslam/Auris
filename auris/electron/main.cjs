@@ -1951,15 +1951,51 @@ function resolveExportTargetPath(exportDirectory, relativePath) {
   return targetPath;
 }
 
+async function resolveLinkTarget(targetPath, maxDepth = 32) {
+  let current = targetPath;
+  for (let i = 0; i < maxDepth; i += 1) {
+    try {
+      const stat = await fs.lstat(current);
+      if (!stat.isSymbolicLink()) {
+        return current;
+      }
+      const linkDest = await fs.readlink(current);
+      current = path.isAbsolute(linkDest)
+        ? linkDest
+        : path.resolve(path.dirname(current), linkDest);
+    } catch (error) {
+      if (error?.code === "ENOENT") {
+        return current;
+      }
+      throw error;
+    }
+  }
+  throw new Error("Too many symbolic links encountered while resolving write target.");
+}
+
 async function writeFileAtomically(targetPath, content, options) {
+  // Resolve symlinks first so an atomic rename updates the real referent rather
+  // than replacing the symlink with a regular file (aligned with vmark audit B2).
+  const resolvedTarget = await resolveLinkTarget(targetPath);
+  const targetDir = path.dirname(resolvedTarget);
   const temporaryPath = path.join(
-    path.dirname(targetPath),
-    `.${path.basename(targetPath)}.${process.pid}.${Date.now()}.tmp`,
+    targetDir,
+    `.${path.basename(resolvedTarget)}.${process.pid}.${Date.now()}.${crypto.randomBytes(4).toString("hex")}.tmp`,
   );
+
+  let existingStat = null;
+  try {
+    existingStat = await fs.stat(resolvedTarget);
+  } catch {
+    // New file, nothing to preserve.
+  }
 
   try {
     await fs.writeFile(temporaryPath, content, options);
-    await fs.rename(temporaryPath, targetPath);
+    if (existingStat?.mode) {
+      await fs.chmod(temporaryPath, existingStat.mode).catch(() => undefined);
+    }
+    await fs.rename(temporaryPath, resolvedTarget);
   } catch (error) {
     await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
     throw error;

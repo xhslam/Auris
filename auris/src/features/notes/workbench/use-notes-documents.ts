@@ -54,6 +54,10 @@ import {
   saveNoteToVault,
   type NotesSaveType,
 } from "@/features/notes/workbench/notes-save-to-vault";
+import {
+  claimSaveTarget,
+  isCurrentSaveTarget,
+} from "@/features/notes/persistence/save-target-claim";
 
 // VMark-style save model: typing updates the local working copy immediately,
 // while persistence follows once typing settles. The settle window stays above
@@ -455,6 +459,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       rawSource: string,
       saveType: NotesSaveType,
     ): Promise<NotesPersistenceResult> => {
+      const saveClaim = claimSaveTarget(path);
       const meta = saveMetaRef.current.get(path);
 
       if (meta?.isMissing && saveType === "auto") {
@@ -565,6 +570,17 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
             path,
             result.normalizedSource,
           );
+
+          // If a newer save or a rename has occurred for this document path,
+          // the write landed on disk safely, but we must not overwrite the
+          // document's active identity or revive superseded in-memory state (F3).
+          if (!isCurrentSaveTarget(saveClaim)) {
+            return {
+              persistedSource: result.normalizedSource,
+              status: "saved",
+            };
+          }
+
           saveMetaRef.current.set(path, {
             isDivergent: false,
             isMissing: false,

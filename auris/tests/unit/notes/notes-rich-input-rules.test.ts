@@ -118,6 +118,14 @@ describe("notes rich input rules", () => {
     expect(text?.text).toBe("code");
     expect(text?.marks.some((mark) => mark.type.name === "code")).toBe(true);
   });
+
+  it("applies strikethrough when closing ~~text~~", () => {
+    const { handled, doc } = typeAtEnd("~~strike~", "~");
+    expect(handled).toBe(true);
+    const text = firstTextNode(doc);
+    expect(text?.text).toBe("strike");
+    expect(text?.marks.some((mark) => mark.type.name === "strikethrough")).toBe(true);
+  });
 });
 
 describe("notes rich keymap", () => {
@@ -165,5 +173,31 @@ describe("notes rich keymap", () => {
       }
     });
     expect(hasStrong).toBe(true);
+  });
+
+  it("Mod-Shift-x wraps the selection in strikethrough", () => {
+    const doc = paragraphDoc("hello");
+    const selection = TextSelection.create(doc, 1, 6);
+    const next = runCommand("Mod-Shift-x", doc, selection);
+    let hasStrike = false;
+    next?.doc.descendants((node) => {
+      if (node.isText && node.marks.some((m) => m.type.name === "strikethrough")) {
+        hasStrike = true;
+      }
+    });
+    expect(hasStrike).toBe(true);
+  });
+
+  it("Enter cleanly handles cross-block selection without throwing (F5)", () => {
+    const doc = notesRichEditorSchema.node("doc", null, [
+      notesRichEditorSchema.node("paragraph", null, [notesRichEditorSchema.text("block one")]),
+      notesRichEditorSchema.node("paragraph", null, [notesRichEditorSchema.text("block two")]),
+    ]);
+    // Selection spanning from middle of block 1 to middle of block 2
+    const selection = TextSelection.create(doc, 5, 16);
+    const next = runCommand("Enter", doc, selection);
+    expect(next).not.toBeNull();
+    // After split, there should be 2 paragraph blocks with selection deleted
+    expect(next?.doc.childCount).toBe(2);
   });
 });

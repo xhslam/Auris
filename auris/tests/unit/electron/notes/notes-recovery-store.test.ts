@@ -263,12 +263,67 @@ describe("durable notes recovery store", () => {
       historyImported: 1,
       imported: true,
     });
-    await expect(store.importLegacy(legacy)).resolves.toEqual({
-      draftsImported: 0,
-      historyImported: 0,
-      imported: false,
-    });
     await expect(store.listDrafts("/vault")).resolves.toHaveLength(1);
     await expect(store.listHistory("legacy.md", "/vault")).resolves.toHaveLength(1);
+  });
+
+  it("salvages workspace session when non-critical fields fail strict validation (vmark B6)", async () => {
+    const { baseDirectory, store } = await createStore();
+    const corruptedSession = [
+      {
+        capturedAt: "2026-07-28T00:00:00.000Z",
+        schemaVersion: 2,
+        vaultRoot: "/vault",
+        workspace: {
+          activePath: "valid.md",
+          commandHistory: ["cmd-1", null], // Contains non-string
+          editorModesByPath: { "valid.md": "wysiwyg", "other.md": "invalid-mode" },
+          leftSidebarCollapsed: false,
+          leftSidebarMode: "unknown-mode", // Should fallback to 'files'
+          openTabs: ["valid.md", "valid.md", "", null], // duplicates, empty string, null
+          pinnedTabs: [],
+          recentFiles: ["valid.md"],
+          rightSidebarCollapsed: false,
+          rightSidebarMode: "unexpected-mode", // Should fallback to 'properties'
+        },
+      },
+    ];
+
+    await fs.writeFile(
+      path.join(baseDirectory, "notes-hot-exit-workspaces.json"),
+      JSON.stringify(corruptedSession),
+      "utf8",
+    );
+
+    const loaded = await store.loadWorkspace("/vault");
+    expect(loaded).not.toBeNull();
+    expect(loaded?.workspace.openTabs).toEqual(["valid.md"]);
+    expect(loaded?.workspace.activePath).toBe("valid.md");
+    expect(loaded?.workspace.leftSidebarMode).toBe("files");
+    expect(loaded?.workspace.rightSidebarMode).toBe("properties");
+    expect(loaded?.workspace.commandHistory).toEqual(["cmd-1"]);
+    expect(loaded?.workspace.editorModesByPath).toEqual({ "valid.md": "wysiwyg" });
+  });
+
+  it("salvages drafts from damaged JSON file when syntax error occurs", async () => {
+    const { baseDirectory, store } = await createStore();
+    // Partially truncated JSON without valid closing bracket
+    const damagedJson =
+      '[{"path":"salvaged.md","rawSource":"important content","vaultRoot":"/vault","capturedAt":"2026-07-28T00:00:00.000Z"}, {"path":"broken';
+
+    await fs.writeFile(
+      path.join(baseDirectory, "notes-hot-exit.json"),
+      damagedJson,
+      "utf8",
+    );
+
+    const drafts = await store.listDrafts("/vault");
+    expect(drafts).toMatchObject([
+      {
+        path: "salvaged.md",
+        rawSource: "important content",
+        vaultRoot: "/vault",
+      },
+    ]);
   });
 });

@@ -2,6 +2,7 @@ import {
   DOMParser,
   type DOMOutputSpec,
   Fragment,
+  type MarkSpec,
   type Node as ProseMirrorNode,
   type NodeSpec,
   Schema,
@@ -352,8 +353,26 @@ const richNodes = listNodes
   .addToEnd("math_inline", mathInlineNodeSpec)
   .addToEnd("toc", tableOfContentsNodeSpec);
 
+export const strikethroughMarkSpec: MarkSpec = {
+  parseDOM: [
+    { tag: "s" },
+    { tag: "del" },
+    { tag: "strike" },
+    { style: "text-decoration=line-through" },
+    { style: "text-decoration-line=line-through" },
+  ],
+  toDOM() {
+    return ["s", 0];
+  },
+};
+
+export const richMarks = basicSchema.spec.marks.addToEnd(
+  "strikethrough",
+  strikethroughMarkSpec,
+);
+
 export const notesRichEditorSchema = new Schema({
-  marks: basicSchema.spec.marks,
+  marks: richMarks,
   nodes: richNodes,
 });
 
@@ -441,7 +460,21 @@ export const notesRichMarkdownSerializer = new MarkdownSerializer(
       state.closeBlock(node);
     },
   },
-  defaultMarkdownSerializer.marks,
+  {
+    ...defaultMarkdownSerializer.marks,
+    s: {
+      close: "~~",
+      expelEnclosingWhitespace: true,
+      mixable: true,
+      open: "~~",
+    },
+    strikethrough: {
+      close: "~~",
+      expelEnclosingWhitespace: true,
+      mixable: true,
+      open: "~~",
+    },
+  },
   {
     strict: false,
   },

@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "47161298299a887a349003843b938f2c19dca261",
+  "comparedCommit": "75e4c5d86cf7858009c6ba4aeba7547610f4f693",
   "summary": {
-    "changed": 1841,
-    "added": 1728,
-    "deleted": 356,
-    "renamed": 199,
+    "changed": 1956,
+    "added": 1960,
+    "deleted": 384,
+    "renamed": 186,
     "missingAurisTargets": 0,
     "staleMappings": 12,
-    "mappedUpstreamChanges": 87,
-    "domainCandidates": 605,
-    "unmappedUpstreamChanges": 3432
+    "mappedUpstreamChanges": 99,
+    "domainCandidates": 620,
+    "unmappedUpstreamChanges": 3767
   },
   "upstreamChanges": [
     {
@@ -97,6 +97,10 @@
     },
     {
       "path": ".cc-suite/audits/audit-fix-20260831-213000-r3-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260903-141632-findings.md",
       "status": "added"
     },
     {
@@ -1244,6 +1248,14 @@
       "status": "added"
     },
     {
+      "path": "e2e/journeys/36-browser-takeover.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/journeys/37-browser-secondary-window-teardown.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/jsonRpcStdio.test.mjs",
       "status": "added"
     },
@@ -1289,6 +1301,14 @@
     },
     {
       "path": "e2e/lib/settingsPatch.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/staleBinary.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/staleBinary.test.mjs",
       "status": "added"
     },
     {
@@ -1405,6 +1425,14 @@
     },
     {
       "path": "scripts/bespoke-buttons-baseline.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/build-app-icons.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/build-macos-glass-icon.sh",
       "status": "added"
     },
     {
@@ -1644,6 +1672,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-npm-audit.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-paydown-phase.sh",
       "status": "added"
     },
@@ -1669,6 +1701,10 @@
     },
     {
       "path": "scripts/check-predelta.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-release-dispatch.test.mjs",
       "status": "added"
     },
     {
@@ -1948,6 +1984,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/npm-audit-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/pipeline-scope-inventory.mjs",
       "status": "added"
     },
@@ -1957,6 +1997,10 @@
     },
     {
       "path": "scripts/pre-push-hook.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/render-dock-icon.swift",
       "status": "added"
     },
     {
@@ -2093,6 +2137,10 @@
       "status": "renamed"
     },
     {
+      "path": "server/content/src/render/remarkResolveAssets.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "vmark-content-server/src/render/renderMarkdown.bench.ts",
       "path": "server/content/src/render/renderMarkdown.bench.ts",
       "status": "renamed"
@@ -2106,6 +2154,14 @@
       "fromPath": "vmark-content-server/src/render/renderMarkdown.ts",
       "path": "server/content/src/render/renderMarkdown.ts",
       "status": "renamed"
+    },
+    {
+      "path": "server/content/src/server/assetRoute.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/content/src/server/assetRoute.ts",
+      "status": "added"
     },
     {
       "fromPath": "vmark-content-server/src/server/assets.ts",
@@ -2153,6 +2209,10 @@
       "status": "renamed"
     },
     {
+      "path": "server/content/src/server/pathContainment.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "vmark-content-server/src/server/runtime.test.ts",
       "path": "server/content/src/server/runtime.test.ts",
       "status": "renamed"
@@ -2193,14 +2253,12 @@
       "status": "renamed"
     },
     {
-      "fromPath": "vmark-content-server/src/slidev/manager.test.ts",
       "path": "server/content/src/slidev/manager.test.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
-      "fromPath": "vmark-content-server/src/slidev/manager.ts",
       "path": "server/content/src/slidev/manager.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "fromPath": "vmark-content-server/src/slidev/server.test.ts",
@@ -2223,9 +2281,8 @@
       "status": "renamed"
     },
     {
-      "fromPath": "vmark-content-server/vitest.config.ts",
       "path": "server/content/vitest.config.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "path": "server/mcp/.gitignore",
@@ -2264,7 +2321,15 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/__tests__/unit/bridge/operationSchemaPrimitives.test.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/__tests__/unit/bridge/operationSends.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/bridge/requestQueue.test.ts",
       "status": "added"
     },
     {
@@ -2287,7 +2352,27 @@
       "status": "renamed"
     },
     {
+      "path": "server/mcp/__tests__/unit/tools/browserActions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserArgs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserDispatch.test.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/__tests__/unit/tools/browserRead.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserReadActions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserResult.test.ts",
       "status": "added"
     },
     {
@@ -2395,6 +2480,10 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/src/bridge/operationSchemas.primitives.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/src/bridge/operationSchemas.ts",
       "status": "added"
     },
@@ -2453,7 +2542,19 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/src/tools/browserActions.act.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/src/tools/browserActions.tab.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/src/tools/browserActions.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/src/tools/browserActions.workflow.ts",
       "status": "added"
     },
     {
@@ -2461,7 +2562,15 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/src/tools/browserDispatch.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/src/tools/browserRead.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/src/tools/browserReadActions.ts",
       "status": "added"
     },
     {
@@ -2511,6 +2620,10 @@
     },
     {
       "path": "server/mcp/src/utils/clientIdentity.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/src/utils/errorOutput.ts",
       "status": "added"
     },
     {
@@ -2565,7 +2678,15 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/Info.plist",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/binaries/.gitignore",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/build.rs",
       "status": "changed"
     },
     {
@@ -2583,6 +2704,338 @@
     {
       "path": "src-tauri/capabilities/windows.json",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/128x128.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/128x128@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/32x32.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/64x64.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square107x107Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square142x142Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square150x150Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square284x284Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square30x30Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square310x310Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square44x44Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square71x71Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square89x89Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/StoreLogo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/icon.icns",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/icon.ico",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/icon.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/128x128.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/128x128@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/32x32.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/64x64.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Assets.car",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/Square107x107Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square142x142Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square150x150Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square284x284Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square30x30Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square310x310Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square44x44Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square71x71Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square89x89Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/StoreLogo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/Assets/body.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/Assets/wedge-dark.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/Assets/wedge-light.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/icon.json",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-hdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-mdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.icns",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.ico",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@2x-1.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@2x-1.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@2x-1.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-512@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-60x60@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-60x60@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-76x76@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-76x76@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/source/favicon.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-16.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-24.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-32.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-48.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-doc-md.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-lockup.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-mono.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-squircle.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-wide.svg",
+      "status": "added"
     },
     {
       "path": "src-tauri/locales/de.yml",
@@ -2701,6 +3154,26 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/ai_content_rules.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules_cidr.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules_cidr6.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules_cidr6.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/ai_guards.rs",
       "status": "added"
     },
@@ -2721,12 +3194,56 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/ai_policy_dns.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_policy_dns.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_transactions.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_transactions.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_transactions_preflight.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/attachment_state.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/attachment_state.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/authorize.rs",
       "status": "changed"
     },
     {
       "path": "src-tauri/src/browser/authorize.test.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_decision.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_decision.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_spend.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_spend.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/browser/browser_store_macos.rs",
@@ -2749,11 +3266,51 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/content_rules_macos.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/content_rules_native.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/debug_probe_macos.rs",
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/dialogs.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/dialogs_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/driver_loop.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/driver_loop_macos.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/eval_macos.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/eval_outcome.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/eval_outcome.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/main_thread_hop.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/main_thread_hop.test.rs",
       "status": "added"
     },
     {
@@ -2769,8 +3326,72 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/native_failure.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/native_failure.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_api_navigation.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_api_navigation.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_api_navigation_native.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_decision.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_decision.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_delegate_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_kvo_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_registry_identity_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_registry_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_registry_policy_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_ring.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_ring.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/no_bridge.rs",
       "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/one_shot.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/one_shot.test.rs",
+      "status": "changed"
     },
     {
       "path": "src-tauri/src/browser/operation.rs",
@@ -2785,6 +3406,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/redact.test.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/refusals.rs",
       "status": "added"
     },
@@ -2794,6 +3419,34 @@
     },
     {
       "path": "src-tauri/src/browser/registry.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_ai.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_ai.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_navigation.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_same_document.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_same_document.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_state.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/screenshot_macos.rs",
       "status": "changed"
     },
     {
@@ -2809,6 +3462,26 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/session_commands.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/session_cookies_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/session_restore.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/session_restore_script.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/session_restore_script.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/surface.rs",
       "status": "changed"
     },
@@ -2821,6 +3494,18 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/surface_failure.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/surface_failure.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/surface_lifecycle_macos.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/surface_macos.rs",
       "status": "changed"
     },
@@ -2830,6 +3515,18 @@
     },
     {
       "path": "src-tauri/src/browser/surface_view_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/tab_attachments.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/teardown.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/teardown.test.rs",
       "status": "changed"
     },
     {
@@ -3361,6 +4058,18 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/file_tree.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/file_tree_walk.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/file_tree_walk.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/file_write.rs",
       "status": "changed"
     },
@@ -3397,6 +4106,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/hot_exit/loaded.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/hot_exit/merge.test.rs",
       "status": "changed"
     },
@@ -3414,6 +4127,31 @@
     },
     {
       "path": "src-tauri/src/hot_exit/path_containment_tests.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/read_session.rs",
+      "status": "added"
+    },
+    {
+      "fromPath": "src-tauri/src/hot_exit/storage.test.rs",
+      "path": "src-tauri/src/hot_exit/read_session.test.rs",
+      "status": "renamed"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/restore_plan.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/restore_plan.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/salvage.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/salvage.test.rs",
       "status": "added"
     },
     {
@@ -3437,7 +4175,7 @@
       "status": "changed"
     },
     {
-      "path": "src-tauri/src/hot_exit/storage.test.rs",
+      "path": "src-tauri/src/hot_exit/validation.rs",
       "status": "changed"
     },
     {
@@ -3447,6 +4185,14 @@
     {
       "path": "src-tauri/src/lib.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/link_target.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/link_target.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/live_docs.rs",
@@ -3706,6 +4452,10 @@
     },
     {
       "path": "src-tauri/src/menu/localized.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/menu/localized/edit_menu.rs",
       "status": "changed"
     },
     {
@@ -4129,8 +4879,16 @@
       "status": "changed"
     },
     {
+      "path": "src/assets/app-icon.png",
+      "status": "changed"
+    },
+    {
       "path": "src/bench/cjkFormatter.bench.ts",
       "status": "added"
+    },
+    {
+      "path": "src/bench/editor.bench.ts",
+      "status": "changed"
     },
     {
       "path": "src/bench/pipelinePerf.bench.ts",
@@ -4237,6 +4995,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Browser/BookmarksView.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserApprovalDialog.test.tsx",
       "status": "changed"
     },
@@ -4257,7 +5019,15 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/BrowserHistoryView.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserOmnibox.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserOverlays.test.tsx",
       "status": "changed"
     },
     {
@@ -4273,12 +5043,24 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/BrowserSurface.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserSurface.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserWorkspaceSurface.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/Browser/BrowserWorkspaceSurface.tsx",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/approvalDialogFormat.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Browser/browser-approval-dialog.css",
@@ -4293,12 +5075,24 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/browser-history-view.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/browser-omnibox.css",
       "status": "changed"
     },
     {
       "path": "src/components/Browser/browser-surface.css",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/browserBounds.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Browser/browserBounds.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Browser/browserLifecycleBound.test.tsx",
@@ -4309,11 +5103,27 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/useApprovalDialogKeyboard.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Browser/useBrowserNativeView.test.ts",
       "status": "changed"
     },
     {
       "path": "src/components/Browser/useBrowserNativeView.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/useBrowserNavEvents.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/components/Browser/useBrowserNavEvents.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/components/Browser/useBrowserWorkspaceState.test.tsx",
       "status": "changed"
     },
     {
@@ -4418,6 +5228,10 @@
     },
     {
       "path": "src/components/Editor/EditorContextMenu/EditorContextMenu.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/EditorContextMenu/clipboardBridge.ts",
       "status": "changed"
     },
     {
@@ -4992,6 +5806,18 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Sidebar/FileExplorer/fileTreeFilters.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/rescanScheduler.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/rescanScheduler.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Sidebar/FileExplorer/types.ts",
       "status": "changed"
     },
@@ -5025,6 +5851,10 @@
     },
     {
       "path": "src/components/Sidebar/FileExplorer/useFileTree.races.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useFileTree.rescan.test.tsx",
       "status": "added"
     },
     {
@@ -5128,6 +5958,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/StatusBarAiIndicator.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/StatusBar/StatusBarCounts.test.tsx",
       "status": "changed"
     },
@@ -5153,11 +5987,11 @@
     },
     {
       "path": "src/components/StatusBar/UpdateIndicator.test.tsx",
-      "status": "changed"
+      "status": "deleted"
     },
     {
       "path": "src/components/StatusBar/UpdateIndicator.tsx",
-      "status": "changed"
+      "status": "deleted"
     },
     {
       "path": "src/components/StatusBar/WordCountPopover.tsx",
@@ -6105,6 +6939,46 @@
       "status": "deleted"
     },
     {
+      "path": "src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/browserAct.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/browserNavigation.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/browserPower.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/browserWaitFor.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/dispatch.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/session.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/wrapHandler.ts",
+      "status": "deleted"
+    },
+    {
       "path": "src/hooks/menuRouting.test.ts",
       "status": "added"
     },
@@ -6183,9 +7057,8 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/services/commands/useCommandBootstrap.ts",
       "path": "src/hooks/useCommandBootstrap.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "path": "src/hooks/useContentServer.test.ts",
@@ -6443,6 +7316,14 @@
       "status": "changed"
     },
     {
+      "path": "src/hooks/useStatusToasts.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useStatusToasts.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useSystemAppearanceWatcher.test.ts",
       "status": "added"
     },
@@ -6488,6 +7369,14 @@
     },
     {
       "path": "src/hooks/useUniversalToolbar.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useUpdateChecker.comprehensive.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useUpdateChecker.test.ts",
       "status": "changed"
     },
     {
@@ -6631,11 +7520,71 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/agent/agentAct.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentAct.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCore.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCoreRoles.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCoreWalk.src.js",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/agent/agentLib.test.ts",
       "status": "added"
     },
     {
       "path": "src/lib/browser/agent/agentLib.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentSnapshot.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/aria.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/aria.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaName.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaName.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaRole.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaRole.ts",
       "status": "added"
     },
     {
@@ -6671,6 +7620,22 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/agent/interactScript.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/interactScript.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/powerScript.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/powerScript.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/browser/agent/recorder.webkit.test.ts",
       "status": "added"
     },
@@ -6687,6 +7652,22 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/agent/recorderShimRustParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/recorderShimSensitivity.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/shimDrain.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/shimDrain.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/approval/grants.test.ts",
       "status": "changed"
     },
@@ -6695,7 +7676,15 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/approval/operationVocabulary.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/bookmarkUrl.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/bookmarkUrl.ts",
       "status": "changed"
     },
     {
@@ -6715,11 +7704,19 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/origin/originGuard.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/browser/reader/siteReader.ts",
       "status": "changed"
     },
     {
       "path": "src/lib/browser/url.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/url.ts",
       "status": "changed"
     },
     {
@@ -6739,12 +7736,28 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/workflow/canonicalEncode.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/canonicalEncode.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/workflow/classify.test.ts",
       "status": "changed"
     },
     {
       "path": "src/lib/browser/workflow/classify.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/drainedEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/drainedEvents.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/browser/workflow/engine.test.ts",
@@ -6755,7 +7768,19 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/workflow/identity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/identity.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/workflow/parser.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/parser.ts",
       "status": "changed"
     },
     {
@@ -6767,7 +7792,19 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/workflow/roleResolution.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/roleResolution.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/workflow/runner.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/runner.ts",
       "status": "changed"
     },
     {
@@ -6781,6 +7818,18 @@
     {
       "path": "src/lib/browser/workflow/selfHeal.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/selfHeal.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/selfHealScore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/selfHealScore.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/browser/workflow/stepGrammar.test.ts",
@@ -7028,6 +8077,10 @@
     },
     {
       "path": "src/lib/formats/adapters/code.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/formats/adapters/dep-tree.css",
       "status": "changed"
     },
     {
@@ -8251,6 +9304,10 @@
       "status": "added"
     },
     {
+      "path": "src/pages/settings/__tests__/CcSwitchImportRow.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/__tests__/languagePicker.test.ts",
       "status": "changed"
     },
@@ -8296,10 +9353,6 @@
     },
     {
       "path": "src/pages/settings/primitivesCanonical.test.tsx",
-      "status": "added"
-    },
-    {
-      "path": "src/pages/settings/settings-shell.css",
       "status": "added"
     },
     {
@@ -9983,6 +11036,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/safeBlockSplit/tiptap.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/search/__tests__/replaceStale.test.ts",
       "status": "added"
     },
@@ -11223,6 +12280,10 @@
       "status": "added"
     },
     {
+      "path": "src/services/assembly/createTiptapExtensions.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/assembly/extensionOrdering.test.ts",
       "status": "added"
     },
@@ -11339,6 +12400,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/browser/browserAiPolicySync.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/services/browser/browserEventBroker.test.ts",
       "status": "changed"
     },
@@ -11352,6 +12417,42 @@
     },
     {
       "path": "src/services/browser/browserLeaseWiring.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserMenuSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEventDecoder.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEventDecoder.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEvents.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeViews.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeViews.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNavEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNavEvents.ts",
       "status": "added"
     },
     {
@@ -11369,6 +12470,26 @@
     {
       "path": "src/services/browser/browserOcclusion.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/browser/browserTabEvents.ordering.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabEvents.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabLifecycle.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabLifecycle.ts",
+      "status": "added"
     },
     {
       "path": "src/services/browser/browserWorkspaceActive.test.ts",
@@ -11403,12 +12524,36 @@
       "status": "changed"
     },
     {
+      "path": "src/services/browser/leaseTransitions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/leaseTransitions.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/browser/navIntent.test.ts",
       "status": "changed"
     },
     {
+      "path": "src/services/browser/navigationOrder.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/navigationOrder.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/browser/occlusion.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/browser/occlusion.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/browser/oneShotMints.ts",
+      "status": "added"
     },
     {
       "path": "src/services/browser/overlayPolicies.test.ts",
@@ -11432,6 +12577,18 @@
     },
     {
       "path": "src/services/browser/recorderWiring.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/serializedPusher.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/serializedPusher.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/sessionRestoreScript.test.ts",
       "status": "added"
     },
     {
@@ -11487,11 +12644,23 @@
       "status": "changed"
     },
     {
+      "path": "src/services/commands/browserCommands.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/services/commands/claimCommands.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/commands/claimCommands.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/clipboardCommands.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/commands/clipboardCommands.ts",
       "status": "added"
     },
     {
@@ -11608,12 +12777,20 @@
       "status": "changed"
     },
     {
+      "path": "src/services/commands/registerAllCommands.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/commands/tabCommands.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/commands/tabCommands.ts",
       "status": "added"
+    },
+    {
+      "path": "src/services/commands/useCommandBootstrap.ts",
+      "status": "deleted"
     },
     {
       "path": "src/services/commands/viewCommands.test.ts",
@@ -11662,6 +12839,10 @@
     {
       "path": "src/services/dialogs/largeFilePrompts.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/editor/clipboardBridge.ts",
+      "status": "added"
     },
     {
       "path": "src/services/editor/clipboardUrl.test.ts",
@@ -11843,6 +13024,10 @@
       "status": "renamed"
     },
     {
+      "path": "src/services/history/checkpointRedoBranch.test.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/useHistoryOperations.test.ts",
       "path": "src/services/history/historyOperations.test.ts",
       "status": "renamed"
@@ -11871,6 +13056,10 @@
       "fromPath": "src/hooks/useUnifiedHistory.ts",
       "path": "src/services/history/unifiedHistory.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/history/unifiedUndoRedo.ts",
+      "status": "added"
     },
     {
       "path": "src/services/ime/imeToast.test.ts",
@@ -11989,6 +13178,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/macos/macQuarantineNotice.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/services/mcpBridge/bridgePathGuard.test.ts",
       "status": "changed"
     },
@@ -12050,14 +13243,38 @@
       "status": "renamed"
     },
     {
+      "path": "src/services/mcpBridge/v2/__tests__/browserAccess.test.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserAct.test.ts",
       "path": "src/services/mcpBridge/v2/__tests__/browserAct.test.ts",
       "status": "renamed"
     },
     {
+      "path": "src/services/mcpBridge/v2/__tests__/browserActParse.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserApprovalFlow.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserAttachmentMirror.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserClose.test.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserConsole.test.ts",
       "path": "src/services/mcpBridge/v2/__tests__/browserConsole.test.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserExecuteJs.test.ts",
+      "status": "added"
     },
     {
       "path": "src/services/mcpBridge/v2/__tests__/browserExtract.test.ts",
@@ -12068,14 +13285,16 @@
       "status": "added"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts",
       "path": "src/services/mcpBridge/v2/__tests__/browserNavigation.test.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts",
+      "path": "src/services/mcpBridge/v2/__tests__/browserOpenFlow.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/__tests__/browserPower.test.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserReadClass.test.ts",
@@ -12096,6 +13315,10 @@
       "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserWaitFor.test.ts",
       "path": "src/services/mcpBridge/v2/__tests__/browserWaitFor.test.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserWaitForPoll.test.ts",
+      "status": "added"
     },
     {
       "path": "src/services/mcpBridge/v2/__tests__/browserWorkflow.test.ts",
@@ -12139,7 +13362,15 @@
       "status": "renamed"
     },
     {
+      "path": "src/services/mcpBridge/v2/__tests__/sessionSerializers.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/__tests__/sessionVisibility.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/waitBoundParity.test.ts",
       "status": "added"
     },
     {
@@ -12170,9 +13401,12 @@
       "status": "added"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts",
       "path": "src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/bridgeError.ts",
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/mcpBridge/v2/browser.ts",
@@ -12180,14 +13414,41 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/browserAct.ts",
+      "path": "src/services/mcpBridge/v2/browserAccess.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/browserAct.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserActFlow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserActParse.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserApprovalFlow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserAttachmentMirror.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserClose.ts",
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/mcpBridge/v2/browserConsole.ts",
       "path": "src/services/mcpBridge/v2/browserConsole.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserExecuteJs.ts",
+      "status": "added"
     },
     {
       "path": "src/services/mcpBridge/v2/browserExtract.ts",
@@ -12211,14 +13472,28 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/browserNavigation.ts",
       "path": "src/services/mcpBridge/v2/browserNavigation.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/browserPower.ts",
+      "path": "src/services/mcpBridge/v2/browserNavigationShared.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserOpen.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserOpenFlow.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/browserPower.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserQuery.ts",
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/mcpBridge/v2/browserReadClass.ts",
@@ -12248,9 +13523,12 @@
       "status": "added"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/browserWaitFor.ts",
       "path": "src/services/mcpBridge/v2/browserWaitFor.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserWaitForPoll.ts",
+      "status": "added"
     },
     {
       "path": "src/services/mcpBridge/v2/browserWorkflow.ts",
@@ -12262,9 +13540,8 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/dispatch.ts",
       "path": "src/services/mcpBridge/v2/dispatch.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/mcpBridge/v2/document.ts",
@@ -12301,9 +13578,12 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/session.ts",
       "path": "src/services/mcpBridge/v2/session.ts",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/sessionSerializers.ts",
+      "status": "added"
     },
     {
       "fromPath": "src/hooks/mcpBridge/v2/types.ts",
@@ -12342,9 +13622,8 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/wrapHandler.ts",
       "path": "src/services/mcpBridge/v2/wrapHandler.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "path": "src/services/mcpBridge/windowWorkspaceSync.test.ts",
@@ -12647,6 +13926,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/persistence/applyPostSaveState.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/persistence/crashRecovery.test.ts",
       "status": "changed"
     },
@@ -12783,6 +14066,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/persistence/normalizedSaveContent.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/persistence/reloadFromDisk.test.ts",
       "status": "changed"
     },
@@ -12843,6 +14130,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/persistence/saveTargetClaim.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/persistence/saveTargetClaim.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/persistence/saveToPath.ordering.test.ts",
       "status": "added"
     },
@@ -12897,6 +14192,14 @@
     {
       "path": "src/services/persistence/workspaceBootstrap.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/runtimeWiring.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/runtimeWiring.ts",
+      "status": "added"
     },
     {
       "path": "src/services/secrets/apiKeySecrets.test.ts",
@@ -13123,6 +14426,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/windowClose/reserveBatchDestinations.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/windowClose/reserveBatchDestinations.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/saveDialog.ts",
       "path": "src/services/windowClose/saveDialog.ts",
       "status": "renamed"
@@ -13154,6 +14465,22 @@
       "status": "added"
     },
     {
+      "path": "src/services/workflow/runApproval.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runApproval.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runClock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runClock.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workflow/runExecutor.test.ts",
       "status": "added"
     },
@@ -13162,11 +14489,35 @@
       "status": "added"
     },
     {
+      "path": "src/services/workflow/runExecutorEnv.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runExecutorHeal.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runNavigate.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runNavigate.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workflow/runRegistry.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/workflow/runRegistry.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runStepGuard.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runStepGuard.ts",
       "status": "added"
     },
     {
@@ -13183,6 +14534,14 @@
     },
     {
       "path": "src/services/workflow/workflowRunService.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunValidate.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunValidate.ts",
       "status": "added"
     },
     {
@@ -13613,6 +14972,10 @@
       "status": "changed"
     },
     {
+      "path": "src/stores/approvalCapParity.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/blockMathEditingStore.ts",
       "status": "changed"
     },
@@ -13629,7 +14992,27 @@
       "status": "added"
     },
     {
+      "path": "src/stores/browserApprovalStore.attach.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.attach.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.constants.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/browserApprovalStore.helpers.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.resolve.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.resolve.ts",
       "status": "added"
     },
     {
@@ -13666,6 +15049,10 @@
     },
     {
       "path": "src/stores/browserUiStore.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/stores/browserUiStore.ts",
       "status": "changed"
     },
     {
@@ -13765,6 +15152,10 @@
     {
       "path": "src/stores/documentStore/storeContract.ts",
       "status": "added"
+    },
+    {
+      "path": "src/stores/documentStore/unifiedHistory.ts",
+      "status": "changed"
     },
     {
       "path": "src/stores/dropZoneStore.test.ts",
@@ -14337,6 +15728,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/styles/uiAuditFixes.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/adversarialMediaSources.ts",
       "status": "added"
     },
@@ -14531,6 +15926,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/platformDefault.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/productionSchema.ts",
       "status": "added"
     },
@@ -14544,6 +15943,10 @@
     },
     {
       "path": "src/test/soakExclusion.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/splitBlockSelection.test.ts",
       "status": "added"
     },
     {
@@ -15811,6 +17214,14 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/markdownPipeline/serializerStrikethrough.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializerStrikethrough.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/markdownPipeline/testSchema.ts",
       "status": "changed"
     },
@@ -16172,6 +17583,18 @@
     },
     {
       "path": "vmark-content-server/src/cli.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "vmark-content-server/src/slidev/manager.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "vmark-content-server/src/slidev/manager.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "vmark-content-server/vitest.config.ts",
       "status": "deleted"
     },
     {
@@ -16639,6 +18062,18 @@
       "status": "added"
     },
     {
+      "path": "website/public/favicon.ico",
+      "status": "changed"
+    },
+    {
+      "path": "website/public/favicon.svg",
+      "status": "changed"
+    },
+    {
+      "path": "website/public/logo.png",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/download.md",
       "status": "changed"
     },
@@ -16757,11 +18192,23 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/one_shot.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/operation.rs",
       "status": "changed"
     },
     {
       "path": "src-tauri/src/browser/registry.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_navigation.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_state.rs",
       "status": "changed"
     },
     {
@@ -16777,7 +18224,15 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/surface_lifecycle_macos.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/surface_view_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/teardown.rs",
       "status": "changed"
     },
     {
@@ -16941,7 +18396,27 @@
       "status": "changed"
     },
     {
+      "path": "src/hooks/mcpBridge/v2/browserAct.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/hooks/mcpBridge/v2/browserNavigation.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/lib/browser/agent/aria.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/browser/approval/grants.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/origin/originGuard.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/url.ts",
       "status": "changed"
     },
     {
@@ -16957,11 +18432,23 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/workflow/parser.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/browser/workflow/recorder.ts",
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/workflow/runner.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/browser/workflow/safety.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/selfHeal.ts",
       "status": "changed"
     },
     {
@@ -17024,16 +18511,6 @@
       "status": "renamed"
     },
     {
-      "fromPath": "src/hooks/mcpBridge/v2/browserAct.ts",
-      "path": "src/services/mcpBridge/v2/browserAct.ts",
-      "status": "renamed"
-    },
-    {
-      "fromPath": "src/hooks/mcpBridge/v2/browserNavigation.ts",
-      "path": "src/services/mcpBridge/v2/browserNavigation.ts",
-      "status": "renamed"
-    },
-    {
       "fromPath": "src/hooks/mcpBridge/v2/browserReadClass.ts",
       "path": "src/services/mcpBridge/v2/browserReadClass.ts",
       "status": "renamed"
@@ -17058,6 +18535,10 @@
     {
       "path": "src/stores/browserStore.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/stores/browserUiStore.ts",
+      "status": "changed"
     },
     {
       "path": "src/stores/windowStatusStore.test.ts",
@@ -17090,6 +18571,10 @@
       "matchedUpstreamChanges": [
         {
           "path": "src-tauri/src/browser/authorize.rs",
+          "status": "changed"
+        },
+        {
+          "path": "src-tauri/src/browser/one_shot.rs",
           "status": "changed"
         },
         {
@@ -17154,6 +18639,10 @@
         {
           "path": "src/stores/browserStore.ts",
           "status": "deleted"
+        },
+        {
+          "path": "src/stores/browserUiStore.ts",
+          "status": "changed"
         }
       ],
       "missingAurisTargets": [],
@@ -17209,11 +18698,23 @@
           "status": "changed"
         },
         {
+          "path": "src/lib/browser/workflow/parser.ts",
+          "status": "changed"
+        },
+        {
           "path": "src/lib/browser/workflow/recorder.ts",
           "status": "changed"
         },
         {
+          "path": "src/lib/browser/workflow/runner.ts",
+          "status": "changed"
+        },
+        {
           "path": "src/lib/browser/workflow/safety.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/lib/browser/workflow/selfHeal.ts",
           "status": "changed"
         },
         {
@@ -17274,18 +18775,16 @@
           "status": "added"
         },
         {
+          "path": "src/hooks/mcpBridge/v2/browserAct.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/browserNavigation.ts",
+          "status": "deleted"
+        },
+        {
           "fromPath": "src/hooks/mcpBridge/v2/browser.ts",
           "path": "src/services/mcpBridge/v2/browser.ts",
-          "status": "renamed"
-        },
-        {
-          "fromPath": "src/hooks/mcpBridge/v2/browserAct.ts",
-          "path": "src/services/mcpBridge/v2/browserAct.ts",
-          "status": "renamed"
-        },
-        {
-          "fromPath": "src/hooks/mcpBridge/v2/browserNavigation.ts",
-          "path": "src/services/mcpBridge/v2/browserNavigation.ts",
           "status": "renamed"
         },
         {
@@ -17346,6 +18845,18 @@
         {
           "path": "src-tauri/src/browser/ai_policy.rs",
           "status": "changed"
+        },
+        {
+          "path": "src/lib/browser/agent/aria.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/lib/browser/origin/originGuard.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/lib/browser/url.ts",
+          "status": "changed"
         }
       ],
       "missingAurisTargets": [],
@@ -17387,11 +18898,23 @@
           "status": "changed"
         },
         {
+          "path": "src-tauri/src/browser/registry_navigation.rs",
+          "status": "changed"
+        },
+        {
+          "path": "src-tauri/src/browser/registry_state.rs",
+          "status": "changed"
+        },
+        {
           "path": "src-tauri/src/browser/surface.rs",
           "status": "changed"
         },
         {
           "path": "src-tauri/src/browser/surface_create_macos.rs",
+          "status": "changed"
+        },
+        {
+          "path": "src-tauri/src/browser/surface_lifecycle_macos.rs",
           "status": "changed"
         },
         {
@@ -17442,6 +18965,10 @@
         },
         {
           "path": "src-tauri/src/browser/session_commands.rs",
+          "status": "changed"
+        },
+        {
+          "path": "src-tauri/src/browser/teardown.rs",
           "status": "changed"
         },
         {
@@ -18434,6 +19961,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/EditorContextMenu/clipboardBridge.ts",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/EditorContextMenu/menuModel.test.ts",
           "status": "changed"
         },
@@ -18871,11 +20402,6 @@
           "status": "renamed"
         },
         {
-          "fromPath": "src/services/commands/useCommandBootstrap.ts",
-          "path": "src/hooks/useCommandBootstrap.ts",
-          "status": "renamed"
-        },
-        {
           "fromPath": "src/services/persistence/hotExit/useHotExitCaptureWarning.test.ts",
           "path": "src/hooks/useHotExitCaptureWarning.test.ts",
           "status": "renamed"
@@ -18906,11 +20432,23 @@
           "status": "changed"
         },
         {
+          "path": "src/services/commands/browserCommands.ts",
+          "status": "changed"
+        },
+        {
           "path": "src/services/commands/claimCommands.test.ts",
           "status": "added"
         },
         {
           "path": "src/services/commands/claimCommands.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/services/commands/clipboardCommands.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/services/commands/clipboardCommands.ts",
           "status": "added"
         },
         {
@@ -19027,12 +20565,20 @@
           "status": "changed"
         },
         {
+          "path": "src/services/commands/registerAllCommands.ts",
+          "status": "added"
+        },
+        {
           "path": "src/services/commands/tabCommands.test.ts",
           "status": "added"
         },
         {
           "path": "src/services/commands/tabCommands.ts",
           "status": "added"
+        },
+        {
+          "path": "src/services/commands/useCommandBootstrap.ts",
+          "status": "deleted"
         },
         {
           "path": "src/services/commands/viewCommands.test.ts",
@@ -19057,6 +20603,10 @@
         {
           "path": "src/services/persistence/applyPathReconciliation.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/services/persistence/applyPostSaveState.ts",
+          "status": "added"
         },
         {
           "path": "src/services/persistence/crashRecovery.test.ts",
@@ -19195,6 +20745,10 @@
           "status": "changed"
         },
         {
+          "path": "src/services/persistence/normalizedSaveContent.ts",
+          "status": "added"
+        },
+        {
           "path": "src/services/persistence/reloadFromDisk.test.ts",
           "status": "changed"
         },
@@ -19252,6 +20806,14 @@
         },
         {
           "path": "src/services/persistence/saveHistorySnapshot.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/services/persistence/saveTargetClaim.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/services/persistence/saveTargetClaim.ts",
           "status": "added"
         },
         {
@@ -19415,6 +20977,10 @@
         },
         {
           "path": "src/lib/formats/adapters/code.ts",
+          "status": "changed"
+        },
+        {
+          "path": "src/lib/formats/adapters/dep-tree.css",
           "status": "changed"
         },
         {
@@ -19665,11 +21231,31 @@
       "staleLastComparedCommit": true,
       "matchedCandidateChanges": [
         {
+          "path": "server/mcp/src/tools/browserActions.act.ts",
+          "status": "added"
+        },
+        {
+          "path": "server/mcp/src/tools/browserActions.tab.ts",
+          "status": "added"
+        },
+        {
           "path": "server/mcp/src/tools/browserActions.ts",
           "status": "added"
         },
         {
+          "path": "server/mcp/src/tools/browserActions.workflow.ts",
+          "status": "added"
+        },
+        {
           "path": "server/mcp/src/tools/browserArgs.ts",
+          "status": "added"
+        },
+        {
+          "path": "server/mcp/src/tools/browserDispatch.ts",
+          "status": "added"
+        },
+        {
+          "path": "server/mcp/src/tools/browserReadActions.ts",
           "status": "added"
         },
         {
@@ -19724,6 +21310,38 @@
         },
         {
           "path": "src/hooks/mcpBridge/useMcpBridge.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/browserPower.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/browserWaitFor.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/dispatch.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/session.ts",
+          "status": "deleted"
+        },
+        {
+          "path": "src/hooks/mcpBridge/v2/wrapHandler.ts",
           "status": "deleted"
         },
         {
@@ -19787,16 +21405,6 @@
           "status": "renamed"
         },
         {
-          "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts",
-          "path": "src/services/mcpBridge/v2/__tests__/browserNavigation.test.ts",
-          "status": "renamed"
-        },
-        {
-          "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts",
-          "path": "src/services/mcpBridge/v2/__tests__/browserPower.test.ts",
-          "status": "renamed"
-        },
-        {
           "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserReadClass.test.ts",
           "path": "src/services/mcpBridge/v2/__tests__/browserReadClass.test.ts",
           "status": "renamed"
@@ -19857,11 +21465,6 @@
           "status": "renamed"
         },
         {
-          "fromPath": "src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts",
-          "path": "src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts",
-          "status": "renamed"
-        },
-        {
           "fromPath": "src/hooks/mcpBridge/v2/browserConsole.ts",
           "path": "src/services/mcpBridge/v2/browserConsole.ts",
           "status": "renamed"
@@ -19872,28 +21475,13 @@
           "status": "renamed"
         },
         {
-          "fromPath": "src/hooks/mcpBridge/v2/browserPower.ts",
-          "path": "src/services/mcpBridge/v2/browserPower.ts",
-          "status": "renamed"
-        },
-        {
           "fromPath": "src/hooks/mcpBridge/v2/browserSession.ts",
           "path": "src/services/mcpBridge/v2/browserSession.ts",
           "status": "renamed"
         },
         {
-          "fromPath": "src/hooks/mcpBridge/v2/browserWaitFor.ts",
-          "path": "src/services/mcpBridge/v2/browserWaitFor.ts",
-          "status": "renamed"
-        },
-        {
           "fromPath": "src/hooks/mcpBridge/v2/cjkMaps.ts",
           "path": "src/services/mcpBridge/v2/cjkMaps.ts",
-          "status": "renamed"
-        },
-        {
-          "fromPath": "src/hooks/mcpBridge/v2/dispatch.ts",
-          "path": "src/services/mcpBridge/v2/dispatch.ts",
           "status": "renamed"
         },
         {
@@ -19904,11 +21492,6 @@
         {
           "fromPath": "src/hooks/mcpBridge/v2/selection.ts",
           "path": "src/services/mcpBridge/v2/selection.ts",
-          "status": "renamed"
-        },
-        {
-          "fromPath": "src/hooks/mcpBridge/v2/session.ts",
-          "path": "src/services/mcpBridge/v2/session.ts",
           "status": "renamed"
         },
         {
@@ -19929,11 +21512,6 @@
         {
           "fromPath": "src/hooks/mcpBridge/v2/workspaceSaveAs.ts",
           "path": "src/services/mcpBridge/v2/workspaceSaveAs.ts",
-          "status": "renamed"
-        },
-        {
-          "fromPath": "src/hooks/mcpBridge/v2/wrapHandler.ts",
-          "path": "src/services/mcpBridge/v2/wrapHandler.ts",
           "status": "renamed"
         }
       ]
@@ -20556,6 +22134,22 @@
   "domainCandidates": [
     {
       "change": {
+        "path": "server/mcp/src/tools/browserActions.act.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "server/mcp/src/tools/browserActions.tab.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
         "path": "server/mcp/src/tools/browserActions.ts",
         "status": "added"
       },
@@ -20564,7 +22158,31 @@
     },
     {
       "change": {
+        "path": "server/mcp/src/tools/browserActions.workflow.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
         "path": "server/mcp/src/tools/browserArgs.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "server/mcp/src/tools/browserDispatch.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "server/mcp/src/tools/browserReadActions.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -21590,6 +23208,14 @@
     {
       "change": {
         "path": "src/components/Editor/EditorContextMenu/EditorContextMenu.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/EditorContextMenu/clipboardBridge.ts",
         "status": "changed"
       },
       "decision": "adapt",
@@ -23241,6 +24867,70 @@
     },
     {
       "change": {
+        "path": "src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/browserPower.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/browserWaitFor.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/dispatch.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/session.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
+        "path": "src/hooks/mcpBridge/v2/wrapHandler.ts",
+        "status": "deleted"
+      },
+      "decision": "adapt",
+      "domainId": "mcp-contract"
+    },
+    {
+      "change": {
         "fromPath": "src/services/persistence/resilience/_crashRecoveryCleanup.test.ts",
         "path": "src/hooks/resilience/_crashRecoveryCleanup.test.ts",
         "status": "renamed"
@@ -23324,15 +25014,6 @@
       "change": {
         "fromPath": "src/services/commands/useCommandBootstrap.test.tsx",
         "path": "src/hooks/useCommandBootstrap.test.tsx",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "editor-infrastructure"
-    },
-    {
-      "change": {
-        "fromPath": "src/services/commands/useCommandBootstrap.ts",
-        "path": "src/hooks/useCommandBootstrap.ts",
         "status": "renamed"
       },
       "decision": "adapt",
@@ -23528,6 +25209,14 @@
     {
       "change": {
         "path": "src/lib/formats/adapters/code.ts",
+        "status": "changed"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/dep-tree.css",
         "status": "changed"
       },
       "decision": "port",
@@ -23951,6 +25640,14 @@
     },
     {
       "change": {
+        "path": "src/services/commands/browserCommands.ts",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/services/commands/claimCommands.test.ts",
         "status": "added"
       },
@@ -23960,6 +25657,22 @@
     {
       "change": {
         "path": "src/services/commands/claimCommands.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/commands/clipboardCommands.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/commands/clipboardCommands.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -24192,6 +25905,14 @@
     },
     {
       "change": {
+        "path": "src/services/commands/registerAllCommands.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/services/commands/tabCommands.test.ts",
         "status": "added"
       },
@@ -24202,6 +25923,14 @@
       "change": {
         "path": "src/services/commands/tabCommands.ts",
         "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/commands/useCommandBootstrap.ts",
+        "status": "deleted"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -24339,24 +26068,6 @@
     },
     {
       "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts",
-        "path": "src/services/mcpBridge/v2/__tests__/browserNavigation.test.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts",
-        "path": "src/services/mcpBridge/v2/__tests__/browserPower.test.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
         "fromPath": "src/hooks/mcpBridge/v2/__tests__/browserReadClass.test.ts",
         "path": "src/services/mcpBridge/v2/__tests__/browserReadClass.test.ts",
         "status": "renamed"
@@ -24465,15 +26176,6 @@
     },
     {
       "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts",
-        "path": "src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
         "fromPath": "src/hooks/mcpBridge/v2/browserConsole.ts",
         "path": "src/services/mcpBridge/v2/browserConsole.ts",
         "status": "renamed"
@@ -24492,15 +26194,6 @@
     },
     {
       "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/browserPower.ts",
-        "path": "src/services/mcpBridge/v2/browserPower.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
         "fromPath": "src/hooks/mcpBridge/v2/browserSession.ts",
         "path": "src/services/mcpBridge/v2/browserSession.ts",
         "status": "renamed"
@@ -24510,26 +26203,8 @@
     },
     {
       "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/browserWaitFor.ts",
-        "path": "src/services/mcpBridge/v2/browserWaitFor.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
         "fromPath": "src/hooks/mcpBridge/v2/cjkMaps.ts",
         "path": "src/services/mcpBridge/v2/cjkMaps.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/dispatch.ts",
-        "path": "src/services/mcpBridge/v2/dispatch.ts",
         "status": "renamed"
       },
       "decision": "adapt",
@@ -24548,15 +26223,6 @@
       "change": {
         "fromPath": "src/hooks/mcpBridge/v2/selection.ts",
         "path": "src/services/mcpBridge/v2/selection.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/session.ts",
-        "path": "src/services/mcpBridge/v2/session.ts",
         "status": "renamed"
       },
       "decision": "adapt",
@@ -24600,15 +26266,6 @@
     },
     {
       "change": {
-        "fromPath": "src/hooks/mcpBridge/v2/wrapHandler.ts",
-        "path": "src/services/mcpBridge/v2/wrapHandler.ts",
-        "status": "renamed"
-      },
-      "decision": "adapt",
-      "domainId": "mcp-contract"
-    },
-    {
-      "change": {
         "path": "src/services/persistence/applyPathReconciliation.test.ts",
         "status": "changed"
       },
@@ -24619,6 +26276,14 @@
       "change": {
         "path": "src/services/persistence/applyPathReconciliation.ts",
         "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/persistence/applyPostSaveState.ts",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -24897,6 +26562,14 @@
     },
     {
       "change": {
+        "path": "src/services/persistence/normalizedSaveContent.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/services/persistence/reloadFromDisk.test.ts",
         "status": "changed"
       },
@@ -25010,6 +26683,22 @@
     {
       "change": {
         "path": "src/services/persistence/saveHistorySnapshot.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/persistence/saveTargetClaim.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/services/persistence/saveTargetClaim.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -25541,6 +27230,10 @@
     },
     {
       "path": ".cc-suite/audits/audit-fix-20260831-213000-r3-findings.md",
+      "status": "added"
+    },
+    {
+      "path": ".cc-suite/audits/audit-fix-20260903-141632-findings.md",
       "status": "added"
     },
     {
@@ -26688,6 +28381,14 @@
       "status": "added"
     },
     {
+      "path": "e2e/journeys/36-browser-takeover.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/journeys/37-browser-secondary-window-teardown.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/jsonRpcStdio.test.mjs",
       "status": "added"
     },
@@ -26733,6 +28434,14 @@
     },
     {
       "path": "e2e/lib/settingsPatch.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/staleBinary.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/staleBinary.test.mjs",
       "status": "added"
     },
     {
@@ -26845,6 +28554,14 @@
     },
     {
       "path": "scripts/bespoke-buttons-baseline.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/build-app-icons.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/build-macos-glass-icon.sh",
       "status": "added"
     },
     {
@@ -27076,6 +28793,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-npm-audit.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-paydown-phase.sh",
       "status": "added"
     },
@@ -27101,6 +28822,10 @@
     },
     {
       "path": "scripts/check-predelta.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-release-dispatch.test.mjs",
       "status": "added"
     },
     {
@@ -27380,6 +29105,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/npm-audit-baseline.json",
+      "status": "added"
+    },
+    {
       "path": "scripts/pipeline-scope-inventory.mjs",
       "status": "added"
     },
@@ -27389,6 +29118,10 @@
     },
     {
       "path": "scripts/pre-push-hook.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/render-dock-icon.swift",
       "status": "added"
     },
     {
@@ -27525,6 +29258,10 @@
       "status": "renamed"
     },
     {
+      "path": "server/content/src/render/remarkResolveAssets.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "vmark-content-server/src/render/renderMarkdown.bench.ts",
       "path": "server/content/src/render/renderMarkdown.bench.ts",
       "status": "renamed"
@@ -27538,6 +29275,14 @@
       "fromPath": "vmark-content-server/src/render/renderMarkdown.ts",
       "path": "server/content/src/render/renderMarkdown.ts",
       "status": "renamed"
+    },
+    {
+      "path": "server/content/src/server/assetRoute.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/content/src/server/assetRoute.ts",
+      "status": "added"
     },
     {
       "fromPath": "vmark-content-server/src/server/assets.ts",
@@ -27585,6 +29330,10 @@
       "status": "renamed"
     },
     {
+      "path": "server/content/src/server/pathContainment.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "vmark-content-server/src/server/runtime.test.ts",
       "path": "server/content/src/server/runtime.test.ts",
       "status": "renamed"
@@ -27625,14 +29374,12 @@
       "status": "renamed"
     },
     {
-      "fromPath": "vmark-content-server/src/slidev/manager.test.ts",
       "path": "server/content/src/slidev/manager.test.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
-      "fromPath": "vmark-content-server/src/slidev/manager.ts",
       "path": "server/content/src/slidev/manager.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "fromPath": "vmark-content-server/src/slidev/server.test.ts",
@@ -27655,9 +29402,8 @@
       "status": "renamed"
     },
     {
-      "fromPath": "vmark-content-server/vitest.config.ts",
       "path": "server/content/vitest.config.ts",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "path": "server/mcp/.gitignore",
@@ -27696,7 +29442,15 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/__tests__/unit/bridge/operationSchemaPrimitives.test.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/__tests__/unit/bridge/operationSends.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/bridge/requestQueue.test.ts",
       "status": "added"
     },
     {
@@ -27719,7 +29473,27 @@
       "status": "renamed"
     },
     {
+      "path": "server/mcp/__tests__/unit/tools/browserActions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserArgs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserDispatch.test.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/__tests__/unit/tools/browserRead.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserReadActions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "server/mcp/__tests__/unit/tools/browserResult.test.ts",
       "status": "added"
     },
     {
@@ -27827,6 +29601,10 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/src/bridge/operationSchemas.primitives.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/src/bridge/operationSchemas.ts",
       "status": "added"
     },
@@ -27889,6 +29667,10 @@
       "status": "added"
     },
     {
+      "path": "server/mcp/src/utils/errorOutput.ts",
+      "status": "added"
+    },
+    {
       "path": "server/mcp/src/utils/mcpAdapters.ts",
       "status": "added"
     },
@@ -27940,7 +29722,15 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/Info.plist",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/binaries/.gitignore",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/build.rs",
       "status": "changed"
     },
     {
@@ -27958,6 +29748,338 @@
     {
       "path": "src-tauri/capabilities/windows.json",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/128x128.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/128x128@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/32x32.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/64x64.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square107x107Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square142x142Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square150x150Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square284x284Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square30x30Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square310x310Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square44x44Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square71x71Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/Square89x89Logo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/StoreLogo.png",
+      "status": "deleted"
+    },
+    {
+      "path": "src-tauri/icons-dev/icon.icns",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/icon.ico",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons-dev/icon.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/128x128.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/128x128@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/32x32.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/64x64.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Assets.car",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/Square107x107Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square142x142Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square150x150Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square284x284Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square30x30Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square310x310Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square44x44Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square71x71Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/Square89x89Logo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/StoreLogo.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/Assets/body.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/Assets/wedge-dark.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/Assets/wedge-light.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/VMark.icon/icon.json",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-hdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-mdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.icns",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.ico",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/icon.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@2x-1.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-20x20@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@2x-1.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-29x29@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@2x-1.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-40x40@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-512@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-60x60@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-60x60@3x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-76x76@1x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-76x76@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/icons/source/favicon.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-16.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-24.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-32.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-48.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-doc-md.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-lockup.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-mono.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-squircle.svg",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/icons/source/vmark-wide.svg",
+      "status": "added"
     },
     {
       "path": "src-tauri/locales/de.yml",
@@ -28060,6 +30182,26 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/ai_content_rules.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules_cidr.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules_cidr6.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_content_rules_cidr6.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/ai_guards.rs",
       "status": "added"
     },
@@ -28076,8 +30218,52 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/ai_policy_dns.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_policy_dns.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_transactions.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_transactions.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/ai_transactions_preflight.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/attachment_state.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/attachment_state.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/authorize.test.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_decision.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_decision.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_spend.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/authorize_spend.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/browser/browser_store_macos.rs",
@@ -28100,11 +30286,51 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/content_rules_macos.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/content_rules_native.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/debug_probe_macos.rs",
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/dialogs.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/dialogs_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/driver_loop.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/driver_loop_macos.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/eval_macos.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/eval_outcome.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/eval_outcome.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/main_thread_hop.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/main_thread_hop.test.rs",
       "status": "added"
     },
     {
@@ -28120,8 +30346,68 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/browser/native_failure.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/native_failure.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_api_navigation.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_api_navigation.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_api_navigation_native.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_decision.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_decision.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_delegate_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_kvo_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_registry_identity_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_registry_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_registry_policy_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_ring.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/nav_ring.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/no_bridge.rs",
       "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/one_shot.test.rs",
+      "status": "changed"
     },
     {
       "path": "src-tauri/src/browser/operation.test.rs",
@@ -28132,11 +30418,35 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/redact.test.rs",
+      "status": "changed"
+    },
+    {
       "path": "src-tauri/src/browser/refusals.rs",
       "status": "added"
     },
     {
       "path": "src-tauri/src/browser/registry.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_ai.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_ai.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_same_document.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/registry_same_document.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/screenshot_macos.rs",
       "status": "changed"
     },
     {
@@ -28148,8 +30458,36 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/browser/session_commands.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/session_cookies_macos.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/session_restore.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/session_restore_script.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/session_restore_script.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/browser/surface.test.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/browser/surface_failure.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/surface_failure.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/browser/surface_macos.rs",
@@ -28158,6 +30496,14 @@
     {
       "path": "src-tauri/src/browser/surface_stub.rs",
       "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/tab_attachments.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/browser/teardown.test.rs",
+      "status": "changed"
     },
     {
       "path": "src-tauri/src/browser/user_input_monitor_macos.rs",
@@ -28248,6 +30594,18 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/file_tree.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/file_tree_walk.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/file_tree_walk.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/file_write.rs",
       "status": "changed"
     },
@@ -28284,6 +30642,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/hot_exit/loaded.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/hot_exit/merge.test.rs",
       "status": "changed"
     },
@@ -28301,6 +30663,31 @@
     },
     {
       "path": "src-tauri/src/hot_exit/path_containment_tests.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/read_session.rs",
+      "status": "added"
+    },
+    {
+      "fromPath": "src-tauri/src/hot_exit/storage.test.rs",
+      "path": "src-tauri/src/hot_exit/read_session.test.rs",
+      "status": "renamed"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/restore_plan.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/restore_plan.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/salvage.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/hot_exit/salvage.test.rs",
       "status": "added"
     },
     {
@@ -28324,7 +30711,7 @@
       "status": "changed"
     },
     {
-      "path": "src-tauri/src/hot_exit/storage.test.rs",
+      "path": "src-tauri/src/hot_exit/validation.rs",
       "status": "changed"
     },
     {
@@ -28334,6 +30721,14 @@
     {
       "path": "src-tauri/src/lib.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/link_target.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/link_target.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/live_docs.rs",
@@ -28585,6 +30980,10 @@
     },
     {
       "path": "src-tauri/src/menu/localized.test.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/menu/localized/edit_menu.rs",
       "status": "changed"
     },
     {
@@ -28892,8 +31291,16 @@
       "status": "changed"
     },
     {
+      "path": "src/assets/app-icon.png",
+      "status": "changed"
+    },
+    {
       "path": "src/bench/cjkFormatter.bench.ts",
       "status": "added"
+    },
+    {
+      "path": "src/bench/editor.bench.ts",
+      "status": "changed"
     },
     {
       "path": "src/bench/pipelinePerf.bench.ts",
@@ -29000,6 +31407,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Browser/BookmarksView.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserApprovalDialog.test.tsx",
       "status": "changed"
     },
@@ -29020,7 +31431,15 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/BrowserHistoryView.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserOmnibox.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserOverlays.test.tsx",
       "status": "changed"
     },
     {
@@ -29036,12 +31455,24 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/BrowserSurface.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/BrowserSurface.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/BrowserWorkspaceSurface.test.tsx",
       "status": "changed"
     },
     {
       "path": "src/components/Browser/BrowserWorkspaceSurface.tsx",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/approvalDialogFormat.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Browser/browser-approval-dialog.css",
@@ -29056,12 +31487,24 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/browser-history-view.css",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Browser/browser-omnibox.css",
       "status": "changed"
     },
     {
       "path": "src/components/Browser/browser-surface.css",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/browserBounds.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Browser/browserBounds.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Browser/browserLifecycleBound.test.tsx",
@@ -29072,11 +31515,27 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Browser/useApprovalDialogKeyboard.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Browser/useBrowserNativeView.test.ts",
       "status": "changed"
     },
     {
       "path": "src/components/Browser/useBrowserNativeView.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Browser/useBrowserNavEvents.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/components/Browser/useBrowserNavEvents.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "src/components/Browser/useBrowserWorkspaceState.test.tsx",
       "status": "changed"
     },
     {
@@ -29316,6 +31775,18 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Sidebar/FileExplorer/fileTreeFilters.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/rescanScheduler.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/rescanScheduler.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Sidebar/FileExplorer/types.ts",
       "status": "changed"
     },
@@ -29349,6 +31820,10 @@
     },
     {
       "path": "src/components/Sidebar/FileExplorer/useFileTree.races.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Sidebar/FileExplorer/useFileTree.rescan.test.tsx",
       "status": "added"
     },
     {
@@ -29452,6 +31927,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/StatusBar/StatusBarAiIndicator.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/StatusBar/StatusBarCounts.test.tsx",
       "status": "changed"
     },
@@ -29477,11 +31956,11 @@
     },
     {
       "path": "src/components/StatusBar/UpdateIndicator.test.tsx",
-      "status": "changed"
+      "status": "deleted"
     },
     {
       "path": "src/components/StatusBar/UpdateIndicator.tsx",
-      "status": "changed"
+      "status": "deleted"
     },
     {
       "path": "src/components/StatusBar/WordCountPopover.tsx",
@@ -30004,6 +32483,10 @@
       "status": "changed"
     },
     {
+      "path": "src/hooks/useCommandBootstrap.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useContentServer.test.ts",
       "status": "changed"
     },
@@ -30240,6 +32723,14 @@
       "status": "changed"
     },
     {
+      "path": "src/hooks/useStatusToasts.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/hooks/useStatusToasts.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useSystemAppearanceWatcher.test.ts",
       "status": "added"
     },
@@ -30285,6 +32776,14 @@
     },
     {
       "path": "src/hooks/useUniversalToolbar.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useUpdateChecker.comprehensive.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useUpdateChecker.test.ts",
       "status": "changed"
     },
     {
@@ -30428,11 +32927,67 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/agent/agentAct.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentAct.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCore.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCore.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCoreRoles.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentCoreWalk.src.js",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/agent/agentLib.test.ts",
       "status": "added"
     },
     {
       "path": "src/lib/browser/agent/agentLib.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/agentSnapshot.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/aria.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaName.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaName.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaRole.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/ariaRole.ts",
       "status": "added"
     },
     {
@@ -30468,6 +33023,22 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/agent/interactScript.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/interactScript.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/powerScript.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/agent/powerScript.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/browser/agent/recorder.webkit.test.ts",
       "status": "added"
     },
@@ -30484,11 +33055,35 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/agent/recorderShimRustParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/recorderShimSensitivity.src.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/shimDrain.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/agent/shimDrain.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/approval/grants.test.ts",
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/approval/operationVocabulary.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/bookmarkUrl.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/bookmarkUrl.ts",
       "status": "changed"
     },
     {
@@ -30528,12 +33123,36 @@
       "status": "added"
     },
     {
+      "path": "src/lib/browser/workflow/canonicalEncode.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/canonicalEncode.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/workflow/classify.test.ts",
       "status": "changed"
     },
     {
+      "path": "src/lib/browser/workflow/drainedEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/drainedEvents.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/browser/workflow/engine.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/identity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/identity.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/browser/workflow/parser.test.ts",
@@ -30542,6 +33161,14 @@
     {
       "path": "src/lib/browser/workflow/recorder.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/roleResolution.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/roleResolution.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/browser/workflow/runner.test.ts",
@@ -30554,6 +33181,14 @@
     {
       "path": "src/lib/browser/workflow/selfHeal.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/browser/workflow/selfHealScore.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/browser/workflow/selfHealScore.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/browser/workflow/stepGrammar.test.ts",
@@ -31728,6 +34363,10 @@
       "status": "added"
     },
     {
+      "path": "src/pages/settings/__tests__/CcSwitchImportRow.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/pages/settings/__tests__/languagePicker.test.ts",
       "status": "changed"
     },
@@ -31773,10 +34412,6 @@
     },
     {
       "path": "src/pages/settings/primitivesCanonical.test.tsx",
-      "status": "added"
-    },
-    {
-      "path": "src/pages/settings/settings-shell.css",
       "status": "added"
     },
     {
@@ -33460,6 +36095,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/safeBlockSplit/tiptap.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/search/__tests__/replaceStale.test.ts",
       "status": "added"
     },
@@ -34700,6 +37339,10 @@
       "status": "added"
     },
     {
+      "path": "src/services/assembly/createTiptapExtensions.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/assembly/extensionOrdering.test.ts",
       "status": "added"
     },
@@ -34816,6 +37459,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/browser/browserAiPolicySync.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/services/browser/browserEventBroker.test.ts",
       "status": "changed"
     },
@@ -34832,6 +37479,42 @@
       "status": "added"
     },
     {
+      "path": "src/services/browser/browserMenuSync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEventDecoder.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEventDecoder.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeEvents.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeViews.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNativeViews.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNavEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserNavEvents.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/browser/browserNavigation.test.ts",
       "status": "changed"
     },
@@ -34842,6 +37525,26 @@
     {
       "path": "src/services/browser/browserOcclusion.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/browser/browserTabEvents.ordering.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabEvents.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabLifecycle.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/browserTabLifecycle.ts",
+      "status": "added"
     },
     {
       "path": "src/services/browser/browserWorkspaceActive.test.ts",
@@ -34872,12 +37575,36 @@
       "status": "changed"
     },
     {
+      "path": "src/services/browser/leaseTransitions.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/leaseTransitions.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/browser/navIntent.test.ts",
       "status": "changed"
     },
     {
+      "path": "src/services/browser/navigationOrder.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/navigationOrder.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/browser/occlusion.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/browser/occlusion.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/services/browser/oneShotMints.ts",
+      "status": "added"
     },
     {
       "path": "src/services/browser/profile.test.ts",
@@ -34893,6 +37620,18 @@
     },
     {
       "path": "src/services/browser/recorderWiring.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/serializedPusher.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/serializedPusher.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/browser/sessionRestoreScript.test.ts",
       "status": "added"
     },
     {
@@ -34958,6 +37697,10 @@
     {
       "path": "src/services/dialogs/largeFilePrompts.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/editor/clipboardBridge.ts",
+      "status": "added"
     },
     {
       "path": "src/services/editor/clipboardUrl.test.ts",
@@ -35129,6 +37872,10 @@
       "status": "renamed"
     },
     {
+      "path": "src/services/history/checkpointRedoBranch.test.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/useHistoryOperations.test.ts",
       "path": "src/services/history/historyOperations.test.ts",
       "status": "renamed"
@@ -35157,6 +37904,10 @@
       "fromPath": "src/hooks/useUnifiedHistory.ts",
       "path": "src/services/history/unifiedHistory.ts",
       "status": "renamed"
+    },
+    {
+      "path": "src/services/history/unifiedUndoRedo.ts",
+      "status": "added"
     },
     {
       "path": "src/services/ime/imeToast.test.ts",
@@ -35275,6 +38026,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/macos/macQuarantineNotice.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/services/mcpBridge/bridgePathGuard.test.ts",
       "status": "changed"
     },
@@ -35291,11 +38046,51 @@
       "status": "added"
     },
     {
+      "path": "src/services/mcpBridge/v2/__tests__/browserAccess.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserActParse.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserApprovalFlow.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserAttachmentMirror.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserClose.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserExecuteJs.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/__tests__/browserExtract.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/mcpBridge/v2/__tests__/browserGateProbe.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserNavigation.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserOpenFlow.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserPower.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/browserWaitForPoll.test.ts",
       "status": "added"
     },
     {
@@ -35315,7 +38110,15 @@
       "status": "added"
     },
     {
+      "path": "src/services/mcpBridge/v2/__tests__/sessionSerializers.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/__tests__/sessionVisibility.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/waitBoundParity.test.ts",
       "status": "added"
     },
     {
@@ -35328,6 +38131,46 @@
     },
     {
       "path": "src/services/mcpBridge/v2/__tests__/workspaceSwitchTabVerify.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/bridgeError.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserAccess.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserAct.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserActFlow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserActParse.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserApprovalFlow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserAttachmentMirror.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserClose.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserExecuteJs.ts",
       "status": "added"
     },
     {
@@ -35347,6 +38190,30 @@
       "status": "added"
     },
     {
+      "path": "src/services/mcpBridge/v2/browserNavigation.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserNavigationShared.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserOpen.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserOpenFlow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserPower.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserQuery.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/browserRecord.test.ts",
       "status": "added"
     },
@@ -35359,7 +38226,19 @@
       "status": "added"
     },
     {
+      "path": "src/services/mcpBridge/v2/browserWaitFor.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/browserWaitForPoll.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/browserWorkflow.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/dispatch.ts",
       "status": "added"
     },
     {
@@ -35387,6 +38266,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/mcpBridge/v2/session.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/sessionSerializers.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/workspaceOpen.ts",
       "status": "added"
     },
@@ -35400,6 +38287,10 @@
     },
     {
       "path": "src/services/mcpBridge/v2/workspaceSave.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/wrapHandler.ts",
       "status": "added"
     },
     {
@@ -35695,6 +38586,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/runtimeWiring.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/runtimeWiring.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/secrets/apiKeySecrets.test.ts",
       "status": "changed"
     },
@@ -35901,6 +38800,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/windowClose/reserveBatchDestinations.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/windowClose/reserveBatchDestinations.ts",
+      "status": "added"
+    },
+    {
       "fromPath": "src/hooks/saveDialog.ts",
       "path": "src/services/windowClose/saveDialog.ts",
       "status": "renamed"
@@ -35932,6 +38839,22 @@
       "status": "added"
     },
     {
+      "path": "src/services/workflow/runApproval.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runApproval.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runClock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runClock.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workflow/runExecutor.test.ts",
       "status": "added"
     },
@@ -35940,11 +38863,35 @@
       "status": "added"
     },
     {
+      "path": "src/services/workflow/runExecutorEnv.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runExecutorHeal.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runNavigate.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runNavigate.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workflow/runRegistry.test.ts",
       "status": "added"
     },
     {
       "path": "src/services/workflow/runRegistry.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runStepGuard.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/runStepGuard.ts",
       "status": "added"
     },
     {
@@ -35961,6 +38908,14 @@
     },
     {
       "path": "src/services/workflow/workflowRunService.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunValidate.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunValidate.ts",
       "status": "added"
     },
     {
@@ -36391,6 +39346,10 @@
       "status": "changed"
     },
     {
+      "path": "src/stores/approvalCapParity.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/blockMathEditingStore.ts",
       "status": "changed"
     },
@@ -36407,7 +39366,27 @@
       "status": "added"
     },
     {
+      "path": "src/stores/browserApprovalStore.attach.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.attach.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.constants.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/browserApprovalStore.helpers.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.resolve.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/browserApprovalStore.resolve.ts",
       "status": "added"
     },
     {
@@ -36535,6 +39514,10 @@
     {
       "path": "src/stores/documentStore/storeContract.ts",
       "status": "added"
+    },
+    {
+      "path": "src/stores/documentStore/unifiedHistory.ts",
+      "status": "changed"
     },
     {
       "path": "src/stores/dropZoneStore.test.ts",
@@ -37059,6 +40042,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/styles/uiAuditFixes.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/adversarialMediaSources.ts",
       "status": "added"
     },
@@ -37253,6 +40240,10 @@
       "status": "added"
     },
     {
+      "path": "src/test/platformDefault.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/productionSchema.ts",
       "status": "added"
     },
@@ -37266,6 +40257,10 @@
     },
     {
       "path": "src/test/soakExclusion.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/splitBlockSelection.test.ts",
       "status": "added"
     },
     {
@@ -38417,6 +41412,14 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/markdownPipeline/serializerStrikethrough.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/serializerStrikethrough.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/markdownPipeline/testSchema.ts",
       "status": "changed"
     },
@@ -38778,6 +41781,18 @@
     },
     {
       "path": "vmark-content-server/src/cli.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "vmark-content-server/src/slidev/manager.test.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "vmark-content-server/src/slidev/manager.ts",
+      "status": "deleted"
+    },
+    {
+      "path": "vmark-content-server/vitest.config.ts",
       "status": "deleted"
     },
     {
@@ -39243,6 +42258,18 @@
     {
       "path": "website/pt-BR/guide/workspace-rail.md",
       "status": "added"
+    },
+    {
+      "path": "website/public/favicon.ico",
+      "status": "changed"
+    },
+    {
+      "path": "website/public/favicon.svg",
+      "status": "changed"
+    },
+    {
+      "path": "website/public/logo.png",
+      "status": "changed"
     },
     {
       "path": "website/zh-CN/download.md",

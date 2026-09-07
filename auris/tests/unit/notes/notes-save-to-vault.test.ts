@@ -118,4 +118,22 @@ describe("notes save to vault", () => {
     expect(client.writeFile).not.toHaveBeenCalled();
     expect(hasPendingNoteSave("Inbox/Daily.md")).toBe(false);
   });
+
+  it("repairs split surrogate entities in markdown content on save", async () => {
+    const client = createClient("");
+    const sourceWithBrokenSurrogate = "**word\\***&#xD83D;\uDE42word";
+
+    const result = await saveNoteToVault(client, {
+      expectedRawSource: "",
+      path: "Inbox/Emoji.md",
+      rawSource: sourceWithBrokenSurrogate,
+      saveType: "manual",
+    });
+
+    expect(result.normalizedSource).toBe("**word\\***&#x1F642;word");
+    expect(client.writeFile).toHaveBeenCalledWith(
+      "Inbox/Emoji.md",
+      "**word\\***&#x1F642;word",
+    );
+  });
 });

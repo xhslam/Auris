@@ -32,6 +32,7 @@ const GENERATED_INLINE_ATOMS = [
   "plain text",
   "**bold**",
   "*italic*",
+  "~~strikethrough~~",
   "`inline()`",
   "[link](https://example.com)",
   "[[语法#Tenses|时态]]",

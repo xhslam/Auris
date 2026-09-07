@@ -103,5 +103,10 @@ export function createNotesRichInputRules(schema: Schema) {
     rules.push(markInputRule(/(?<=^|[^`])`([^`]+)`$/, schema.marks.code));
   }
 
+  const strikeMark = schema.marks.strikethrough || schema.marks.s;
+  if (strikeMark) {
+    rules.push(markInputRule(/(?<=^|[^~])~~([^~]+)~~$/, strikeMark));
+  }
+
   return inputRules({ rules });
 }

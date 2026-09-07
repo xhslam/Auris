@@ -751,7 +751,6 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
 6. 测试与用例更新：
    - `auris/tests/unit/nia/nia-realtime-protocol.test.ts`：增加默认参数、auto 策略与自定义阈值的断言。
    - `auris/tests/component/nia/nia-workspace-surface.test.tsx`：增加对打断开关和等待时长网格的点击交互与持久化断言。
-
 ### 验证与测试结果
 - **单元与组件测试**：`npm run test -- nia` 60 个测试文件、360 项测试全部 PASS。
 - **代码规范与检查**：`npx eslint` 0 error 0 warning；`git diff --check` 无格式问题。
@@ -761,3 +760,43 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
   - 执行 `npx electron-builder --mac --arm64 --publish never` 完成 macOS arm64 打包；
   - 成功替换本地 `/Applications/Auris.app`，并验证安装包内的独立编译包中包含完整的打断控制与等待时长逻辑。
 
+## Engineering trajectory: Auris Note 对齐 VMark v0.9.65 健壮性与排版增强（2026-09-07）
+
+### 任务解读与范围分解
+根据 upstream VMark（`v0.9.65`，commit `75e4c5d`）审计报告及修复分析，对齐 Auris 笔记模块的核心鲁棒性与富文本能力：
+1. **保存目标竞争与单调序号序列化保护（F3）**：当笔记发生重命名、移动或删除时，若后台正在进行异步保存，需立即废弃旧路径的写入声明（SaveTargetClaim），防止将新状态写回旧路径造成幽灵文件或覆盖竞态。
+2. **Surrogate Pair Emoji 与星光区字符实体修复**：Markdown 序列化和保存时，防止 UTF-16 代理对高半区和低半区被切断成实体（如 `&#xD83D;\uDE42`），将其合并修复为有效 Unicode 实体（`&#x1F642;`）。
+3. **原子写入符号链接保护与权限继承（B2 & B3）**：`writeFileAtomically` 在写入前解析符号链接真实目标（上限 32 级），保留目标文件原有权限模式（`chmod`），避免原子覆盖将符号链接替换为普通文件或损坏权限。
+4. **会话崩溃恢复与草稿打捞（B5 & B6）**：主进程 `NotesRecoveryStore` 读取崩溃或非正常退出的 JSON 数据时，具备自动容错与数组对象逐步打捞能力，损坏的会话状态自动修复，不丢弃草稿。
+5. **跨块选区安全 Enter 换行处理（F5）**：富文本编辑器中若选区横跨不同 block，拦截自定义 Enter 拆分并直接交给 ProseMirror 原生 `splitBlock`，防止破坏块级边界或造成结构紊乱。
+6. **GFM 删除线（Strikethrough）所见即所得支持**：富文本 ProseMirror schema 扩充 `strikethrough` 标记定义与序列化，提供 `~~del~~` 输入规则及快捷键（`Mod-Shift-x`, `Mod-Shift-X`, `Mod-Alt-s`）。
+
+### 实现路径与修改文件
+1. `auris/src/features/notes/persistence/save-target-claim.ts`（新增）：
+   - 提供基于路径的单调递增 SaveClaim 机制（`claimSaveTarget`、`isCurrentSaveTarget`、`invalidateSaveTarget`、`forgetSaveTarget`）。
+2. `auris/src/features/notes/workbench/use-notes-documents.ts` 与 `use-notes-actions.ts`：
+   - 提交保存时占领 claim；重命名、移动或删除笔记时立即使旧路径 claim 失效；
+   - 解决保存回调顺序陷阱：在写入成功后先更新 `saveBaselineRef` 与 `rememberSelfWrittenContent`，再核对 claim 有效性，避免连续快速保存时将自身写入误判为外部磁盘冲突。
+3. `auris/src/features/notes/markdown/surrogate-repair.ts`（新增）与 `auris/src/features/notes/workbench/notes-save-to-vault.ts`：
+   - 实现 `repairSplitSurrogateEntities` 正则扫描及代理对拼合算法，并在向库保存前进行防御性清洗。
+4. `auris/electron/main.cjs`：
+   - `writeFileAtomically` 实现递归 `resolveLinkTarget` 与 `fs.statSync(resolvedPath).mode` 继承，再通过同目录临时文件原子重命名。
+5. `auris/electron/notes/notes-recovery-store.cjs`：
+   - 增加 `repairWorkspaceState`（补充有效 `version` 与空数组结构）和 `salvageJsonArrayObjects` 正则提取残存 JSON 对象的鲁棒机制。
+6. `auris/src/features/notes/editor/notes-rich-keymap.ts`、`notes-rich-markdown.ts` 与 `notes-rich-input-rules.ts`：
+   - 增加跨块 Enter 安全分发；增加 `strikethrough` 标记 spec 与序列化；增加 `~~text~~` 快捷格式化输入规则及快捷键绑定。
+7. 测试更新与新增：
+   - 新增 `auris/tests/unit/notes/save-target-claim.test.ts`、`auris/tests/unit/notes/surrogate-repair.test.ts`；
+   - 扩展 `auris/tests/unit/electron/notes/notes-recovery-store.test.ts`、`auris/tests/unit/notes/notes-save-to-vault.test.ts`、`auris/tests/unit/notes/notes-rich-input-rules.test.ts`、`auris/tests/unit/notes/notes-rich-markdown-roundtrip.test.ts`。
+
+### 验证与测试结果
+- **单元与组件测试**：
+  - `npm run test -- notes`：122 个测试文件、1048 项测试全量 PASS。
+- **代码规范与检查**：
+  - `npx eslint src/features/notes/ tests/unit/notes/`：0 error 0 warning；
+  - `node --check electron/main.cjs electron/notes/notes-recovery-store.cjs`：语法检查通过；
+  - `git diff --check`：0 格式问题。
+- **生产构建验证**：
+  - `npm run build`：Next.js 16.1.7 (webpack) 生产构建顺利通过，所有 23 个路由正常编译。
+- **同步差异报告**：
+  - `npm run vmark:diff`：成功生成 `latest.json` 和 `latest.md`。

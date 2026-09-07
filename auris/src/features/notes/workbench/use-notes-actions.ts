@@ -17,6 +17,10 @@ import {
   removeWorkspacePath,
   renameWorkspacePath,
 } from "@/features/notes/workspace/workspace-store";
+import {
+  forgetSaveTarget,
+  invalidateSaveTarget,
+} from "@/features/notes/persistence/save-target-claim";
 import type { NotesWorkspaceState } from "@/features/notes/workspace/workspace-types";
 import type { VaultSnapshot } from "@/features/notes/vault/vault-types";
 import {
@@ -267,6 +271,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
         plan.writes.forEach((w) => clearPendingDerivation(w.path));
 
         if (plan.nextPath !== path) {
+          invalidateSaveTarget(path);
           await client.renameEntry(path, plan.nextPath);
         }
 
@@ -327,6 +332,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
       const nextPath = [...segments.slice(0, -1), nextName].join("/");
 
       try {
+        invalidateSaveTarget(path);
         await client.renameEntry(path, nextPath);
         await refreshSnapshot({ eagerPaths: [nextPath] });
         setWorkspace((current) => renameWorkspacePath(current, path, nextPath));
@@ -458,6 +464,8 @@ export function useNotesActions(input: UseNotesActionsInput) {
         clearPendingSave(path);
         clearPendingDerivation(path);
         clearLocalDocumentState([path]);
+        invalidateSaveTarget(path);
+        forgetSaveTarget(path);
       }
 
       await client.deleteEntry(path);
