@@ -72,6 +72,36 @@
 }
 
 .output-review-page * { box-sizing: border-box; }
+/* Keep every Review scroll surface usable without visible tracks or thumbs. */
+.output-review-page,
+.output-review-page *,
+.desktop-app-shell:has(.output-review-page) .desktop-app-frame__viewport,
+.desktop-app-frame__viewport:has(.output-review-page) {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.output-review-page::-webkit-scrollbar,
+.output-review-page *::-webkit-scrollbar,
+.desktop-app-shell:has(.output-review-page) .desktop-app-frame__viewport::-webkit-scrollbar,
+.desktop-app-frame__viewport:has(.output-review-page)::-webkit-scrollbar,
+.output-review-page::-webkit-scrollbar-track,
+.output-review-page *::-webkit-scrollbar-track,
+.desktop-app-shell:has(.output-review-page) .desktop-app-frame__viewport::-webkit-scrollbar-track,
+.desktop-app-frame__viewport:has(.output-review-page)::-webkit-scrollbar-track,
+.output-review-page::-webkit-scrollbar-thumb,
+.output-review-page *::-webkit-scrollbar-thumb,
+.desktop-app-shell:has(.output-review-page) .desktop-app-frame__viewport::-webkit-scrollbar-thumb,
+.desktop-app-frame__viewport:has(.output-review-page)::-webkit-scrollbar-thumb,
+.output-review-page::-webkit-scrollbar-corner,
+.output-review-page *::-webkit-scrollbar-corner,
+.desktop-app-shell:has(.output-review-page) .desktop-app-frame__viewport::-webkit-scrollbar-corner,
+.desktop-app-frame__viewport:has(.output-review-page)::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
 .output-review-page button,
 .output-review-page input,
 .output-review-page select,

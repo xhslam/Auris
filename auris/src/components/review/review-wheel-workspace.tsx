@@ -62,7 +62,7 @@ export function ReviewWheelWorkspace({ children, state, queue, onOpen, onAddProj
       }}
       onPointerUp={() => { grip.current = null; }} onPointerCancel={() => { grip.current = null; }} onLostPointerCapture={() => { grip.current = null; }}><i /></div>
     <section className="review-wheel" aria-label="复习摩天轮">
-      <header className="review-wheel__heading"><div><span>YOUR LEARNING ORBIT</span><h2>让知识，再转一圈。</h2></div><span className="review-wheel__pace">慢速 · 手动切换</span></header>
+      <header className="review-wheel__heading"><div><span>REVIEW / 复习队列</span><h2>复习摩天轮</h2></div><span className="review-wheel__pace">慢速 · 手动切换</span></header>
       <div className="review-wheel__tabs" role="tablist" aria-label="摩天轮内容">
         {LABELS.map((label, index) => <button type="button" role="tab" id={`review-wheel-tab-${index}`} aria-controls={`review-wheel-panel-${index}`} aria-selected={active === index} key={label} onClick={() => { const distance = (index - active + 3) % 3; if (distance) turn(distance === 2 ? -1 : 1); }}>{label}<b>{counts[index]}</b></button>)}
       </div>

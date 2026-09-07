@@ -966,3 +966,54 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
    - `git diff --check` 通过，无空格与格式问题；
    - `npm run build`：Next.js 16.1.7 生产构建顺利通过，`/nia/companion` 等全部 23 条路由正常编译。
 3. 未提交或推送 Git 改动。
+
+## Engineering trajectory: Auris 复习页面桌面原生化与无滚动条工作台改造（2026-09-07）
+
+### 任务解读与范围分解
+用户反馈 Auris 原生桌面应用 `/review` 第一页（默认 `today` 视图，即 `ReviewWheelWorkspace` 复习工作台）存在体验问题：
+1. **页面整体不能上下滑动，UI 需对齐桌面原生软件体验**：作为原生桌面软件的 review 第一页，应当完整自适应窗口视口，禁止出现全页面纵向滚动条或滚动抖动；左右两栏与中间内容需优雅舒展、比例匀称。
+2. **隐藏所有组件的滚动轨道**：包括页面级容器、左右两大栏工作区、卡片正文、待办列表、标签切换栏及任何嵌套子组件，全部隐藏显式滚动条轨道与滑块（`scrollbar-width: none` / `::-webkit-scrollbar: none`），同时必须保留鼠标滚轮、触摸板双指滑动手势与键盘方向键的原生滚动交互。
+
+### 实现路径与关键问题排查
+1. **彻底消除全页面纵向滚动的根因修复**：
+   - 根因排查：宿主框架 `.desktop-app-frame__viewport` 默认声明为 `display: grid; align-content: start; overflow: auto;`，导致其内部各级嵌套容器（`.desktop-app-frame__layout`、`.auris-page.output-review-page`、`.output-review-page__container`）高度收缩为子内容的自然内容高（约 531px），从而在小窗口（如 720px）或大卡片展开时触发宿主视口滚动。
+   - 修复方案：在 `review-wheel-workspace.css` 中，将 `.desktop-app-shell:has(.review-wheel-workspace)` 下的视口、布局、页面、容器与工作台各层级高度统一锁定为 `height: 100% !important; min-height: 0 !important; max-height: 100% !important; overflow: hidden !important;`；将 `.desktop-app-frame__viewport` 转换为 `display: flex !important; flex-direction: column !important; align-content: stretch !important;`。
+   - 解决 Flex 子项 Auto-margin 塌缩问题：原有 `.output-review-page__container` 具有 `margin: 0 auto;`，在 Flex 列布局中导致宽度塌缩至内在 min-content 尺寸（约 508px）并居中留下大面积空白；明确指定其 `width: 100% !important; max-width: 100% !important; margin: 0 !important; box-sizing: border-box !important;`，恢复优雅的双栏满宽展开。
+2. **全域无缝隐形滚动条（Zero-Scrollbar Contract）**：
+   - 在 `output-review-page.css` 与 `review-wheel-workspace.css` 中建立全局覆盖规则，对 `.output-review-page` 与 `.review-wheel-workspace` 及其所有后代元素应用 `scrollbar-width: none !important; -ms-overflow-style: none !important;`；
+   - 针对 WebKit 引擎，将 `::-webkit-scrollbar`、`::-webkit-scrollbar-track`、`::-webkit-scrollbar-thumb`、`::-webkit-scrollbar-corner` 全部显式重置为 `display: none !important; width: 0 !important; height: 0 !important; background: transparent !important; border: none !important;`；移除了旧样式中残留的 `scrollbar-width: thin;`。
+3. **桌面端双栏 UI 视觉平衡与排版重构**：
+   - **左栏（概览与主角复习卡）**：
+     - 将顶部 4 块统计卡片高度由 108px 紧凑收敛至 `clamp(54px, 7.5vh, 68px)`，为下方的核心复习卡片释放逾 100px 的纵向阅读空间；
+     - 主角复习卡（`output-review-card`）内部由卡片头（标签、状态）、标题、阶段轴、正文提示点及底部操作栏（完成输出、查看全部计划）分层组成；正文区配置独立内部滚动并隐藏滚动条；
+   - **右栏（知识摩天轮轨道）**：
+     - 调整摩天轮圆心至 `var(--wheel-center-y: 40%)`，轨道半径设为 `clamp(100px, 23cqh, 140px)`，确保摩天轮与座舱在各档分辨率下垂直居中不与底部遥控器重叠；
+     - 标签栏 `.review-wheel__tabs` 设为 `flex-wrap: nowrap; overflow-x: auto;`，保持桌面端单行紧凑排列；
+     - 活跃座舱卡片（Cabin）增加清晰的层次景深与双色柔光边框，非活跃座舱维持 0.28 透明度轻量环绕；
+     - 底部手柄遥控器（Joystick）配置立体微拟物 3D 操纵杆，提供清晰的角度指引与动效。
+
+### 修改文件
+1. `auris/src/components/review/output-review-page.css`：
+   - 添加无可见滚动条的全局 WebKit 及 Firefox 规则覆盖，消除轨道和滑块。
+2. `auris/src/components/review/review-wheel-workspace.css`：
+   - 重构桌面框架高度贯通链路；
+   - 彻底隐藏所有容器与组件的滚动条；
+   - 紧凑化统计块并重塑摩天轮与主角卡片视觉尺度；
+   - 优化响应式断点与 tabs 单行排列。
+3. `auris/src/components/review/review-wheel-workspace.tsx`：
+   - 优化摩天轮标题层级，对齐桌面副标题规范。
+
+### 检查与验证结果
+1. **多视口全屏与无滚动条验证（Playwright 实测）**：
+   - 针对 1440×900、1280×800、1160×720 三档分辨率进行全屏测量与截图比对：
+     - 1440×900：`windowCanScroll: false, viewportCanScroll: false`，容器满屏且左右栏自适应；
+     - 1280×800：`windowCanScroll: false, viewportCanScroll: false`；
+     - 1160×720：`windowCanScroll: false, viewportCanScroll: false`，全部卡片与控件完全容纳在 720px 高度内；
+     - 页面及所有子组件均无可见滚动条，鼠标滚轮在内容过长时可顺畅平滑滚动。
+2. **测试与代码质量**：
+   - `npx vitest run tests/component/review/`：4 项组件测试通过（包括 45 分割线拖拽及 Arrow 步进断言）；
+   - `npx vitest run tests/unit/theme-contrast-styles.test.ts tests/unit/output-review/`：59 项单元测试通过（覆盖 6 套桌面主题对比度）；
+   - `npx eslint src/components/review/`：0 error 0 warning；
+   - `git diff --check`：通过，无多余空格与格式冲突；
+   - `npm run build`：Next.js 16.1.7 生产构建成功，全部 23 条路由编译完成。
+3. 未提交或推送 Git 改动。
