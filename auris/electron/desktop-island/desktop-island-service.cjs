@@ -12,13 +12,14 @@ const COLLAPSE_DELAY_MS = 420;
 const MAX_PENDING_INTENTS = 16;
 
 class DesktopIslandService {
-  constructor({ cachePath, nativeHost, settings, onIntent, onOpenHome, onOpenReview }) {
+  constructor({ cachePath, nativeHost, settings, onIntent, onOpenHome, onOpenReview, onSettingsChange = () => undefined }) {
     this.cachePath = cachePath;
     this.nativeHost = nativeHost;
     this.settings = normalizeDesktopIslandSettings(settings);
     this.onIntent = onIntent;
     this.onOpenHome = onOpenHome;
     this.onOpenReview = onOpenReview;
+    this.onSettingsChange = onSettingsChange;
     this.snapshot = null;
     this.fingerprint = null;
     this.dismissedFingerprint = null;
@@ -91,6 +92,16 @@ class DesktopIslandService {
     if (event.action === "dismiss") {
       this.dismissedFingerprint = this.fingerprint;
       this.expanded = false;
+      this.publish();
+      return;
+    }
+    if (event.action === "set-placement" && ["top", "right", "bottom", "left"].includes(event.value)) {
+      if (event.value === this.settings.placement) return;
+      this.settings = normalizeDesktopIslandSettings(
+        { ...this.settings, placement: event.value },
+        this.settings,
+      );
+      this.onSettingsChange(this.getSettings());
       this.publish();
       return;
     }

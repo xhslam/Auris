@@ -46,9 +46,17 @@ private struct IslandContent: Codable {
     let version: Int
 }
 
+private enum IslandPlacement: String, Codable, CaseIterable {
+    case top
+    case right
+    case bottom
+    case left
+}
+
 private struct IslandSettings: Codable {
     let enabled: Bool
     let expandOnHover: Bool
+    let placement: IslandPlacement
     let privacyMode: Bool
 }
 
@@ -69,7 +77,7 @@ private struct SnapshotMessage: Codable {
 private final class IslandModel: ObservableObject {
     @Published var content: IslandContent?
     @Published var presentation = "hidden"
-    @Published var settings = IslandSettings(enabled: true, expandOnHover: true, privacyMode: false)
+    @Published var settings = IslandSettings(enabled: true, expandOnHover: true, placement: .top, privacyMode: false)
 
     func apply(_ message: SnapshotMessage) {
         content = message.content
@@ -280,26 +288,29 @@ private struct IslandRootView: View {
 }
 
 @MainActor
-private final class IslandController {
+private final class IslandController: NSObject, NSWindowDelegate {
     let model = IslandModel()
     let panel: NSPanel
 
-    init() {
+    override init() {
         panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 430, height: 40),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
+        super.init()
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 2)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         panel.hidesOnDeactivate = false
-        panel.isMovable = false
+        panel.isMovable = true
+        panel.isMovableByWindowBackground = true
         panel.isReleasedWhenClosed = false
         panel.contentView = NSHostingView(rootView: IslandRootView(model: model))
+        panel.delegate = self
     }
 
     func apply(_ message: SnapshotMessage) {
@@ -311,18 +322,68 @@ private final class IslandController {
         let size = message.presentation == "expanded"
             ? NSSize(width: 560, height: 310)
             : NSSize(width: 430, height: 40)
-        position(size: size)
+        position(size: size, placement: message.settings.placement)
         panel.orderFrontRegardless()
     }
 
-    func position(size: NSSize) {
-        let screen = panel.screen ?? NSScreen.main ?? NSScreen.screens.first
+    func position(size: NSSize, placement: IslandPlacement, animate: Bool? = nil) {
+        let screen = screenContainingPanelCenter() ?? panel.screen ?? NSScreen.main ?? NSScreen.screens.first
         guard let screen else { return }
-        let hasNotch = screen.safeAreaInsets.top > 0
-        let top = hasNotch ? screen.frame.maxY : screen.visibleFrame.maxY - 8
-        let origin = NSPoint(x: screen.frame.midX - size.width / 2, y: top - size.height)
-        panel.setFrame(NSRect(origin: origin, size: size), display: true, animate: panel.isVisible)
+        panel.setFrame(
+            dockedFrame(size: size, placement: placement, screen: screen),
+            display: true,
+            animate: animate ?? panel.isVisible
+        )
     }
+
+    func snapAfterDrag() {
+        guard panel.isVisible,
+              let screen = screenContainingPanelCenter() ?? panel.screen ?? NSScreen.main else { return }
+        let size = panel.frame.size
+        let currentOrigin = panel.frame.origin
+        let currentPlacement = model.settings.placement
+        let expectedOrigin = dockedFrame(size: size, placement: currentPlacement, screen: screen).origin
+        guard hypot(currentOrigin.x - expectedOrigin.x, currentOrigin.y - expectedOrigin.y) > 2 else { return }
+
+        let panelCenter = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        let placement = IslandPlacement.allCases.min { first, second in
+            distance(from: panelCenter, to: dockedFrame(size: size, placement: first, screen: screen).center)
+                < distance(from: panelCenter, to: dockedFrame(size: size, placement: second, screen: screen).center)
+        } ?? .top
+        position(size: size, placement: placement, animate: true)
+        emit(["action": "set-placement", "value": placement.rawValue])
+    }
+
+    private func screenContainingPanelCenter() -> NSScreen? {
+        let center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        return NSScreen.screens.first { $0.frame.contains(center) }
+    }
+
+    private func dockedFrame(size: NSSize, placement: IslandPlacement, screen: NSScreen) -> NSRect {
+        let visible = screen.visibleFrame
+        let edgeInset: CGFloat = 8
+        let topEdge = screen.safeAreaInsets.top > 0 ? screen.frame.maxY : visible.maxY - edgeInset
+        let origin: NSPoint
+        switch placement {
+        case .top:
+            origin = NSPoint(x: screen.frame.midX - size.width / 2, y: topEdge - size.height)
+        case .right:
+            origin = NSPoint(x: visible.maxX - size.width - edgeInset, y: visible.midY - size.height / 2)
+        case .bottom:
+            origin = NSPoint(x: visible.midX - size.width / 2, y: visible.minY + edgeInset)
+        case .left:
+            origin = NSPoint(x: visible.minX + edgeInset, y: visible.midY - size.height / 2)
+        }
+        return NSRect(origin: origin, size: size)
+    }
+
+    private func distance(from first: NSPoint, to second: NSPoint) -> CGFloat {
+        hypot(first.x - second.x, first.y - second.y)
+    }
+}
+
+private extension NSRect {
+    var center: NSPoint { NSPoint(x: midX, y: midY) }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -330,6 +391,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var controller: IslandController?
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
+    private var globalMouseUpMonitor: Any?
+    private var localMouseUpMonitor: Any?
     private var parentPid: pid_t = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -345,8 +408,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
         if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
+        if let globalMouseUpMonitor { NSEvent.removeMonitor(globalMouseUpMonitor) }
+        if let localMouseUpMonitor { NSEvent.removeMonitor(localMouseUpMonitor) }
         globalMouseMonitor = nil
         localMouseMonitor = nil
+        globalMouseUpMonitor = nil
+        localMouseUpMonitor = nil
     }
 
     private func installOutsideClickMonitors() {
@@ -356,6 +423,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: mouseDownEvents) { [weak self] event in
             DispatchQueue.main.async { self?.collapseIfClickOutside() }
+            return event
+        }
+        globalMouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] _ in
+            DispatchQueue.main.async { self?.controller?.snapAfterDrag() }
+        }
+        localMouseUpMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseUp) { [weak self] event in
+            DispatchQueue.main.async { self?.controller?.snapAfterDrag() }
             return event
         }
     }

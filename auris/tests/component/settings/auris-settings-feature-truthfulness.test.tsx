@@ -77,13 +77,14 @@ describe("AurisSettings feature truthfulness", () => {
     const updateSettings = vi.fn(async (patch: Partial<DesktopIslandSettings>) => ({
       enabled: patch.enabled ?? true,
       expandOnHover: patch.expandOnHover ?? false,
+      placement: patch.placement ?? "top" as const,
       privacyMode: patch.privacyMode ?? false,
     }));
     window.shadowingDesktop = createTestDesktopBridge({
       desktopIsland: {
         acknowledgeIntent: vi.fn(async () => undefined),
         getSettings: vi.fn(async () => ({
-          enabled: true, expandOnHover: false, privacyMode: false,
+          enabled: true, expandOnHover: false, placement: "top", privacyMode: false,
         })),
         listPendingIntents: vi.fn(async () => []),
         onIntent: vi.fn(() => () => undefined),

@@ -1086,6 +1086,7 @@ function createDefaultDesktopConfig() {
     desktopIsland: normalizeDesktopIslandSettings({
       enabled: process.platform === "darwin",
       expandOnHover: true,
+      placement: "top",
       privacyMode: false,
     }),
     niaCompanion: normalizeNiaCompanionSettings(),
@@ -4585,6 +4586,9 @@ app.whenReady().then(async () => {
         ? `?knowledgePointId=${encodeURIComponent(knowledgePointId)}`
         : "";
       return openMainRoute(`/review${params}`);
+    },
+    onSettingsChange: (settings) => {
+      void writeDesktopConfig({ ...desktopConfig, desktopIsland: settings });
     },
     settings: desktopConfig.desktopIsland,
   });

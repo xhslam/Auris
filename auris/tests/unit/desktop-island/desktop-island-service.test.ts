@@ -6,6 +6,7 @@ type IslandService = {
   acknowledgeIntent: (actionId: string) => void;
   handleNativeEvent: (event: Record<string, unknown>) => void;
   listPendingIntents: () => Array<{ actionId: string }>;
+  getSettings: () => Record<string, unknown>;
   start: () => void;
   syncSnapshot: (snapshot: ReturnType<typeof snapshot>) => { revision: number };
 };
@@ -38,17 +39,19 @@ function snapshot() {
 function setup() {
   const nativeHost = { dispose: vi.fn(), send: vi.fn(), start: vi.fn(), onEvent: vi.fn() };
   const onIntent = vi.fn();
+  const onSettingsChange = vi.fn();
   const service = new DesktopIslandService({
     cachePath: null,
     nativeHost,
     onIntent,
     onOpenHome: vi.fn(),
     onOpenReview: vi.fn(),
-    settings: { enabled: true, expandOnHover: true, privacyMode: false },
+    onSettingsChange,
+    settings: { enabled: true, expandOnHover: true, placement: "top", privacyMode: false },
   });
   service.start();
   service.syncSnapshot(snapshot());
-  return { nativeHost, onIntent, service };
+  return { nativeHost, onIntent, onSettingsChange, service };
 }
 
 describe("DesktopIslandService", () => {
@@ -83,5 +86,18 @@ describe("DesktopIslandService", () => {
     changed.tasks.remaining = 2;
     service.syncSnapshot(changed);
     expect(nativeHost.send).toHaveBeenLastCalledWith(expect.objectContaining({ presentation: "compact" }));
+  });
+
+  it("persists and republishes a placement selected by native dragging", () => {
+    const { nativeHost, onSettingsChange, service } = setup();
+    service.handleNativeEvent({ action: "set-placement", value: "left" });
+    expect(service.getSettings()).toMatchObject({ placement: "left" });
+    expect(onSettingsChange).toHaveBeenCalledWith(expect.objectContaining({ placement: "left" }));
+    expect(nativeHost.send).toHaveBeenLastCalledWith(expect.objectContaining({
+      settings: expect.objectContaining({ placement: "left" }),
+    }));
+
+    service.handleNativeEvent({ action: "set-placement", value: "center" });
+    expect(service.getSettings()).toMatchObject({ placement: "left" });
   });
 });

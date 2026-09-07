@@ -6,7 +6,7 @@ import type { DesktopIslandRendererIntent } from "@/features/desktop-island/desk
 
 const island = {
   acknowledgeIntent: vi.fn(async () => undefined),
-  getSettings: vi.fn(async () => ({ enabled: true, expandOnHover: true, privacyMode: false })),
+  getSettings: vi.fn(async () => ({ enabled: true, expandOnHover: true, placement: "top" as const, privacyMode: false })),
   listPendingIntents: vi.fn(async () => [] as DesktopIslandRendererIntent[]),
   listener: null as ((intent: DesktopIslandRendererIntent) => void) | null,
   onIntent: vi.fn((listener: (intent: DesktopIslandRendererIntent) => void) => {
@@ -14,7 +14,7 @@ const island = {
     return () => { island.listener = null; };
   }),
   syncSnapshot: vi.fn(async () => ({ accepted: true, revision: 1 })),
-  updateSettings: vi.fn(async () => ({ enabled: true, expandOnHover: true, privacyMode: false })),
+  updateSettings: vi.fn(async () => ({ enabled: true, expandOnHover: true, placement: "top" as const, privacyMode: false })),
 };
 
 vi.mock("@/platform/desktop/use-hydrated-desktop-bridge", () => ({

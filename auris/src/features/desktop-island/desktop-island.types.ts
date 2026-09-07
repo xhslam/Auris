@@ -1,4 +1,5 @@
 export type DesktopIslandPresentation = "hidden" | "compact" | "expanded";
+export type DesktopIslandPlacement = "top" | "right" | "bottom" | "left";
 
 export type DesktopIslandTaskItem = Readonly<{
   done: boolean;
@@ -41,6 +42,7 @@ export type DesktopIslandContentSnapshot = Readonly<{
 export type DesktopIslandSettings = Readonly<{
   enabled: boolean;
   expandOnHover: boolean;
+  placement: DesktopIslandPlacement;
   privacyMode: boolean;
 }>;
 

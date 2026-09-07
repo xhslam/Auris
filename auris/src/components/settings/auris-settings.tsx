@@ -1690,7 +1690,7 @@ function buildPanel(
           {
             title: "桌面灵动岛",
             rows: [
-              { kind: "toggle", key: "desktopIslandEnabled", label: "显示桌面灵动岛", desc: "在 macOS 桌面顶部显示今日任务与回顾复习" },
+              { kind: "toggle", key: "desktopIslandEnabled", label: "显示桌面灵动岛", desc: "在 macOS 桌面显示今日任务与回顾复习；可拖到上下左右并自动吸附至边缘中点" },
               { kind: "toggle", key: "desktopIslandExpandOnHover", label: "悬停时展开", desc: "指针停留片刻后自动展开，移开后自动收起" },
               { kind: "toggle", key: "desktopIslandPrivacyMode", label: "隐私模式", desc: "展开时隐藏任务和知识点标题，只显示数量与进度" },
             ],

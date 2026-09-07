@@ -32,4 +32,15 @@ describe("desktop island native click-away behavior", () => {
     expect(source).toContain("NSEvent.removeMonitor(globalMouseMonitor)");
     expect(source).toContain("NSEvent.removeMonitor(localMouseMonitor)");
   });
+
+  it("drags and snaps to the midpoint of the nearest screen edge", () => {
+    expect(source).toContain("panel.isMovable = true");
+    expect(source).toContain("panel.isMovableByWindowBackground = true");
+    expect(source).toContain("func snapAfterDrag()");
+    expect(source).toContain("IslandPlacement.allCases.min");
+    expect(source).toContain('emit(["action": "set-placement", "value": placement.rawValue])');
+    for (const placement of [".top", ".right", ".bottom", ".left"]) {
+      expect(source).toContain(`case ${placement}`);
+    }
+  });
 });

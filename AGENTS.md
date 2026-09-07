@@ -885,6 +885,14 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
   - `npm run build`：Next.js 16.1.7 (webpack) 生产构建顺利通过，`/flash` 等 23 个路由正常编译生成；
 - 未提交或推送 Git 改动。
 
+## Engineering trajectory: macOS 灵动岛四向拖拽吸附（2026-09-07）
+
+用户要求灵动岛可在屏幕上下左右移动，并停在对应边缘中点。实现保留现有原生 `NSPanel` 和 SwiftUI 内容，开启窗口背景拖动；鼠标松开时根据面板中心与四个候选停靠点的距离，吸附到当前显示器最近的顶部、右侧、底部或左侧中点。多显示器按面板中心所在屏幕判定，顶部继续避让 macOS 刘海与菜单栏，其他方向使用 `visibleFrame` 保留 8px 安全边距。展开与收起时保持当前停靠方向。
+
+位置以 `top | right | bottom | left` 加入灵动岛设置合约，原生 helper 在吸附后通知 Electron 服务，服务更新并写入桌面配置，因此应用重启后仍保持上次位置；旧配置或非法位置自动回退到顶部中央。设置页的功能说明同步更新，未改动灵动岛的任务、复习、隐私、悬停展开或页面跳转逻辑。
+
+改动涉及 `native/desktop-island/macos/AurisDesktopIslandHelper.swift`、Electron 的 desktop-island 合约/服务与 `main.cjs`、TypeScript 设置类型、设置页说明及相关回归测试。验证通过：原生 helper 编译；6 个测试文件、25 项测试；Node 语法检查；定向 ESLint；定向 `git diff --check`；Next.js 生产构建。还使用新编译 helper 实际启动并成功解码包含 placement 的测试快照，验证后已关闭进程。未提交或推送 Git 改动。
+
 ## Engineering trajectory: Auris Nia 页面全面去紫色与主题强对比重构（2026-09-07）
 
 ### 任务解读与范围分解

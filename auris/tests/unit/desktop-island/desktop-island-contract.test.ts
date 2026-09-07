@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
 const {
+  normalizeDesktopIslandSettings,
   normalizeDesktopIslandSnapshot,
   semanticSnapshotFingerprint,
 } = require("../../../electron/desktop-island/desktop-island-contract.cjs") as {
+  normalizeDesktopIslandSettings: (value: unknown) => Record<string, unknown>;
   normalizeDesktopIslandSnapshot: (value: unknown) => Record<string, unknown>;
   semanticSnapshotFingerprint: (value: Record<string, unknown>) => string;
 };
@@ -69,5 +71,12 @@ describe("desktop island native contract", () => {
       ...snapshot(),
       tasks: { ...snapshot().tasks, items: [{ done: "yes", id: "task-1", title: "整理笔记" }] },
     })).toThrow();
+  });
+
+  it("normalizes the four dock placements and falls back to the top edge", () => {
+    for (const placement of ["top", "right", "bottom", "left"]) {
+      expect(normalizeDesktopIslandSettings({ placement })).toMatchObject({ placement });
+    }
+    expect(normalizeDesktopIslandSettings({ placement: "center" })).toMatchObject({ placement: "top" });
   });
 });

@@ -2,6 +2,7 @@ const MAX_TASK_ITEMS = 3;
 const MAX_REVIEW_ITEMS = 1;
 const MAX_TEXT_LENGTH = 120;
 const MAX_ID_LENGTH = 128;
+const DESKTOP_ISLAND_PLACEMENTS = new Set(["top", "right", "bottom", "left"]);
 
 function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -127,11 +128,17 @@ function normalizeDesktopIslandSnapshot(value) {
 
 function normalizeDesktopIslandSettings(value, fallback = {}) {
   const source = isRecord(value) ? value : {};
+  const fallbackPlacement = DESKTOP_ISLAND_PLACEMENTS.has(fallback.placement)
+    ? fallback.placement
+    : "top";
   return {
     enabled: typeof source.enabled === "boolean" ? source.enabled : Boolean(fallback.enabled),
     expandOnHover: typeof source.expandOnHover === "boolean"
       ? source.expandOnHover
       : fallback.expandOnHover !== false,
+    placement: DESKTOP_ISLAND_PLACEMENTS.has(source.placement)
+      ? source.placement
+      : fallbackPlacement,
     privacyMode: typeof source.privacyMode === "boolean"
       ? source.privacyMode
       : Boolean(fallback.privacyMode),
