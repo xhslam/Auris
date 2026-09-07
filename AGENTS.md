@@ -565,6 +565,14 @@ Proma 灵动岛为 Agent 运行状态监视器（idle/working/waiting），仅�
 - 生产构建：`npm run build` 成功完成，23 个路由全部生成，包含 `/nia` 与 `/reading`。
 - 未提交或推送 Git 改动。
 
+## Engineering trajectory: Auris 复盘页去 NIA 与非金色主题重排（2026-09-07）
+
+本次只改造 `/review` 复盘页，不修改首页、Flash 或独立 NIA 工作区。`review-page-client.tsx` 移除了旧 `getNiaReviewMessage` 调用及 Nia 复习监督区，将原先分离的 Nia 卡和数据卡重组为「今日复盘概览 + 四格数据面板」；现有 1/2/4/7 队列、后续复习和所有业务操作保持不变。
+
+`output-review-page.css` 在复盘页局部建立六套主题感知的非金色 Accent：White 深蓝、Paper 青蓝、Mint 深绿、Sepia 陶土红、Night 亮青、Solarized 青碧。背景与表面仍继承全局主题令牌，强调色及按钮文字在六套主题下均通过 WCAG AA 对比度校验。响应式布局在 1020px 下改为上下排列，680px 下将数据面板收敛为三列指标加满宽进度。
+
+验证结果：复盘组件 3 项测试、复盘相关 8 项主题对比度断言、定向 ESLint、`git diff --check` 和 `npm run build` 均通过。本地 1280px Solarized 实际页面检查确认无横向溢出、复盘页内无 Nia 区块，主概览与复习卡对比清晰。全量主题测试另有 6 项失败，来自工作树中已有的 NIA 主题改动，与本次复盘页修改无关。未提交或推送 Git 改动。
+
 ## Engineering trajectory: Nia 满高工作台与能力视图重排（2026-09-07）
 
 用户截图中的“展示卡住”由两个独立问题叠加：`DesktopAppFrame` 仍保留了旧的两行 Grid，而 Nia 只占自动高度行，使会话面板停在上半屏；工具视图则在主区和检查器重复渲染同一份工具列表与模型路由，且右侧的 `nia-routing` / 分隔条样式在前次整理中缺失。
@@ -800,3 +808,117 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
   - `npm run build`：Next.js 16.1.7 (webpack) 生产构建顺利通过，所有 23 个路由正常编译。
 - **同步差异报告**：
   - `npm run vmark:diff`：成功生成 `latest.json` 和 `latest.md`。
+
+## Engineering trajectory: Nia、Review、Flash 全局多主题统一与高对比度适配（2026-09-07）
+
+### 任务解读与范围分解
+用户提供了 Nia (`/nia`)、Review (`/review`)、Flash (`/flash`) 三张界面的截图并指出：这三处界面的颜色风格与全局主题脱节，存在自行发挥的配色（如 Nia 固定的亮紫、Flash 混色造成的浑浊低对比、Review 浮层对比度不足）；要求统一跟随用户的全局激活主题，且必须确保内容与背景对比强烈、边缘清晰，绝不出现模糊或低对比发灰发浑。
+1. **全局主题契约（Auris 6 大主题）**：`white`、`paper`、`mint`、`sepia`、`night`、`solarized`。通过 `.desktop-app-shell[data-app-theme="..."]` 提供 `--app-bg`、`--app-surface`、`--app-ink`、`--app-text`、`--app-muted`、`--app-line`、`--accent`、`--accent-strong`、`--accent-ink`。
+2. **Flash 页面排查与重构**：
+   - 修复导航高亮按钮：此前使用 `color-mix(var(--accent) 72%, var(--app-surface))` 与 `var(--app-ink)` 混色，导致暗色金黄主题下文本对比度仅 2.97:1 严重失焦模糊；重构为 `background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 650;`，对比度提升至 11.2:1 (WCAG AAA)。
+   - 修复卡片与边框溶解：`.flash-card` 原先为 `border: 1px solid transparent`，导致卡片溶解在 `#1b1c1f` 背景中无可见边界；添加 `1px solid var(--app-line)` 与微阴影。
+   - 修复热力图级别混色、搜索框底色与提交按钮的 `accent-ink` 反色。
+3. **Review 页面排查与重构**：
+   - 修复卡片浮层：此前 `--review-elevated` 被 28% `--app-bg` 压暗导致与背景发浑；重构为清晰的 `var(--app-surface)`，辅以清晰的 `1px solid var(--app-line-soft)`。
+   - 修复告警与逾期色值对比度：暗色主题 `--review-warning` 升级为高亮暖色 `#f29373`（与 `#212226` 对比度 > 6.6:1）；浅色主题 `--review-warning` 适配为加深暖色 `#b2451e`（与 `#f4f7f1` 对比度 > 5.2:1，满足 WCAG AA ≥ 4.5:1）。
+   - 修复时间轴进度节点与线段：`.output-review-progress__node` 与 `.output-review-progress__line` 改用 `var(--app-line-strong)`，彻底告别原先隐形不可见的空心圈。
+4. **Nia 页面排查与重构**：
+   - 彻底拔除硬编码紫色：此前 `nia.css` 在所有 6 个主题下将 `--nia-accent` 写死为紫色（`#7b61ff`, `#6f54ea`, `#a995ff` 等），并在 15+ 处选择器硬编码 `rgba(169, 149, 255)`；全部重构为继承全局 `--accent`、`--accent-strong`、`--accent-ink` 与 `color-mix(in srgb, var(--nia-accent) X%, transparent)`。
+   - 角色头像与品牌标（Nia Brand Mark）：统一改用 `linear-gradient(145deg, var(--nia-accent), var(--nia-accent-2))` 与 `color: var(--nia-accent-ink)`，使其在暗色主题下呈现与 Review 一致的温润金黄色，在薄荷色下呈现墨绿色；对话头像的眼睛也统一采用 `var(--nia-accent-ink)`。
+   - 独立陪伴与设置：`NiaAccentTheme` 扩展 `"auto" | "violet" | "gold" | "blue"`，默认值从固定 `"violet"` 改为 `"auto"`（跟随全局主题），并在设置弹窗外观中补充「跟随主题」渐变色阶选项；日历高亮选中日期文字从硬编码黑字改为 `var(--nia-accent-ink)`。
+
+### 修改文件与职责
+1. `auris/src/components/flash/flash-page.css`：
+   - 统一使用 `var(--accent)` 与 `var(--accent-ink)`，修复导航、提交按钮、热力图、卡片边框高对比度与清晰度。
+2. `auris/src/components/review/output-review-page.css`：
+   - 统一使用 `var(--app-surface)` 浮层、分主题 `--review-warning`（暗色 `#f29373`，浅色 `#b2451e`）、清晰逾期徽标与时间轴刻度线。
+3. `auris/src/app/nia/nia.css`：
+   - 重构 6 大主题下的 `--nia-bg`、`--nia-surface`、`--nia-accent`、`--nia-accent-ink`、`--nia-done`、`--nia-cut`；
+   - 消除硬编码紫色的品牌标、头像、日历选中、工具徽标与文本侧栏。
+4. `auris/src/components/nia/nia-workspace-surface.tsx`：
+   - 扩充 `NiaAccentTheme` 类型，默认状态设为 `"auto"`，持久化兼容 `"auto"`，并在设置弹框中新增「跟随主题」控制按钮。
+5. `auris/tests/unit/theme-contrast-styles.test.ts`：
+   - 增加 Nia 6 大主题下的文本、边框、Accent、Accent-ink、Done/Cut 标签的 WCAG AA (≥ 4.5:1) 断言与主题继承校验；
+   - 增加 Flash 激活项、边框令牌、Review 警告色在浅色/暗色表面的高对比度断言。
+6. `auris/tests/component/nia/nia-workspace-surface.test.tsx`：
+   - 增加 Nia 默认 `data-accent-theme="auto"` 以及设置弹窗中「跟随主题」切换与本地存储持久化的回归断言。
+
+### 验证与测试结果
+- **单元与组件测试**：
+  - `npm test -- tests/unit/theme-contrast-styles.test.ts tests/unit/flash/flash-theme-styles.test.ts tests/component/flash/flash-page-client.test.tsx tests/component/review/output-review-page.test.tsx tests/component/nia/nia-workspace-surface.test.tsx`：5 个测试文件、68 项测试全部 PASS。
+- **代码规范与格式检查**：
+  - `npx eslint src/components/nia/nia-workspace-surface.tsx tests/component/nia/nia-workspace-surface.test.tsx tests/unit/theme-contrast-styles.test.ts`：0 error 0 warning。
+  - `git diff --check`：通过，无多余空格或格式问题。
+- **生产构建验证**：
+  - `npm run build`：Next.js 16.1.7 (webpack) 生产构建通过，23 个路由包括 `/nia`、`/review`、`/flash` 均正常生成。
+
+## Engineering trajectory: Auris 闪念页面主题色彩适配与强对比重构（2026-09-07）
+
+### 任务解读与范围分解
+用户明确要求：
+1. **彻底移除金色系**：闪念工作台不再使用违和刺眼的土金色、金黄色、泥金棕色（如 `#c7a86a`、`#d4b56e`、`#e1c55a`、`#765214`、`#6f4f18`），包括 Brand Mark 图标、活跃热力图、导航选中态、构思输入框与提交按钮、收藏星标及悬停光晕；
+2. **与当前主题色彩高度契合**：全面覆盖系统「设置 → 外观」提供的 6 种全局应用主题（夜间 `night`、薄荷 `mint`、极简白 `white`、纸张 `paper`、棕褐 `sepia`、`solarized`），为每个主题定制专属色调（夜间灵感蓝、薄荷常青竹翠、白色深靛蓝、纸张青墨砚石、棕褐深焙焦茶、Solarized 经典青碧）；
+3. **确保背景与内容形成强烈的视觉对比**：
+   - 解决卡片底色与页面底色融合、边界模糊的痛点：浅色模式下纯白/高亮卡片浮于温润底色之上，深色模式下悬浮暗舱卡片与深邃画布形成明确明度差与立体投影；
+   - 核心内容文字（卡片正文、构思输入框内容）使用最高对比度的主文本令牌，对比度远超 WCAG AAA 标准（深色模式纯净白 `#ffffff`，浅色模式曜石纯墨 `#0f172a` / `#0d2116` / `#181511`，对比度达 12:1 ~ 18:1）。
+
+### 实现路径与修改文件
+1. `auris/src/components/flash/flash-page.css`：
+   - 重构色彩体系，引入 `--flash-bg`、`--flash-sidebar-bg`、`--flash-card-bg`、`--flash-card-border`、`--flash-card-hover-border`、`--flash-card-shadow`、`--flash-text-primary`、`--flash-text-secondary`、`--flash-text-muted`、`--flash-accent`、`--flash-accent-ink`、`--flash-active-item-bg`、`--flash-active-item-text`、`--flash-heat-1~4` 等完整语义令牌；
+   - 针对 `.desktop-app-shell[data-app-theme="..."] .flash-workspace` 实现 6 大主题的强对比度配色映射，彻底杜绝任何金色色值；
+   - 优化导航选中项（由大面积金色刺眼填充重构为高级精致胶囊）、输入框聚焦光晕、热力图梯度、卡片边框与微阴影，使正文与卡片视觉层次清晰立现。
+2. `auris/tests/unit/flash/flash-theme-styles.test.ts`：
+   - 更新单元测试，断言 6 大主题均具备 `.desktop-app-shell[data-app-theme="..."] .flash-workspace` 专属主题定制；
+   - 增加严禁包含 `#c7a86a`、`#d4b56e`、`#e1c55a`、`#765214`、`#6f4f18` 等金色系正则测试，防止金色回潮；
+   - 验证高对比度表面与文本语义令牌，同时确保保留全局 fallback 兼容。
+3. `auris/tests/unit/theme-contrast-styles.test.ts`：
+   - 新增闪念页面在 6 大主题下的 WCAG AA/AAA 对比度数学校验（底色、卡片、正文、次级文本、Accent、Accent-ink 均严格满足 `contrastRatio >= 4.5:1`）；
+   - 更新导航、输入框、卡片边框的高对比令牌断言。
+
+### 验证与测试结果
+- **单元与组件测试**：
+  - `npx vitest run tests/unit/flash tests/component/flash tests/unit/theme-contrast-styles.test.ts`：4 个测试文件、72 项测试全部 PASS；
+- **静态代码检查与格式**：
+  - `npx eslint src/components/flash/ tests/unit/flash/ tests/component/flash/ tests/unit/theme-contrast-styles.test.ts`：0 error 0 warning；
+  - `git diff --check`：通过，无任何多余空格或格式问题；
+- **生产构建验证**：
+  - `npm run build`：Next.js 16.1.7 (webpack) 生产构建顺利通过，`/flash` 等 23 个路由正常编译生成；
+- 未提交或推送 Git 改动。
+
+## Engineering trajectory: Auris Nia 页面全面去紫色与主题强对比重构（2026-09-07）
+
+### 任务解读与范围分解
+用户明确要求：
+1. **彻底移除紫色（不要紫色）**：Nia 伴侣工作台全面下架一切紫色及深浅紫调，包括 Mochi 伴侣形象的硬编码紫色色值（`#514c83`、`#28253e`、`#34304f`、`#32304d`、`#1a1925` 等）、微型头像紫粉渐变（`#a99aff`、`#6b57d1`、`#252044`）、设置弹窗中的「紫色主题」选项及色块；
+2. **与当前主题色彩高度契合**：全面覆盖 6 大全局应用主题（夜间 `night`、薄荷 `mint`、极简白 `white`、纸张 `paper`、棕褐 `sepia`、`solarized`），严格遵循 `desktop-app-shell[data-app-theme="..."]` 的 Accent / Accent-ink 令牌与主题契约，默认及推荐使用「跟随主题」，原「紫色主题」独立强调选项升级替换为 Auris 品牌代表性的「暖橙主题」（`amber`，`#ff7b45`）；
+3. **确保背景与内容对比强烈**：
+   - 解决各面板底色过于扁平融合、边缘界限模糊的问题：主列工作台、审查侧边栏、文本抽屉及顶部栏增加强化边框令牌（`--nia-line-strong`）与立体阴影（浅色模式立体轻浮微阴影，暗色模式高对比暗舱沉浸阴影）；
+   - 增强对话气泡可见度：用户发言气泡采用明确的边界、微投影与加粗对比文本，确保在任何底色下都一目了然；
+   - 修复侧边文本聊天面板在深色主题下可能出现的白底浅字对比度失效问题，全面覆盖 `.nia-panel`、`.nia-composer textarea`、`.nia-response` 的高对比度深色模式样式；
+   - 修复归档日历热力图中硬编码低对比度灰文字的问题，使用语义化 `--nia-muted` 与 `--nia-text-2` 确保清晰可辨。
+
+### 实现路径与修改文件
+1. `auris/src/app/nia/nia.css`：
+   - 将 Mochi 形象头像由写死紫色重构为自适应主题色调的 `color-mix` 动态着色；
+   - 将 mini 头像硬编码渐变替换为 `--nia-accent` / `--nia-accent-2` 语义令牌；
+   - 移除 `.nia-workspace[data-accent-theme="violet"]` 及 `.nia-workspace__colour--violet`，升级替换为 `.nia-workspace[data-accent-theme="amber"]` 及暖橙色标；
+   - 强化顶部栏、主卡片区、审查区、文字抽屉的边界对比与阴影分层；
+   - 注入 `.nia-workspace .nia-panel` 等高对比度暗色覆盖，彻底杜绝白底白字；
+   - 严格维护 6 大主题下的 `--nia-accent` 与 `--nia-accent-ink` 契约规范。
+2. `auris/src/components/nia/nia-workspace-surface.tsx`：
+   - 将类型 `NiaAccentTheme` 中的 `"violet"` 替换为 `"amber"`；
+   - 设置弹窗中将「紫色主题」按钮替换为「暖橙主题」（珊瑚橙 `#ff7b45`）；
+   - 增加自动兼容迁移：检测到 localStorage 中残留历史 `"violet"` 设置时，自动安全迁移为 `"auto"`。
+3. `auris/tests/component/nia/nia-workspace-surface.test.tsx`：
+   - 增加组件回归测试：断言弹窗中已无「紫色主题」、包含「暖橙主题」且可选中交互；
+   - 增加旧版本 `violet` 历史缓存自动迁移为 `auto` 的测试断言。
+4. `auris/tests/unit/theme-contrast-styles.test.ts`：
+   - 保持 6 大主题下全局契约测试 100% 通过。
+
+### 验证与测试结果
+- **单元与组件测试**：
+  - `npx vitest run tests/unit/theme-contrast-styles.test.ts`：51 项测试全部 PASS；
+  - `npm test -- tests/component/nia/`：9 个测试文件、29 项测试全部 PASS。
+- **静态代码检查**：
+  - `npx eslint src/components/nia/nia-workspace-surface.tsx tests/component/nia/nia-workspace-surface.test.tsx`：0 error 0 warning。
+- 未提交或推送 Git 改动。

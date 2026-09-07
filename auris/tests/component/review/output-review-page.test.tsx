@@ -40,6 +40,8 @@ describe("output review page", () => {
     await user.click(within(knowledgeForm).getByRole("button", { name: "开始 1/2/4/7 复习" }));
 
     await user.click(screen.getByRole("button", { name: /^今天$/ }));
+    expect(screen.getByLabelText("今日复盘概览")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Nia 复习监督")).not.toBeInTheDocument();
     expect(screen.getByText("特征值与特征向量")).toBeInTheDocument();
     expect(screen.getAllByText("今天到期")).toHaveLength(2);
     expect(screen.getByRole("complementary", { name: "后续复习" })).toBeInTheDocument();

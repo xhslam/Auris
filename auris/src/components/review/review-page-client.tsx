@@ -12,7 +12,7 @@ import {
 import {
   EMPTY_OUTPUT_REVIEW_STATE, STAGE_LABELS, completedReviewCountsByDate,
   completeCurrentReview, createKnowledgePoint, createProject, currentCycleFor,
-  deleteKnowledgePoint, getDashboardMetrics, getNiaReviewMessage, getProjectStats,
+  deleteKnowledgePoint, getDashboardMetrics, getProjectStats,
   getReviewQueue, refreshReviewStatuses, restartReviewCycle, setKnowledgePointStatus,
   toLocalDateKey, updateKnowledgePoint,
   type CreateKnowledgePointInput, type KnowledgePoint, type KnowledgePointStatus,
@@ -157,7 +157,7 @@ export function ReviewPageClient({
           </div>
 
           {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
-            : view === "today" ? <TodayView metrics={metrics} niaMessage={getNiaReviewMessage(state, today)} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} queue={queue} />
+            : view === "today" ? <TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} queue={queue} />
               : view === "all" ? <AllView onOpen={setDetailId} state={state} />
                 : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
                   : view === "calendar" ? <CalendarView onOpen={setDetailId} state={state} today={today} />
@@ -206,8 +206,8 @@ export function ReviewPageClient({
   );
 }
 
-function TodayView({ queue, metrics, niaMessage, onAdd, onComplete, onOpen, onShowAll }: {
-  queue: ReviewQueueItem[]; metrics: ReturnType<typeof getDashboardMetrics>; niaMessage: string;
+function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll }: {
+  queue: ReviewQueueItem[]; metrics: ReturnType<typeof getDashboardMetrics>;
   onAdd: () => void; onComplete: (knowledgePointId: string) => void; onOpen: (knowledgePointId: string) => void; onShowAll: () => void;
 }) {
   const [upcomingOpen, setUpcomingOpen] = useState(true);
@@ -223,29 +223,31 @@ function TodayView({ queue, metrics, niaMessage, onAdd, onComplete, onOpen, onSh
   }
   const progress = metrics.totalActionableToday ? Math.round((metrics.completedToday / metrics.totalActionableToday) * 100) : 100;
   const focusLabel = featured?.urgency === "overdue" ? "优先处理" : featured?.urgency === "today" ? "今天" : "接下来";
-  const niaHeadline = metrics.overdueCount > 0 ? "先把最早的一项讲清楚。" : metrics.dueTodayCount > 0 ? "今天的输出，从一项开始。" : "今天的复习节奏很稳。";
+  const reviewHeadline = metrics.overdueCount > 0 ? "先收口再向前，从最早的逾期项开始。" : metrics.dueTodayCount > 0 ? "今天的输出，从一个清晰解释开始。" : "今天的复习队列已经清空。";
+  const reviewGuidance = metrics.overdueCount > 0
+    ? `有 ${metrics.overdueCount} 项逾期，先完成一项闭卷回忆，再回到今日计划。`
+    : metrics.dueTodayCount > 0
+      ? `今天还有 ${metrics.dueTodayCount} 项到期内容，先回忆、后校验，不边看边讲。`
+      : "没有需要立即处理的内容，可以预览后续计划或添加新知识点。";
   if (!queue.length && metrics.activeKnowledgeCount === 0) return <EmptyReviewState onAdd={onAdd} />;
   return (
     <div className="output-review-today">
-      <section className="output-review-nia" aria-label="Nia 复习监督">
-        <div className="output-review-nia__mark">N</div>
-        <div className="output-review-nia__content">
-          <strong>Nia</strong>
-          <h2>{niaHeadline}</h2>
-          <p>{niaMessage}</p>
-          <div className="output-review-nia__signals" aria-label="复习节奏">
-            <span><ActivityIcon size={14} />本周输出 {metrics.weeklyOutputs} 次</span>
-            <span><CheckIcon size={14} />今日目标 {metrics.totalActionableToday} 次</span>
-            <span><HistoryIcon size={14} />活跃知识点 {metrics.activeKnowledgeCount} 项</span>
+      <section className="output-review-overview" aria-label="今日复盘概览">
+        <div className="output-review-overview__lead">
+          <span className="output-review-overview__eyebrow"><ActivityIcon size={14} />TODAY / 今日复盘</span>
+          <h2>{reviewHeadline}</h2>
+          <p>{reviewGuidance}</p>
+          <div className="output-review-overview__signals" aria-label="复习节奏">
+            <span><ActivityIcon size={14} />本周输出 <b>{metrics.weeklyOutputs}</b> 次</span>
+            <span><HistoryIcon size={14} />活跃知识点 <b>{metrics.activeKnowledgeCount}</b> 项</span>
           </div>
         </div>
-        <div aria-hidden="true" className="output-review-nia__sun"><SunIcon size={38} /></div>
-      </section>
-      <section className="output-review-summary" aria-label="今日复习概览">
-        <div><span>今日执行</span><strong>{metrics.completedToday} / {metrics.totalActionableToday}</strong><small>完成输出</small></div>
-        <div><span>逾期</span><strong data-warning={metrics.overdueCount > 0}>{metrics.overdueCount}</strong><small>需要优先处理</small></div>
-        <div><span>今天到期</span><strong>{metrics.dueTodayCount}</strong><small>尚未完成</small></div>
-        <div className="output-review-summary__progress"><span><span>执行进度</span><b>{progress}%</b></span><div aria-label={`今日执行进度 ${progress}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div></div>
+        <div className="output-review-summary" aria-label="今日复习数据">
+          <div><span>今日执行</span><strong>{metrics.completedToday} / {metrics.totalActionableToday}</strong><small>完成输出</small></div>
+          <div><span>逾期</span><strong data-warning={metrics.overdueCount > 0}>{metrics.overdueCount}</strong><small>需要优先处理</small></div>
+          <div><span>今天到期</span><strong>{metrics.dueTodayCount}</strong><small>尚未完成</small></div>
+          <div className="output-review-summary__progress"><span><span>执行进度</span><b>{progress}%</b></span><div aria-label={`今日执行进度 ${progress}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div></div>
+        </div>
       </section>
       {featured ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
         <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>{focusLabel}</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>

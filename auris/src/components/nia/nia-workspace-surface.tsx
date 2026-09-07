@@ -36,7 +36,7 @@ import { useNiaSession } from "@/features/nia/use-nia-session";
 import { isNiaTurnEagerness, type NiaTurnEagerness } from "@/features/nia/nia-realtime-protocol";
 
 type InspectorTab = "conversations" | "tools";
-type NiaAccentTheme = "violet" | "gold" | "blue";
+type NiaAccentTheme = "auto" | "amber" | "gold" | "blue";
 type CompanionSnapshot = {
   state?: string;
   muted?: boolean;
@@ -158,7 +158,7 @@ export function NiaWorkspaceSurface() {
   const [archiveConversationId, setArchiveConversationId] = useState<string | null>(null);
   const [textPaneOpen, setTextPaneOpen] = useState(false);
   const [textPaneTab, setTextPaneTab] = useState<NiaTextPaneTab>("chat");
-  const [accentTheme, setAccentTheme] = useState<NiaAccentTheme>("violet");
+  const [accentTheme, setAccentTheme] = useState<NiaAccentTheme>("auto");
   const [voice, setVoice] = useState("ballad");
   const [saveConversations, setSaveConversations] = useState(true);
   const [interruptible, setInterruptible] = useState(true);
@@ -214,7 +214,12 @@ export function NiaWorkspaceSurface() {
       setVoice(window.localStorage.getItem("auris.nia.voice") || "ballad");
       setCompanionScale(loadNiaCompanionScale());
       const storedAccent = window.localStorage.getItem("auris.nia.accent-theme");
-      if (storedAccent === "violet" || storedAccent === "gold" || storedAccent === "blue") setAccentTheme(storedAccent);
+      if (storedAccent === "violet") {
+        setAccentTheme("auto");
+        try { window.localStorage.setItem("auris.nia.accent-theme", "auto"); } catch { /* best effort */ }
+      } else if (storedAccent === "auto" || storedAccent === "amber" || storedAccent === "gold" || storedAccent === "blue") {
+        setAccentTheme(storedAccent);
+      }
       const storedInterruptible = window.localStorage.getItem("auris.nia.interruptible");
       if (storedInterruptible !== null) setInterruptible(storedInterruptible !== "false");
       const storedEagerness = window.localStorage.getItem("auris.nia.eagerness");
@@ -912,10 +917,17 @@ export function NiaWorkspaceSurface() {
                   <span>外观</span>
                   <div className="nia-workspace__colour-options">
                     <button
-                      aria-label="紫色主题"
-                      aria-pressed={accentTheme === "violet"}
-                      className="nia-workspace__colour nia-workspace__colour--violet"
-                      onClick={() => setSelectedAccent("violet")}
+                      aria-label="跟随主题"
+                      aria-pressed={accentTheme === "auto"}
+                      className="nia-workspace__colour nia-workspace__colour--auto"
+                      onClick={() => setSelectedAccent("auto")}
+                      type="button"
+                    />
+                    <button
+                      aria-label="暖橙主题"
+                      aria-pressed={accentTheme === "amber"}
+                      className="nia-workspace__colour nia-workspace__colour--amber"
+                      onClick={() => setSelectedAccent("amber")}
                       type="button"
                     />
                     <button

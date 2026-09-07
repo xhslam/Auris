@@ -169,4 +169,44 @@ describe("NiaWorkspaceSurface split layout", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Nia 角色设置" })).not.toBeInTheDocument();
   });
+
+  it("defaults accentTheme to auto and allows switching between auto and explicit themes", async () => {
+    const { container } = render(<NiaWorkspaceSurface />);
+    const main = container.querySelector(".nia-workspace") as HTMLElement;
+    expect(main).toHaveAttribute("data-accent-theme", "auto");
+
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const autoButton = screen.getByRole("button", { name: "跟随主题" });
+    const goldButton = screen.getByRole("button", { name: "金色主题" });
+
+    expect(autoButton).toHaveAttribute("aria-pressed", "true");
+    expect(goldButton).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByRole("button", { name: "紫色主题" })).not.toBeInTheDocument();
+
+    const amberButton = screen.getByRole("button", { name: "暖橙主题" });
+    expect(amberButton).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(amberButton);
+    expect(amberButton).toHaveAttribute("aria-pressed", "true");
+    expect(main).toHaveAttribute("data-accent-theme", "amber");
+    expect(window.localStorage.getItem("auris.nia.accent-theme")).toBe("amber");
+
+    fireEvent.click(goldButton);
+    expect(goldButton).toHaveAttribute("aria-pressed", "true");
+    expect(main).toHaveAttribute("data-accent-theme", "gold");
+    expect(window.localStorage.getItem("auris.nia.accent-theme")).toBe("gold");
+
+    fireEvent.click(autoButton);
+    expect(autoButton).toHaveAttribute("aria-pressed", "true");
+    expect(main).toHaveAttribute("data-accent-theme", "auto");
+    expect(window.localStorage.getItem("auris.nia.accent-theme")).toBe("auto");
+  });
+
+  it("migrates legacy violet accent from localStorage to auto", () => {
+    window.localStorage.setItem("auris.nia.accent-theme", "violet");
+    const { container } = render(<NiaWorkspaceSurface />);
+    const main = container.querySelector(".nia-workspace") as HTMLElement;
+
+    expect(main).toHaveAttribute("data-accent-theme", "auto");
+    expect(window.localStorage.getItem("auris.nia.accent-theme")).toBe("auto");
+  });
 });

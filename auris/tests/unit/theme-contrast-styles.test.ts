@@ -19,6 +19,15 @@ const readingWorkbenchCss = readFileSync(
   path.join(process.cwd(), "src/components/reading/reading-workbench.css"),
   "utf-8",
 );
+const niaCss = readFileSync(path.join(process.cwd(), "src/app/nia/nia.css"), "utf-8");
+const reviewCss = readFileSync(
+  path.join(process.cwd(), "src/components/review/output-review-page.css"),
+  "utf-8",
+);
+const flashCss = readFileSync(
+  path.join(process.cwd(), "src/components/flash/flash-page.css"),
+  "utf-8",
+);
 
 const THEMES = ["white", "paper", "mint", "sepia", "night", "solarized"] as const;
 
@@ -146,5 +155,86 @@ describe("application theme contrast", () => {
     expect(reviewSection).toContain("var(--app-ink)");
     expect(reviewSection).toContain("var(--app-muted)");
     expect(reviewSection).toContain("var(--accent-ink)");
+  });
+
+  it.each(THEMES)("keeps %s Nia workspace text, accents, and tags at WCAG AA", (theme) => {
+    const body = ruleBody(niaCss, `.desktop-app-shell[data-app-theme="${theme}"] .nia-workspace`);
+    const background = variable(body, "--nia-bg");
+    const surface = variable(body, "--nia-surface");
+
+    for (const token of ["--nia-text", "--nia-text-2", "--nia-muted", "--nia-accent"]) {
+      expectAa(background, variable(body, token), `${theme} Nia ${token}`);
+    }
+
+    expectAa(variable(body, "--nia-accent"), variable(body, "--nia-accent-ink"), `${theme} Nia accent ink`);
+    expectAa(surface, variable(body, "--nia-done"), `${theme} Nia done`);
+    expectAa(surface, variable(body, "--nia-cut"), `${theme} Nia cut`);
+
+    // Verify Nia accent directly inherits the shell's active theme accent
+    const shellBody = ruleBody(globalsCss, `.desktop-app-shell[data-app-theme="${theme}"]`);
+    expect(variable(body, "--nia-accent")).toBe(variable(shellBody, "--accent"));
+    expect(variable(body, "--nia-accent-ink")).toBe(variable(shellBody, "--accent-ink"));
+  });
+
+  it.each(THEMES)("keeps %s Flash workspace text, cards, and accent at high contrast (no gold)", (theme) => {
+    const body = ruleBody(flashCss, `.desktop-app-shell[data-app-theme="${theme}"] .flash-workspace`);
+    const background = variable(body, "--flash-bg");
+    const cardBg = variable(body, "--flash-card-bg");
+    const textPrimary = variable(body, "--flash-text-primary");
+    const textSecondary = variable(body, "--flash-text-secondary");
+    const accent = variable(body, "--flash-accent");
+    const accentInk = variable(body, "--flash-accent-ink");
+
+    // 验证卡片正文在卡片上的对比度远超 WCAG AA (≥ 4.5:1)
+    expectAa(cardBg, textPrimary, `${theme} Flash card text primary`);
+    expectAa(cardBg, textSecondary, `${theme} Flash card text secondary`);
+    // 验证强调色与前景色对比度符合 WCAG AA
+    expectAa(accent, accentInk, `${theme} Flash accent ink`);
+    // 验证强调色在页面底色上的对比度符合 WCAG AA
+    expectAa(background, accent, `${theme} Flash accent on background`);
+  });
+
+  it("keeps Flash active navigation, composer, and cards using high-contrast flash tokens", () => {
+    const activeNav = ruleBody(flashCss, '.flash-workspace__nav button[data-active="true"]');
+    expect(activeNav).toContain("background: var(--flash-active-item-bg");
+    expect(activeNav).toContain("color: var(--flash-active-item-text");
+
+    const cardRule = ruleBody(flashCss, ".flash-card");
+    expect(cardRule).toContain("border: 1px solid var(--flash-card-border");
+
+    const submitRule = ruleBody(flashCss, ".flash-composer__submit:not(:disabled)");
+    expect(submitRule).toContain("background: var(--flash-accent");
+    expect(submitRule).toContain("color: var(--flash-accent-ink");
+  });
+
+  it("keeps Review warning badges and progress nodes at high contrast", () => {
+    const darkReviewRule = ruleBody(
+      reviewCss,
+      '.desktop-app-shell[data-app-theme="night"] .auris-page.auris-review.output-review-page,\n.desktop-app-shell[data-app-theme="solarized"] .auris-page.auris-review.output-review-page',
+    );
+    const darkWarning = variable(darkReviewRule, "--review-warning");
+    // Night surface is #212226
+    expectAa("#212226", darkWarning, "night review warning");
+
+    const baseReviewRule = ruleBody(reviewCss, ".auris-page.auris-review.output-review-page");
+    const lightWarning = variable(baseReviewRule, "--review-warning");
+    // Mint surface is #f4f7f1
+    expectAa("#f4f7f1", lightWarning, "light review warning");
+  });
+
+  it.each(THEMES)("keeps %s Review accent non-gold and at WCAG AA", (theme) => {
+    const shellBody = ruleBody(globalsCss, `.desktop-app-shell[data-app-theme="${theme}"]`);
+    const reviewBody = ruleBody(
+      reviewCss,
+      `.desktop-app-shell[data-app-theme="${theme}"] .auris-page.auris-review.output-review-page`,
+    );
+    const background = variable(shellBody, "--app-bg");
+    const accent = variable(reviewBody, "--review-accent");
+    const accentInk = variable(reviewBody, "--review-accent-ink");
+
+    expectAa(background, accent, `${theme} Review accent`);
+    expectAa(accent, accentInk, `${theme} Review accent ink`);
+    expect(["#c7a86a", "#d4b56e", "#e1c55a", "#765214", "#6f4f18", "#684817"])
+      .not.toContain(accent.toLowerCase());
   });
 });
