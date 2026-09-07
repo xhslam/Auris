@@ -127,4 +127,50 @@ describe("output review page", () => {
       expect(screen.getByRole("separator")).toHaveAttribute("aria-valuenow", "47");
     } finally { clock.mockRestore(); }
   });
+
+  it("navigates through all, projects, calendar, and insights app workspace views seamlessly", async () => {
+    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "计算机网络", description: "TCP/IP协议族" });
+    state = createKnowledgePoint(state, {
+      projectId: state.projects[0].id,
+      startDate: toLocalDateKey(new Date()),
+      title: "TCP 三次握手",
+    });
+    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+
+    // 1. 全部视图 (AllView)
+    await user.click(screen.getByRole("button", { name: /^全部$/ }));
+    expect(screen.getByRole("region", { name: "全部知识点" })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/搜索标题、描述、项目或标签/)).toBeInTheDocument();
+    expect(screen.getByText("TCP 三次握手")).toBeInTheDocument();
+
+    // 2. 项目视图 (ProjectsView) & 项目内详情
+    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    expect(screen.getByRole("region", { name: "项目列表" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /计算机网络/ })).toBeInTheDocument();
+
+    // 进入项目详情
+    await user.click(screen.getByRole("button", { name: /计算机网络/ }));
+    expect(screen.getByRole("region", { name: "项目详情：计算机网络" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "← 返回项目" })).toBeInTheDocument();
+    expect(screen.getByText("TCP/IP协议族")).toBeInTheDocument();
+
+    // 返回项目列表
+    await user.click(screen.getByRole("button", { name: "← 返回项目" }));
+    expect(screen.getByRole("region", { name: "项目列表" })).toBeInTheDocument();
+
+    // 3. 日历视图 (CalendarView) - 左右分栏
+    await user.click(screen.getByRole("button", { name: /^日历$/ }));
+    expect(screen.getByRole("region", { name: "日历视图" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "选定日期复习安排" })).toBeInTheDocument();
+
+    // 4. 洞察视图 (InsightsView) - 仪表盘
+    await user.click(screen.getByRole("button", { name: /^洞察$/ }));
+    expect(screen.getByRole("region", { name: "执行洞察" })).toBeInTheDocument();
+    expect(screen.getByText("近 35 天输出活动")).toBeInTheDocument();
+    expect(screen.getByText("项目掌握进度")).toBeInTheDocument();
+    expect(screen.getByText("延迟复习")).toBeInTheDocument();
+  });
 });

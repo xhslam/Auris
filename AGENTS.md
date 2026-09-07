@@ -1017,3 +1017,51 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
    - `git diff --check`：通过，无多余空格与格式冲突；
    - `npm run build`：Next.js 16.1.7 生产构建成功，全部 23 条路由编译完成。
 3. 未提交或推送 Git 改动。
+
+## Engineering trajectory: Auris 复习其他页（全部/项目/日历/洞察）桌面 App 风格重构与顶部对齐（2026-09-08）
+
+### 任务解读与分解
+根据用户参考与反馈，Auris 复习页面（`/review`）此前仅有“今天”页重构成桌面 App 风格，而“全部”、“项目”、“日历”、“洞察”四个标签页仍为传统的网页居中流式布局（`max-width: 1160px; margin: 0 auto`，伴随整页垂直滚动，顶部导航间距不一致）。
+任务目标：
+1. 彻底消除非首页复习标签的整页上下滚动，实现全屏固定视口（App-style fixed viewport，高度 100%，无整页滚动）；
+2. 顶部导航标签（“今天”、“全部”、“项目”、“日历”、“洞察”）与“+ 添加知识点”按钮在所有视图中像素级稳定对齐；
+3. 将四个子视图重构为桌面 App 工作台结构：
+   - **全部知识点（AllView）**：紧凑工具栏（搜索框 + 状态筛选胶囊 + 总项数徽章）+ 自适应高内滚列表；
+   - **项目列表与详情（ProjectsView）**：项目卡片网格与状态进度条；项目详情具备轻量返回按钮、4 列指标卡、标签区与内滚知识点列表；
+   - **日历视图（CalendarView）**：由原先纵向堆叠 1000px+ 改造为桌面双栏工作台——左侧整月日历（含前后月切换与阶段标记，自适应高度）、右侧选定日期待办任务卡片与详情抽屉；
+   - **洞察视图（InsightsView）**：桌面仪表盘架构——顶部 4 个核心指标卡、左侧 35 天活跃热力图与可靠性指标卡、右侧项目掌握进度面板。
+
+### 实现路径与架构决策
+1. **全局 App 容器规则普及**：
+   - 原先仅在 `:has(.review-wheel-workspace)` 时锁定高度。现统一在 `.desktop-app-shell:has(.output-review-page)`、`.auris-page.auris-review.output-review-page` 与 `.output-review-page__container` 强制 `height: 100% !important; max-height: 100% !important; overflow: hidden !important; padding: 10px clamp(16px, 2.5vw, 32px) 12px !important;`。
+   - 将 `.output-review-navigation` 统一为固定的顶部弹性栏（`flex-shrink: 0; margin-bottom: 0 !important; padding-bottom: 8px !important;`），杜绝页面切换时的标题与按钮跳动。
+2. **各视图工作区规范**：
+   - 为子视图引入统一工作台容器 `.output-review-view`（`display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; overflow: hidden;`）；
+   - 数据列表与网格（`.output-review-list`、`.output-review-project-grid`）配置内部流畅滚动，并继承隐藏滚动条规范；
+   - 日历视图放弃网页级上下滚动，采用 `1.45fr : 1fr` 桌面双栏并排工作台。
+
+### 修改文件
+1. `auris/src/components/review/review-page-client.tsx`：
+   - 重构 `AllView`、`ProjectsView`（含详情视图）、`CalendarView` 及 `InsightsView`；
+   - 提取工具栏、指标摘要网格与可内滚的容器，保持原有数据模型、测试 role/label 与功能契约。
+2. `auris/src/components/review/output-review-page.css`：
+   - 将整页高度锁定与内滚规则提升为全局 `.output-review-page` 规则；
+   - 新增子视图工作台（`.output-review-view`、`.output-review-calendar-workspace`、`.output-review-insight-workspace` 等）桌面 App 样式。
+3. `auris/tests/component/review/output-review-page.test.tsx`：
+   - 新增跨视图切换、子视图 App 结构与交互的组件回归测试。
+
+### 检查与验证
+1. **浏览器全视口截图与滚动测量（Playwright 实测）**：
+   - 在 1440×900 视口下运行 Next.js 独立服务自动化测试并提取全标签截图：
+     - 今天：`windowHeight: 900, bodyScrollHeight: 900, mainScrollHeight: 900`；
+     - 全部：`windowHeight: 900, bodyScrollHeight: 900, listClientHeight: 717, listScrollHeight: 717`；
+     - 项目：`windowHeight: 900, bodyScrollHeight: 900`；
+     - 日历：`windowHeight: 900, bodyScrollHeight: 900, workspaceHeight: 816`；
+     - 洞察：`windowHeight: 900, bodyScrollHeight: 900, workspaceHeight: 676`；
+   - 5 个标签页的 `bodyScrollHeight` 严格等于 900，全域无窗口级垂直滚动，顶部导航位置像素级一致。
+2. **测试与质量**：
+   - `npm test -- tests/component/review/output-review-page.test.tsx`：5 项组件测试通过；
+   - `npx eslint src/components/review/review-page-client.tsx tests/component/review/output-review-page.test.tsx`：0 error 0 warning；
+   - `git diff --check`：通过；
+   - `npm run build`：Next.js 生产构建成功。
+3. 未提交或推送 Git 改动。

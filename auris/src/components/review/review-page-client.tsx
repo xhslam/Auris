@@ -249,10 +249,54 @@ function AllView({ state, onOpen }: { state: OutputReviewState; onOpen: (id: str
     return !normalizedSearch || haystack.includes(normalizedSearch);
   }).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   return (
-    <section className="output-review-view">
-      <div className="output-review-view__heading"><div><h2>全部知识点</h2><p>搜索并检查所有周期，包括已掌握和归档项目。</p></div><span>{points.length} 项</span></div>
-      <div className="output-review-toolbar"><label className="output-review-search"><SearchIcon size={16} /><span className="sr-only">搜索知识点</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索标题、描述、项目或标签" /></label><div className="output-review-filter" aria-label="状态筛选">{(["all", "active", "overdue", "mastered", "paused", "archived"] as const).map((status) => <button data-active={filter === status} key={status} onClick={() => setFilter(status)} type="button">{status === "all" ? "全部" : statusLabel(status)}</button>)}</div></div>
-      <div className="output-review-list">{points.map((point) => { const project = state.projects.find((item) => item.id === point.projectId); return project ? <KnowledgePointRow cycle={currentCycleFor(state, point.id)} key={point.id} onOpen={onOpen} point={point} project={project} /> : null; })}{!points.length ? <div className="output-review-list__empty">没有符合当前条件的知识点。</div> : null}</div>
+    <section className="output-review-view output-review-view--all" aria-label="全部知识点">
+      <div className="output-review-view__heading">
+        <div>
+          <h2>全部知识点</h2>
+          <p>搜索并检查所有周期，包括已掌握和归档项目。</p>
+        </div>
+        <span className="output-review-view__badge">{points.length} 项</span>
+      </div>
+      <div className="output-review-toolbar">
+        <label className="output-review-search">
+          <SearchIcon size={16} />
+          <span className="sr-only">搜索知识点</span>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="搜索标题、描述、项目或标签"
+          />
+        </label>
+        <div className="output-review-filter" aria-label="状态筛选">
+          {(["all", "active", "overdue", "mastered", "paused", "archived"] as const).map((status) => (
+            <button
+              data-active={filter === status}
+              key={status}
+              onClick={() => setFilter(status)}
+              type="button"
+            >
+              {status === "all" ? "全部" : statusLabel(status)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="output-review-list">
+        {points.map((point) => {
+          const project = state.projects.find((item) => item.id === point.projectId);
+          return project ? (
+            <KnowledgePointRow
+              cycle={currentCycleFor(state, point.id)}
+              key={point.id}
+              onOpen={onOpen}
+              point={point}
+              project={project}
+            />
+          ) : null;
+        })}
+        {!points.length ? (
+          <div className="output-review-list__empty">没有符合当前条件的知识点。</div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -264,9 +308,102 @@ function ProjectsView({ state, onAddProject, onOpen }: { state: OutputReviewStat
     const points = state.knowledgePoints.filter((point) => point.projectId === selected.id && point.status !== "archived");
     const stats = getProjectStats(state, selected.id);
     const tags = Array.from(new Set(points.flatMap((point) => point.tags)));
-    return <section className="output-review-view"><button className="output-review-back" onClick={() => setSelectedProjectId(null)} type="button">← 返回项目</button><div className="output-review-view__heading"><div><h2>{selected.name}</h2><p>{selected.description || "这个项目还没有描述。"}</p></div><strong>{Math.round(stats.progress * 100)}%</strong></div><div className="output-review-project-metrics"><span><b>{stats.mastered}</b> 已掌握</span><span><b>{stats.active}</b> 进行中</span><span><b>{stats.overdue}</b> 逾期</span><span><b>{stats.paused}</b> 暂停</span></div>{tags.length ? <div className="output-review-tags">{tags.map((tag) => <span key={tag}>#{tag}</span>)}</div> : null}<div className="output-review-list">{points.map((point) => <KnowledgePointRow cycle={currentCycleFor(state, point.id)} key={point.id} onOpen={onOpen} point={point} project={selected} />)}</div></section>;
+    return (
+      <section className="output-review-view output-review-view--project-detail" aria-label={`项目详情：${selected.name}`}>
+        <div className="output-review-project-detail__header">
+          <button className="output-review-back" onClick={() => setSelectedProjectId(null)} type="button">
+            ← 返回项目
+          </button>
+          <div className="output-review-view__heading">
+            <div>
+              <h2>{selected.name}</h2>
+              <p>{selected.description || "这个项目还没有描述。"}</p>
+            </div>
+            <div className="output-review-project-detail__rate">
+              <span>掌握进度</span>
+              <strong>{Math.round(stats.progress * 100)}%</strong>
+            </div>
+          </div>
+        </div>
+        <div className="output-review-project-metrics">
+          <span><b>{stats.mastered}</b> 已掌握</span>
+          <span><b>{stats.active}</b> 进行中</span>
+          <span data-warning={stats.overdue > 0}><b>{stats.overdue}</b> 逾期</span>
+          <span><b>{stats.paused}</b> 暂停</span>
+        </div>
+        {tags.length ? (
+          <div className="output-review-tags">
+            {tags.map((tag) => <span key={tag}>#{tag}</span>)}
+          </div>
+        ) : null}
+        <div className="output-review-list">
+          {points.map((point) => (
+            <KnowledgePointRow
+              cycle={currentCycleFor(state, point.id)}
+              key={point.id}
+              onOpen={onOpen}
+              point={point}
+              project={selected}
+            />
+          ))}
+          {!points.length ? (
+            <div className="output-review-list__empty">该项目下暂无知识点。</div>
+          ) : null}
+        </div>
+      </section>
+    );
   }
-  return <section className="output-review-view"><div className="output-review-view__heading"><div><h2>项目</h2><p>按学习语境查看执行、逾期和掌握情况。</p></div><button className="output-review-secondary" onClick={onAddProject} type="button"><PlusIcon size={16} />新建项目</button></div><div className="output-review-project-grid">{state.projects.map((project) => { const stats = getProjectStats(state, project.id); return <button className="output-review-project-card" key={project.id} onClick={() => setSelectedProjectId(project.id)} type="button"><span className="output-review-project-card__icon"><FolderIcon size={19} /></span><ChevronRightIcon className="output-review-project-card__chevron" size={18} /><strong>{project.name}</strong><p>{project.description || "暂无描述"}</p><div><span>{stats.mastered} 已掌握</span><span>{stats.active} 进行中</span><span data-warning={stats.overdue > 0}>{stats.overdue} 逾期</span></div><footer><span><i style={{ width: `${stats.progress * 100}%` }} /></span><small>{stats.mastered} / {stats.total} 已掌握</small></footer></button>; })}{!state.projects.length ? <div className="output-review-project-empty"><FolderIcon size={26} /><p>先创建一个项目，再把知识点放入对应学习语境。</p><button className="output-review-primary" onClick={onAddProject} type="button">创建项目</button></div> : null}</div></section>;
+  return (
+    <section className="output-review-view output-review-view--projects" aria-label="项目列表">
+      <div className="output-review-view__heading">
+        <div>
+          <h2>项目</h2>
+          <p>按学习语境查看执行、逾期和掌握情况。</p>
+        </div>
+        <button className="output-review-secondary" onClick={onAddProject} type="button">
+          <PlusIcon size={16} />新建项目
+        </button>
+      </div>
+      <div className="output-review-project-grid">
+        {state.projects.map((project) => {
+          const stats = getProjectStats(state, project.id);
+          return (
+            <button
+              className="output-review-project-card"
+              key={project.id}
+              onClick={() => setSelectedProjectId(project.id)}
+              type="button"
+            >
+              <div className="output-review-project-card__head">
+                <span className="output-review-project-card__icon"><FolderIcon size={18} /></span>
+                <ChevronRightIcon className="output-review-project-card__chevron" size={17} />
+              </div>
+              <strong>{project.name}</strong>
+              <p>{project.description || "暂无描述"}</p>
+              <div className="output-review-project-card__stats">
+                <span>{stats.mastered} 已掌握</span>
+                <span>{stats.active} 进行中</span>
+                <span data-warning={stats.overdue > 0}>{stats.overdue} 逾期</span>
+              </div>
+              <footer>
+                <span><i style={{ width: `${stats.progress * 100}%` }} /></span>
+                <small>{stats.mastered} / {stats.total} 已掌握</small>
+              </footer>
+            </button>
+          );
+        })}
+        {!state.projects.length ? (
+          <div className="output-review-project-empty">
+            <FolderIcon size={26} />
+            <p>先创建一个项目，再把知识点放入对应学习语境。</p>
+            <button className="output-review-primary" onClick={onAddProject} type="button">
+              创建项目
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
 }
 
 function CalendarView({ state, today, onOpen }: { state: OutputReviewState; today: string; onOpen: (id: string) => void }) {
@@ -277,7 +414,75 @@ function CalendarView({ state, today, onOpen }: { state: OutputReviewState; toda
   const first = new Date(month.getFullYear(), month.getMonth(), 1, 12); first.setDate(first.getDate() - first.getDay());
   const days = Array.from({ length: 42 }, (_, index) => { const date = new Date(first); date.setDate(first.getDate() + index); return date; });
   const selectedEntries = entries.filter((entry) => entry.event.currentPlannedDate === selectedDate);
-  return <section className="output-review-view"><div className="output-review-calendar-header"><div><h2>{month.getFullYear()} 年 {month.getMonth() + 1} 月</h2><p>显示当前调整后的计划。</p></div><div><button aria-label="上个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1, 12))} type="button">←</button><button onClick={() => { const now = new Date(); setMonth(new Date(now.getFullYear(), now.getMonth(), 1, 12)); setSelectedDate(today); }} type="button">今天</button><button aria-label="下个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1, 12))} type="button">→</button></div></div><div className="output-review-calendar">{["日", "一", "二", "三", "四", "五", "六"].map((weekday) => <span className="output-review-calendar__weekday" key={weekday}>{weekday}</span>)}{days.map((date) => { const key = toLocalDateKey(date); const count = counts[key] ?? 0; return <button aria-label={`${key}${count ? `，${count} 项复习` : "，没有复习"}`} data-current-month={date.getMonth() === month.getMonth()} data-selected={selectedDate === key} data-today={today === key} key={key} onClick={() => setSelectedDate(key)} type="button"><span>{date.getDate()}</span>{count ? <b>{count}</b> : null}</button>; })}</div><section className="output-review-calendar-day"><h3>{dateLongFormatter.format(dateFromKey(selectedDate))}<span>{selectedEntries.length} 项</span></h3>{selectedEntries.length ? <div>{selectedEntries.map(({ point, event }) => point ? <button key={event.id} onClick={() => onOpen(point.id)} type="button"><span><b>{STAGE_LABELS[event.stage]}</b><strong>{point.title}</strong></span><small>{event.status === "completed" ? "已完成" : event.currentPlannedDate < today ? "已逾期" : "待完成"}<ChevronRightIcon size={15} /></small></button> : null)}</div> : <p>这一天没有安排输出复习。</p>}</section></section>;
+  return (
+    <section className="output-review-view output-review-view--calendar" aria-label="日历视图">
+      <div className="output-review-calendar-workspace">
+        <div className="output-review-calendar-pane">
+          <div className="output-review-calendar-header">
+            <div>
+              <h2>{month.getFullYear()} 年 {month.getMonth() + 1} 月</h2>
+              <p>显示当前调整后的计划。</p>
+            </div>
+            <div className="output-review-calendar-controls">
+              <button aria-label="上个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1, 12))} type="button">←</button>
+              <button onClick={() => { const now = new Date(); setMonth(new Date(now.getFullYear(), now.getMonth(), 1, 12)); setSelectedDate(today); }} type="button">今天</button>
+              <button aria-label="下个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1, 12))} type="button">→</button>
+            </div>
+          </div>
+          <div className="output-review-calendar">
+            {["日", "一", "二", "三", "四", "五", "六"].map((weekday) => (
+              <span className="output-review-calendar__weekday" key={weekday}>{weekday}</span>
+            ))}
+            {days.map((date) => {
+              const key = toLocalDateKey(date);
+              const count = counts[key] ?? 0;
+              return (
+                <button
+                  aria-label={`${key}${count ? `，${count} 项复习` : "，没有复习"}`}
+                  data-current-month={date.getMonth() === month.getMonth()}
+                  data-selected={selectedDate === key}
+                  data-today={today === key}
+                  key={key}
+                  onClick={() => setSelectedDate(key)}
+                  type="button"
+                >
+                  <span>{date.getDate()}</span>
+                  {count ? <b>{count}</b> : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <section className="output-review-calendar-day" aria-label="选定日期复习安排">
+          <div className="output-review-calendar-day__header">
+            <h3>{dateLongFormatter.format(dateFromKey(selectedDate))}</h3>
+            <span>{selectedEntries.length} 项</span>
+          </div>
+          <div className="output-review-calendar-day__content">
+            {selectedEntries.length ? (
+              <div className="output-review-calendar-day__list">
+                {selectedEntries.map(({ point, event }) => point ? (
+                  <button key={event.id} onClick={() => onOpen(point.id)} type="button">
+                    <span>
+                      <b>{STAGE_LABELS[event.stage]}</b>
+                      <strong>{point.title}</strong>
+                    </span>
+                    <small>
+                      {event.status === "completed" ? "已完成" : event.currentPlannedDate < today ? "已逾期" : "待完成"}
+                      <ChevronRightIcon size={15} />
+                    </small>
+                  </button>
+                ) : null)}
+              </div>
+            ) : (
+              <p>这一天没有安排输出复习。</p>
+            )}
+          </div>
+        </section>
+      </div>
+    </section>
+  );
 }
 
 function InsightsView({ state, today }: { state: OutputReviewState; today: string }) {
@@ -285,7 +490,93 @@ function InsightsView({ state, today }: { state: OutputReviewState; today: strin
   const counts = completedReviewCountsByDate(state);
   const heatDates = Array.from({ length: 35 }, (_, reverseIndex) => { const date = dateFromKey(today); date.setDate(date.getDate() - (34 - reverseIndex)); return toLocalDateKey(date); });
   const maxHeat = Math.max(1, ...Object.values(counts));
-  return <section className="output-review-view"><div className="output-review-view__heading"><div><h2>执行洞察</h2><p>这些指标只衡量主动输出行为，不代表记忆强度。</p></div><ActivityIcon size={22} /></div><div className="output-review-insight-grid"><InsightMetric label="今日完成" value={`${metrics.completedToday}`} detail="次输出复习" /><InsightMetric label="已掌握" value={`${metrics.masteredCount}`} detail="个知识点" /><InsightMetric label="本周输出" value={`${metrics.weeklyOutputs}`} detail="次复习" /><InsightMetric label="按时复习率" value={`${Math.round(metrics.onTimeRate * 100)}%`} detail={`${metrics.delayedReviewCount} 次延迟`} /></div><section className="output-review-insight-card"><div className="output-review-insight-card__heading"><div><h3>近 35 天输出活动</h3><p>每天完成的输出复习次数</p></div><span>少　多</span></div><div className="output-review-heatmap">{heatDates.map((date) => { const count = counts[date] ?? 0; const level = count === 0 ? 0 : Math.max(1, Math.ceil((count / maxHeat) * 4)); return <span aria-label={`${date}：完成 ${count} 次输出复习`} data-level={level} key={date} role="img" title={`${date} · ${count} 次`} />; })}</div></section><section className="output-review-insight-card"><div className="output-review-insight-card__heading"><div><h3>项目掌握进度</h3><p>已掌握知识点 / 非归档知识点</p></div></div><div className="output-review-mastery-list">{state.projects.map((project) => { const stats = getProjectStats(state, project.id); return <div key={project.id}><span><strong>{project.name}</strong><b>{Math.round(stats.progress * 100)}%</b></span><i><i style={{ width: `${stats.progress * 100}%` }} /></i></div>; })}{!state.projects.length ? <p>创建项目后，这里会显示掌握进度。</p> : null}</div></section><section className="output-review-reliability"><div><span>延迟复习</span><strong>{metrics.delayedReviewCount}</strong></div><div><span>平均延迟</span><strong>{metrics.averageDelay.toFixed(1)} 天</strong></div><p>只描述执行可靠性，不推断记忆效果。</p></section></section>;
+  return (
+    <section className="output-review-view output-review-view--insights" aria-label="执行洞察">
+      <div className="output-review-view__heading">
+        <div>
+          <h2>执行洞察</h2>
+          <p>这些指标只衡量主动输出行为，不代表记忆强度。</p>
+        </div>
+        <ActivityIcon size={22} />
+      </div>
+
+      <div className="output-review-insight-grid">
+        <InsightMetric label="今日完成" value={`${metrics.completedToday}`} detail="次输出复习" />
+        <InsightMetric label="已掌握" value={`${metrics.masteredCount}`} detail="个知识点" />
+        <InsightMetric label="本周输出" value={`${metrics.weeklyOutputs}`} detail="次复习" />
+        <InsightMetric label="按时复习率" value={`${Math.round(metrics.onTimeRate * 100)}%`} detail={`${metrics.delayedReviewCount} 次延迟`} />
+      </div>
+
+      <div className="output-review-insight-workspace">
+        <div className="output-review-insight-pane">
+          <section className="output-review-insight-card">
+            <div className="output-review-insight-card__heading">
+              <div>
+                <h3>近 35 天输出活动</h3>
+                <p>每天完成的输出复习次数</p>
+              </div>
+              <span>少　多</span>
+            </div>
+            <div className="output-review-heatmap">
+              {heatDates.map((date) => {
+                const count = counts[date] ?? 0;
+                const level = count === 0 ? 0 : Math.max(1, Math.ceil((count / maxHeat) * 4));
+                return (
+                  <span
+                    aria-label={`${date}：完成 ${count} 次输出复习`}
+                    data-level={level}
+                    key={date}
+                    role="img"
+                    title={`${date} · ${count} 次`}
+                  />
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="output-review-reliability">
+            <div>
+              <span>延迟复习</span>
+              <strong>{metrics.delayedReviewCount}</strong>
+            </div>
+            <div>
+              <span>平均延迟</span>
+              <strong>{metrics.averageDelay.toFixed(1)} 天</strong>
+            </div>
+            <p>只描述执行可靠性，不推断记忆效果。</p>
+          </section>
+        </div>
+
+        <div className="output-review-insight-pane output-review-insight-pane--mastery">
+          <section className="output-review-insight-card output-review-insight-card--fill">
+            <div className="output-review-insight-card__heading">
+              <div>
+                <h3>项目掌握进度</h3>
+                <p>已掌握知识点 / 非归档知识点</p>
+              </div>
+            </div>
+            <div className="output-review-mastery-list">
+              {state.projects.map((project) => {
+                const stats = getProjectStats(state, project.id);
+                return (
+                  <div key={project.id}>
+                    <span>
+                      <strong>{project.name}</strong>
+                      <b>{Math.round(stats.progress * 100)}%</b>
+                    </span>
+                    <i>
+                      <i style={{ width: `${stats.progress * 100}%` }} />
+                    </i>
+                  </div>
+                );
+              })}
+              {!state.projects.length ? <p>创建项目后，这里会显示掌握进度。</p> : null}
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function InsightMetric({ label, value, detail }: { label: string; value: string; detail: string }) { return <div className="output-review-insight-metric"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
