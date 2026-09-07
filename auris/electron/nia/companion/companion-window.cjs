@@ -139,7 +139,7 @@ function createCompanionWindow({
     return true;
   }
 
-  function endDrag() {
+  function endDrag(options = {}) {
     if (!dragging || !window || window.isDestroyed?.()) return false;
     const bounds = window.getBounds();
     const display = displayForPlacement({ x: bounds.x, y: bounds.y });
@@ -147,7 +147,9 @@ function createCompanionWindow({
     window.setPosition(next.x, next.y);
     writePlacement(positionPath, next);
     dragging = null;
-    setPointerCapture(false);
+    if (options?.retainCapture !== true) {
+      setPointerCapture(false);
+    }
     return true;
   }
 

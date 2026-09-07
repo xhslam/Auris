@@ -6,6 +6,7 @@ import {
   FolderIcon, HistoryIcon, PlusIcon, RotateCcwIcon, SearchIcon, SunIcon, Trash2Icon,
 } from "@/components/auris-ui/auris-icons";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
+import { ReviewWheelWorkspace } from "./review-wheel-workspace";
 import {
   KnowledgePointRow, OutputReviewCard, ReviewProgress, formatReviewDate, statusLabel,
 } from "@/components/review/output-review-card";
@@ -157,7 +158,7 @@ export function ReviewPageClient({
           </div>
 
           {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
-            : view === "today" ? <TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} queue={queue} />
+            : view === "today" ? <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}><TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} queue={queue} /></ReviewWheelWorkspace>
               : view === "all" ? <AllView onOpen={setDetailId} state={state} />
                 : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
                   : view === "calendar" ? <CalendarView onOpen={setDetailId} state={state} today={today} />
@@ -212,36 +213,10 @@ function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll }: {
 }) {
   const [upcomingOpen, setUpcomingOpen] = useState(true);
   const featured = queue[0];
-  const followUps = queue.slice(1, 4).map((item) => ({ event: item.event, item }));
-  if (featured && followUps.length < 3) {
-    for (const event of featured.cycle.events) {
-      if (followUps.length >= 3) break;
-      if (event.status === "pending" && event.id !== featured.event.id) {
-        followUps.push({ event, item: featured });
-      }
-    }
-  }
   const progress = metrics.totalActionableToday ? Math.round((metrics.completedToday / metrics.totalActionableToday) * 100) : 100;
-  const focusLabel = featured?.urgency === "overdue" ? "优先处理" : featured?.urgency === "today" ? "今天" : "接下来";
-  const reviewHeadline = metrics.overdueCount > 0 ? "先收口再向前，从最早的逾期项开始。" : metrics.dueTodayCount > 0 ? "今天的输出，从一个清晰解释开始。" : "今天的复习队列已经清空。";
-  const reviewGuidance = metrics.overdueCount > 0
-    ? `有 ${metrics.overdueCount} 项逾期，先完成一项闭卷回忆，再回到今日计划。`
-    : metrics.dueTodayCount > 0
-      ? `今天还有 ${metrics.dueTodayCount} 项到期内容，先回忆、后校验，不边看边讲。`
-      : "没有需要立即处理的内容，可以预览后续计划或添加新知识点。";
-  if (!queue.length && metrics.activeKnowledgeCount === 0) return <EmptyReviewState onAdd={onAdd} />;
   return (
     <div className="output-review-today">
       <section className="output-review-overview" aria-label="今日复盘概览">
-        <div className="output-review-overview__lead">
-          <span className="output-review-overview__eyebrow"><ActivityIcon size={14} />TODAY / 今日复盘</span>
-          <h2>{reviewHeadline}</h2>
-          <p>{reviewGuidance}</p>
-          <div className="output-review-overview__signals" aria-label="复习节奏">
-            <span><ActivityIcon size={14} />本周输出 <b>{metrics.weeklyOutputs}</b> 次</span>
-            <span><HistoryIcon size={14} />活跃知识点 <b>{metrics.activeKnowledgeCount}</b> 项</span>
-          </div>
-        </div>
         <div className="output-review-summary" aria-label="今日复习数据">
           <div><span>今日执行</span><strong>{metrics.completedToday} / {metrics.totalActionableToday}</strong><small>完成输出</small></div>
           <div><span>逾期</span><strong data-warning={metrics.overdueCount > 0}>{metrics.overdueCount}</strong><small>需要优先处理</small></div>
@@ -250,17 +225,11 @@ function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll }: {
         </div>
       </section>
       {featured ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
-        <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>{focusLabel}</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>
-        <div className="output-review-workbench">
-          <OutputReviewCard item={featured} onComplete={onComplete} onOpen={onOpen} />
-          <aside className="output-review-followups" aria-label="后续复习">
-            <div className="output-review-followups__heading"><strong>后续复习</strong><span>{followUps.length}</span></div>
-            <div className="output-review-followups__list">{followUps.map(({ event, item }) => <button className="output-review-followup-card" key={event.id} onClick={() => onOpen(item.knowledgePoint.id)} type="button"><span><b>{STAGE_LABELS[event.stage]}</b><small>{formatReviewDate(event.currentPlannedDate)}</small></span><strong>{event.id === item.event.id ? item.knowledgePoint.title : `${item.knowledgePoint.title} · ${STAGE_LABELS[event.stage]}`}</strong><small>{item.project.name} · {item.knowledgePoint.difficulty === "hard" ? "预计 25 分钟" : item.knowledgePoint.difficulty === "easy" ? "预计 15 分钟" : "预计 20 分钟"}</small></button>)}</div>
-            <button className="output-review-followups__all" onClick={onShowAll} type="button">查看全部 <ArrowUpRightIcon size={14} /></button>
-          </aside>
-        </div>
+        <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>优先处理</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>
+        <div className="output-review-workbench"><OutputReviewCard item={featured} onComplete={onComplete} onOpen={onOpen} /></div>
+        <button className="output-review-followups__all" onClick={onShowAll} type="button">查看全部计划 <ArrowUpRightIcon size={14} /></button>
         <p className="output-review-upcoming__tip"><SunIcon size={14} />建议在安静环境中复习，先回忆，再校验。</p>
-      </details> : <section className="output-review-clear"><CheckIcon size={18} /><div><strong>当前没有待复习任务</strong><p>复习节奏清晰，可以继续保持。</p></div></section>}
+      </details> : <EmptyReviewState onAdd={onAdd} />}
     </div>
   );
 }

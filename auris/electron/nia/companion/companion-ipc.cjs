@@ -109,7 +109,7 @@ function createCompanionIpc({
     if (command === "drag-to") {
       return companionWindow.dragTo?.({ x: Number(payload.x), y: Number(payload.y) }) ?? false;
     }
-    if (command === "drag-end") return companionWindow.endDrag?.() ?? false;
+    if (command === "drag-end") return companionWindow.endDrag?.(payload) ?? false;
     if (command === "open-nia") return onOpenNia();
     if (command === "wake") return onWake();
     if (command === "menu") return onMenu();

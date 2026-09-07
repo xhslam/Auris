@@ -37,6 +37,7 @@ body {
 .nia-companion__figure {
   cursor: grab;
   height: 250px;
+  pointer-events: none;
   position: relative;
   transform: scale(var(--nia-companion-scale, 1));
   transform-origin: center bottom;
@@ -74,6 +75,7 @@ body {
   height: 132px;
   left: 62px;
   position: absolute;
+  pointer-events: auto;
   top: 20px;
   width: 136px;
   z-index: 2;
@@ -123,6 +125,7 @@ body {
   height: 150px;
   left: 46px;
   position: absolute;
+  pointer-events: auto;
   width: 168px;
   z-index: 1;
 }
@@ -166,6 +169,7 @@ body {
   max-width: 218px;
   padding: 10px 13px;
   position: absolute;
+  pointer-events: auto;
   text-align: left;
   top: 19px;
   z-index: 3;
@@ -183,6 +187,7 @@ body {
   cursor: pointer;
   height: 28px;
   position: absolute;
+  pointer-events: auto;
   right: 24px;
   top: 22px;
   width: 28px;

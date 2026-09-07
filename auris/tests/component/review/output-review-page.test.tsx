@@ -42,9 +42,10 @@ describe("output review page", () => {
     await user.click(screen.getByRole("button", { name: /^今天$/ }));
     expect(screen.getByLabelText("今日复盘概览")).toBeInTheDocument();
     expect(screen.queryByLabelText("Nia 复习监督")).not.toBeInTheDocument();
-    expect(screen.getByText("特征值与特征向量")).toBeInTheDocument();
+    expect(within(screen.getByLabelText("复习执行工作区")).getByText("特征值与特征向量")).toBeInTheDocument();
     expect(screen.getAllByText("今天到期")).toHaveLength(2);
-    expect(screen.getByRole("complementary", { name: "后续复习" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "复习摩天轮" })).toBeInTheDocument();
+    expect(screen.getByRole("separator", { name: "调整复习左右区域宽度" })).toBeInTheDocument();
     expect(screen.getByText("复习要点")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "完成输出" }));
@@ -88,5 +89,42 @@ describe("output review page", () => {
 
     expect(await screen.findByText("还没有复习周期")).toBeInTheDocument();
     expect(screen.queryByLabelText(/知识点详情/)).not.toBeInTheDocument();
+  });
+
+  it("browses overdue tasks and project knowledge through the wheel and remembers the split", async () => {
+    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "控制原理" });
+    state = createKnowledgePoint(state, {
+      projectId: state.projects[0].id,
+      startDate: addCalendarDays(toLocalDateKey(new Date()), -10),
+      title: "闭环反馈",
+    });
+    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+    const user = userEvent.setup();
+    let now = 10000;
+    const clock = vi.spyOn(performance, "now").mockImplementation(() => now);
+    const rendered = render(<ReviewPageClient />);
+    try {
+      const divider = screen.getByRole("separator");
+      divider.focus();
+      await user.keyboard("{ArrowRight}");
+      expect(divider).toHaveAttribute("aria-valuenow", "47");
+      expect(window.localStorage.getItem("auris.review.split")).toBe("47");
+
+      await user.click(screen.getByRole("button", { name: "按下摇杆切换下一组" }));
+      const overdue = screen.getByRole("tabpanel", { name: /已经逾期的任务/ });
+      await user.click(within(overdue).getByRole("button", { name: /闭环反馈/ }));
+      expect(screen.getByLabelText("知识点详情：闭环反馈")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "关闭详情" }));
+
+      now += 1300;
+      await user.click(screen.getByRole("button", { name: "下一组卡片" }));
+      const projects = screen.getByRole("tabpanel", { name: /我创建的项目/ });
+      await user.click(within(projects).getByRole("button", { name: /控制原理/ }));
+      await user.click(within(projects).getByRole("button", { name: /闭环反馈/ }));
+      expect(screen.getByLabelText("知识点详情：闭环反馈")).toBeInTheDocument();
+      rendered.unmount();
+      render(<ReviewPageClient />);
+      expect(screen.getByRole("separator")).toHaveAttribute("aria-valuenow", "47");
+    } finally { clock.mockRestore(); }
   });
 });

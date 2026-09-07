@@ -188,3 +188,39 @@
 - 全量 Nia 测试：54 个测试文件、319 项测试全部通过。
 - 语法与静态检查：`node --check`、定向 ESLint（0 errors, 0 warnings）、`npm run quality:desktop-ipc`、`git diff --check` 通过。
 - 生产构建：`npm run build` 成功完成。
+
+## Nia 桌面形象透明区域点击穿透对齐（2026-09-07）
+
+### Diagnosis and implementation
+
+对照 Mochi 渲染器的实际路径确认，Mochi 虽保留足够容纳气泡的大窗口，但每帧用与绘制共用的 `Path2D` silhouette 执行 `hitTest`，只在指针命中实际角色、气泡或控件时关闭 Electron 点击穿透。Nia 原先在 320×360 根容器的 `pointerenter` 上直接接管整扇窗口，因此透明外框也会吞掉点击。
+
+修复集中在 `src/components/nia/companion/companion-runtime.tsx` 与 `companion.css`：去掉根容器进入即接管的逻辑，仅将头部和身体标记为真实命中区；容器和光晕保持不参与命中，DOM 自身的变换与圆角边界跟随当前动画。指针移入真实形体时才调用 `pointerCapture(true)`，移回透明区立即恢复穿透；透明区的按下和右键也不再触发唤醒、拖拽或菜单。用 ref 去重复用的 IPC 切换，避免每次 pointer move 都往主进程发相同状态。
+
+### Checks and boundary
+
+- 新增组件回归，验证透明区不接管鼠标，头部/身体命中时接管，移出形体后恢复穿透，以及透明区按下不唤醒或拖拽。
+- Companion 相关 7 个测试文件、19 项通过；定向 ESLint、`git diff --check` 和 `npm run build` 通过。
+- 真实 Chromium 320×360 视口复核 `elementFromPoint`：左上角与角色旁空白均命中根容器（保持穿透），头部与身体点位命中对应形体。验证用开发服务器已关闭，未留后台进程。
+- 本轮保留 320×360 原生窗口与现有角色缩放，因为故障在命中策略而非窗口物理尺寸；未改动 Realtime、唤醒、拖拽定位或菜单 IPC。
+
+## Nia 桌面悬浮形象鼠标松手恢复、动画持续命中与异常拖拽释放兜底（2026-09-07）
+
+### Interpretation and diagnosis
+
+根据代码审计与运行状态复现，确诊并解决三项漏洞：
+1. **左键松开原地右键失效**：此前松手时无条件 `setPointerCapture(false)`，导致即使鼠标仍在角色身上，原地右键也会因 macOS 点击穿透只转发 mousemove 而被忽略。
+2. **鼠标不动时命中状态不持续更新**：角色动画、缩放和松手后，单次 move 事件无法感知角色轮廓的动态位移。
+3. **缺少拖拽丢失松手事件的兜底**：拖拽移动时无按键状态检查，缺少 `lostpointercapture` 及全局 blur/pointerup 容错。
+
+### Implementation path
+
+- `src/components/nia/companion/companion-runtime.tsx`：引入 `isDraggingRef`、`lastPointerPosRef`、`lastTargetRef` 和 `checkPointerHit`（优先 `document.elementFromPoint` 命中实时 DOM 轮廓）；松手时重算命中并传入 `dragEnd({ retainCapture: isHit })`；建立 rAF 循环在鼠标位于窗口内时每帧持续检测命中并更新状态（有门控去重）；`onPointerMove` 检测 `(buttons & 1) === 0` 自动结束拖拽；`<main>` 及 `window` 监听 `lostpointercapture`、`pointerup`、`blur`、`mouseleave` 兜底。
+- `electron/nia/companion/companion-window.cjs`：`endDrag(options = {})` 在 `options?.retainCapture === true` 时保持捕获状态，不强制开启点击穿透。
+- `electron/nia/companion/companion-ipc.cjs` 与 `companion-preload.cjs`：`drag-end` 管道支持透传 `payload`。
+- `src/components/nia/companion/realtime-transport.ts`：更新 `CompanionBridge` 类型。
+
+### Checks
+
+- 单元与组件测试：`tests/unit/electron/nia/companion/` 与 `tests/component/nia/` 新增 5 组回归测试，全量 Nia 54 个文件 331 项全部通过。
+- `node --check`、ESLint（0 error 0 warning）、`git diff --check`、`npm run build` 全部通过。

@@ -95,4 +95,22 @@ describe("Nia companion IPC", () => {
     await expect(ipcMain.handlers.get(COMMAND_CHANNEL)!({ sender: {} }, { command: "menu" })).resolves.toBe(true);
     expect(onMenu).toHaveBeenCalledOnce();
   });
+
+  it("forwards drag-end payload with retainCapture option to companion window", async () => {
+    const ipcMain = fakeIpcMain();
+    const endDrag = vi.fn((payload?: unknown) => true);
+    const service = createCompanionIpc({
+      ipcMain,
+      companionWindow: { window: () => null, endDrag },
+      isTrustedSender: () => true,
+      readCredential: async () => ({ ok: false }),
+      exchangeRealtimeSession: async () => ({ ok: false }),
+      proxyRealtimeSdp: async () => ({ ok: false }),
+    });
+    service.register();
+    await expect(
+      ipcMain.handlers.get(COMMAND_CHANNEL)!({ sender: {} }, { command: "drag-end", payload: { retainCapture: true } }),
+    ).resolves.toBe(true);
+    expect(endDrag).toHaveBeenCalledWith({ retainCapture: true });
+  });
 });

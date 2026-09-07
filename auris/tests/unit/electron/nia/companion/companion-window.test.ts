@@ -34,4 +34,36 @@ describe("companion window policy", () => {
     expect(target.loadURL).toHaveBeenCalledWith("http://localhost:3000/nia/companion");
     expect(service.isVisible()).toBe(true);
   });
+
+  it("preserves pointer capture when endDrag is told to retainCapture, but restores click-through by default", async () => {
+    const made: Array<ReturnType<typeof fakeWindow>> = [];
+    const BrowserWindow = class {
+      constructor(options: Record<string, unknown>) { const value = fakeWindow(options); made.push(value); return value; }
+    };
+    const service = createCompanionWindow({
+      BrowserWindow,
+      screen: { getPrimaryDisplay: () => ({ id: 1, workArea: { x: 0, y: 0, width: 1440, height: 900 } }), getAllDisplays: () => [] },
+      startNextServer: async () => "http://localhost:3000",
+      preloadPath: "/tmp/preload.cjs",
+      positionPath: "/tmp/nia-placement.json",
+    });
+    await service.load();
+    const target = made[0];
+    target.setIgnoreMouseEvents.mockClear();
+
+    // Begin drag turns on pointer capture (disables ignoreMouseEvents)
+    service.beginDrag({ x: 100, y: 100 });
+    expect(target.setIgnoreMouseEvents).toHaveBeenCalledWith(false, { forward: true });
+    target.setIgnoreMouseEvents.mockClear();
+
+    // endDrag with retainCapture: true does NOT enable ignoreMouseEvents
+    service.endDrag({ retainCapture: true });
+    expect(target.setIgnoreMouseEvents).not.toHaveBeenCalled();
+
+    // Begin drag again and endDrag without retainCapture: restores click-through
+    service.beginDrag({ x: 100, y: 100 });
+    target.setIgnoreMouseEvents.mockClear();
+    service.endDrag();
+    expect(target.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+  });
 });

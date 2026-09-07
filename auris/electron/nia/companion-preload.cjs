@@ -34,7 +34,7 @@ const bridge = Object.freeze({
   pointerCapture: (enabled) => invoke("pointer-capture", { enabled: enabled === true }),
   dragBegin: (x, y) => invoke("drag-begin", { x, y }),
   dragTo: (x, y) => invoke("drag-to", { x, y }),
-  dragEnd: () => invoke("drag-end"),
+  dragEnd: (payload = {}) => invoke("drag-end", payload),
   openNia: () => invoke("open-nia"),
   wake: () => invoke("wake"),
   showMenu: () => invoke("menu"),

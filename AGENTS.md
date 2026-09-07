@@ -930,3 +930,39 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
 - **静态代码检查**：
   - `npx eslint src/components/nia/nia-workspace-surface.tsx tests/component/nia/nia-workspace-surface.test.tsx`：0 error 0 warning。
 - 未提交或推送 Git 改动。
+
+## Engineering trajectory: Nia 桌面悬浮形象鼠标松手恢复、动画持续命中与异常拖拽释放兜底（2026-09-07）
+
+### 任务解读与分解
+用户针对 Nia 桌面悬浮窗透明点击穿透提出了三项核心漏洞诊断与修复要求：
+1. **左键松开后原地右键失效**：此前松手时渲染层与主进程无条件调用 `setPointerCapture(false)` 开启点击穿透，导致即使鼠标仍在角色身体或头部上方，原地右键也会因 `ignoreMouseEvents(true, { forward: true })`（macOS 上只转发 mousemove、不转发 click/contextmenu）而被透传给底层窗口；
+2. **鼠标静止时命中状态不持续更新**：角色具有待机呼吸、眼动、讲话口型、缩放比例调整及状态切换等动画。此前仅在 `pointermove` 时做单次检查，鼠标静止不动时若角色轮廓移动/缩放进出指针范围，指针接管状态与实际位置脱节；
+3. **缺少拖拽丢失松手事件的兜底**：拖拽移动期间若因按键已释放（`buttons === 0` 或 `(buttons & 1) === 0`）、`lostpointercapture`、全局 `pointerup`/`pointercancel`、或窗口失焦 `blur` 导致未正常触发 `onPointerUp`，残留拖拽状态会使窗口卡在拖拽中且状态失步。
+
+### 实现路径
+1. **松手位置命中重判与保持**：
+   - `auris/src/components/nia/companion/companion-runtime.tsx`：引入 `isDraggingRef`、`lastPointerPosRef`、`lastTargetRef` 与 `checkPointerHit`（优先通过 `document.elementFromPoint(x, y)` 动态检测实时 DOM 命中，jsdom 下平滑回退 `target`）；
+   - `endPointer` 在松手时立即按当前指针坐标重新判定命中 `isHit`，通过 `bridge.dragEnd({ retainCapture: isHit })` 告知主进程是否保留指针捕获，并以 `setCompanionPointerCapture(isHit)` 保持同步；若仍命中角色，则不开启点击穿透，原地右键立即唤起原生菜单；
+   - `auris/electron/nia/companion/companion-window.cjs`：`endDrag(options = {})` 支持 `options?.retainCapture === true` 时保留指针捕获，仅在未保留捕获时恢复点击穿透；
+   - `auris/electron/nia/companion/companion-ipc.cjs` 与 `companion-preload.cjs`：`drag-end` 管道透传 `payload` 到 `endDrag`；
+   - `auris/src/components/nia/companion/realtime-transport.ts`：更新 `CompanionBridge.dragEnd` 类型定义。
+2. **静止时动画与缩放持续命中（rAF 循环）**：
+   - 在 `CompanionRuntime` 中建立轻量 `requestAnimationFrame` 轮询检查；当鼠标位于窗口内（`lastPointerPosRef.current !== null`）且非拖拽时，每帧复核 `checkPointerHit`；
+   - `setCompanionPointerCapture` 已有 `capturesPointerRef.current === enabled` 门控去重，状态未变化时不发送任何冗余 IPC，仅在角色动画或缩放跨越指针边界时触发一次 IPC 切换。
+3. **异常丢失拖拽释放兜底**：
+   - `onPointerMove` 增加 `(event.buttons & 1) === 0` 检测，若检测到左键已松开则立即终止残留拖拽；
+   - `<main>` 监听 `onLostPointerCapture`，元素丢失捕获时安全退出拖拽；
+   - 全局 `window` 监听 `pointerup`、`pointercancel`、`lostpointercapture`、`blur` 与 `mouseleave`，确保在视口外释放或窗口失焦时均能释放拖拽状态并安全同步。
+
+### 检查与测试结果
+1. **单元与组件测试**：
+   - `tests/unit/electron/nia/companion/companion-window.test.ts`：新增 `endDrag({ retainCapture: true })` 保留捕获与默认恢复穿透单测；
+   - `tests/unit/electron/nia/companion/companion-ipc.test.ts`：新增 `drag-end` 携带 `retainCapture` 转发单测；
+   - `tests/component/nia/companion-runtime-scale.test.tsx`：新增松手在角色上保持 capture 并支持原地右键、松手在透明区释放 capture、`buttons === 0` 移动时自动结束拖拽、`lostpointercapture` 释放拖拽、以及 rAF 持续命中状态更新 5 组回归测试；
+   - 定向测试：`npx vitest run tests/component/nia/ tests/unit/electron/nia/ tests/unit/nia/` 全量 54 个测试文件、331 项测试全部通过。
+2. **代码质量与构建验证**：
+   - `node --check` 检查 3 个 Electron CommonJS 模块通过；
+   - `npx eslint` 检查相关组件 0 error 0 warning；
+   - `git diff --check` 通过，无空格与格式问题；
+   - `npm run build`：Next.js 16.1.7 生产构建顺利通过，`/nia/companion` 等全部 23 条路由正常编译。
+3. 未提交或推送 Git 改动。
