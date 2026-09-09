@@ -1065,3 +1065,33 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
    - `git diff --check`：通过；
    - `npm run build`：Next.js 生产构建成功。
 3. 未提交或推送 Git 改动。
+
+## Engineering trajectory: 移除 Review 模块「洞察」标签页及相关功能（2026-09-08）
+
+### 任务解读与分解
+用户根据界面截图要求彻底移除输出复习（Review）模块中的「洞察」页面及所有与其直接绑定的代码和样式。
+任务拆解为：
+1. 界面与导航层：移除顶部导航栏中的「洞察」Tab 项（`VIEW_LABELS` 与 `ReviewView` 类型中删除 `insights`）；
+2. 组件与渲染层：移除 `InsightsView`、`InsightMetric` 组件定义及其在 `ReviewPageClient` 中的渲染分支；清理仅在洞察视图中引用的 `ActivityIcon` 图标；
+3. 数据与模型层：清理仅服务于洞察 35 天活跃热力图的 `completedReviewCountsByDate` 函数；保留供 Nia、Desktop Island 与今天页面使用的核心度量方法（如 `getDashboardMetrics`）；
+4. 样式层：移除 `output-review-page.css` 中所有 `.output-review-insight-*`、`.output-review-heatmap`、`.output-review-reliability` 及 `.output-review-mastery-list` 样式规则（包括 1020px 和 680px 媒体查询）；
+5. 自动化测试回归：更新组件测试断言，确保「洞察」标签与执行洞察 region 不再渲染。
+
+### 修改文件
+1. `auris/src/components/review/review-page-client.tsx`：
+   - 从 `ReviewView` 与 `VIEW_LABELS` 移除 `insights`；
+   - 移除 `InsightsView` 与 `InsightMetric` 组件实现及其条件渲染分支；
+   - 清理未使用的 `ActivityIcon` 与 `completedReviewCountsByDate` 导入。
+2. `auris/src/components/review/output-review-page.css`：
+   - 彻底删除洞察仪表盘全部 CSS 样式规则及相关媒体查询响应式覆盖。
+3. `auris/src/features/output-review/output-review-model.ts`：
+   - 移除专用于洞察热力图的 `completedReviewCountsByDate` 辅助方法。
+4. `auris/tests/component/review/output-review-page.test.tsx`：
+   - 调整导航切换测试，断言「洞察」Tab 和「执行洞察」区域不再存在。
+
+### 检查与验证
+1. `npm test -- tests/unit/output-review/ tests/component/review/`：2 个测试文件、13 项单元与组件测试全部通过；
+2. `npx eslint src/components/review/review-page-client.tsx src/features/output-review/output-review-model.ts tests/component/review/output-review-page.test.tsx`：0 error 0 warning；
+3. `git diff --check`：通过，无多余空白字符或格式冲突；
+4. `npm run build`：Next.js 生产构建成功（`/review` 等 23 个页面生成无误）；
+5. 未提交或推送 Git 改动。

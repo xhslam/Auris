@@ -1,4 +1,4 @@
-import { ArrowRightIcon, BookOpenIcon, CheckIcon } from "@/components/auris-ui/auris-icons";
+import { ArrowRightIcon, CheckIcon } from "@/components/auris-ui/auris-icons";
 import {
   REVIEW_STAGES,
   STAGE_LABELS,
@@ -52,13 +52,6 @@ export function OutputReviewCard({ item, onComplete, onOpen }: OutputReviewCardP
   const completed = item.cycle.events.filter((event) => event.status === "completed").length;
   const urgencyCopy = item.urgency === "overdue" ? `逾期 ${item.overdueDays} 天` : item.urgency === "today" ? "今天到期" : `${formatReviewDate(item.event.currentPlannedDate)} 到期`;
   const difficultyCopy = item.knowledgePoint.difficulty === "hard" ? "高强度" : item.knowledgePoint.difficulty === "easy" ? "轻量" : "标准";
-  const reviewPoints = Array.from(new Set([
-    item.knowledgePoint.reviewReason,
-    item.knowledgePoint.description,
-    ...item.knowledgePoint.tags.map((tag) => `围绕「${tag}」做一次脱稿输出`),
-    "先闭卷回忆，再对照材料校验",
-    "记录仍然卡住的一个问题",
-  ].filter((value): value is string => Boolean(value?.trim())))).slice(0, 3);
   return (
     <article className="output-review-card" data-urgency={item.urgency}>
       <div className="output-review-card__topline"><span className="output-review-card__project">{item.project.name}</span><span className="output-review-card__badges"><span className="output-review-card__urgency">{urgencyCopy}</span><span className="output-review-card__stage">当前 {STAGE_LABELS[item.event.stage]}</span></span></div>
@@ -68,7 +61,6 @@ export function OutputReviewCard({ item, onComplete, onOpen }: OutputReviewCardP
       </button>
       <div className="output-review-card__body">
         <ReviewProgress cycle={item.cycle} currentEvent={item.event} />
-        <div className="output-review-card__prompts"><strong><BookOpenIcon size={15} />复习要点</strong><ul>{reviewPoints.map((point) => <li key={point}>{point}</li>)}</ul></div>
       </div>
       <div className="output-review-card__footer"><span><CheckIcon size={14} />{completed} / 4 次复习已完成</span><button className="output-review-card__complete" onClick={() => onComplete(item.knowledgePoint.id)} type="button">完成输出 <ArrowRightIcon size={16} /></button></div>
     </article>

@@ -15,6 +15,8 @@ import {
   subscribeToNiaCompanionScale,
 } from "@/features/nia/nia-companion-scale";
 import { NiaRealtimeTransport, type CompanionBridge, type CompanionTransportReport } from "./realtime-transport";
+import { useNiaCompanionDrift } from "@/features/nia/nia-companion-motion";
+import { useCompanionAvatar } from "./use-companion-avatar";
 import "./companion.css";
 
 type CompanionCommand =
@@ -41,10 +43,12 @@ function readableStatus(status: string) {
 }
 
 export function CompanionRuntime() {
+  const driftEnabled = useNiaCompanionDrift();
   const [status, setStatus] = useState("resting");
   const [lastText, setLastText] = useState("");
   const [isDragging, setDragging] = useState(false);
   const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
+  const { figureRef, rigRef, expression, intensity, asleep, playMotion, lookAt, connectAudio, stopAudio } = useCompanionAvatar(status, driftEnabled);
   const transportRef = useRef<NiaRealtimeTransport | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const capturesPointerRef = useRef(false);
@@ -91,7 +95,7 @@ export function CompanionRuntime() {
       if (report.type === "closed") setStatus("resting");
       if (report.type === "heard" || report.type === "said") {
         setLastText(report.text);
-        if (report.type === "said") setStatus("speaking");
+
       }
     };
     const onCommand = (raw: unknown) => {
@@ -105,6 +109,7 @@ export function CompanionRuntime() {
             const audio = audioRef.current;
             if (!audio) return;
             audio.srcObject = stream;
+            connectAudio(stream, audio);
             void audio.play().catch(() => undefined);
           },
         });
@@ -127,9 +132,10 @@ export function CompanionRuntime() {
     return () => {
       bridge.unsubscribe(onCommand);
       transport.close();
+      stopAudio();
       transportRef.current = null;
     };
-  }, [bridge]);
+  }, [bridge, connectAudio, stopAudio]);
 
   const endPointer = useCallback((event?: PointerEvent<HTMLElement> | globalThis.PointerEvent) => {
     if (!bridge || !isDraggingRef.current) return;
@@ -154,6 +160,7 @@ export function CompanionRuntime() {
     lastTargetRef.current = event.target;
     if (!checkPointerHit(lastPointerPosRef.current, event.target)) return;
     if ((event.target as HTMLElement).closest("button")) return;
+    playMotion("poke");
     event.currentTarget.setPointerCapture?.(event.pointerId);
     isDraggingRef.current = true;
     setDragging(true);
@@ -163,6 +170,10 @@ export function CompanionRuntime() {
   };
 
   const onPointerMove = (event: PointerEvent<HTMLElement>) => {
+    const rect = figureRef.current?.getBoundingClientRect();
+    if (rect && rect.width > 0 && rect.height > 0) {
+      lookAt((event.clientX - rect.left - rect.width / 2) / (rect.width / 2), (event.clientY - rect.top - rect.height / 2) / (rect.height / 2));
+    }
     if (!bridge) return;
     lastPointerPosRef.current = { clientX: event.clientX, clientY: event.clientY };
     lastTargetRef.current = event.target;
@@ -186,6 +197,7 @@ export function CompanionRuntime() {
   };
 
   const onPointerLeave = () => {
+    lookAt(0, 0);
     if (!isDraggingRef.current) {
       lastPointerPosRef.current = null;
       lastTargetRef.current = null;
@@ -271,15 +283,22 @@ export function CompanionRuntime() {
       <p aria-live="polite" className="nia-companion__spoken-status">{readableStatus(status)}{lastText ? `：${lastText}` : ""}</p>
       <div
         className="nia-companion__figure"
+        data-drift={driftEnabled}
+        data-expression={expression}
+        data-asleep={asleep}
+        ref={figureRef}
         role="img"
         aria-label="Nia"
         style={{
           "--nia-companion-scale": companionScale / 100,
+          "--nia-expression-intensity": intensity,
         } as CSSProperties}
       >
+        <div className="nia-companion__rig" ref={rigRef}>
         <i className="nia-companion__halo" />
-        <div className="nia-companion__head" data-nia-companion-hit-region><i className="nia-companion__eye nia-companion__eye--left" /><i className="nia-companion__eye nia-companion__eye--right" /><i className="nia-companion__mouth" /></div>
+        <div className="nia-companion__head" data-nia-companion-hit-region><div className="nia-companion__face"><i className="nia-companion__eye nia-companion__eye--left" /><i className="nia-companion__eye nia-companion__eye--right" /><i className="nia-companion__mouth" /></div></div>
         <div className="nia-companion__body" data-nia-companion-hit-region><i className="nia-companion__arm nia-companion__arm--left" /><i className="nia-companion__arm nia-companion__arm--right" /><i className="nia-companion__chest" /></div>
+        </div>
       </div>
     </main>
   );

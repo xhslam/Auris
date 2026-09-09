@@ -22,23 +22,10 @@ describe("flash theme styles", () => {
     expect(css).toContain("var(--app-line)");
   });
 
-  it.each(["white", "paper", "mint", "sepia", "night", "solarized"])(
-    "configures theme-accurate colors for the %s app theme",
-    (theme) => {
-      const css = readFileSync(flashCssPath, "utf-8");
-
-      expect(css).toContain(`[data-app-theme="${theme}"] .flash-workspace`);
-    },
-  );
-
-  it("does not include legacy gold or amber accents in flash theme tokens", () => {
+  it("inherits the active app palette instead of overriding themes locally", () => {
     const css = readFileSync(flashCssPath, "utf-8");
-
-    // 严禁引入旧版金色、土黄色系高亮
-    expect(css).not.toMatch(/#c7a86a/i); // Auris 默认金色
-    expect(css).not.toMatch(/#d4b56e/i); // 旧夜间金色
-    expect(css).not.toMatch(/#e1c55a/i); // 旧 Solarized 金色
-    expect(css).not.toMatch(/#765214/i); // 旧白色泥金色
-    expect(css).not.toMatch(/#6f4f18/i); // 旧纸张泥金色
+    expect(css).toContain("--flash-bg: var(--app-bg)");
+    expect(css).toContain("--flash-accent: var(--accent)");
+    expect(css).not.toContain("[data-app-theme=");
   });
 });

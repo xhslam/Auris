@@ -1,3 +1,4 @@
+import { NIA_AVATAR_CUE_KEY } from "@/features/nia/nia-avatar-behavior";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import {
   constrainNiaInspectorWidth,
@@ -66,6 +67,28 @@ describe("NiaWorkspaceSurface split layout", () => {
     } finally {
       Reflect.deleteProperty(window, "shadowingDesktop");
     }
+  });
+
+  it("sends usable angry-expression and hop commands from the settings controls", () => {
+    render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    fireEvent.click(screen.getByRole("button", { name: "生气", exact: true }));
+    expect(JSON.parse(localStorage.getItem(NIA_AVATAR_CUE_KEY)!)).toMatchObject({ expression: "angry", intensity: 1 });
+    fireEvent.click(screen.getByRole("button", { name: "轻跳", exact: true }));
+    expect(JSON.parse(localStorage.getItem(NIA_AVATAR_CUE_KEY)!)).toMatchObject({ motion: "hop" });
+  });
+
+  it("persists the independent desktop drift control from settings", () => {
+    const first = render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const drift = screen.getByRole("button", { name: "桌面形象摇摆" });
+    expect(drift).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(drift);
+    expect(drift).toHaveAttribute("aria-pressed", "false");
+    first.unmount();
+    render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    expect(screen.getByRole("button", { name: "桌面形象摇摆" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("puts the desktop companion size slider inside Nia settings", async () => {

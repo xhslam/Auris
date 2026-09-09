@@ -338,11 +338,122 @@ body {
   to { transform: scaleY(1.25); }
 }
 
+/* Independent drift control: stationary breathing remains alive (Mochi setDrift). */
+.nia-companion__figure[data-drift="false"] .nia-companion__head,
+.nia-companion__figure[data-drift="false"] .nia-companion__body {
+  animation: nia-companion-breathe 4.4s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+.nia-companion__eye {
+  animation: nia-companion-blink 7s linear infinite;
+}
+
+@keyframes nia-companion-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.012, 0.988142); }
+}
+
+@keyframes nia-companion-blink {
+  0%, 94%, 98%, 100% { scale: 1 1; }
+  96% { scale: 1 0.08; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .nia-companion__head,
-  .nia-companion__body,
+  .nia-companion__figure[data-drift] .nia-companion__head,
+  .nia-companion__figure[data-drift] .nia-companion__body,
+  .nia-companion__eye,
   .nia-companion--thinking .nia-companion__head,
   .nia-companion--speaking .nia-companion__mouth {
     animation: none;
   }
 }
+
+.nia-companion__rig,
+.nia-companion__face {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-origin: center bottom;
+}
+
+.nia-companion__eye::after {
+  translate: var(--nia-gaze-x, 0px) var(--nia-gaze-y, 0px);
+  transition: translate 120ms ease-out;
+}
+
+.nia-companion__figure[data-expression="happy"] .nia-companion__eye {
+  height: 15px;
+  border-radius: 55% 55% 35% 35%;
+}
+.nia-companion__figure[data-expression="happy"] .nia-companion__mouth { height: 14px; width: 30px; left: 64px; }
+.nia-companion__figure[data-expression="shy"] .nia-companion__head::before,
+.nia-companion__figure[data-expression="shy"] .nia-companion__head::after { background: rgba(255, 126, 163, .7); }
+.nia-companion__figure[data-expression="shy"] .nia-companion__eye::after { translate: -2px 3px; }
+.nia-companion__figure[data-expression="shy"] .nia-companion__mouth { width: 18px; left: 70px; }
+.nia-companion__figure[data-expression="sad"] .nia-companion__eye { rotate: -8deg; }
+.nia-companion__figure[data-expression="sad"] .nia-companion__eye--right { rotate: 8deg; }
+.nia-companion__figure[data-expression="sad"] .nia-companion__mouth,
+.nia-companion__figure[data-expression="angry"] .nia-companion__mouth {
+  border-top: 2px solid rgba(32, 24, 77, .9);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  height: 9px;
+}
+.nia-companion__figure[data-expression="angry"] .nia-companion__eye {
+  rotate: calc(16deg * var(--nia-expression-intensity, 1));
+  height: 17px;
+}
+.nia-companion__figure[data-expression="angry"] .nia-companion__eye--right { rotate: calc(-16deg * var(--nia-expression-intensity, 1)); }
+.nia-companion__figure[data-expression="angry"] .nia-companion__mouth { width: 22px; left: 68px; }
+.nia-companion__figure[data-expression="surprised"] .nia-companion__eye { height: 29px; }
+.nia-companion__figure[data-expression="surprised"] .nia-companion__mouth { border: 2px solid rgba(32, 24, 77, .9); border-radius: 50%; height: 18px; width: 16px; left: 70px; }
+.nia-companion__figure[data-expression="thinking"] .nia-companion__eye::after { translate: 2px -3px; }
+.nia-companion__figure[data-expression="thinking"] .nia-companion__mouth { width: 16px; left: 73px; height: 3px; }
+.nia-companion__figure[data-expression="sleepy"] .nia-companion__eye {
+  height: 3px;
+  top: 65px;
+  animation: none;
+  background: rgba(32, 24, 77, .8);
+}
+.nia-companion__figure[data-expression="sleepy"] .nia-companion__eye::after { opacity: 0; }
+.nia-companion__figure[data-expression="sleepy"] .nia-companion__mouth { opacity: .25; }
+.nia-companion__figure[data-asleep="true"] .nia-companion__head,
+.nia-companion__figure[data-asleep="true"] .nia-companion__body { animation: nia-companion-sleep 6.6s ease-in-out infinite; transform-origin: center bottom; }
+@keyframes nia-companion-sleep {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.024, .9765625); }
+}
+
+/* Voice envelope is last: expressions must never hold a speaking mouth shut. */
+.nia-companion--speaking .nia-companion__figure[data-expression] .nia-companion__mouth {
+  animation: none;
+  opacity: 1;
+  border: 2px solid rgba(32, 24, 77, .9);
+  border-radius: 45%;
+  background: rgba(32, 24, 77, .5);
+  height: calc(2px + 19px * var(--nia-mouth-open, 0));
+  width: 22px;
+  left: 68px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nia-companion__figure[data-asleep] .nia-companion__head,
+  .nia-companion__figure[data-asleep] .nia-companion__body { animation: none; }
+  .nia-companion__figure[data-expression] .nia-companion__eye::after { translate: none; transition: none; }
+  .nia-companion--speaking .nia-companion__figure[data-expression] .nia-companion__mouth { height: 8px; }
+}
+
+.nia-companion__head { overflow: hidden; }
+
+.nia-companion__figure[data-expression="angry"] .nia-companion__eye::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -2px;
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(32, 24, 77, .9);
+}
+.nia-companion__figure[data-expression="thinking"] .nia-companion__eye--left { top: 47px; }

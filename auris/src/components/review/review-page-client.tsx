@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  ActivityIcon, ArrowUpRightIcon, CalendarDaysIcon, CheckIcon, ChevronRightIcon,
+  ArrowUpRightIcon, CalendarDaysIcon, CheckIcon, ChevronRightIcon,
   FolderIcon, HistoryIcon, PlusIcon, RotateCcwIcon, SearchIcon, SunIcon, Trash2Icon,
 } from "@/components/auris-ui/auris-icons";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
@@ -11,7 +11,7 @@ import {
   KnowledgePointRow, OutputReviewCard, ReviewProgress, formatReviewDate, statusLabel,
 } from "@/components/review/output-review-card";
 import {
-  EMPTY_OUTPUT_REVIEW_STATE, STAGE_LABELS, completedReviewCountsByDate,
+  EMPTY_OUTPUT_REVIEW_STATE, STAGE_LABELS,
   completeCurrentReview, createKnowledgePoint, createProject, currentCycleFor,
   deleteKnowledgePoint, getDashboardMetrics, getProjectStats,
   getReviewQueue, refreshReviewStatuses, restartReviewCycle, setKnowledgePointStatus,
@@ -23,13 +23,13 @@ import {
 import { readOutputReviewState, writeOutputReviewState } from "@/features/output-review/output-review-storage";
 import "@/components/review/output-review-page.css";
 
-type ReviewView = "today" | "all" | "projects" | "calendar" | "insights";
+type ReviewView = "today" | "all" | "projects" | "calendar";
 type ConfirmAction =
   | { kind: "complete"; knowledgePointId: string }
   | { kind: "restart" | "master" | "archive" | "delete"; knowledgePointId: string };
 
 const VIEW_LABELS: Record<ReviewView, string> = {
-  today: "今天", all: "全部", projects: "项目", calendar: "日历", insights: "洞察",
+  today: "今天", all: "全部", projects: "项目", calendar: "日历",
 };
 const dateLongFormatter = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric", month: "long", day: "numeric", weekday: "long",
@@ -161,8 +161,7 @@ export function ReviewPageClient({
             : view === "today" ? <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}><TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} queue={queue} /></ReviewWheelWorkspace>
               : view === "all" ? <AllView onOpen={setDetailId} state={state} />
                 : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
-                  : view === "calendar" ? <CalendarView onOpen={setDetailId} state={state} today={today} />
-                    : <InsightsView state={state} today={today} />}
+                  : <CalendarView onOpen={setDetailId} state={state} today={today} />}
         </div>
 
         {formPoint ? <KnowledgePointForm
@@ -484,102 +483,6 @@ function CalendarView({ state, today, onOpen }: { state: OutputReviewState; toda
     </section>
   );
 }
-
-function InsightsView({ state, today }: { state: OutputReviewState; today: string }) {
-  const metrics = getDashboardMetrics(state, today);
-  const counts = completedReviewCountsByDate(state);
-  const heatDates = Array.from({ length: 35 }, (_, reverseIndex) => { const date = dateFromKey(today); date.setDate(date.getDate() - (34 - reverseIndex)); return toLocalDateKey(date); });
-  const maxHeat = Math.max(1, ...Object.values(counts));
-  return (
-    <section className="output-review-view output-review-view--insights" aria-label="执行洞察">
-      <div className="output-review-view__heading">
-        <div>
-          <h2>执行洞察</h2>
-          <p>这些指标只衡量主动输出行为，不代表记忆强度。</p>
-        </div>
-        <ActivityIcon size={22} />
-      </div>
-
-      <div className="output-review-insight-grid">
-        <InsightMetric label="今日完成" value={`${metrics.completedToday}`} detail="次输出复习" />
-        <InsightMetric label="已掌握" value={`${metrics.masteredCount}`} detail="个知识点" />
-        <InsightMetric label="本周输出" value={`${metrics.weeklyOutputs}`} detail="次复习" />
-        <InsightMetric label="按时复习率" value={`${Math.round(metrics.onTimeRate * 100)}%`} detail={`${metrics.delayedReviewCount} 次延迟`} />
-      </div>
-
-      <div className="output-review-insight-workspace">
-        <div className="output-review-insight-pane">
-          <section className="output-review-insight-card">
-            <div className="output-review-insight-card__heading">
-              <div>
-                <h3>近 35 天输出活动</h3>
-                <p>每天完成的输出复习次数</p>
-              </div>
-              <span>少　多</span>
-            </div>
-            <div className="output-review-heatmap">
-              {heatDates.map((date) => {
-                const count = counts[date] ?? 0;
-                const level = count === 0 ? 0 : Math.max(1, Math.ceil((count / maxHeat) * 4));
-                return (
-                  <span
-                    aria-label={`${date}：完成 ${count} 次输出复习`}
-                    data-level={level}
-                    key={date}
-                    role="img"
-                    title={`${date} · ${count} 次`}
-                  />
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="output-review-reliability">
-            <div>
-              <span>延迟复习</span>
-              <strong>{metrics.delayedReviewCount}</strong>
-            </div>
-            <div>
-              <span>平均延迟</span>
-              <strong>{metrics.averageDelay.toFixed(1)} 天</strong>
-            </div>
-            <p>只描述执行可靠性，不推断记忆效果。</p>
-          </section>
-        </div>
-
-        <div className="output-review-insight-pane output-review-insight-pane--mastery">
-          <section className="output-review-insight-card output-review-insight-card--fill">
-            <div className="output-review-insight-card__heading">
-              <div>
-                <h3>项目掌握进度</h3>
-                <p>已掌握知识点 / 非归档知识点</p>
-              </div>
-            </div>
-            <div className="output-review-mastery-list">
-              {state.projects.map((project) => {
-                const stats = getProjectStats(state, project.id);
-                return (
-                  <div key={project.id}>
-                    <span>
-                      <strong>{project.name}</strong>
-                      <b>{Math.round(stats.progress * 100)}%</b>
-                    </span>
-                    <i>
-                      <i style={{ width: `${stats.progress * 100}%` }} />
-                    </i>
-                  </div>
-                );
-              })}
-              {!state.projects.length ? <p>创建项目后，这里会显示掌握进度。</p> : null}
-            </div>
-          </section>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function InsightMetric({ label, value, detail }: { label: string; value: string; detail: string }) { return <div className="output-review-insight-metric"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
 
 function KnowledgePointForm({ projects, initial, startDateLocked = false, onCancel, onSave }: { projects: OutputReviewProject[]; initial?: KnowledgePoint; startDateLocked?: boolean; onCancel: () => void; onSave: (input: CreateKnowledgePointInput) => void }) {
   const [title, setTitle] = useState(initial?.title ?? "");

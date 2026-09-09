@@ -218,3 +218,23 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 用户指出上一轮虽然复刻了胶囊本身，却把侧栏实现成覆盖页面的固定浮层；浏览器验收还通过强制桌面运行态与 Night 主题掩盖了真实组合关系。修正将侧栏定义为桌面壳的第一列：折叠列宽 52px（8px 左距 + 30px 轨道 + 14px 间隔），功能页面固定从第二列 `x=52` 开始；展开时第一列同步变为 262px，240px 导航与页面共同重排，不再遮挡页面。侧栏在列内使用 8px 外边距维持 `30×calc(100vh - 16px)` 胶囊几何。
 
 改动集中在 `src/styles/auris-redesign.css`、`src/styles/auris-theme.css`、侧栏 PRD 与几何契约测试。Playwright 在 1440×900 下复核 `/`、`/notes`、`/reading`、`/video`、`/settings`：五页轨道均为 `x=8, y=8, 30×884`，Frame 均为 `x=52, width=1388`，轨道矩形内可点击内容重叠数为 0；展开实测轨道 240px、Frame `x=262`、七个标签可见。侧栏/外壳/几何测试共 37 项通过，定向 ESLint 与 `git diff --check` 通过。业务数据、首页布局状态和主题偏好均未清空或改写。
+
+## Engineering trajectory: Nia 今日复习提醒清单与实时只读查询（2026-09-08）
+
+用户要求接通提醒里的具体条目与对话中的最新今日复习查询。确认现有 reminder 链路已经携带 items，但 `realtime-transport.ts` 仅发送 count；伴侣窗口和主窗口使用相同 Next origin 与 Electron 默认 session，因而可直接读取 Review 的 localStorage 数据，不必新增主进程接口或第二套存储。
+
+新增 `src/features/nia/nia-review-context.ts`：提醒按字段白名单携带有界清单；`get_today_reviews` 每次重新读取既有存储，使用 Review 的 getReviewQueue/getDashboardMetrics 和本地日期，返回今日到期、逾期、完成数及标题/项目/阶段/计划日期，并支持 20 项分页，区分空队列与读取失败。仅伴侣 transport 注册只读工具，工具输出通过 function_call_output 回传，在 response.done 后继续响应；同一 call_id 去重，会话关闭清理。协议解析补充 arguments。提示明确数据不是指令、不宣称读过材料、不自动完成复习。
+
+验证：5 个定向 Vitest 文件共 25 项通过，覆盖最新存储、完成后重读、跨日、暂停/未来排除、分页、失败和 transport 往返；定向 ESLint 和 npm run build 通过。新增 `tests/electron/nia-review-context-smoke.mjs`，用隔离浏览器会话验证实际 Review/伴侣页面、工具注册及跨页面更新，无需刷新即读到完成状态；WebRTC/provider 使用 mock，未调用真实语音服务。首轮 fixture 将 pause 动作误写为 paused 导致一项失败，修正测试调用后通过。全仓 diff 检查发现用户既有根 AGENTS.md 与 output-review-model.ts 的 EOF 空行；本次文件定向检查通过。未改动用户既有 Review/Nia 外观修改，未提交、推送或替换已安装应用；打包版需在后续重新打包后生效。
+
+## Engineering trajectory: 闪念主题统一与完整视口布局（2026-09-08）
+
+用户要求闪念配色符合当前主题、补齐不完整画面且不改字体。检查确认独立六主题硬编码覆盖了应用强调色（Paper 使用蓝色），固定宽度居中网格造成左侧空带，父层网格的百分比高度又随内容收缩造成底部分段。修改仅集中在 `src/components/flash/flash-page.css`：改用现有 app/accent 令牌，轻化卡片阴影；两栏填满实际内容宽度；通过仅匹配 Flash 的 :has 规则建立确定视口轨道，侧栏/列表内部滚动，小屏仍采用纵向布局。所有 font、line-height、letter-spacing 声明与改前逐项一致；没有修改业务和存储。
+
+更新既有 `tests/unit/flash/flash-theme-styles.test.ts`，移除与用户当前要求冲突的独立配色/禁止应用暖色断言，改为共享主题令牌契约。3 个闪念测试文件共 21 项通过，定向 ESLint 与 diff 检查通过。独立 Electron 窗口加载真实 preload、使用隔离用户目录及示例闪念，验证六主题 × 1440×900/1160×700：工作区与 viewport 等高同起点、侧栏到底、无横向溢出、强调色等于 app accent。初次验证用沙箱默认值导致 preload 未载入，按应用实际 sandbox:false 配置后完成桌面验证。样张保存于 `docs/flash-theme-2026-09-08/`；测试窗口未注册完整主进程 IPC，因此开发样张包含测试宿主的错误指示，不作为真实应用运行错误的结论。生产构建结果见本次最终回复。未替换已安装应用、未提交或推送；用户既有改动保留。
+
+## Engineering trajectory: 复习双栏文字可读性调整（2026-09-08）
+
+按用户截图要求，从 `output-review-card.tsx` 删除“复习要点”展示、自动生成提示列表及无用图标导入，不删除知识点原有描述或复习原因数据。`review-wheel-workspace.css` 仅为复习双栏补充字体大小/字重规则：左侧说明 13–15px、标题至少 24px/750，右侧任务标题 750、辅助信息 650，保留字体种类。统计格改为至少 90px 以容纳放大文字，恢复说明正常不透明度，卡片允许内部滚动并允许徽标/操作行换行。
+
+更新既有页面测试为“复习要点不存在”；组件与排程 13 项测试、定向 ESLint 通过。独立 Electron + 真实 preload + 隔离示例数据在 1440×900、1160×700 验证：标题 24px/750、右侧标题 750、统计格约 90.8px、“完成输出”完整可见、要点节点为 0。生产构建通过后补齐统计高度与卡片滚动规则，并对最终状态重新构建。用户原有 Review 修改保留；未修改字体种类、未提交或推送、未替换已安装应用。

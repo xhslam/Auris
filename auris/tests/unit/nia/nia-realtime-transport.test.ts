@@ -7,6 +7,8 @@ import {
 } from "@/components/nia/companion/realtime-transport";
 
 type TransportHarness = {
+  channel: { readyState: string; send: (value: string) => void };
+  sendSessionUpdate: () => void;
   generation: number;
   handlers: { report: (report: CompanionTransportReport) => void; playAudio: () => void };
   handleServerEvent: (raw: string) => void;
@@ -24,6 +26,27 @@ function setup() {
 }
 
 describe("Nia Realtime transport event wiring", () => {
+  it("advertises the review tool and returns fresh tool output before continuing the response", () => {
+    const { harness, transport } = setup();
+    const send = vi.fn();
+    harness.channel = { readyState: "open", send };
+    harness.sendSessionUpdate();
+    expect(JSON.parse(send.mock.calls[0][0]).session).toMatchObject({ tool_choice: "auto", tools: [{ name: "get_today_reviews" }] });
+    send.mockClear();
+    const call = JSON.stringify({ type: "response.function_call_arguments.done", name: "get_today_reviews", call_id: "call-1", arguments: "{}" });
+    harness.handleServerEvent(call);
+    harness.handleServerEvent(call);
+    expect(send).toHaveBeenCalledTimes(1);
+    const output = JSON.parse(send.mock.calls[0][0]);
+    expect(output.item).toMatchObject({ type: "function_call_output", call_id: "call-1" });
+    expect(JSON.parse(output.item.output)).toMatchObject({ status: "ready", actionableCount: 0 });
+    harness.handleServerEvent(JSON.stringify({ type: "response.done" }));
+    expect(JSON.parse(send.mock.calls[1][0])).toEqual({ type: "response.create" });
+    send.mockClear();
+    transport.sendReminder({ count: 1, items: [{ title: "特征值", projectName: "数学" }] });
+    expect(JSON.parse(send.mock.calls[0][0]).item.content[0].text).toContain("特征值");
+  });
+
   it("opens only after configuration confirmation and files a natural assistant turn", () => {
     const { harness, reports } = setup();
     harness.handleServerEvent(JSON.stringify({ type: "session.updated" }));

@@ -35,6 +35,10 @@ import { useHomeLearningSummary } from "@/features/home-learning/use-home-learni
 import { useNiaSession } from "@/features/nia/use-nia-session";
 import { isNiaTurnEagerness, type NiaTurnEagerness } from "@/features/nia/nia-realtime-protocol";
 
+import { saveNiaCompanionDrift, useNiaCompanionDrift } from "@/features/nia/nia-companion-motion";
+
+import { NIA_EXPRESSIONS, NIA_MOTIONS, sendNiaAvatarCue, type NiaExpression, type NiaMotion } from "@/features/nia/nia-avatar-behavior";
+
 type InspectorTab = "conversations" | "tools";
 type NiaAccentTheme = "auto" | "amber" | "gold" | "blue";
 type CompanionSnapshot = {
@@ -152,6 +156,7 @@ export function NiaWorkspaceSurface() {
   const [routingPreference, setRoutingPreference] = useState(loadNiaRoutingPreference);
   const [companion, setCompanion] = useState<CompanionSnapshot>({ state: "resting", muted: false });
   const [companionVisible, setCompanionVisible] = useState(true);
+  const driftEnabled = useNiaCompanionDrift();
   const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -971,6 +976,39 @@ export function NiaWorkspaceSurface() {
                   </button>
                 </div>
                 <small>只调整桌面悬浮玩偶，不会缩放 Nia 窗口或其他界面。</small>
+                <div className="nia-workspace__scale-controls">
+                  <button
+                    type="button"
+                    aria-pressed={driftEnabled}
+                    onClick={() => saveNiaCompanionDrift(!driftEnabled)}
+                  >
+                    桌面形象摇摆
+                  </button>
+                  <span>{driftEnabled ? "已开启" : "已关闭"}</span>
+                </div>
+                <small>关闭后仍保留轻微呼吸、眨眼和说话口型；系统减少动态效果设置优先。</small>
+              </div>
+              <div className="nia-workspace__settings-section">
+                <span>和 Nia 玩一会</span>
+                <small>选择后在桌面形象上展示约 5 秒，随后恢复通话状态。</small>
+                <div className="nia-workspace__voice-options" role="group" aria-label="Nia 表情">
+                  {(Object.keys(NIA_EXPRESSIONS) as NiaExpression[]).map((expression) => (
+                    <button key={expression} type="button" onClick={() => {
+                      setCompanionVisible(true);
+                      void getNiaCompanionHostBridge(window)?.invoke("companion-visibility", { visible: true });
+                      sendNiaAvatarCue({ expression });
+                    }}>{NIA_EXPRESSIONS[expression]}</button>
+                  ))}
+                </div>
+                <div className="nia-workspace__voice-options" role="group" aria-label="Nia 动作">
+                  {(Object.keys(NIA_MOTIONS) as NiaMotion[]).map((motion) => (
+                    <button key={motion} type="button" onClick={() => {
+                      setCompanionVisible(true);
+                      void getNiaCompanionHostBridge(window)?.invoke("companion-visibility", { visible: true });
+                      sendNiaAvatarCue({ motion, expression: "happy" });
+                    }}>{NIA_MOTIONS[motion]}</button>
+                  ))}
+                </div>
               </div>
               <div className="nia-workspace__settings-section">
                 <span>语音</span>

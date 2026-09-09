@@ -791,3 +791,41 @@
 @media (prefers-reduced-motion: reduce) {
   .review-wheel__gondola { transition: none; }
 }
+
+/* Reading comfort in the two-pane review workspace; retain existing families. */
+.review-wheel-workspace__left { font-size: 15px; font-weight: 650; }
+.review-wheel-workspace__left .output-review-summary span,
+.review-wheel-workspace__left .output-review-summary small { font-size: 14px; font-weight: 650; }
+.review-wheel-workspace__left .output-review-summary strong { font-size: 28px; font-weight: 750; }
+.review-wheel-workspace__left .output-review-upcoming__title strong { font-size: 23px; font-weight: 750; }
+.review-wheel-workspace__left .output-review-upcoming__title i,
+.review-wheel-workspace__left .output-review-upcoming__count { font-size: 14px; font-weight: 650; }
+.review-wheel-workspace__left .output-review-card__project,
+.review-wheel-workspace__left .output-review-card__urgency,
+.review-wheel-workspace__left .output-review-card__stage { font-size: 13px; font-weight: 700; }
+.review-wheel-workspace__left .output-review-card__title { font-size: clamp(24px, 3cqi, 30px); font-weight: 750; line-height: 1.4; }
+.review-wheel-workspace__left .output-review-card__meta { font-size: 15px; font-weight: 650; line-height: 1.6; }
+.review-wheel-workspace__left .output-review-progress__label,
+.review-wheel-workspace__left .output-review-progress__date { font-size: 14px; font-weight: 700; }
+.review-wheel-workspace__left .output-review-progress__step { grid-template-rows: 24px 24px 22px; }
+.review-wheel-workspace__left .output-review-card__footer > span,
+.review-wheel-workspace__left .output-review-card__complete,
+.review-wheel-workspace__left .output-review-followups__all { font-size: 15px; font-weight: 700; }
+.review-wheel-workspace__left .output-review-card__topline,
+.review-wheel-workspace__left .output-review-card__footer { flex-wrap: wrap; }
+.review-wheel-workspace__left .output-review-card__body { grid-template-columns: minmax(0, 1fr); }
+.review-wheel-workspace__left .output-review-card__meta,
+.review-wheel-workspace__left .output-review-progress__date,
+.review-wheel-workspace__left .output-review-summary span,
+.review-wheel-workspace__left .output-review-summary small { color: var(--app-text); }
+
+.review-wheel { font-weight: 650; }
+.review-wheel :is(button, small, em, footer) { font-weight: 650; }
+.review-wheel :is(h2, h3, strong),
+.review-wheel .review-wheel__cabin h3 b { font-weight: 750; }
+.review-wheel .review-wheel__item strong { font-weight: 750; }
+.review-wheel .review-wheel__controls strong { font-weight: 750; }
+.review-wheel-workspace__left .output-review-summary > div { height: auto; min-height: 90px; }
+.review-wheel-workspace__left .output-review-summary small,
+.review-wheel-workspace__left .output-review-card__meta { opacity: 1; }
+.review-wheel-workspace__left .output-review-card { overflow-y: auto; }

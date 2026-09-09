@@ -46,7 +46,7 @@ describe("output review page", () => {
     expect(screen.getAllByText("今天到期")).toHaveLength(2);
     expect(screen.getByRole("region", { name: "复习摩天轮" })).toBeInTheDocument();
     expect(screen.getByRole("separator", { name: "调整复习左右区域宽度" })).toBeInTheDocument();
-    expect(screen.getByText("复习要点")).toBeInTheDocument();
+    expect(screen.queryByText("复习要点")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "完成输出" }));
     const confirmation = screen.getByRole("dialog");
@@ -65,8 +65,7 @@ describe("output review page", () => {
     expect(screen.getByRole("heading", { name: "项目" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^日历$/ }));
     expect(screen.getByText("显示当前调整后的计划。")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /^洞察$/ }));
-    expect(screen.getByRole("heading", { name: "执行洞察" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
   });
 
   it("opens a valid knowledge point deep link after local state hydration", async () => {
@@ -128,7 +127,7 @@ describe("output review page", () => {
     } finally { clock.mockRestore(); }
   });
 
-  it("navigates through all, projects, calendar, and insights app workspace views seamlessly", async () => {
+  it("navigates through all, projects, and calendar app workspace views seamlessly", async () => {
     let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "计算机网络", description: "TCP/IP协议族" });
     state = createKnowledgePoint(state, {
       projectId: state.projects[0].id,
@@ -166,11 +165,8 @@ describe("output review page", () => {
     expect(screen.getByRole("region", { name: "日历视图" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "选定日期复习安排" })).toBeInTheDocument();
 
-    // 4. 洞察视图 (InsightsView) - 仪表盘
-    await user.click(screen.getByRole("button", { name: /^洞察$/ }));
-    expect(screen.getByRole("region", { name: "执行洞察" })).toBeInTheDocument();
-    expect(screen.getByText("近 35 天输出活动")).toBeInTheDocument();
-    expect(screen.getByText("项目掌握进度")).toBeInTheDocument();
-    expect(screen.getByText("延迟复习")).toBeInTheDocument();
+    // 4. 洞察视图已移除
+    expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "执行洞察" })).not.toBeInTheDocument();
   });
 });

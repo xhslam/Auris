@@ -12,7 +12,7 @@ export type NiaRealtimeServerEvent =
   | { kind: "item-added"; responseId: string; itemId: string }
   | { kind: "truncated"; itemId: string }
   | { kind: "audio-buffer"; phase: "started" | "stopped" | "cleared"; responseId: string }
-  | { kind: "tool"; name: string; callId: string }
+  | { kind: "tool"; name: string; callId: string; arguments: string }
   | { kind: "response-created" | "response-done" }
   | { kind: "error"; code: string; message: string }
   | { kind: "malformed"; type: string; missing: string[] }
@@ -162,7 +162,7 @@ export function parseNiaRealtimeServerEvent(raw: unknown): NiaRealtimeServerEven
   if (type === "response.function_call_arguments.done") {
     const missing = missingStrings(value, ["name", "call_id"]);
     if (missing.length) return { kind: "malformed", type, missing };
-    return { kind: "tool", name: value.name as string, callId: value.call_id as string };
+    return { kind: "tool", name: value.name as string, callId: value.call_id as string, arguments: typeof value.arguments === "string" ? value.arguments : "{}" };
   }
   if (type === "response.created") return { kind: "response-created" };
   if (type === "response.done") return { kind: "response-done" };

@@ -6,6 +6,8 @@ import {
   isNiaTurnEagerness,
   parseNiaRealtimeServerEvent,
 } from "@/features/nia/nia-realtime-protocol";
+import { buildNiaReviewReminder, readNiaTodayReviews, NIA_REVIEW_TOOL, NIA_REVIEW_INSTRUCTIONS } from "@/features/nia/nia-review-context";
+import { NIA_REALTIME_INSTRUCTIONS } from "@/features/nia/nia-realtime-protocol";
 import { isNiaLiveVoice } from "@/features/nia/nia-live-session-config";
 import type { NiaVoiceAnswer, NiaVoiceOpened } from "@/features/nia/nia-companion-answers";
 
@@ -97,6 +99,8 @@ export class NiaRealtimeTransport {
   private configurationTimer: number | null = null;
   private configured = false;
   private operation = 0;
+  private toolCalls = new Set<string>();
+  private needsToolResponse = false;
 
   async open(generation: number, handlers: TransportHandlers): Promise<boolean> {
     this.flushPending(generation);
@@ -208,13 +212,12 @@ export class NiaRealtimeTransport {
   }
 
   sendReminder(reminder: { count: number; items: unknown[] }) {
-    const prompt = `复习提醒：你有 ${reminder.count} 个内容待复习。请先用一句话概括重点，然后询问是否现在开始。`;
-    return this.sendText(prompt);
+    return this.sendText(buildNiaReviewReminder(reminder));
   }
 
   sendConfig(config: Record<string, unknown> | null) {
     if (!config || this.channel?.readyState !== "open") return false;
-    this.send({ type: "session.update", session: config });
+    this.send({ type: "session.update", session: { ...config, tools: [NIA_REVIEW_TOOL], tool_choice: "auto", instructions: NIA_REALTIME_INSTRUCTIONS + NIA_REVIEW_INSTRUCTIONS } });
     return true;
   }
 
@@ -249,13 +252,14 @@ export class NiaRealtimeTransport {
     const interruptible = savedInterruptible === null ? true : savedInterruptible !== "false";
     const eagerness = isNiaTurnEagerness(savedEagerness) ? savedEagerness : "auto";
 
-    this.send(createNiaRealtimeSessionUpdate({
+    const update = createNiaRealtimeSessionUpdate({
       voice: isNiaLiveVoice(savedVoice) ? savedVoice : "ballad",
       turnTaking: {
         interruptible,
         eagerness,
       },
-    }));
+    });
+    this.sendConfig(update.session);
   }
 
   private handleServerEvent(raw: unknown) {
@@ -297,12 +301,25 @@ export class NiaRealtimeTransport {
         if (event.phase === "cleared") this.emit({ type: "state", generation, state: "listening" });
         return;
       case "tool":
+        if (this.toolCalls.has(event.callId)) return;
+        this.toolCalls.add(event.callId);
         this.emit({ type: "tool", generation, name: event.name, callId: event.callId, at: Date.now() });
+        let storage: Storage | null = null;
+        try { storage = window.localStorage; } catch { /* Report unavailable through the tool. */ }
+        const output = event.name === NIA_REVIEW_TOOL.name
+          ? readNiaTodayReviews(storage, event.arguments)
+          : { status: "unsupported_tool" };
+        this.send({ type: "conversation.item.create", item: { type: "function_call_output", call_id: event.callId, output: JSON.stringify(output) } });
+        this.needsToolResponse = true;
         return;
       case "response-created":
         this.emit({ type: "state", generation, state: "thinking" });
         return;
       case "response-done":
+        if (this.needsToolResponse) {
+          this.needsToolResponse = false;
+          this.send({ type: "response.create" });
+        }
         return;
       case "error":
         this.emit(errorReport(generation, event.code, event.message, "Rest Nia, then wake her again."));
@@ -349,6 +366,8 @@ export class NiaRealtimeTransport {
 
   private shutdownMedia() {
     this.clearConfigurationTimer();
+    this.toolCalls.clear();
+    this.needsToolResponse = false;
     const channel = this.channel;
     const peer = this.peer;
     const microphone = this.microphone;

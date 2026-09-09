@@ -1,197 +1,52 @@
-/* =============================================================================
- * Auris Flash 闪念工作台样式
- *
- * 规范：
- * 1. 杜绝金色：各主题均采用专属且与整体调性一致的精致强调色，拒绝违和土金色；
- * 2. 强对比度：保证底色与卡片、卡片与正文内容之间形成强烈的明度与层级对比（全部符合 WCAG AA/AAA）；
- * 3. 六大主题精准适配：夜间、薄荷、白色、纸张、棕褐、Solarized 独立调色。
- * ========================================================================== */
+/* Give only Flash a definite viewport track; percentage heights otherwise
+   resolve to content height and leave an unfinished band below the workspace. */
+.desktop-app-frame__viewport:has(.flash-workspace) {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
 
-/* --------------------------------------------------------------------------
- * 1. 基础默认令牌（Fallback，等同于薄荷绿模式）
- * -------------------------------------------------------------------------- */
+.desktop-app-frame__layout:has(.flash-workspace) {
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
+/* Flash shares the active app palette; typography remains unchanged. */
 .flash-workspace {
-  --flash-bg: #eaf0e6;
-  --flash-sidebar-bg: #e1ebdc;
-  --flash-card-bg: #ffffff;
-  --flash-card-border: rgba(35, 60, 45, 0.15);
-  --flash-card-hover-border: rgba(22, 101, 62, 0.45);
-  --flash-card-shadow: 0 4px 16px rgba(25, 55, 35, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --flash-text-primary: #0d2116;
-  --flash-text-secondary: #1e382b;
-  --flash-text-muted: #4e6b5a;
-  --flash-accent: #16653e;
-  --flash-accent-hover: #104e2e;
-  --flash-accent-subtle: rgba(22, 101, 62, 0.12);
-  --flash-accent-ink: #ffffff;
-  --flash-active-item-bg: rgba(22, 101, 62, 0.14);
-  --flash-active-item-text: #16653e;
-  --flash-heat-empty: rgba(73, 96, 82, 0.14);
-  --flash-heat-1: rgba(22, 101, 62, 0.25);
-  --flash-heat-2: rgba(22, 101, 62, 0.5);
-  --flash-heat-3: rgba(22, 101, 62, 0.75);
-  --flash-heat-4: #16653e;
+  --flash-bg: var(--app-bg);
+  --flash-sidebar-bg: color-mix(in srgb, var(--app-surface) 55%, var(--app-bg));
+  --flash-card-bg: var(--app-surface);
+  --flash-card-border: var(--app-line-soft);
+  --flash-card-hover-border: var(--accent-40);
+  --flash-card-shadow: 0 2px 8px color-mix(in srgb, var(--app-ink) 5%, transparent);
+  --flash-text-primary: var(--app-ink);
+  --flash-text-secondary: var(--app-text);
+  --flash-text-muted: var(--app-muted);
+  --flash-accent: var(--accent);
+  --flash-accent-hover: var(--accent-strong);
+  --flash-accent-subtle: var(--accent-10);
+  --flash-accent-ink: var(--accent-ink);
+  --flash-active-item-bg: var(--accent-10);
+  --flash-active-item-text: var(--accent);
+  --flash-heat-empty: var(--app-fill);
+  --flash-heat-1: var(--accent-16);
+  --flash-heat-2: var(--accent-28);
+  --flash-heat-3: var(--accent-40);
+  --flash-heat-4: var(--accent);
 
   display: grid;
-  grid-template-columns: minmax(240px, 286px) minmax(0, 820px);
-  justify-content: center;
-  min-height: 100%;
+  grid-template-columns: minmax(240px, 286px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   background: var(--flash-bg, var(--app-bg));
   color: var(--flash-text-primary, var(--app-text));
   font-family: var(--auris-font-sans);
 }
 
-/* --------------------------------------------------------------------------
- * 2. 六大主题覆盖：无金色 + 强对比
- * -------------------------------------------------------------------------- */
-
-/* 2.1 夜间主题（Night）- 深邃暗空画布，冷色灵感冰海蓝，高对比度纯白内容 */
-.desktop-app-shell[data-app-theme="night"] .flash-workspace {
-  --flash-bg: #121316;
-  --flash-sidebar-bg: #18191e;
-  --flash-card-bg: #1f2127;
-  --flash-card-border: rgba(255, 255, 255, 0.12);
-  --flash-card-hover-border: rgba(91, 149, 247, 0.5);
-  --flash-card-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
-  --flash-text-primary: #ffffff;
-  --flash-text-secondary: #e2e4ea;
-  --flash-text-muted: #9da2ae;
-  --flash-accent: #5b95f7;
-  --flash-accent-hover: #4582ec;
-  --flash-accent-subtle: rgba(91, 149, 247, 0.16);
-  --flash-accent-ink: #08101e;
-  --flash-active-item-bg: rgba(91, 149, 247, 0.18);
-  --flash-active-item-text: #70a4ff;
-  --flash-heat-empty: rgba(255, 255, 255, 0.08);
-  --flash-heat-1: rgba(91, 149, 247, 0.25);
-  --flash-heat-2: rgba(91, 149, 247, 0.5);
-  --flash-heat-3: rgba(91, 149, 247, 0.75);
-  --flash-heat-4: #5b95f7;
-}
-
-/* 2.2 薄荷主题（Mint）- 清润竹青底色，纯白立体卡片，深松浓墨正文 */
-.desktop-app-shell[data-app-theme="mint"] .flash-workspace {
-  --flash-bg: #eaf0e6;
-  --flash-sidebar-bg: #e1ebdc;
-  --flash-card-bg: #ffffff;
-  --flash-card-border: rgba(35, 60, 45, 0.15);
-  --flash-card-hover-border: rgba(22, 101, 62, 0.45);
-  --flash-card-shadow: 0 4px 16px rgba(25, 55, 35, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --flash-text-primary: #0d2116;
-  --flash-text-secondary: #1e382b;
-  --flash-text-muted: #4e6b5a;
-  --flash-accent: #16653e;
-  --flash-accent-hover: #104e2e;
-  --flash-accent-subtle: rgba(22, 101, 62, 0.12);
-  --flash-accent-ink: #ffffff;
-  --flash-active-item-bg: rgba(22, 101, 62, 0.14);
-  --flash-active-item-text: #16653e;
-  --flash-heat-empty: rgba(73, 96, 82, 0.14);
-  --flash-heat-1: rgba(22, 101, 62, 0.25);
-  --flash-heat-2: rgba(22, 101, 62, 0.5);
-  --flash-heat-3: rgba(22, 101, 62, 0.75);
-  --flash-heat-4: #16653e;
-}
-
-/* 2.3 白色主题（White）- 现代极简暖白，曜石黑字，深靛蓝强调色，彻底杜绝黄浊 */
-.desktop-app-shell[data-app-theme="white"] .flash-workspace {
-  --flash-bg: #f4f3ef;
-  --flash-sidebar-bg: #eae8e1;
-  --flash-card-bg: #ffffff;
-  --flash-card-border: rgba(0, 0, 0, 0.12);
-  --flash-card-hover-border: rgba(29, 78, 216, 0.45);
-  --flash-card-shadow: 0 4px 18px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --flash-text-primary: #0f172a;
-  --flash-text-secondary: #334155;
-  --flash-text-muted: #64748b;
-  --flash-accent: #1d4ed8;
-  --flash-accent-hover: #1e40af;
-  --flash-accent-subtle: rgba(29, 78, 216, 0.1);
-  --flash-accent-ink: #ffffff;
-  --flash-active-item-bg: rgba(29, 78, 216, 0.12);
-  --flash-active-item-text: #1d4ed8;
-  --flash-heat-empty: rgba(0, 0, 0, 0.08);
-  --flash-heat-1: rgba(29, 78, 216, 0.25);
-  --flash-heat-2: rgba(29, 78, 216, 0.5);
-  --flash-heat-3: rgba(29, 78, 216, 0.75);
-  --flash-heat-4: #1d4ed8;
-}
-
-/* 2.4 纸张主题（Paper）- 书卷羊皮纸质感，明亮白宣纸卡片，砚石深青墨高亮 */
-.desktop-app-shell[data-app-theme="paper"] .flash-workspace {
-  --flash-bg: #eae3cf;
-  --flash-sidebar-bg: #e1d8bf;
-  --flash-card-bg: #faf7ee;
-  --flash-card-border: rgba(70, 52, 28, 0.18);
-  --flash-card-hover-border: rgba(28, 61, 90, 0.5);
-  --flash-card-shadow: 0 4px 16px rgba(60, 45, 20, 0.09), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --flash-text-primary: #181511;
-  --flash-text-secondary: #352e24;
-  --flash-text-muted: #665c4c;
-  --flash-accent: #1c3d5a;
-  --flash-accent-hover: #12283b;
-  --flash-accent-subtle: rgba(28, 61, 90, 0.12);
-  --flash-accent-ink: #ffffff;
-  --flash-active-item-bg: rgba(28, 61, 90, 0.14);
-  --flash-active-item-text: #1c3d5a;
-  --flash-heat-empty: rgba(90, 70, 35, 0.15);
-  --flash-heat-1: rgba(28, 61, 90, 0.25);
-  --flash-heat-2: rgba(28, 61, 90, 0.5);
-  --flash-heat-3: rgba(28, 61, 90, 0.75);
-  --flash-heat-4: #1c3d5a;
-}
-
-/* 2.5 棕褐主题（Sepia）- 浓缩咖啡复古暖调，深焙焦茶墨，高亮暖白卡片 */
-.desktop-app-shell[data-app-theme="sepia"] .flash-workspace {
-  --flash-bg: #ece0c5;
-  --flash-sidebar-bg: #e2d2b1;
-  --flash-card-bg: #fcf7ea;
-  --flash-card-border: rgba(80, 55, 25, 0.2);
-  --flash-card-hover-border: rgba(84, 40, 15, 0.55);
-  --flash-card-shadow: 0 4px 16px rgba(70, 45, 15, 0.1), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --flash-text-primary: #1e1308;
-  --flash-text-secondary: #3d2c19;
-  --flash-text-muted: #6e5538;
-  --flash-accent: #54280f;
-  --flash-accent-hover: #3d1c09;
-  --flash-accent-subtle: rgba(84, 40, 15, 0.13);
-  --flash-accent-ink: #ffffff;
-  --flash-active-item-bg: rgba(84, 40, 15, 0.14);
-  --flash-active-item-text: #54280f;
-  --flash-heat-empty: rgba(104, 78, 43, 0.16);
-  --flash-heat-1: rgba(84, 40, 15, 0.25);
-  --flash-heat-2: rgba(84, 40, 15, 0.5);
-  --flash-heat-3: rgba(84, 40, 15, 0.75);
-  --flash-heat-4: #54280f;
-}
-
-/* 2.6 Solarized 主题 - 深海暗青底色，经典青碧色 Cyan，象牙亮白高对比内容 */
-.desktop-app-shell[data-app-theme="solarized"] .flash-workspace {
-  --flash-bg: #00222a;
-  --flash-sidebar-bg: #002b36;
-  --flash-card-bg: #073642;
-  --flash-card-border: rgba(147, 161, 161, 0.28);
-  --flash-card-hover-border: rgba(42, 161, 152, 0.65);
-  --flash-card-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
-  --flash-text-primary: #fdf6e3;
-  --flash-text-secondary: #eee8d5;
-  --flash-text-muted: #839496;
-  --flash-accent: #2aa198;
-  --flash-accent-hover: #248f87;
-  --flash-accent-subtle: rgba(42, 161, 152, 0.18);
-  --flash-accent-ink: #00222a;
-  --flash-active-item-bg: rgba(42, 161, 152, 0.2);
-  --flash-active-item-text: #2aa198;
-  --flash-heat-empty: rgba(167, 182, 182, 0.15);
-  --flash-heat-1: rgba(42, 161, 152, 0.25);
-  --flash-heat-2: rgba(42, 161, 152, 0.5);
-  --flash-heat-3: rgba(42, 161, 152, 0.75);
-  --flash-heat-4: #2aa198;
-}
-
-/* --------------------------------------------------------------------------
- * 3. 元素结构与排版控制
- * -------------------------------------------------------------------------- */
 .flash-workspace button,
 .flash-workspace input,
 .flash-workspace textarea {
@@ -208,7 +63,9 @@
 /* 3.1 概览侧边栏 */
 .flash-workspace__insights {
   min-width: 0;
-  padding: 38px 30px 56px 24px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 38px 30px 40px 24px;
   border-right: 1px solid var(--flash-card-border, var(--app-line));
   background: var(--flash-sidebar-bg, color-mix(in srgb, var(--app-surface) 42%, var(--app-bg)));
 }
@@ -364,7 +221,10 @@
 /* 3.2 右侧主工作区 */
 .flash-workspace__main {
   min-width: 0;
-  padding: 38px 36px 80px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 38px clamp(24px, 3vw, 56px) 48px;
 }
 
 .flash-workspace__topbar {
@@ -694,6 +554,7 @@
 @media (max-width: 760px) {
   .flash-workspace {
     display: block;
+    overflow-y: auto;
   }
 
   .flash-workspace__insights {
@@ -723,6 +584,7 @@
   }
 
   .flash-workspace__main {
+    overflow: visible;
     padding: 22px 18px 56px;
   }
 

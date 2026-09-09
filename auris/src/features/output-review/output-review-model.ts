@@ -612,15 +612,3 @@ export function getProjectStats(state: OutputReviewState, projectId: string) {
     total: points.length,
   };
 }
-
-export function completedReviewCountsByDate(state: OutputReviewState) {
-  return state.cycles.flatMap((cycle) => cycle.events).reduce<Record<string, number>>(
-    (counts, event) => {
-      if (!event.completedAt || event.status !== "completed") return counts;
-      const key = toLocalDateKey(event.completedAt);
-      counts[key] = (counts[key] ?? 0) + 1;
-      return counts;
-    },
-    {},
-  );
-}

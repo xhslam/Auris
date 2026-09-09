@@ -5,7 +5,7 @@ Auris's Nia desktop companion uses selected behavior derived from the open-sourc
 `faa334001541fc74093288821df5cfbff96f6797`. Upstream changes after that commit
 are not incorporated automatically.
 
-Mochi is distributed under the MIT License. The pinned repository's license
+The historical pinned Mochi app is distributed under the MIT License. That revision's license
 identifies the copyright holder as `HANDO K.K.` and permits use, modification,
 and distribution subject to preservation of the license and copyright notice.
 See the upstream [`LICENSE`](https://github.com/xiaolai/mochi/blob/faa334001541fc74093288821df5cfbff96f6797/LICENSE)
@@ -41,3 +41,31 @@ unit tests verify Auris's adaptation rather than copying Mochi test source.
 
 When another Auris module begins to copy or substantially derive Mochi behavior
 or code, add its exact path and upstream source here in the same change.
+
+## 2026-09-08 selective alignment with mochi-avatar 1.1.0
+
+Reviewed main through `f15c22d4b2e2f0e953d7e8ec1a727ae2fd273a0f`.
+`src/features/nia/nia-companion-motion.ts` and the Nia companion CSS implement
+independent drift preference semantics inspired by `setDrift` in
+`src/canvas2d/avatar.ts` at `bc9f3e41d14730e6b48e45e4adf6eafef9958fbb`.
+Auris uses its own DOM/CSS character and local preference synchronization;
+it does not copy the upstream renderer, character geometry or pet assets.
+
+Current upstream has split licensing: the engine is MIT, while
+`src/characters/` has a separate Mochi Character Licence. The historical MIT
+statement above applies to the pinned app source, not all current upstream
+assets. Nia retains its own identity and purple DOM character. The default-Mochi constructor is not adopted. Existing v0.1.20 hearing controls
+were verified present and retained.
+
+`src/features/nia/nia-avatar-behavior.ts` and
+`src/components/nia/companion/use-companion-avatar.ts` adapt the behavior
+contracts from `src/core/vocabulary.ts`, `src/core/looks.ts`,
+`src/core/motion.ts`, and `src/canvas2d/avatar.ts` at the reviewed commit:
+eight named expressions, six gestures, expiring expression cues, independent
+drift, sleeping breath, gaze, poke feedback, and audio-envelope mouth priority.
+The angry frown is implemented as an explicit visible CSS upper arc, avoiding
+the zero-times-zero shape failure documented in upstream `looks.ts`.
+These are Auris-specific DOM/CSS and Web Animations implementations, not a
+replacement with the upstream canvas backend. No Mochi character assets,
+geometry or brand defaults are copied. Phoneme timing and general physics are
+not claimed (upstream itself reports those capabilities as unavailable).

@@ -1,3 +1,5 @@
+import { sendNiaAvatarCue } from "@/features/nia/nia-avatar-behavior";
+import { NIA_COMPANION_DRIFT_KEY, saveNiaCompanionDrift } from "@/features/nia/nia-companion-motion";
 import { act, fireEvent, render } from "@testing-library/react";
 import { CompanionRuntime } from "@/components/nia/companion/companion-runtime";
 import {
@@ -9,6 +11,49 @@ describe("CompanionRuntime scale", () => {
   beforeEach(() => {
     window.localStorage.clear();
     delete window.niaCompanion;
+  });
+
+  it("shows anger, lets a newer expression replace its timeout, and returns to sleep", () => {
+    vi.useFakeTimers();
+    try {
+      const view = render(<CompanionRuntime />);
+      const figure = view.container.querySelector(".nia-companion__figure");
+      expect(figure).toHaveAttribute("data-expression", "sleepy");
+      act(() => sendNiaAvatarCue({ expression: "angry" }));
+      expect(figure).toHaveAttribute("data-expression", "angry");
+      expect(figure).toHaveAttribute("data-asleep", "false");
+      act(() => vi.advanceTimersByTime(3000));
+      act(() => sendNiaAvatarCue({ expression: "happy" }));
+      act(() => vi.advanceTimersByTime(2100));
+      expect(figure).toHaveAttribute("data-expression", "happy");
+      act(() => vi.advanceTimersByTime(3000));
+      expect(figure).toHaveAttribute("data-expression", "sleepy");
+      view.unmount();
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("restores drift and follows both same-window and cross-window preference changes", () => {
+    saveNiaCompanionDrift(false);
+    const { container } = render(<CompanionRuntime />);
+    const figure = container.querySelector(".nia-companion__figure");
+    expect(figure).toHaveAttribute("data-drift", "false");
+    act(() => saveNiaCompanionDrift(true));
+    expect(figure).toHaveAttribute("data-drift", "true");
+    act(() => window.dispatchEvent(new StorageEvent("storage", {
+      key: NIA_COMPANION_DRIFT_KEY, newValue: "false",
+    })));
+    expect(figure).toHaveAttribute("data-drift", "false");
+    act(() => window.dispatchEvent(new StorageEvent("storage", { key: null })));
+    expect(figure).toHaveAttribute("data-drift", "true");
+  });
+
+  it("still changes drift when persistence is unavailable", () => {
+    const storage = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("denied"); });
+    try {
+      const { container } = render(<CompanionRuntime />);
+      act(() => saveNiaCompanionDrift(false));
+      expect(container.querySelector(".nia-companion__figure")).toHaveAttribute("data-drift", "false");
+    } finally { storage.mockRestore(); }
   });
 
   it("scales only the companion figure and follows persisted changes", () => {
