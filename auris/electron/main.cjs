@@ -184,7 +184,11 @@ const {
 } = require("./desktop-island/mac-desktop-island-native-host.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
-const APP_ICON_PATH = path.join(PROJECT_ROOT, "assets", "app-icon.png");
+const APP_ICON_PATH = path.join(
+  PROJECT_ROOT,
+  "assets",
+  process.platform === "darwin" ? "app-icon-dock.png" : "app-icon.png",
+);
 const AURIS_APP_VERSION = (() => {
   if (app.isPackaged) return app.getVersion();
   try {
@@ -3516,7 +3520,11 @@ async function createMainWindow() {
   const targetUrl = await startNextServer();
   const runtimeState = readRuntimeState();
   const windowBounds = runtimeState.windowBounds;
-  const appIcon = createAppIcon();
+  // Keep the packaged macOS bundle icon before and after launch. Replacing it
+  // with a raw PNG bypasses the system's mask and sizing and makes it jump.
+  const appIcon = process.platform === "darwin" && app.isPackaged
+    ? undefined
+    : createAppIcon();
 
   if (process.platform === "darwin" && appIcon) {
     app.dock?.setIcon(appIcon);

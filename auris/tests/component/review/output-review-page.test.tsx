@@ -5,6 +5,7 @@ import { ReviewPageClient } from "@/components/review/review-page-client";
 import {
   EMPTY_OUTPUT_REVIEW_STATE,
   addCalendarDays,
+  completeCurrentReview,
   createKnowledgePoint,
   createProject,
   toLocalDateKey,
@@ -168,5 +169,116 @@ describe("output review page", () => {
     // 4. 洞察视图已移除
     expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "执行洞察" })).not.toBeInTheDocument();
+  });
+
+  it("navigates to review heatmap view, interacts with modes, and inspects completed review drilldown", async () => {
+    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "概率论" });
+    state = createKnowledgePoint(state, {
+      projectId: state.projects[0].id,
+      startDate: toLocalDateKey(new Date()),
+      title: "大数定律与中心极限定理",
+    });
+    const pointId = state.knowledgePoints[0].id;
+    // Complete Day 1 review
+    state = completeCurrentReview(state, pointId, new Date());
+    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+
+    // Click heatmap tab
+    await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
+    expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
+
+    // Verify heading aligned with other pages, and verify user profile bar is NOT rendered
+    expect(screen.getByRole("heading", { name: "复盘热力图", level: 2 })).toBeInTheDocument();
+    expect(screen.getByText("记录过去 365 天的复盘轨迹与输出频次。")).toBeInTheDocument();
+    expect(screen.queryByText("落花流水")).not.toBeInTheDocument();
+    expect(screen.queryByText("@gan798798@qq.com")).not.toBeInTheDocument();
+
+    // Verify dimension switcher: 学习量 / 学习时长
+    const countDimensionTab = screen.getByRole("tab", { name: "学习量" });
+    const durationDimensionTab = screen.getByRole("tab", { name: "学习时长" });
+    expect(countDimensionTab).toHaveAttribute("aria-selected", "true");
+
+    // Verify 5 metric cards matching IMG_6320
+    expect(screen.getByText("累计已学")).toBeInTheDocument();
+    expect(screen.getByText("平均每日")).toBeInTheDocument();
+    expect(screen.getByText("单日最多")).toBeInTheDocument();
+    expect(screen.getByText("当前连续")).toBeInTheDocument();
+    expect(screen.getByText("最长连续")).toBeInTheDocument();
+    expect(screen.getAllByText("1 个词").length).toBeGreaterThanOrEqual(1);
+
+    // Switch to 学习时长 dimension
+    await user.click(durationDimensionTab);
+    expect(durationDimensionTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getAllByText("5 分钟").length).toBeGreaterThanOrEqual(1);
+
+    // Switch back to 学习量 dimension
+    await user.click(countDimensionTab);
+    expect(countDimensionTab).toHaveAttribute("aria-selected", "true");
+
+    // Verify Learning Insights section
+    expect(screen.getByText("学习洞察")).toBeInTheDocument();
+    expect(screen.getByText("词根杠杆")).toBeInTheDocument();
+    expect(screen.getByText("顽固词")).toBeInTheDocument();
+    expect(screen.getByText("时长变化")).toBeInTheDocument();
+    expect(screen.getByText("学习时段")).toBeInTheDocument();
+    expect(screen.getByText("还没有词根攒够 3 个认识的词")).toBeInTheDocument();
+    expect(screen.getByText("暂无顽固词")).toBeInTheDocument();
+
+    // Verify heatmap time tabs
+    const dayTab = screen.getByRole("tab", { name: "每日" });
+    const weekTab = screen.getByRole("tab", { name: "每周" });
+    const cumulativeTab = screen.getByRole("tab", { name: "累计" });
+    expect(dayTab).toHaveAttribute("aria-selected", "true");
+
+    // Switch to week mode
+    await user.click(weekTab);
+    expect(weekTab).toHaveAttribute("aria-selected", "true");
+
+    // Switch to cumulative mode
+    await user.click(cumulativeTab);
+    expect(cumulativeTab).toHaveAttribute("aria-selected", "true");
+
+    // Switch back to day mode
+    await user.click(dayTab);
+    expect(dayTab).toHaveAttribute("aria-selected", "true");
+
+    // Verify drilldown list shows the completed review
+    expect(screen.getByText("大数定律与中心极限定理")).toBeInTheDocument();
+    expect(screen.getByText("Day 1")).toBeInTheDocument();
+    expect(screen.getByText("· 概率论")).toBeInTheDocument();
+
+    // Click completed item to open detail dialog
+    await user.click(screen.getByText("大数定律与中心极限定理"));
+    expect(screen.getByLabelText("知识点详情：大数定律与中心极限定理")).toBeInTheDocument();
+  });
+
+  it("can switch from calendar view directly to the heatmap view", async () => {
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+
+    await user.click(screen.getByRole("button", { name: /^日历$/ }));
+    expect(screen.getByRole("region", { name: "日历视图" })).toBeInTheDocument();
+
+    const heatmapLink = screen.getByRole("button", { name: "年度复盘热力图 →" });
+    expect(heatmapLink).toBeInTheDocument();
+    await user.click(heatmapLink);
+
+    expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
+  });
+
+  it("displays empty state when no reviews are completed yet", async () => {
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+
+    await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
+    expect(screen.getByRole("heading", { name: "还没有复盘记录" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "去今日复习" })).toBeInTheDocument();
+
+    // Clicking '去今日复习' takes user back to today view
+    await user.click(screen.getByRole("button", { name: "去今日复习" }));
+    expect(screen.getByLabelText("今日复盘概览")).toBeInTheDocument();
   });
 });

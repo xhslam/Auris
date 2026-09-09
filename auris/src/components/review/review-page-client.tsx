@@ -7,6 +7,7 @@ import {
 } from "@/components/auris-ui/auris-icons";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { ReviewWheelWorkspace } from "./review-wheel-workspace";
+import { ReviewHeatmap } from "./review-heatmap";
 import {
   KnowledgePointRow, OutputReviewCard, ReviewProgress, formatReviewDate, statusLabel,
 } from "@/components/review/output-review-card";
@@ -23,13 +24,13 @@ import {
 import { readOutputReviewState, writeOutputReviewState } from "@/features/output-review/output-review-storage";
 import "@/components/review/output-review-page.css";
 
-type ReviewView = "today" | "all" | "projects" | "calendar";
+type ReviewView = "today" | "all" | "projects" | "calendar" | "heatmap";
 type ConfirmAction =
   | { kind: "complete"; knowledgePointId: string }
   | { kind: "restart" | "master" | "archive" | "delete"; knowledgePointId: string };
 
 const VIEW_LABELS: Record<ReviewView, string> = {
-  today: "今天", all: "全部", projects: "项目", calendar: "日历",
+  today: "今天", all: "全部", projects: "项目", calendar: "日历", heatmap: "复盘热力图",
 };
 const dateLongFormatter = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric", month: "long", day: "numeric", weekday: "long",
@@ -158,10 +159,11 @@ export function ReviewPageClient({
           </div>
 
           {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
-            : view === "today" ? <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}><TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} queue={queue} /></ReviewWheelWorkspace>
+            : view === "today" ? <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}><TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} onShowHeatmap={() => setView("heatmap")} queue={queue} /></ReviewWheelWorkspace>
               : view === "all" ? <AllView onOpen={setDetailId} state={state} />
                 : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
-                  : <CalendarView onOpen={setDetailId} state={state} today={today} />}
+                  : view === "calendar" ? <CalendarView onOpen={setDetailId} onSwitchToHeatmap={() => setView("heatmap")} state={state} today={today} />
+                    : <ReviewHeatmap onGoToToday={() => setView("today")} onOpen={setDetailId} state={state} today={today} />}
         </div>
 
         {formPoint ? <KnowledgePointForm
@@ -206,9 +208,10 @@ export function ReviewPageClient({
   );
 }
 
-function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll }: {
+function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll, onShowHeatmap }: {
   queue: ReviewQueueItem[]; metrics: ReturnType<typeof getDashboardMetrics>;
   onAdd: () => void; onComplete: (knowledgePointId: string) => void; onOpen: (knowledgePointId: string) => void; onShowAll: () => void;
+  onShowHeatmap?: () => void;
 }) {
   const [upcomingOpen, setUpcomingOpen] = useState(true);
   const featured = queue[0];
@@ -226,7 +229,12 @@ function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll }: {
       {featured ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
         <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>优先处理</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>
         <div className="output-review-workbench"><OutputReviewCard item={featured} onComplete={onComplete} onOpen={onOpen} /></div>
-        <button className="output-review-followups__all" onClick={onShowAll} type="button">查看全部计划 <ArrowUpRightIcon size={14} /></button>
+        <div className="output-review-followup-actions">
+          <button className="output-review-followups__all" onClick={onShowAll} type="button">查看全部计划 <ArrowUpRightIcon size={14} /></button>
+          {onShowHeatmap ? (
+            <button className="output-review-followups__all" onClick={onShowHeatmap} type="button">查看复盘热力图 <ArrowUpRightIcon size={14} /></button>
+          ) : null}
+        </div>
         <p className="output-review-upcoming__tip"><SunIcon size={14} />建议在安静环境中复习，先回忆，再校验。</p>
       </details> : <EmptyReviewState onAdd={onAdd} />}
     </div>
@@ -405,7 +413,17 @@ function ProjectsView({ state, onAddProject, onOpen }: { state: OutputReviewStat
   );
 }
 
-function CalendarView({ state, today, onOpen }: { state: OutputReviewState; today: string; onOpen: (id: string) => void }) {
+function CalendarView({
+  state,
+  today,
+  onOpen,
+  onSwitchToHeatmap,
+}: {
+  state: OutputReviewState;
+  today: string;
+  onOpen: (id: string) => void;
+  onSwitchToHeatmap?: () => void;
+}) {
   const [month, setMonth] = useState(() => { const value = new Date(); return new Date(value.getFullYear(), value.getMonth(), 1, 12); });
   const [selectedDate, setSelectedDate] = useState(today);
   const entries = useMemo(() => state.cycles.filter((cycle) => cycle.isCurrent).flatMap((cycle) => cycle.events.map((event) => ({ event, point: state.knowledgePoints.find((point) => point.id === cycle.knowledgePointId) })).filter((entry) => entry.point && entry.point.status !== "archived" && entry.event.status !== "skipped")), [state]);
@@ -423,6 +441,15 @@ function CalendarView({ state, today, onOpen }: { state: OutputReviewState; toda
               <p>显示当前调整后的计划。</p>
             </div>
             <div className="output-review-calendar-controls">
+              {onSwitchToHeatmap ? (
+                <button
+                  className="output-review-calendar-heatmap-link"
+                  onClick={onSwitchToHeatmap}
+                  type="button"
+                >
+                  年度复盘热力图 →
+                </button>
+              ) : null}
               <button aria-label="上个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1, 12))} type="button">←</button>
               <button onClick={() => { const now = new Date(); setMonth(new Date(now.getFullYear(), now.getMonth(), 1, 12)); setSelectedDate(today); }} type="button">今天</button>
               <button aria-label="下个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1, 12))} type="button">→</button>

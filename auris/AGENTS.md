@@ -238,3 +238,35 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 按用户截图要求，从 `output-review-card.tsx` 删除“复习要点”展示、自动生成提示列表及无用图标导入，不删除知识点原有描述或复习原因数据。`review-wheel-workspace.css` 仅为复习双栏补充字体大小/字重规则：左侧说明 13–15px、标题至少 24px/750，右侧任务标题 750、辅助信息 650，保留字体种类。统计格改为至少 90px 以容纳放大文字，恢复说明正常不透明度，卡片允许内部滚动并允许徽标/操作行换行。
 
 更新既有页面测试为“复习要点不存在”；组件与排程 13 项测试、定向 ESLint 通过。独立 Electron + 真实 preload + 隔离示例数据在 1440×900、1160×700 验证：标题 24px/750、右侧标题 750、统计格约 90.8px、“完成输出”完整可见、要点节点为 0。生产构建通过后补齐统计高度与卡片滚动规则，并对最终状态重新构建。用户原有 Review 修改保留；未修改字体种类、未提交或推送、未替换已安装应用。
+
+## Engineering trajectory: macOS 图标白框与启动变大修复（2026-09-09）
+
+用户截图显示 Auris 图标被包入白色外框，补充启动后图标比其他应用大。通过 NSWorkspace 对已安装应用的系统图标进行实际栅格化，复现了白框；ICNS 与源码一致，排除旧安装资源。主进程每次创建窗口都调用 dock.setIcon，直接使用几乎铺满 1024px 的 PNG，启动后绕过系统尺寸处理。
+
+`electron/main.cjs` 改为 macOS 安装版始终沿用 bundle 图标，不再在 BrowserWindow 或 Dock 覆盖原图；开发版使用新增 `assets/app-icon-dock.png`（824px 内容、四周 100px 透明留白）。`scripts/build-macos-icons.cjs` 从原始 PNG 生成开发图标和十档 ICNS；ICNS 使用深色不透明背景让 Tahoe 负责裁切，原始品牌 PNG 不变。实测仅增加透明留白仍出现白框，因此未采用该方式作为安装版 ICNS。系统渲染前后对比保存在 `docs/icon-fix-2026-09-09/`。
+
+本机安装版先完整备份到 `/Applications/Auris.app.backup-icon-20260909`，仅替换 ICNS 和已安装 main 中的图标选择语句。ASAR 重打包逐项确认另外 5758 个文件字节未变、unpacked 标记未变；更新 ASAR header 完整性哈希并保留原有 ad-hoc 签名方式重新签名。`codesign --verify --deep --strict`、main 语法检查、构建脚本 ESLint、`git diff --check` 通过。安装版成功打开首页，NSWorkspace 渲染确认粗白框消失。没有重建或替换 renderer、没有提交或推送。
+
+验证边界：当前系统为 macOS 26.6.2；旧 macOS 的 ICNS 外形尚未实机验证。Dock 的独立 CUA 读取超时，启动后不再发生位图替换由安装代码及成功启动验证，系统外观以 NSWorkspace 实测为依据。
+
+### 视觉尺寸二次校准（2026-09-09）
+
+用户新截图指出图标仍显小。进一步对 Auris 与相邻 Paper 的 NSWorkspace 渲染逐像素测量：两者不透明外框均为 x/y=100..923，即 824×824；因此是原图内嵌深色描边和留白导致视觉主体偏小，而非系统 tile 尺寸不同。图标构建脚本现从原图四边各裁去 3%（31px），等比采样，使安装版图案放大 6.44%，系统外框不变。ICNS 十档重新生成，系统渲染确认无粗白框；原始 PNG 不变。更新本机安装版 ICNS、保留原签名元数据重新 ad-hoc 签名，严格签名验证通过；脚本语法、ESLint、diff 检查通过。正常退出并重开安装版以刷新运行图标；对照图为 `docs/icon-fix-2026-09-09/after-optical.png`。未改 ASAR 或其他功能。
+
+## Engineering trajectory: 代码合并到 main、推送 GitHub 与本地应用更新（2026-09-09）
+
+根据用户需求，将近期复盘热力图与学习洞察、macOS 图标白框与尺寸校准、主题对比度测试对齐及 VMark 同步等全部改动合并入 main、推送到 GitHub 并完成本地 `/Applications/Auris.app` 的完整编译打包与替换升级。
+
+实现与验证路径：
+1. **代码合并与质量校验**：
+   - 包含复盘热力图与学习洞察（`review-heatmap.tsx`, `review-heatmap.css`, `output-review-model.ts`, `review-page-client.tsx`, `auris-icons.tsx`）；
+   - 包含 macOS Dock 图标与打包图标优化及自动化渲染脚本（`app-icon.icns`, `app-icon-dock.png`, `main.cjs`, `build-macos-icons.cjs`, `render-macos-icon.swift`）；
+   - 对齐 `theme-contrast-styles.test.ts` 契约，断言 Flash 模块完整继承全局应用主题变量；
+   - 运行复盘单元/组件测试（19/19 项通过）、主题对比度测试（51/51 项通过）、定向 ESLint（0 error 0 warning）及 Next.js 生产构建（通过）。
+2. **桌面端打包与本地安装更新**：
+   - 执行 `desktop:island:build` 编译 macOS 原生辅助进程，完成 Next.js 生产编译与 `desktop:assemble` 运行时沙箱装配（隐私审计通过）；
+   - 执行 `electron-builder --mac --publish never` 生成 macOS arm64 独立应用包；
+   - 优雅退出前序实例，将现有 `/Applications/Auris.app` 完整备份至 `/Applications/Auris.app.backup-20260909-1720`；
+   - 安装最新应用包至 `/Applications/Auris.app`，完成本地 ad-hoc 签名与严格签名核验；
+   - 成功启动新版 `/Applications/Auris.app`，验证主进程、Renderer、GPU/Network Helper 与原生灵动岛进程均正常运行。
+

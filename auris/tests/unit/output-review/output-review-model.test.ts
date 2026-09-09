@@ -10,6 +10,7 @@ import {
   getReviewQueue,
   restartReviewCycle,
   setKnowledgePointStatus,
+  buildReviewHeatmapModel,
 } from "@/features/output-review/output-review-model";
 
 vi.spyOn(Math, "random").mockReturnValue(0.123456);
@@ -140,5 +141,78 @@ describe("output review scheduling", () => {
     expect(queue[0]).toMatchObject({ overdueDays: 3, urgency: "overdue" });
     expect(metrics).toMatchObject({ overdueCount: 1, maxOverdueDays: 3 });
     expect(getNiaReviewMessage(state, "2026-08-20", 9)).toContain("延迟 3 天");
+  });
+
+  describe("review heatmap model", () => {
+    it("builds a 365-day continuous heatmap model with correct levels and metrics", () => {
+      let state = fixture("2026-09-01");
+      const pointId = state.knowledgePoints[0]!.id;
+      // Complete review on 2026-09-07 and 2026-09-08
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 7, 10));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 8, 14));
+
+      const model = buildReviewHeatmapModel(state, "2026-09-09", 365);
+      expect(model.cells).toHaveLength(365);
+      expect(model.totalReviews).toBe(2);
+      expect(model.studiedDayCount).toBe(2);
+      expect(model.peakDailyReviews).toBe(1);
+      expect(model.streak).toBe(2); // Completed yesterday (Sep 8) and Sep 7
+
+      const sep7Cell = model.cells.find((c) => c.date === "2026-09-07");
+      expect(sep7Cell).toBeDefined();
+      expect(sep7Cell?.count).toBe(1);
+      expect(sep7Cell?.level).toBe(4); // 1 / 1 = 100% -> level 4
+
+      const sep9Cell = model.cells.find((c) => c.date === "2026-09-09");
+      expect(sep9Cell).toBeDefined();
+      expect(sep9Cell?.count).toBe(0);
+      expect(sep9Cell?.level).toBe(0);
+
+      expect(model.averageDailyReviews).toBe(1);
+      expect(model.totalDurationMinutes).toBe(8); // Day 1 (5m) + Day 2 (3m)
+      expect(model.averageDailyMinutes).toBe(4); // 8m / 2 days
+      expect(model.longestStreak).toBe(2);
+      expect(model.currentStreak).toBe(2);
+
+      // Insights assertions
+      expect(model.insights.leverage.summary).toBe("还没有词根攒够 3 个认识的词");
+      expect(model.insights.stubborn.summary).toBe("1 个词发生过 2 次以上延期复习");
+      expect(model.insights.durationTrend.summary).toContain("比上一次");
+      expect(model.insights.timeDistribution.summary).toBe("常在上午学 · 清晨回忆率最高");
+    });
+
+    it("calculates longest streak even if current streak is broken", () => {
+      let state = fixture("2026-09-01");
+      const pointId = state.knowledgePoints[0]!.id;
+      // Complete review on Sep 1, Sep 2, Sep 3 (streak 3), then gap, then Sep 8 (streak 1)
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 1, 10));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 2, 10));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 3, 10));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 8, 10));
+
+      const model = buildReviewHeatmapModel(state, "2026-09-09", 365);
+      expect(model.currentStreak).toBe(1); // yesterday Sep 8
+      expect(model.longestStreak).toBe(3); // Sep 1, 2, 3
+    });
+
+    it("handles empty state gracefully with zero counts, streak, and default insights", () => {
+      const state = EMPTY_OUTPUT_REVIEW_STATE;
+      const model = buildReviewHeatmapModel(state, "2026-09-09", 365);
+      expect(model.cells).toHaveLength(365);
+      expect(model.totalReviews).toBe(0);
+      expect(model.totalDurationMinutes).toBe(0);
+      expect(model.studiedDayCount).toBe(0);
+      expect(model.averageDailyReviews).toBe(0);
+      expect(model.averageDailyMinutes).toBe(0);
+      expect(model.peakDailyReviews).toBe(0);
+      expect(model.currentStreak).toBe(0);
+      expect(model.longestStreak).toBe(0);
+      expect(model.streak).toBe(0);
+      expect(model.insights.leverage.summary).toBe("还没有词根攒够 3 个认识的词");
+      expect(model.insights.stubborn.summary).toBe("暂无顽固词");
+      expect(model.insights.durationTrend.summary).toBe("暂无对比数据");
+      expect(model.insights.timeDistribution.summary).toBe("暂无时段数据 · 开启第一次复盘后记录");
+      expect(model.cells.every((c) => c.count === 0 && c.level === 0)).toBe(true);
+    });
   });
 });

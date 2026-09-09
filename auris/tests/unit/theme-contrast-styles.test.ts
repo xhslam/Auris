@@ -177,13 +177,21 @@ describe("application theme contrast", () => {
   });
 
   it.each(THEMES)("keeps %s Flash workspace text, cards, and accent at high contrast (no gold)", (theme) => {
-    const body = ruleBody(flashCss, `.desktop-app-shell[data-app-theme="${theme}"] .flash-workspace`);
-    const background = variable(body, "--flash-bg");
-    const cardBg = variable(body, "--flash-card-bg");
-    const textPrimary = variable(body, "--flash-text-primary");
-    const textSecondary = variable(body, "--flash-text-secondary");
-    const accent = variable(body, "--flash-accent");
-    const accentInk = variable(body, "--flash-accent-ink");
+    const flashBody = ruleBody(flashCss, ".flash-workspace");
+    expect(flashBody).toContain("--flash-bg: var(--app-bg)");
+    expect(flashBody).toContain("--flash-card-bg: var(--app-surface)");
+    expect(flashBody).toContain("--flash-text-primary: var(--app-ink)");
+    expect(flashBody).toContain("--flash-text-secondary: var(--app-text)");
+    expect(flashBody).toContain("--flash-accent: var(--accent)");
+    expect(flashBody).toContain("--flash-accent-ink: var(--accent-ink)");
+
+    const shellBody = ruleBody(globalsCss, `.desktop-app-shell[data-app-theme="${theme}"]`);
+    const background = variable(shellBody, "--app-bg");
+    const cardBg = variable(shellBody, "--app-surface");
+    const textPrimary = variable(shellBody, "--app-ink");
+    const textSecondary = variable(shellBody, "--app-text");
+    const accent = variable(shellBody, "--accent");
+    const accentInk = variable(shellBody, "--accent-ink");
 
     // 验证卡片正文在卡片上的对比度远超 WCAG AA (≥ 4.5:1)
     expectAa(cardBg, textPrimary, `${theme} Flash card text primary`);

@@ -15,6 +15,76 @@ Record:
 
 Keep the trajectory proportional to the task. Capture observable actions and useful engineering decisions, not private chain-of-thought or a verbatim transcript. Prefer a compact summary that can be reused later without consuming unnecessary context.
 
+## Engineering trajectory: 代码合并到 main、推送 GitHub 与本地应用更新（2026-09-09）
+
+根据用户需求，将近期复盘热力图与学习洞察、macOS 图标白框与尺寸校准、主题对比度测试对齐及 VMark 同步等全部改动合并入 main、推送到 GitHub 并完成本地 `/Applications/Auris.app` 的完整编译打包与替换升级。
+
+实现与验证路径：
+1. **代码合并与质量校验**：
+   - 包含复盘热力图与学习洞察（`review-heatmap.tsx`, `review-heatmap.css`, `output-review-model.ts`, `review-page-client.tsx`, `auris-icons.tsx`）；
+   - 包含 macOS Dock 图标与打包图标优化及自动化渲染脚本（`app-icon.icns`, `app-icon-dock.png`, `main.cjs`, `build-macos-icons.cjs`, `render-macos-icon.swift`）；
+   - 对齐 `theme-contrast-styles.test.ts` 契约，断言 Flash 模块完整继承全局应用主题变量；
+   - 运行复盘单元/组件测试（19/19 项通过）、主题对比度测试（51/51 项通过）、定向 ESLint（0 error 0 warning）及 Next.js 生产构建（通过）。
+2. **桌面端打包与本地安装更新**：
+   - 执行 `desktop:island:build` 编译 macOS 原生辅助进程，完成 Next.js 生产编译与 `desktop:assemble` 运行时沙箱装配（隐私审计通过）；
+   - 执行 `electron-builder --mac --publish never` 生成 macOS arm64 独立应用包；
+   - 优雅退出前序实例，将现有 `/Applications/Auris.app` 完整备份至 `/Applications/Auris.app.backup-20260909-1720`；
+   - 安装最新应用包至 `/Applications/Auris.app`，完成本地 ad-hoc 签名与严格签名核验；
+   - 成功启动新版 `/Applications/Auris.app`，验证主进程、Renderer、GPU/Network Helper 与原生灵动岛进程均正常运行。
+
+## Engineering trajectory: 复盘热力图去用户信息栏、全主题色阶适配与加粗对齐（2026-09-09）
+
+根据用户反馈要求：
+1. **不要用户信息栏**：移除热力图顶部的头像、昵称、邮箱及其编辑控件，将「学习量 / 学习时长」双维度切换开关对齐平移至视图标准标题栏右侧，与 Auris Review 其他视图（今天、全部、项目、日历）的标准布局规范保持严格一致；
+2. **展示颜色适配主题**：热力图方格色阶全面联动当前主题的 `--accent` 变量，结合 `color-mix` 与 6 大主题（`white`, `paper`, `mint`, `sepia`, `night`, `solarized`）的像素级校准，彻底淘汰硬编码绿色及亮暗模式下突兀的纯白背景，卡片全面基于 `--review-elevated` 与 `--review-shadow` 呈现；
+3. **字体加粗与对齐**：核心指标数字采用加粗 Serif 字体（`font-family: var(--auris-font-serif); font-size: 26px; font-weight: 700;`），指标标签设为 650 粗体，模块标题与洞察标签统一加粗，阶段标识采用 Mono 700，完全契合 Auris 桌面端整体排版节奏。
+
+改动文件：
+- `auris/src/components/review/review-heatmap.tsx`：移除用户信息栏 JSX 及相关编辑状态；视图头部使用标准 `.output-review-view__heading`，左侧放置加粗主标题与说明，右侧内嵌自适应维度切换药丸；
+- `auris/src/components/review/review-heatmap.css`：全面清理已作废的 `.review-heatmap-profile-*` 样式；配置 6 大主题精细色阶与动态 `color-mix` 回退；重塑 5 联排卡片、SVG 热力图、洞察卡片与穿透明细的色彩令牌与加粗字体；
+- `auris/tests/component/review/output-review-page.test.tsx`：移除废弃的用户信息断言，增加标题对齐断言与无用户信息栏断言；
+- 验证：19 项复盘相关单元与组件测试全部通过；定向 ESLint 0 error 0 warning；Next.js 生产构建通过。
+
+## Engineering trajectory: 对齐真实参考图像 IMG_6320 复盘热力图与学习洞察（2026-09-09）
+
+用户提供实机拍摄参考照片 `IMG_6320.jpeg`，要求按照照片中的实际内容与版式进行完整设计实现，并确保数据全部真实（基于真实复盘/复习记录进行计算呈现）。
+
+比对与解构分析：
+1. 顶部用户信息栏：居中圆形字母头像（首字「落」）、用户昵称（「落花流水」，支持点击编辑与本地持久化）、账号/邮箱（`@gan798798@qq.com`）；右上角提供 `[学习量 | 学习时长]` 维度切换。
+2. 5 联排指标条（带内嵌垂直分隔线的等分白底卡片容器）：
+   - `累计已学`（学习量维度为 X 个词，学习时长维度为 X 分钟）；
+   - `平均每日`（打卡活跃天内的日均复盘量/时长）；
+   - `单日最多`（过去 365 天单日产出峰值）；
+   - `当前连续`（当前不间断打卡天数）；
+   - `最长连续`（历史最长连续打卡天数）。
+3. 学习热力图：
+   - 标题「学习热力图」，右侧色阶说明（如 `最深≈单日 141 词`）、4 级绿色图例与 `[每日 | 每周 | 累计]` 切换；
+   - 满宽自适应 SVG 7×53 单元格网格（支持双维度分别取色阶），底部精准对齐的 12 个月份刻度标尺，跟随悬浮 Tooltip（同时显示复盘词数与耗时）。
+4. 学习洞察区：
+   - 标题「学习洞察」搭配圆圈 `ⓘ` 说明弹层，详细释义 8 项统计口径与规则；
+   - 双列洞察布局：
+     - 左列 1「词根杠杆」：统计掌握 3 个以上词汇的核心产出项目；数据不足 3 词时真实显示「还没有词根攒够 3 个认识的词」；
+     - 左列 2「顽固词」：提取发生过 2 次以上延期复习或重新循环的词汇；无逾期记录时真实显示「暂无顽固词」；
+     - 右列 1「时长变化」：带折叠箭头 `∨`，真实对比最近两次复盘用时走势（如 `比上一次 多 12 分钟 ↗`），展开可查看最近复盘、上次复盘及本周与上周累计用时；
+     - 右列 2「学习时段」：带折叠箭头 `∨`，按完成打卡时间提取最高峰时段（如 `常在上午学 · 清晨回忆率最高`），展开显示清晨、上午、下午、晚上、深夜分布条形图与占比。
+5. 底部穿透复盘明细：保留点击日期穿透查看该日具体完成事件的列表卡片并可一键打开知识点详情。
+
+改动文件：
+- `auris/src/features/output-review/output-review-model.ts`：扩展 `ReviewEvent` 支持可选 `durationMinutes`；新增 `getEventDurationMinutes`（依 1/2/4/7 阶段估算真实认知负荷）、`calculateLongestStreak`（历史最长连击）、`buildReviewInsights`（真实计算词根杠杆、顽固词、时长变化与时段分布）与双维度热力图构建；
+- `auris/src/components/auris-ui/auris-icons.tsx`：补齐 `ChevronDownIcon` 与 `InfoIcon`；
+- `auris/src/components/review/review-heatmap.tsx` 与 `review-heatmap.css`：完整还原 `IMG_6320.jpeg` 视觉层级，实现头像昵称区、5 联排卡片、双维度切换、SVG 热力图、洞察卡片与折叠抽屉；
+- 单元与组件回归测试：`tests/unit/output-review/output-review-model.test.ts` 新增指标真实计算与空态测试（11 项通过）；`tests/component/review/output-review-page.test.tsx` 涵盖完整链路测试（8 项通过）；定向 ESLint 0 错误 0 警告；Next.js 生产构建通过。
+
+## Engineering trajectory: Review 页面复盘热力图（2026-09-09）
+
+用户请求按照参考图像对齐在 Review 页面添加「复盘热力图」功能。经诊断，用户截屏因 Electron 保护机制呈现全透明像素，但通过对正在运行的「单词突围」数据中心实现进行提取比对，完整还原了参考设计的交互与视觉架构：包含标题、最深色阶图例、[每日/每周/累计] 维度切换、过去 365 天满宽自适应 SVG 网格、列间距吸收取整边长、周列整体高亮、平滑跟随浮动 Tooltip、网格下月度标尺、以及 4 项核心复盘洞察指标（累计复盘、活跃天数、单日最高、连续打卡天数）和选中日期/周的穿透复盘明细卡片列表。
+
+实现路径：
+1. `auris/src/features/output-review/output-review-model.ts`：新增复盘事件聚合 `getCompletedReviewEvents`、基于连续 365 日无偏差 UTC 天数的模型构建 `buildReviewHeatmapModel`、色阶分级 `reviewActivityLevel` 与连击天数计算 `calculateReviewStreak`。
+2. `auris/src/components/review/review-heatmap.tsx` 与 `review-heatmap.css`：实现无第三方图表库依赖的纯 React SVG 满宽自适应热力图组件，支持 ResizeObserver 容器尺寸测量、键盘方向键 Roving Tabindex 网格导航、Tooltip 缓动平移、周列批量激活和明细下钻；定义 `--heatmap-level-0..4` 在白昼、暗色及多款应用主题下的专属高对比配色。
+3. `auris/src/components/review/review-page-client.tsx`：为 Review 导航选项卡新增「复盘热力图」一等公民视图，在日历视图头部增加快速跳转入口，并在今日复习卡片中提供直达热力图的操作通道。
+4. 单元与组件回归测试：`tests/unit/output-review/output-review-model.test.ts` 新增连续 365 天模型与零数据空态回归；`tests/component/review/output-review-page.test.tsx` 新增热力图标签切换、模式切换、明细弹窗联动与日历直达测试。18 项测试全部通过，定向 ESLint 0 error 0 warning，Next.js 生产构建通过。
+
 ## Engineering trajectory: Auris 首页三栏工作台重构（2026-08-18）
 
 本次任务将首页的主内容区对齐深色三栏工作台参考，同时明确不在首页重复渲染应用已有的侧边导航。实现保留现有首页数据与操作契约，包括记录日历、工作区、每日格言、任务、复习、快速闪念、浏览器状态，以及人生阶段的记录编辑。

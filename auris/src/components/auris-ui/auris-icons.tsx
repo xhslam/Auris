@@ -249,3 +249,20 @@ export function SettingsIcon(p: IconProps) {
     </svg>
   );
 }
+
+export function ChevronDownIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function InfoIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4M12 8h.01" />
+    </svg>
+  );
+}

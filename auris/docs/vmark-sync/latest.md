@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `75e4c5d86cf7858009c6ba4aeba7547610f4f693`
-- Changed: **1956**
-- Added: **1960**
-- Deleted: **384**
-- Renamed: **186**
+- Compared commit: `ec7b781602efb7b69b82ce2daee4bd0e8877e922`
+- Changed: **2077**
+- Added: **2370**
+- Deleted: **502**
+- Renamed: **111**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
-- Mapped upstream changes: **99**
-- Capability-domain candidates: **620**
-- Unmapped upstream changes: **3767**
+- Mapped upstream changes: **160**
+- Capability-domain candidates: **669**
+- Unmapped upstream changes: **4231**
 
 ## Upstream changes
 
@@ -37,6 +37,8 @@
 - **added** `.cc-suite/audits/audit-fix-20260831-211200-r2-findings.md`
 - **added** `.cc-suite/audits/audit-fix-20260831-213000-r3-findings.md`
 - **added** `.cc-suite/audits/audit-fix-20260903-141632-findings.md`
+- **added** `.cc-suite/audits/audit-fix-20260907-144403-findings.md`
+- **added** `.cc-suite/audits/audit-fix-20260908-round2-findings.md`
 - **changed** `.claude/commands/bump.md`
 - **changed** `.claude/docs-guardian/config.json`
 - **changed** `.claude/hooks/gha-tdd-guard.mjs`
@@ -198,6 +200,7 @@
 - **deleted** `dev-docs/grills/embedded-browser/spike1-probe/src/main.rs`
 - **deleted** `dev-docs/grills/gha-workflow/README.md`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/ci.yml`
+- **deleted** `dev-docs/grills/gha-workflow/fixtures/claude-audit.yml`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/claude-cost-report.yml`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/claude.yml`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/deploy-website.yml`
@@ -297,6 +300,7 @@
 - **deleted** `docs/superpowers/specs/2026-03-16-markdown-lint-design.md`
 - **changed** `e2e/README.md`
 - **changed** `e2e/journeys/01-boot-editor-ready.mjs`
+- **changed** `e2e/journeys/07-find-bar.mjs`
 - **changed** `e2e/journeys/09-open-from-disk.mjs`
 - **changed** `e2e/journeys/10-save-to-disk.mjs`
 - **added** `e2e/journeys/11-d1-d4-roundtrip.mjs`
@@ -325,6 +329,8 @@
 - **added** `e2e/journeys/35-terminal-rail-scoping.mjs`
 - **added** `e2e/journeys/36-browser-takeover.mjs`
 - **added** `e2e/journeys/37-browser-secondary-window-teardown.mjs`
+- **added** `e2e/journeys/38-export-html-to-disk.mjs`
+- **added** `e2e/journeys/39-knowledge-base-runtime-state.mjs`
 - **added** `e2e/jsonRpcStdio.test.mjs`
 - **changed** `e2e/lib/bridge.mjs`
 - **added** `e2e/lib/browser.mjs`
@@ -334,6 +340,7 @@
 - **added** `e2e/lib/jsonRpcStdio.mjs`
 - **added** `e2e/lib/mockBridge.mjs`
 - **added** `e2e/lib/rail.mjs`
+- **added** `e2e/lib/rail.test.mjs`
 - **added** `e2e/lib/readiness.mjs`
 - **added** `e2e/lib/readiness.test.mjs`
 - **added** `e2e/lib/settingsPatch.mjs`
@@ -343,6 +350,7 @@
 - **changed** `e2e/lib/vmark.mjs`
 - **added** `e2e/lib/vmarkMcp.mjs`
 - **added** `e2e/lib/workspace.mjs`
+- **added** `e2e/lib/workspace.test.mjs`
 - **added** `e2e/portFileAgreement.test.mjs`
 - **added** `e2e/run-ime.mjs`
 - **changed** `e2e/run-journeys.mjs`
@@ -396,20 +404,29 @@
 - **added** `scripts/check-comment-headers.test.mjs`
 - **added** `scripts/check-commit-message.mjs`
 - **added** `scripts/check-commit-message.test.mjs`
+- **changed** `scripts/check-context-menu-phase.sh`
 - **changed** `scripts/check-cross-target.sh`
 - **added** `scripts/check-deleted-names.mjs`
 - **added** `scripts/check-deleted-names.test.mjs`
 - **changed** `scripts/check-design-tokens.mjs`
 - **added** `scripts/check-design-tokens.test.ts`
+- **added** `scripts/check-doc-joins.mjs`
+- **added** `scripts/check-doc-joins.test.mjs`
 - **changed** `scripts/check-eager-chunks.mjs`
 - **changed** `scripts/check-eager-chunks.test.ts`
 - **added** `scripts/check-extension-budget.mjs`
+- **added** `scripts/check-feature-ledger-phase.sh`
+- **added** `scripts/check-feature-ledger-phase.test.mjs`
 - **changed** `scripts/check-file-size.mjs`
 - **added** `scripts/check-file-size.test.ts`
 - **added** `scripts/check-followups-phase.sh`
 - **added** `scripts/check-followups-phase.test.mjs`
 - **added** `scripts/check-gate-liveness.mjs`
 - **added** `scripts/check-gate-liveness.test.mjs`
+- **added** `scripts/check-gates-tier-binaries.test.mjs`
+- **changed** `scripts/check-gha-phase.sh`
+- **added** `scripts/check-header-references.mjs`
+- **added** `scripts/check-header-references.test.mjs`
 - **added** `scripts/check-hooks-react-purity.mjs`
 - **added** `scripts/check-i18n-copy.test.ts`
 - **changed** `scripts/check-i18n-keys.ts`
@@ -450,7 +467,12 @@
 - **added** `scripts/check-tag-green.sh`
 - **added** `scripts/check-tag-green.test.mjs`
 - **added** `scripts/check-terminal-edge-phase.sh`
+- **added** `scripts/check-terminal-edge-phase.test.mjs`
+- **changed** `scripts/check-terminal-gaps-phase.sh`
 - **added** `scripts/check-terminal-input-phase.sh`
+- **changed** `scripts/check-terminal-phase.sh`
+- **added** `scripts/check-test-only-modules.mjs`
+- **added** `scripts/check-test-only-modules.test.mjs`
 - **added** `scripts/check-test-timer-isolation.mjs`
 - **added** `scripts/check-test-types.mjs`
 - **added** `scripts/check-test-types.test.mjs`
@@ -482,6 +504,8 @@
 - **added** `scripts/design-tokens-baseline.json`
 - **added** `scripts/dev-disk.mjs`
 - **added** `scripts/dev-disk.test.mjs`
+- **added** `scripts/dod-syntax.mjs`
+- **added** `scripts/dod-syntax.test.mjs`
 - **added** `scripts/extension-budget.json`
 - **added** `scripts/feature-map.json`
 - **changed** `scripts/fetch-gha-fixtures.sh`
@@ -492,40 +516,75 @@
 - **added** `scripts/fixtures/stryker-canary/vitest.config.js`
 - **added** `scripts/gate-tests-baseline.json`
 - **added** `scripts/gen-feature-ledger.mjs`
+- **added** `scripts/gen-feature-ledger.test.mjs`
+- **changed** `scripts/gen-large-file-corpus.mjs`
+- **added** `scripts/header-references-baseline.json`
 - **added** `scripts/i18n-copy-baseline.json`
 - **added** `scripts/i18n-untranslated-baseline.json`
 - **added** `scripts/i18nIdenticalAllowlist.ts`
 - **added** `scripts/knip-baseline.json`
+- **added** `scripts/knip-production.json`
 - **added** `scripts/landing-differential.sh`
+- **added** `scripts/lib/arrayLiteralEnd.mjs`
+- **added** `scripts/lib/arrayLiteralEnd.test.mjs`
 - **added** `scripts/lib/cssRules.mjs`
+- **added** `scripts/lib/deletedNamesRegistry.mjs`
 - **added** `scripts/lib/designTokenChecks.mjs`
 - **added** `scripts/lib/designTokensTsx.mjs`
+- **added** `scripts/lib/docJoins/journeyInventory.mjs`
+- **added** `scripts/lib/docJoins/journeyInventory.test.mjs`
+- **added** `scripts/lib/docJoins/lintTable.mjs`
+- **added** `scripts/lib/docJoins/lintTable.test.mjs`
+- **added** `scripts/lib/docJoins/markdownTables.mjs`
+- **added** `scripts/lib/docJoins/readmeClaims.mjs`
+- **added** `scripts/lib/docJoins/readmeClaims.test.mjs`
+- **added** `scripts/lib/docJoins/readmeRegistries.mjs`
+- **added** `scripts/lib/docJoins/settingsDefaults.mjs`
+- **added** `scripts/lib/docJoins/settingsDefaults.test.mjs`
+- **added** `scripts/lib/docJoins/settingsDefaultsRowMap.mjs`
+- **added** `scripts/lib/dod-assertions.sh`
+- **added** `scripts/lib/dod-assertions.test.mjs`
+- **added** `scripts/lib/featureLedgerRender.mjs`
+- **added** `scripts/lib/headerReferenceTargets.mjs`
+- **added** `scripts/lib/headerReferences.mjs`
+- **added** `scripts/lib/keybindingFormat.mjs`
+- **added** `scripts/lib/keybindingFormat.test.mjs`
 - **added** `scripts/lib/packageScripts.mjs`
+- **added** `scripts/lib/ptyRun.py`
+- **added** `scripts/lib/ptyRun.test.mjs`
+- **added** `scripts/lib/rustSource.mjs`
 - **added** `scripts/lib/uiConsistencyCss.mjs`
 - **added** `scripts/lib/uiConsistencyTsx.mjs`
 - **changed** `scripts/manualChunks.test.ts`
 - **changed** `scripts/manualChunks.ts`
+- **changed** `scripts/measure-open-latency.mjs`
 - **added** `scripts/merge-drop-allowlist.json`
 - **added** `scripts/mock-boundaries-baseline.json`
 - **added** `scripts/npm-audit-baseline.json`
 - **added** `scripts/pipeline-scope-inventory.mjs`
 - **added** `scripts/plugin-store-coupling-baseline.json`
 - **added** `scripts/pre-push-hook.test.mjs`
+- **added** `scripts/release-smoke-kb-runtime.test.mjs`
+- **added** `scripts/release-smoke-windows-installer.test.mjs`
 - **added** `scripts/render-dock-icon.swift`
 - **changed** `scripts/setup-local-git.mjs`
+- **added** `scripts/shell-integration-smoke.test.mjs`
 - **added** `scripts/shell-slots-baseline.json`
 - **added** `scripts/stryker-break-canary.test.mjs`
 - **changed** `scripts/tauri-wrapper.mjs`
 - **added** `scripts/tauri-wrapper.test.ts`
 - **added** `scripts/test-changed.mjs`
 - **added** `scripts/test-changed.test.mjs`
+- **added** `scripts/test-only-modules-baseline.json`
 - **added** `scripts/test-types-baseline.json`
 - **added** `scripts/theme-contrast-baseline.json`
 - **added** `scripts/type-aware-baseline.json`
 - **added** `scripts/ui-consistency-baseline.json`
 - **added** `scripts/vendor-spec-corpus.d.mts`
 - **added** `scripts/vendor-spec-corpus.mjs`
-- **renamed** `vmark-content-server/package.json` → `server/content/package.json`
+- **added** `scripts/vitestReportVerdict.mjs`
+- **added** `scripts/vitestReportVerdict.test.mjs`
+- **added** `server/content/package.json`
 - **added** `server/content/scripts/smoke.mjs`
 - **added** `server/content/src/cli.ts`
 - **added** `server/content/src/cliMain.test.ts`
@@ -548,17 +607,17 @@
 - **renamed** `vmark-content-server/src/render/renderMarkdown.ts` → `server/content/src/render/renderMarkdown.ts`
 - **added** `server/content/src/server/assetRoute.test.ts`
 - **added** `server/content/src/server/assetRoute.ts`
-- **renamed** `vmark-content-server/src/server/assets.ts` → `server/content/src/server/assets.ts`
+- **added** `server/content/src/server/assets.ts`
 - **renamed** `vmark-content-server/src/server/auth.test.ts` → `server/content/src/server/auth.test.ts`
-- **renamed** `vmark-content-server/src/server/auth.ts` → `server/content/src/server/auth.ts`
-- **renamed** `vmark-content-server/src/server/createServer.test.ts` → `server/content/src/server/createServer.test.ts`
+- **added** `server/content/src/server/auth.ts`
+- **added** `server/content/src/server/createServer.test.ts`
 - **renamed** `vmark-content-server/src/server/createServer.ts` → `server/content/src/server/createServer.ts`
 - **renamed** `vmark-content-server/src/server/headers.test.ts` → `server/content/src/server/headers.test.ts`
 - **renamed** `vmark-content-server/src/server/headers.ts` → `server/content/src/server/headers.ts`
 - **renamed** `vmark-content-server/src/server/logger.test.ts` → `server/content/src/server/logger.test.ts`
 - **renamed** `vmark-content-server/src/server/logger.ts` → `server/content/src/server/logger.ts`
 - **added** `server/content/src/server/pathContainment.ts`
-- **renamed** `vmark-content-server/src/server/runtime.test.ts` → `server/content/src/server/runtime.test.ts`
+- **added** `server/content/src/server/runtime.test.ts`
 - **renamed** `vmark-content-server/src/server/runtime.ts` → `server/content/src/server/runtime.ts`
 - **renamed** `vmark-content-server/src/server/search.test.ts` → `server/content/src/server/search.test.ts`
 - **renamed** `vmark-content-server/src/server/search.ts` → `server/content/src/server/search.ts`
@@ -570,7 +629,7 @@
 - **added** `server/content/src/slidev/manager.ts`
 - **renamed** `vmark-content-server/src/slidev/server.test.ts` → `server/content/src/slidev/server.test.ts`
 - **renamed** `vmark-content-server/src/slidev/server.ts` → `server/content/src/slidev/server.ts`
-- **renamed** `vmark-content-server/tsconfig.json` → `server/content/tsconfig.json`
+- **added** `server/content/tsconfig.json`
 - **renamed** `vmark-content-server/tsup.config.ts` → `server/content/tsup.config.ts`
 - **added** `server/content/vitest.config.ts`
 - **added** `server/mcp/.gitignore`
@@ -585,10 +644,11 @@
 - **added** `server/mcp/__tests__/unit/bridge/operationSchemaPrimitives.test.ts`
 - **added** `server/mcp/__tests__/unit/bridge/operationSends.test.ts`
 - **added** `server/mcp/__tests__/unit/bridge/requestQueue.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/bridge/websocket.test.ts` → `server/mcp/__tests__/unit/bridge/websocket.test.ts`
+- **added** `server/mcp/__tests__/unit/bridge/websocket.test.ts`
+- **added** `server/mcp/__tests__/unit/cli.test.ts`
 - **added** `server/mcp/__tests__/unit/instructions.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/server.test.ts` → `server/mcp/__tests__/unit/server.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/tools/browser.test.ts` → `server/mcp/__tests__/unit/tools/browser.test.ts`
+- **added** `server/mcp/__tests__/unit/server.test.ts`
+- **added** `server/mcp/__tests__/unit/tools/browser.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/browserActions.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/browserArgs.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/browserDispatch.test.ts`
@@ -599,25 +659,27 @@
 - **added** `server/mcp/__tests__/unit/tools/coherenceResolve.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/document.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/selection.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/tools/session.test.ts` → `server/mcp/__tests__/unit/tools/session.test.ts`
+- **added** `server/mcp/__tests__/unit/tools/session.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/toolContract.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/workflow.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/workspace.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/clientIdentity.test.ts`
+- **added** `server/mcp/__tests__/unit/utils/healthCheck.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/mcpAdapters.test.ts`
 - **renamed** `vmark-mcp-server/__tests__/unit/utils/parentProcess.test.ts` → `server/mcp/__tests__/unit/utils/parentProcess.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/portFile.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/shutdown.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/toolOutput.test.ts`
 - **added** `server/mcp/__tests__/utils/toolResult.ts`
-- **renamed** `vmark-mcp-server/package.json` → `server/mcp/package.json`
+- **added** `server/mcp/__tests__/utils/toolSchema.ts`
+- **added** `server/mcp/package.json`
 - **added** `server/mcp/scripts/build-sidecar-core.d.mts`
 - **added** `server/mcp/scripts/build-sidecar-core.mjs`
 - **added** `server/mcp/scripts/build-sidecar.js`
 - **added** `server/mcp/scripts/gen-mcp-contracts.ts`
 - **added** `server/mcp/src/bridge/authHandshake.ts`
 - **added** `server/mcp/src/bridge/connection.ts`
-- **renamed** `vmark-mcp-server/src/bridge/core-types.ts` → `server/mcp/src/bridge/core-types.ts`
+- **added** `server/mcp/src/bridge/core-types.ts`
 - **added** `server/mcp/src/bridge/generated/bridgeRequests.ts`
 - **added** `server/mcp/src/bridge/operationSchemas.browser.ts`
 - **added** `server/mcp/src/bridge/operationSchemas.primitives.ts`
@@ -626,12 +688,12 @@
 - **added** `server/mcp/src/bridge/rateLimiter.ts`
 - **added** `server/mcp/src/bridge/reconnect.ts`
 - **added** `server/mcp/src/bridge/requestQueue.ts`
-- **renamed** `vmark-mcp-server/src/bridge/types.ts` → `server/mcp/src/bridge/types.ts`
+- **added** `server/mcp/src/bridge/types.ts`
 - **added** `server/mcp/src/bridge/websocket.ts`
 - **added** `server/mcp/src/bridge/websocketConfig.ts`
 - **added** `server/mcp/src/bridge/wsProtocol.ts`
 - **added** `server/mcp/src/cli.ts`
-- **renamed** `vmark-mcp-server/src/index.ts` → `server/mcp/src/index.ts`
+- **added** `server/mcp/src/index.ts`
 - **added** `server/mcp/src/instructions.ts`
 - **added** `server/mcp/src/server.ts`
 - **added** `server/mcp/src/tools/browser.ts`
@@ -651,21 +713,21 @@
 - **added** `server/mcp/src/tools/session.ts`
 - **added** `server/mcp/src/tools/staleError.ts`
 - **added** `server/mcp/src/tools/toolArgs.ts`
-- **renamed** `vmark-mcp-server/src/tools/workflow.ts` → `server/mcp/src/tools/workflow.ts`
+- **added** `server/mcp/src/tools/workflow.ts`
 - **added** `server/mcp/src/tools/workspace.ts`
 - **added** `server/mcp/src/types.ts`
 - **added** `server/mcp/src/utils/clientIdentity.ts`
 - **added** `server/mcp/src/utils/errorOutput.ts`
+- **added** `server/mcp/src/utils/healthCheck.ts`
 - **added** `server/mcp/src/utils/mcpAdapters.ts`
-- **renamed** `vmark-mcp-server/src/utils/parentProcess.ts` → `server/mcp/src/utils/parentProcess.ts`
+- **added** `server/mcp/src/utils/parentProcess.ts`
 - **added** `server/mcp/src/utils/portFile.ts`
 - **added** `server/mcp/src/utils/shutdown.ts`
 - **added** `server/mcp/src/utils/toolOutput.ts`
-- **added** `server/mcp/src/utils/toolSchema.ts`
-- **renamed** `vmark-mcp-server/tsconfig.json` → `server/mcp/tsconfig.json`
+- **added** `server/mcp/tsconfig.json`
 - **added** `server/mcp/tsconfig.test.json`
 - **added** `server/mcp/vitest.config.ts`
-- **renamed** `src-tauri/mutants.toml` → `src-tauri/.cargo/mutants.toml`
+- **added** `src-tauri/.cargo/mutants.toml`
 - **changed** `src-tauri/Cargo.lock`
 - **changed** `src-tauri/Cargo.toml`
 - **changed** `src-tauri/Info.plist`
@@ -768,23 +830,42 @@
 - **changed** `src-tauri/locales/pt-BR.yml`
 - **changed** `src-tauri/locales/zh-CN.yml`
 - **changed** `src-tauri/locales/zh-TW.yml`
+- **deleted** `src-tauri/mutants.toml`
+- **deleted** `src-tauri/resources/genies/outline-and-polish.yml`
 - **added** `src-tauri/resources/shell-integration/vmark.bash`
+- **changed** `src-tauri/resources/workflows/examples/triage-and-translate.yml`
+- **added** `src-tauri/src/ai_provider/cancel.rs`
+- **added** `src-tauri/src/ai_provider/cancel.test.rs`
 - **added** `src-tauri/src/ai_provider/cli_path_guard.rs`
 - **added** `src-tauri/src/ai_provider/cli_path_guard.test.rs`
+- **changed** `src-tauri/src/ai_provider/detection.rs`
+- **added** `src-tauri/src/ai_provider/detection.test.rs`
 - **added** `src-tauri/src/ai_provider/dispatch.rs`
+- **added** `src-tauri/src/ai_provider/dispatch.test.rs`
 - **changed** `src-tauri/src/ai_provider/mod.rs`
+- **changed** `src-tauri/src/ai_provider/rest_providers.rs`
+- **added** `src-tauri/src/ai_provider/rest_providers.test.rs`
+- **added** `src-tauri/src/ai_provider/rest_request.rs`
 - **changed** `src-tauri/src/app_paths.rs`
+- **added** `src-tauri/src/app_plugins.rs`
 - **changed** `src-tauri/src/app_setup.rs`
+- **added** `src-tauri/src/app_setup.test.rs`
+- **added** `src-tauri/src/atomic_persist.rs`
 - **added** `src-tauri/src/atomic_replace.rs`
 - **added** `src-tauri/src/atomic_replace.test.rs`
+- **added** `src-tauri/src/automation_port.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/fixtures.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/html_text.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/main.rs`
+- **added** `src-tauri/src/bin/pdf_smoke/missing_path.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/page_number_fixture.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/page_numbers_case.rs`
+- **added** `src-tauri/src/bin/pdf_smoke/progress_case.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/render_one.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/scenarios.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/verify.rs`
+- **added** `src-tauri/src/bounded_read.rs`
+- **added** `src-tauri/src/bounded_read.test.rs`
 - **changed** `src-tauri/src/browser/ai_commands.rs`
 - **changed** `src-tauri/src/browser/ai_commands.test.rs`
 - **added** `src-tauri/src/browser/ai_content_rules.rs`
@@ -869,6 +950,7 @@
 - **added** `src-tauri/src/browser/session_restore.src.js`
 - **added** `src-tauri/src/browser/session_restore_script.rs`
 - **added** `src-tauri/src/browser/session_restore_script.test.rs`
+- **changed** `src-tauri/src/browser/session_state.rs`
 - **changed** `src-tauri/src/browser/surface.rs`
 - **changed** `src-tauri/src/browser/surface.test.rs`
 - **changed** `src-tauri/src/browser/surface_create_macos.rs`
@@ -883,6 +965,7 @@
 - **changed** `src-tauri/src/browser/teardown.test.rs`
 - **added** `src-tauri/src/browser/user_input_monitor_macos.rs`
 - **added** `src-tauri/src/browser/user_input_resolve_macos.rs`
+- **added** `src-tauri/src/canonical_path.rs`
 - **added** `src-tauri/src/capabilities.test.rs`
 - **added** `src-tauri/src/coherence/accept.rs`
 - **added** `src-tauri/src/coherence/accept.test.rs`
@@ -1002,12 +1085,42 @@
 - **changed** `src-tauri/src/content_search.rs`
 - **changed** `src-tauri/src/content_search.test.rs`
 - **added** `src-tauri/src/content_search_match.rs`
+- **added** `src-tauri/src/content_server/bundle_manifest.rs`
+- **added** `src-tauri/src/content_server/bundle_manifest.test.rs`
+- **added** `src-tauri/src/content_server/cleanup.rs`
+- **added** `src-tauri/src/content_server/cleanup.test.rs`
+- **added** `src-tauri/src/content_server/client.rs`
+- **added** `src-tauri/src/content_server/client.test.rs`
 - **changed** `src-tauri/src/content_server/commands.rs`
+- **added** `src-tauri/src/content_server/commands.test.rs`
+- **added** `src-tauri/src/content_server/drain.rs`
+- **added** `src-tauri/src/content_server/drain.test.rs`
 - **added** `src-tauri/src/content_server/http.rs`
+- **added** `src-tauri/src/content_server/http.test.rs`
 - **changed** `src-tauri/src/content_server/manager.rs`
 - **added** `src-tauri/src/content_server/manager.test.rs`
+- **added** `src-tauri/src/content_server/manager_poll.rs`
+- **added** `src-tauri/src/content_server/manager_teardown.rs`
 - **deleted** `src-tauri/src/content_server/manager_tests.rs`
 - **changed** `src-tauri/src/content_server/mod.rs`
+- **added** `src-tauri/src/content_server/port_wait.rs`
+- **added** `src-tauri/src/content_server/port_wait.test.rs`
+- **changed** `src-tauri/src/content_server/provision.rs`
+- **added** `src-tauri/src/content_server/runtime.rs`
+- **added** `src-tauri/src/content_server/runtime.test.rs`
+- **changed** `src-tauri/src/content_server/signature.rs`
+- **deleted** `src-tauri/src/content_server/slidev.rs`
+- **changed** `src-tauri/src/content_server/slidev_commands.rs`
+- **added** `src-tauri/src/content_server/slidev_commands.test.rs`
+- **changed** `src-tauri/src/content_server/spawn.rs`
+- **added** `src-tauri/src/content_server/spawn.test.rs`
+- **added** `src-tauri/src/content_server/start.rs`
+- **added** `src-tauri/src/content_server/start.test.rs`
+- **added** `src-tauri/src/content_server/supervisor.rs`
+- **added** `src-tauri/src/content_server/supervisor.test.rs`
+- **changed** `src-tauri/src/content_server/swap.rs`
+- **changed** `src-tauri/src/dock_recent.rs`
+- **added** `src-tauri/src/dock_recent.test.rs`
 - **changed** `src-tauri/src/external_editor.rs`
 - **added** `src-tauri/src/external_editor.test.rs`
 - **changed** `src-tauri/src/file_open.rs`
@@ -1020,11 +1133,20 @@
 - **changed** `src-tauri/src/file_write.test.rs`
 - **added** `src-tauri/src/fs_scope.rs`
 - **added** `src-tauri/src/fs_scope.test.rs`
+- **changed** `src-tauri/src/genies/commands.rs`
+- **added** `src-tauri/src/genies/commands.test.rs`
+- **changed** `src-tauri/src/genies/install.rs`
+- **added** `src-tauri/src/genies/install.test.rs`
+- **changed** `src-tauri/src/genies/scanning.rs`
+- **added** `src-tauri/src/genies/scanning.test.rs`
 - **changed** `src-tauri/src/gha_workflow/action_fetch.rs`
+- **changed** `src-tauri/src/gha_workflow/commands.rs`
+- **changed** `src-tauri/src/gha_workflow/mod.rs`
 - **changed** `src-tauri/src/hot_exit/commands.rs`
 - **changed** `src-tauri/src/hot_exit/coordinator.rs`
 - **changed** `src-tauri/src/hot_exit/coordinator.test.rs`
 - **added** `src-tauri/src/hot_exit/coordinator_pins.test.rs`
+- **changed** `src-tauri/src/hot_exit/dedup.rs`
 - **added** `src-tauri/src/hot_exit/loaded.rs`
 - **changed** `src-tauri/src/hot_exit/merge.test.rs`
 - **changed** `src-tauri/src/hot_exit/migration.rs`
@@ -1032,7 +1154,7 @@
 - **changed** `src-tauri/src/hot_exit/mod.rs`
 - **added** `src-tauri/src/hot_exit/path_containment_tests.rs`
 - **added** `src-tauri/src/hot_exit/read_session.rs`
-- **renamed** `src-tauri/src/hot_exit/storage.test.rs` → `src-tauri/src/hot_exit/read_session.test.rs`
+- **added** `src-tauri/src/hot_exit/read_session.test.rs`
 - **added** `src-tauri/src/hot_exit/restore_plan.rs`
 - **added** `src-tauri/src/hot_exit/restore_plan.test.rs`
 - **added** `src-tauri/src/hot_exit/salvage.rs`
@@ -1042,15 +1164,21 @@
 - **added** `src-tauri/src/hot_exit/state.rs`
 - **added** `src-tauri/src/hot_exit/state.test.rs`
 - **changed** `src-tauri/src/hot_exit/storage.rs`
+- **deleted** `src-tauri/src/hot_exit/storage.test.rs`
 - **changed** `src-tauri/src/hot_exit/validation.rs`
 - **changed** `src-tauri/src/hot_exit/validation.test.rs`
 - **changed** `src-tauri/src/lib.rs`
+- **changed** `src-tauri/src/lib.test.rs`
 - **added** `src-tauri/src/link_target.rs`
 - **added** `src-tauri/src/link_target.test.rs`
 - **added** `src-tauri/src/live_docs.rs`
 - **added** `src-tauri/src/live_docs.test.rs`
 - **changed** `src-tauri/src/macos_menu.rs`
+- **added** `src-tauri/src/macos_menu.test.rs`
 - **changed** `src-tauri/src/macos_menu_icons.rs`
+- **added** `src-tauri/src/mcp_bridge/accept_loop.rs`
+- **added** `src-tauri/src/mcp_bridge/accept_loop.test.rs`
+- **added** `src-tauri/src/mcp_bridge/bind.rs`
 - **added** `src-tauri/src/mcp_bridge/coherence_answers.rs`
 - **changed** `src-tauri/src/mcp_bridge/commands.rs`
 - **added** `src-tauri/src/mcp_bridge/connection.rs`
@@ -1061,16 +1189,26 @@
 - **added** `src-tauri/src/mcp_bridge/frames.test.rs`
 - **added** `src-tauri/src/mcp_bridge/handshake.rs`
 - **added** `src-tauri/src/mcp_bridge/handshake.test.rs`
+- **added** `src-tauri/src/mcp_bridge/identify.rs`
+- **added** `src-tauri/src/mcp_bridge/identify.test.rs`
+- **added** `src-tauri/src/mcp_bridge/lifecycle.rs`
+- **added** `src-tauri/src/mcp_bridge/lifecycle.test.rs`
 - **added** `src-tauri/src/mcp_bridge/managed.rs`
 - **added** `src-tauri/src/mcp_bridge/managed.test.rs`
 - **added** `src-tauri/src/mcp_bridge/message_loop.rs`
 - **changed** `src-tauri/src/mcp_bridge/mod.rs`
+- **added** `src-tauri/src/mcp_bridge/peer_text.rs`
+- **added** `src-tauri/src/mcp_bridge/peer_text.test.rs`
 - **added** `src-tauri/src/mcp_bridge/principal.rs`
 - **added** `src-tauri/src/mcp_bridge/principal.test.rs`
+- **added** `src-tauri/src/mcp_bridge/routed_request.rs`
+- **added** `src-tauri/src/mcp_bridge/routed_request.test.rs`
 - **added** `src-tauri/src/mcp_bridge/routing.rs`
 - **added** `src-tauri/src/mcp_bridge/routing.test.rs`
 - **changed** `src-tauri/src/mcp_bridge/server.rs`
 - **added** `src-tauri/src/mcp_bridge/server.test.rs`
+- **added** `src-tauri/src/mcp_bridge/start.rs`
+- **added** `src-tauri/src/mcp_bridge/start.test.rs`
 - **changed** `src-tauri/src/mcp_bridge/state.rs`
 - **added** `src-tauri/src/mcp_bridge/state.test.rs`
 - **added** `src-tauri/src/mcp_bridge/state_lifecycle.test.rs`
@@ -1108,13 +1246,17 @@
 - **added** `src-tauri/src/mcp_config/vmark_entry.rs`
 - **added** `src-tauri/src/mcp_config/vmark_entry.test.rs`
 - **changed** `src-tauri/src/mcp_server.rs`
+- **added** `src-tauri/src/mcp_server.test.rs`
+- **added** `src-tauri/src/mcp_server_health.rs`
 - **changed** `src-tauri/src/menu/accelerators.rs`
 - **added** `src-tauri/src/menu/browser_menu_item.rs`
 - **changed** `src-tauri/src/menu/commands.rs`
+- **changed** `src-tauri/src/menu/localized.rs`
 - **changed** `src-tauri/src/menu/localized.test.rs`
 - **changed** `src-tauri/src/menu/localized/edit_menu.rs`
 - **changed** `src-tauri/src/menu/localized/export_menu.rs`
 - **changed** `src-tauri/src/menu/localized/file_menu.rs`
+- **changed** `src-tauri/src/menu/localized/insert_menu.rs`
 - **changed** `src-tauri/src/menu/localized/view_menu.rs`
 - **changed** `src-tauri/src/menu/localized/window_help_menu.rs`
 - **changed** `src-tauri/src/menu/menu_state.rs`
@@ -1128,6 +1270,8 @@
 - **deleted** `src-tauri/src/pdf_export/bookmarks.rs`
 - **changed** `src-tauri/src/pdf_export/commands.rs`
 - **added** `src-tauri/src/pdf_export/commands.test.rs`
+- **added** `src-tauri/src/pdf_export/export_gate.rs`
+- **added** `src-tauri/src/pdf_export/export_gate.test.rs`
 - **added** `src-tauri/src/pdf_export/heading.rs`
 - **changed** `src-tauri/src/pdf_export/mod.rs`
 - **added** `src-tauri/src/pdf_export/outline.rs`
@@ -1145,14 +1289,36 @@
 - **added** `src-tauri/src/pdf_export/pdf_io.rs`
 - **deleted** `src-tauri/src/pdf_export/renderer.rs`
 - **added** `src-tauri/src/pdf_export/renderer/linux.rs`
+- **added** `src-tauri/src/pdf_export/renderer/linux_nav.rs`
 - **added** `src-tauri/src/pdf_export/renderer/linux_print.rs`
 - **added** `src-tauri/src/pdf_export/renderer/macos.rs`
 - **added** `src-tauri/src/pdf_export/renderer/macos_ops.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_print.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_print.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_save_job.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_save_job.test.rs`
 - **added** `src-tauri/src/pdf_export/renderer/mod.rs`
 - **added** `src-tauri/src/pdf_export/renderer/mod.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/navigation.rs`
+- **added** `src-tauri/src/pdf_export/renderer/navigation.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/outcome.rs`
+- **added** `src-tauri/src/pdf_export/renderer/outcome.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/progress.rs`
+- **added** `src-tauri/src/pdf_export/renderer/progress.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/shell.rs`
+- **added** `src-tauri/src/pdf_export/renderer/shell.test.rs`
 - **added** `src-tauri/src/pdf_export/renderer/sink.rs`
+- **added** `src-tauri/src/pdf_export/renderer/sink_phase.rs`
+- **added** `src-tauri/src/pdf_export/renderer/sink_phase.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/staging.rs`
+- **added** `src-tauri/src/pdf_export/renderer/staging.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/teardown.rs`
+- **added** `src-tauri/src/pdf_export/renderer/teardown.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/wait.rs`
+- **added** `src-tauri/src/pdf_export/renderer/wait.test.rs`
 - **added** `src-tauri/src/pdf_export/renderer/windows.rs`
 - **added** `src-tauri/src/pdf_export/renderer/windows.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/windows_nav.rs`
 - **added** `src-tauri/src/pdf_export/renderer/windows_print.rs`
 - **changed** `src-tauri/src/pty.rs`
 - **added** `src-tauri/src/pty/reader.rs`
@@ -1163,6 +1329,9 @@
 - **added** `src-tauri/src/secret_token.rs`
 - **added** `src-tauri/src/secret_token.test.rs`
 - **changed** `src-tauri/src/secure_store.rs`
+- **added** `src-tauri/src/secure_store.test.rs`
+- **added** `src-tauri/src/session_bus.rs`
+- **added** `src-tauri/src/session_bus.test.rs`
 - **changed** `src-tauri/src/shell_env.rs`
 - **changed** `src-tauri/src/shell_integration.rs`
 - **added** `src-tauri/src/shell_integration.test.rs`
@@ -1193,20 +1362,51 @@
 - **added** `src-tauri/src/window_manager/mod.test.rs`
 - **added** `src-tauri/src/window_manager/native_theme.rs`
 - **added** `src-tauri/src/window_manager/native_theme.test.rs`
+- **changed** `src-tauri/src/window_manager/path_validation.rs`
+- **changed** `src-tauri/src/window_manager/path_validation.test.rs`
 - **changed** `src-tauri/src/window_manager/settings_window.rs`
 - **added** `src-tauri/src/window_manager/settings_window.test.rs`
 - **added** `src-tauri/src/window_manager/traffic_lights.rs`
 - **added** `src-tauri/src/window_manager/window_events.rs`
+- **added** `src-tauri/src/window_manager/window_url.rs`
+- **added** `src-tauri/src/window_manager/window_url.test.rs`
+- **changed** `src-tauri/src/window_status/mod.rs`
 - **added** `src-tauri/src/workflow/actions.rs`
+- **added** `src-tauri/src/workflow/actions.test.rs`
+- **added** `src-tauri/src/workflow/actions_folder.rs`
+- **added** `src-tauri/src/workflow/actions_folder.test.rs`
 - **added** `src-tauri/src/workflow/coherence_capture.rs`
 - **added** `src-tauri/src/workflow/coherence_capture.test.rs`
 - **changed** `src-tauri/src/workflow/commands.rs`
+- **added** `src-tauri/src/workflow/commands.test.rs`
+- **added** `src-tauri/src/workflow/commit.rs`
+- **added** `src-tauri/src/workflow/commit.test.rs`
+- **added** `src-tauri/src/workflow/commit_dir.rs`
+- **added** `src-tauri/src/workflow/dir_fd.rs`
+- **added** `src-tauri/src/workflow/ensure_dir.rs`
+- **added** `src-tauri/src/workflow/ensure_dir.test.rs`
+- **changed** `src-tauri/src/workflow/examples.rs`
+- **added** `src-tauri/src/workflow/examples.test.rs`
+- **changed** `src-tauri/src/workflow/expressions.rs`
 - **added** `src-tauri/src/workflow/guards.rs`
 - **added** `src-tauri/src/workflow/guards.test.rs`
+- **added** `src-tauri/src/workflow/launch.rs`
+- **added** `src-tauri/src/workflow/launch.test.rs`
 - **changed** `src-tauri/src/workflow/mod.rs`
+- **added** `src-tauri/src/workflow/prepare.rs`
+- **added** `src-tauri/src/workflow/prepare.test.rs`
+- **added** `src-tauri/src/workflow/recent_ids.rs`
 - **changed** `src-tauri/src/workflow/runner.rs`
+- **changed** `src-tauri/src/workflow/runner.test.rs`
+- **added** `src-tauri/src/workflow/snapshot_copy.rs`
+- **added** `src-tauri/src/workflow/snapshot_restore.rs`
+- **changed** `src-tauri/src/workflow/snapshots.rs`
+- **changed** `src-tauri/src/workflow/snapshots.test.rs`
 - **added** `src-tauri/src/workflow/state.rs`
 - **added** `src-tauri/src/workflow/state.test.rs`
+- **added** `src-tauri/src/workflow/state_cancel.rs`
+- **changed** `src-tauri/src/workflow/types.rs`
+- **added** `src-tauri/src/workflow/validate.rs`
 - **changed** `src-tauri/src/workspace.rs`
 - **changed** `src-tauri/src/workspace_transfer.rs`
 - **added** `src-tauri/src/workspace_validation.rs`
@@ -1222,6 +1422,9 @@
 - **added** `src/bench/cjkFormatter.bench.ts`
 - **changed** `src/bench/editor.bench.ts`
 - **added** `src/bench/pipelinePerf.bench.ts`
+- **changed** `src/bench/statusMetrics.bench.ts`
+- **changed** `src/bench/terminal.bench.ts`
+- **changed** `src/bench/workflow.bench.ts`
 - **changed** `src/components/BottomBar/BottomBar.test.tsx`
 - **added** `src/components/BreakdownPanel/AnchorAction.test.tsx`
 - **added** `src/components/BreakdownPanel/AnchorAction.tsx`
@@ -1298,10 +1501,17 @@
 - **changed** `src/components/ContentSearch/__tests__/ContentSearch.test.tsx`
 - **deleted** `src/components/ContentSearch/__tests__/useContentSearchShortcuts.test.ts`
 - **changed** `src/components/ContentSearch/content-search.css`
+- **changed** `src/components/ContentSearch/contentSearchUtils.tsx`
 - **changed** `src/components/ContentSearch/useContentSearchScheduler.test.ts`
 - **changed** `src/components/ContentSearch/useContentSearchScheduler.ts`
 - **deleted** `src/components/ContentSearch/useContentSearchShortcuts.ts`
+- **changed** `src/components/Editor/DocumentSplit/DocumentSplitContainer.tsx`
+- **changed** `src/components/Editor/DocumentSplit/SplitDivider.test.tsx`
 - **changed** `src/components/Editor/DocumentSplit/SplitDivider.tsx`
+- **changed** `src/components/Editor/DocumentSplit/document-split.css`
+- **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.test.ts`
+- **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.ts`
+- **added** `src/components/Editor/DocumentSplit/useSplitDrag.ts`
 - **changed** `src/components/Editor/Editor.test.tsx`
 - **changed** `src/components/Editor/Editor.tsx`
 - **changed** `src/components/Editor/EditorContextMenu/EditorContextMenu.test.tsx`
@@ -1329,6 +1539,8 @@
 - **changed** `src/components/Editor/SplitPaneEditor/SourcePane.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx`
+- **added** `src/components/Editor/SplitPaneEditor/ValidationGutter.i18n.test.tsx`
+- **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/read-only-banner.css`
 - **changed** `src/components/Editor/SplitPaneEditor/sourcePaneExtensions.test.ts`
@@ -1336,6 +1548,7 @@
 - **changed** `src/components/Editor/SplitPaneEditor/split-pane-editor.css`
 - **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx`
 - **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.ts`
+- **changed** `src/components/Editor/SplitPaneEditor/validation-gutter.css`
 - **changed** `src/components/Editor/SplitPaneEditor/view-mode-toggle.css`
 - **added** `src/components/Editor/TiptapEditor.callbacks.test.tsx`
 - **added** `src/components/Editor/TiptapEditor.lifecycle.test.tsx`
@@ -1345,6 +1558,7 @@
 - **changed** `src/components/Editor/UniversalToolbar/GroupDropdown.tsx`
 - **changed** `src/components/Editor/UniversalToolbar/ToolbarButton.tsx`
 - **changed** `src/components/Editor/UniversalToolbar/UniversalToolbar.test.tsx`
+- **changed** `src/components/Editor/UniversalToolbar/UniversalToolbar.tsx`
 - **changed** `src/components/Editor/UniversalToolbar/toolbarFocus.test.ts`
 - **changed** `src/components/Editor/UniversalToolbar/toolbarGroups.test.ts`
 - **changed** `src/components/Editor/UniversalToolbar/toolbarGroups.ts`
@@ -1352,6 +1566,7 @@
 - **changed** `src/components/Editor/UniversalToolbar/toolbarI18n.ts`
 - **changed** `src/components/Editor/UniversalToolbar/toolbarNavigation.test.ts`
 - **changed** `src/components/Editor/UniversalToolbar/universal-toolbar.css`
+- **added** `src/components/Editor/WorkflowEditor/AddJobControl.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/ConcurrencyForm.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/DiagnosticsBanner.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/ExpressionEditor.tsx`
@@ -1361,27 +1576,41 @@
 - **changed** `src/components/Editor/WorkflowEditor/StepForm.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/TriggerForm.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx`
+- **added** `src/components/Editor/WorkflowEditor/__tests__/AddJobControl.test.tsx`
+- **changed** `src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/__tests__/PermissionsForm.test.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/__tests__/StepForm.test.tsx`
+- **changed** `src/components/Editor/WorkflowEditor/__tests__/WorkflowEditorPanel.test.tsx`
+- **added** `src/components/Editor/WorkflowEditor/__tests__/stepSelection.test.ts`
+- **added** `src/components/Editor/WorkflowEditor/__tests__/useActionlintDiagnostics.test.tsx`
+- **added** `src/components/Editor/WorkflowEditor/__tests__/useStepFocusRestore.test.tsx`
 - **added** `src/components/Editor/WorkflowEditor/__tests__/withRowPlans.test.ts`
 - **changed** `src/components/Editor/WorkflowEditor/diagnosticI18n.test.ts`
 - **changed** `src/components/Editor/WorkflowEditor/diagnosticI18n.ts`
+- **added** `src/components/Editor/WorkflowEditor/stepSelection.ts`
+- **changed** `src/components/Editor/WorkflowEditor/useActionMetadata.ts`
+- **added** `src/components/Editor/WorkflowEditor/useActionlintDiagnostics.ts`
+- **added** `src/components/Editor/WorkflowEditor/useStepFocusRestore.ts`
 - **added** `src/components/Editor/WorkflowEditor/withRowPlans.ts`
 - **changed** `src/components/Editor/WorkflowEditor/workflow-editor.css`
+- **deleted** `src/components/Editor/WorkflowPanel/GhaWorkflowPanel.tsx`
 - **added** `src/components/Editor/WorkflowPanel/GhaWorkflowWorkbench.tsx`
 - **changed** `src/components/Editor/WorkflowPanel/JobNode.tsx`
 - **changed** `src/components/Editor/WorkflowPanel/WorkflowCanvasInner.tsx`
 - **added** `src/components/Editor/WorkflowPanel/WorkflowEngineSlot.test.tsx`
 - **added** `src/components/Editor/WorkflowPanel/WorkflowEngineSlot.tsx`
 - **changed** `src/components/Editor/WorkflowPanel/WorkflowExportControl.tsx`
+- **deleted** `src/components/Editor/WorkflowPanel/WorkflowPanelShell.tsx`
 - **renamed** `src/plugins/workflowPreview/WorkflowSidePanel.tsx` → `src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx`
+- **deleted** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowPanel.test.tsx`
 - **added** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowWorkbench.test.tsx`
 - **changed** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx`
+- **deleted** `src/components/Editor/WorkflowPanel/__tests__/WorkflowPanelShell.test.tsx`
 - **renamed** `src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx` → `src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx`
 - **added** `src/components/Editor/WorkflowPanel/gha-workflow-workbench.css`
 - **changed** `src/components/Editor/WorkflowPanel/job-node.css`
 - **changed** `src/components/Editor/WorkflowPanel/workflow-canvas.css`
-- **changed** `src/components/Editor/WorkflowPanel/workflow-panel-shell.css`
+- **deleted** `src/components/Editor/WorkflowPanel/workflow-panel-shell.css`
 - **renamed** `src/plugins/workflowPreview/workflow-side-panel.css` → `src/components/Editor/WorkflowPanel/workflow-side-panel.css`
 - **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
@@ -1408,21 +1637,49 @@
 - **changed** `src/components/FindBar/FindBar.css`
 - **changed** `src/components/FindBar/FindBar.test.tsx`
 - **changed** `src/components/FindBar/FindBar.tsx`
+- **added** `src/components/FindBar/FindBar.useSelectionForFind.test.tsx`
+- **added** `src/components/FindBar/FindBarControls.test.tsx`
+- **added** `src/components/FindBar/FindBarControls.tsx`
+- **added** `src/components/FindBar/preventSelectAllOnButtons.test.ts`
+- **added** `src/components/FindBar/preventSelectAllOnButtons.ts`
+- **added** `src/components/FindBar/useFindBarFocus.eventName.test.ts`
+- **added** `src/components/FindBar/useFindBarFocus.test.tsx`
+- **added** `src/components/FindBar/useFindBarFocus.ts`
+- **added** `src/components/FindBar/useFindBarKeyboard.ts`
 - **changed** `src/components/GeniePicker/GenieChips.tsx`
+- **added** `src/components/GeniePicker/GeniePicker.freeform.test.tsx`
+- **added** `src/components/GeniePicker/GeniePicker.history.test.tsx`
+- **added** `src/components/GeniePicker/GeniePicker.lifecycle.test.tsx`
+- **added** `src/components/GeniePicker/GeniePicker.responseActions.test.tsx`
 - **changed** `src/components/GeniePicker/GeniePicker.test.tsx`
 - **changed** `src/components/GeniePicker/GeniePicker.tsx`
+- **changed** `src/components/GeniePicker/GeniePickerOverlay.tsx`
 - **changed** `src/components/GeniePicker/GenieResponseView.css`
 - **changed** `src/components/GeniePicker/PromptHistoryDropdown.test.tsx`
+- **changed** `src/components/GeniePicker/PromptHistoryDropdown.tsx`
 - **changed** `src/components/GeniePicker/ProviderSwitcher.test.tsx`
 - **changed** `src/components/GeniePicker/ProviderSwitcher.tsx`
 - **changed** `src/components/GeniePicker/genie-picker.css`
+- **added** `src/components/GeniePicker/genieListDerivation.test.ts`
+- **added** `src/components/GeniePicker/genieListDerivation.ts`
+- **added** `src/components/GeniePicker/geniePickerKeys.test.ts`
+- **added** `src/components/GeniePicker/geniePickerKeys.ts`
+- **added** `src/components/GeniePicker/invocationLifecycle.test.ts`
+- **added** `src/components/GeniePicker/invocationLifecycle.ts`
+- **added** `src/components/GeniePicker/useInvocationSession.ts`
 - **added** `src/components/KnowledgeBasePanel/KbGraphChunkFailure.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBaseOverlay.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.runtime.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBasePanelViews.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBaseRuntimeState.tsx`
 - **changed** `src/components/KnowledgeBasePanel/graphToFlow.test.ts`
 - **changed** `src/components/KnowledgeBasePanel/knowledge-base-overlay.css`
 - **changed** `src/components/KnowledgeBasePanel/knowledge-base-panel.css`
+- **added** `src/components/KnowledgeBasePanel/runtimeState.test.ts`
+- **added** `src/components/KnowledgeBasePanel/runtimeState.ts`
+- **added** `src/components/KnowledgeBasePanel/useContentServerRuntime.ts`
 - **changed** `src/components/McpHistory/McpHistoryButton.tsx`
 - **changed** `src/components/McpHistory/mcp-history.css`
 - **changed** `src/components/QuickLook/QuickLookOverlay.css`
@@ -1453,6 +1710,10 @@
 - **added** `src/components/Sidebar/FileExplorer/rescanScheduler.test.ts`
 - **added** `src/components/Sidebar/FileExplorer/rescanScheduler.ts`
 - **changed** `src/components/Sidebar/FileExplorer/types.ts`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerActionWiring.test.ts`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerActionWiring.ts`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerContextMenu.test.tsx`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerContextMenu.ts`
 - **added** `src/components/Sidebar/FileExplorer/useExplorerCreateFlow.test.tsx`
 - **added** `src/components/Sidebar/FileExplorer/useExplorerCreateFlow.ts`
 - **added** `src/components/Sidebar/FileExplorer/useExplorerOperations.duplicateFile.test.ts`
@@ -1465,6 +1726,8 @@
 - **changed** `src/components/Sidebar/FileExplorer/useFileTree.ts`
 - **added** `src/components/Sidebar/FileExplorer/useObservedHeight.test.ts`
 - **changed** `src/components/Sidebar/FileExplorer/useObservedHeight.ts`
+- **added** `src/components/Sidebar/FileExplorer/useRefreshOnWindowFocus.test.ts`
+- **added** `src/components/Sidebar/FileExplorer/useRefreshOnWindowFocus.ts`
 - **added** `src/components/Sidebar/FileExplorer/useTreeWiring.tsx`
 - **changed** `src/components/Sidebar/HistoryView.tsx`
 - **changed** `src/components/Sidebar/OutlineView.a11y.test.tsx`
@@ -1483,6 +1746,7 @@
 - **added** `src/components/Sidebar/useSidebarInstanceSync.ts`
 - **changed** `src/components/StatusBar/FileLoadIndicator.tsx`
 - **changed** `src/components/StatusBar/LintBadge.tsx`
+- **changed** `src/components/StatusBar/SourceModeUpgrade.tsx`
 - **added** `src/components/StatusBar/StatusBar.a11y.test.tsx`
 - **changed** `src/components/StatusBar/StatusBar.css`
 - **changed** `src/components/StatusBar/StatusBar.test.tsx`
@@ -1511,6 +1775,7 @@
 - **added** `src/components/StatusBar/tabStripHarnessContract.test.tsx`
 - **changed** `src/components/StatusBar/tabTransferActions.test.ts`
 - **changed** `src/components/StatusBar/tabTransferActions.ts`
+- **added** `src/components/StatusBar/useQuitFeedback.test.ts`
 - **added** `src/components/StatusBar/useScrollActiveTabIntoView.test.tsx`
 - **changed** `src/components/StatusBar/useStatusBarTabDrag.ts`
 - **changed** `src/components/StatusBar/word-count-popover.css`
@@ -1629,6 +1894,7 @@
 - **changed** `src/components/Terminal/useTerminalShellLifecycle.test.ts`
 - **changed** `src/components/Terminal/useTerminalShellLifecycle.ts`
 - **added** `src/components/Terminal/useVisibleTerminalSessions.ts`
+- **added** `src/components/ThemedToaster.test.tsx`
 - **added** `src/components/ThemedToaster.tsx`
 - **changed** `src/components/TitleBar/TitleBar.a11y.test.tsx`
 - **added** `src/components/TitleBar/TitleBar.filename.test.tsx`
@@ -1654,13 +1920,17 @@
 - **changed** `src/components/WorkspaceRail/WorkspaceRail.test.tsx`
 - **changed** `src/components/WorkspaceRail/WorkspaceRail.tsx`
 - **added** `src/components/WorkspaceRail/WorkspaceRailContextMenu.css`
+- **added** `src/components/WorkspaceRail/WorkspaceRailContextMenu.test.tsx`
 - **added** `src/components/WorkspaceRail/WorkspaceRailContextMenu.tsx`
 - **changed** `src/components/WorkspaceRail/index.ts`
 - **added** `src/components/WorkspaceRail/workspaceRailHandlers.test.ts`
 - **added** `src/components/WorkspaceRail/workspaceRailHandlers.ts`
+- **added** `src/components/WorkspaceRail/workspaceRailMenuLayout.test.ts`
+- **added** `src/components/WorkspaceRail/workspaceRailMenuLayout.ts`
 - **added** `src/components/shared/TabStripButton.test.tsx`
 - **added** `src/components/shared/TabStripButton.tsx`
 - **changed** `src/components/spotlight/spotlightDialog.tsx`
+- **added** `src/components/toastIcons.test.tsx`
 - **added** `src/components/toastIcons.tsx`
 - **changed** `src/contexts/WindowContext.test.tsx`
 - **changed** `src/contexts/WindowContext.tsx`
@@ -1676,22 +1946,45 @@
 - **changed** `src/export/PdfExportDialog.tsx`
 - **changed** `src/export/PdfSettingsSidebar.tsx`
 - **added** `src/export/PdfSidebarPrimitives.tsx`
+- **added** `src/export/__tests__/copyAsHtml.test.ts`
 - **changed** `src/export/__tests__/editorCSSBundle.test.ts`
 - **added** `src/export/__tests__/exportCssVarCoverage.test.ts`
 - **added** `src/export/__tests__/exportDialogNamespaces.test.ts`
+- **added** `src/export/__tests__/exportFolderPath.test.ts`
+- **added** `src/export/__tests__/exportFsHarness.ts`
+- **added** `src/export/__tests__/exportLock.test.ts`
+- **added** `src/export/__tests__/exportStaging.test.ts`
+- **changed** `src/export/__tests__/exportToPdfImages.test.ts`
+- **added** `src/export/__tests__/exportWarningCount.test.ts`
 - **changed** `src/export/__tests__/fontEmbedder.test.ts`
+- **added** `src/export/__tests__/htmlExportAssets.test.ts`
 - **changed** `src/export/__tests__/htmlExportCleanup.test.ts`
+- **added** `src/export/__tests__/htmlExportResources.test.ts`
 - **changed** `src/export/__tests__/htmlExportStylesContent.test.ts`
 - **changed** `src/export/__tests__/htmlTemplatesKatex.test.ts`
 - **changed** `src/export/__tests__/katexFontEmbed.test.ts`
 - **added** `src/export/__tests__/pageNumberSpec.test.ts`
 - **changed** `src/export/__tests__/pdfHtmlTemplate.test.ts`
 - **changed** `src/export/__tests__/pdfPresets.test.ts`
+- **added** `src/export/__tests__/printDocument.test.ts`
 - **added** `src/export/__tests__/printFailureToast.test.ts`
+- **added** `src/export/__tests__/printLiveEditor.test.ts`
+- **added** `src/export/__tests__/printOutcome.test.ts`
 - **changed** `src/export/__tests__/uint8ArrayToBase64.test.ts`
+- **changed** `src/export/__tests__/waitForAssets.test.ts`
+- **added** `src/export/assetReadiness.ts`
 - **changed** `src/export/createExportExtensions.ts`
+- **added** `src/export/exportGuards.ts`
+- **added** `src/export/exportLock.ts`
+- **added** `src/export/exportLockFile.ts`
+- **added** `src/export/exportLockTakeover.ts`
 - **changed** `src/export/exportOverrides.ts`
+- **added** `src/export/exportPublish.ts`
+- **added** `src/export/exportStaging.ts`
+- **added** `src/export/exportToHtmlFolder.ts`
+- **changed** `src/export/fontEmbedder.ts`
 - **changed** `src/export/htmlExport.ts`
+- **added** `src/export/htmlExportAssets.ts`
 - **added** `src/export/pageSpec.test.ts`
 - **added** `src/export/pageSpec.ts`
 - **changed** `src/export/pandocExport.test.ts`
@@ -1705,6 +1998,8 @@
 - **changed** `src/export/pdfPresets.ts`
 - **added** `src/export/pdfPrintCss.ts`
 - **added** `src/export/primitiveTokens.ts`
+- **added** `src/export/printDocument.ts`
+- **added** `src/export/printOutcome.ts`
 - **changed** `src/export/reader/readerBundle.test.ts`
 - **changed** `src/export/reader/readerBundle.ts`
 - **added** `src/export/reader/readerDarkPalette.ts`
@@ -1714,9 +2009,22 @@
 - **added** `src/export/renderMarkdownToHtml.ts`
 - **changed** `src/export/themeSnapshot.ts`
 - **changed** `src/export/useExportOperations.ts`
+- **changed** `src/export/waitForAssets.ts`
+- **deleted** `src/hooks/__tests__/tabCleanup.test.ts`
+- **deleted** `src/hooks/__tests__/useFileOpen.test.ts`
+- **added** `src/hooks/__tests__/useGenieInvocation.cancel.test.ts`
+- **added** `src/hooks/__tests__/useGenieInvocation.dispatchGating.test.ts`
+- **changed** `src/hooks/__tests__/useGenieInvocation.test.ts`
+- **changed** `src/hooks/__tests__/useGenieInvocation.workflowRace.test.ts`
+- **deleted** `src/hooks/__tests__/useHistoryOperations.test.ts`
+- **deleted** `src/hooks/__tests__/useHistoryRecovery.test.ts`
+- **changed** `src/hooks/__tests__/useMcpHealthCheck.test.tsx`
 - **deleted** `src/hooks/closeSave.ts`
+- **deleted** `src/hooks/finderOpenBranch.test.ts`
+- **deleted** `src/hooks/finderOpenBranch.ts`
 - **deleted** `src/hooks/fsChangeHandlers.test.ts`
 - **deleted** `src/hooks/fsChangeHandlers.ts`
+- **deleted** `src/hooks/genieInvocation/streamRunner.ts`
 - **renamed** `src/hooks/mcpBridge/isValidMcpRequestRaw.test.ts` → `src/hooks/isValidMcpRequestRaw.test.ts`
 - **changed** `src/hooks/lifecycle/DocumentWindowMount.tsx`
 - **changed** `src/hooks/lifecycle/MainWindowRunners.tsx`
@@ -1730,19 +2038,45 @@
 - **changed** `src/hooks/lifecycle/useEditorLifecycle.ts`
 - **changed** `src/hooks/lifecycle/useWindowLifecycle.ts`
 - **changed** `src/hooks/lifecycle/useWorkspaceLifecycle.ts`
+- **deleted** `src/hooks/mcpBridge/handleRequest.ts`
 - **deleted** `src/hooks/mcpBridge/index.ts`
+- **deleted** `src/hooks/mcpBridge/types.ts`
 - **deleted** `src/hooks/mcpBridge/useMcpBridge.ts`
+- **deleted** `src/hooks/mcpBridge/utils.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/browser.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/browserAct.test.ts`
 - **deleted** `src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts`
 - **deleted** `src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/browserWaitFor.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/dispatch.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/document.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/selection.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/session.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/workflow.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/workspace.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
 - **deleted** `src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts`
+- **deleted** `src/hooks/mcpBridge/v2/browser.ts`
 - **deleted** `src/hooks/mcpBridge/v2/browserAct.ts`
+- **deleted** `src/hooks/mcpBridge/v2/browserHelpers.ts`
 - **deleted** `src/hooks/mcpBridge/v2/browserNavigation.ts`
 - **deleted** `src/hooks/mcpBridge/v2/browserPower.ts`
+- **deleted** `src/hooks/mcpBridge/v2/browserReadClass.ts`
+- **deleted** `src/hooks/mcpBridge/v2/browserSession.ts`
 - **deleted** `src/hooks/mcpBridge/v2/browserWaitFor.ts`
 - **deleted** `src/hooks/mcpBridge/v2/dispatch.ts`
+- **deleted** `src/hooks/mcpBridge/v2/document.ts`
+- **deleted** `src/hooks/mcpBridge/v2/selection.ts`
 - **deleted** `src/hooks/mcpBridge/v2/session.ts`
+- **deleted** `src/hooks/mcpBridge/v2/types.ts`
+- **deleted** `src/hooks/mcpBridge/v2/workflow.ts`
+- **deleted** `src/hooks/mcpBridge/v2/workspace.ts`
+- **deleted** `src/hooks/mcpBridge/v2/workspaceSaveAs.ts`
 - **deleted** `src/hooks/mcpBridge/v2/wrapHandler.ts`
+- **added** `src/hooks/menuRouting.fileWindow.test.ts`
 - **added** `src/hooks/menuRouting.test.ts`
+- **deleted** `src/hooks/openWorkspaceWithConfig.test.ts`
+- **deleted** `src/hooks/openWorkspaceWithConfig.ts`
 - **renamed** `src/services/persistence/resilience/_crashRecoveryCleanup.test.ts` → `src/hooks/resilience/_crashRecoveryCleanup.test.ts`
 - **renamed** `src/services/persistence/resilience/_crashRecoveryCleanup.ts` → `src/hooks/resilience/_crashRecoveryCleanup.ts`
 - **renamed** `src/services/persistence/resilience/_crashRecoveryStartup.test.ts` → `src/hooks/resilience/_crashRecoveryStartup.test.ts`
@@ -1755,13 +2089,21 @@
 - **renamed** `src/services/persistence/resilience/_hotExitStartup.ts` → `src/hooks/resilience/_hotExitStartup.ts`
 - **added** `src/hooks/resilience/index.ts`
 - **renamed** `src/services/persistence/resilience/useDocumentResilience.ts` → `src/hooks/resilience/useDocumentResilience.ts`
+- **deleted** `src/hooks/tabCleanup.ts`
 - **added** `src/hooks/useAiProviderSync.test.ts`
 - **added** `src/hooks/useAiProviderSync.ts`
 - **changed** `src/hooks/useAutoSave.ts`
-- **renamed** `src/services/commands/useCommandBootstrap.test.tsx` → `src/hooks/useCommandBootstrap.test.tsx`
+- **changed** `src/hooks/useBrowserOccluder.ts`
+- **added** `src/hooks/useCommandBootstrap.bindings.test.ts`
+- **added** `src/hooks/useCommandBootstrap.test.tsx`
 - **added** `src/hooks/useCommandBootstrap.ts`
 - **changed** `src/hooks/useContentServer.test.ts`
 - **changed** `src/hooks/useContentServer.ts`
+- **added** `src/hooks/useContentServerSupervisor.ts`
+- **added** `src/hooks/useContentServerWorkspaceSync.test.ts`
+- **added** `src/hooks/useContentServerWorkspaceSync.ts`
+- **deleted** `src/hooks/useDefaultSaveFolder.test.ts`
+- **deleted** `src/hooks/useDefaultSaveFolder.ts`
 - **changed** `src/hooks/useDocumentState.test.tsx`
 - **changed** `src/hooks/useDocumentState.ts`
 - **changed** `src/hooks/useDragDropOpen.test.ts`
@@ -1776,8 +2118,12 @@
 - **changed** `src/hooks/useExternalFileChanges.ts`
 - **deleted** `src/hooks/useFileExplorerShortcuts.test.ts`
 - **deleted** `src/hooks/useFileExplorerShortcuts.ts`
+- **deleted** `src/hooks/useFileOpen.test.ts`
+- **deleted** `src/hooks/useFileOpen.ts`
 - **changed** `src/hooks/useFileOperations.test.ts`
 - **changed** `src/hooks/useFileOperations.ts`
+- **deleted** `src/hooks/useFileSave.test.ts`
+- **deleted** `src/hooks/useFileSave.ts`
 - **deleted** `src/hooks/useFileShortcuts.test.ts`
 - **deleted** `src/hooks/useFileShortcuts.ts`
 - **changed** `src/hooks/useFinderFileOpen.comprehensive.test.tsx`
@@ -1787,30 +2133,54 @@
 - **added** `src/hooks/useFormatSettingsBridge.ts`
 - **changed** `src/hooks/useGenieInvocation.ts`
 - **added** `src/hooks/useGenieShortcuts.invokeGenie.test.ts`
+- **added** `src/hooks/useGenieShortcuts.lifecycle.test.tsx`
 - **changed** `src/hooks/useGenieShortcuts.test.ts`
 - **changed** `src/hooks/useGenieShortcuts.ts`
+- **deleted** `src/hooks/useHistoryOperations.test.ts`
+- **deleted** `src/hooks/useHistoryOperations.ts`
+- **deleted** `src/hooks/useHistoryRecovery.test.ts`
+- **deleted** `src/hooks/useHistoryRecovery.ts`
 - **renamed** `src/services/persistence/hotExit/useHotExitCaptureWarning.test.ts` → `src/hooks/useHotExitCaptureWarning.test.ts`
 - **renamed** `src/services/persistence/hotExit/useHotExitCaptureWarning.ts` → `src/hooks/useHotExitCaptureWarning.ts`
 - **changed** `src/hooks/useImageContextMenu.test.ts`
 - **changed** `src/hooks/useImageContextMenu.ts`
 - **changed** `src/hooks/useImageDragDrop.test.ts`
 - **changed** `src/hooks/useImageDragDrop.ts`
+- **deleted** `src/hooks/useImageOperations.test.ts`
+- **deleted** `src/hooks/useImageOperations.ts`
 - **changed** `src/hooks/useImagePasteToast.ts`
 - **changed** `src/hooks/useIsDarkTheme.test.ts`
 - **changed** `src/hooks/useIsDarkTheme.ts`
 - **added** `src/hooks/useKeybindingRouter.test.ts`
 - **added** `src/hooks/useKeybindingRouter.ts`
+- **added** `src/hooks/useLiveDocsResponder.test.ts`
 - **added** `src/hooks/useLiveDocsResponder.ts`
+- **changed** `src/hooks/useMcpAutoStart.test.ts`
+- **changed** `src/hooks/useMcpAutoStart.ts`
 - **added** `src/hooks/useMcpBridge.integration.test.ts`
 - **renamed** `src/hooks/mcpBridge/useMcpBridge.test.ts` → `src/hooks/useMcpBridge.test.ts`
 - **changed** `src/hooks/useMcpBridge.ts`
 - **changed** `src/hooks/useMcpClients.ts`
 - **changed** `src/hooks/useMcpHealthCheck.ts`
+- **added** `src/hooks/useMcpServer.test.ts`
 - **changed** `src/hooks/useMcpServer.ts`
+- **deleted** `src/hooks/useMediaOperations.test.ts`
+- **deleted** `src/hooks/useMediaOperations.ts`
 - **added** `src/hooks/useOpenFileEvent.ts`
+- **deleted** `src/hooks/useOpenWorkflowTarget.ts`
 - **changed** `src/hooks/useOutlineSync.ts`
+- **added** `src/hooks/usePromptHistory.clearHistory.test.ts`
+- **changed** `src/hooks/usePromptHistory.comprehensive.test.ts`
+- **added** `src/hooks/usePromptHistory.filterIndex.test.tsx`
+- **added** `src/hooks/usePromptHistory.liveEntries.test.ts`
+- **changed** `src/hooks/usePromptHistory.ts`
 - **deleted** `src/hooks/useQuickOpenShortcuts.test.ts`
 - **deleted** `src/hooks/useQuickOpenShortcuts.ts`
+- **changed** `src/hooks/useRecentFilesSync.ts`
+- **changed** `src/hooks/useRecentWorkspacesSync.ts`
+- **deleted** `src/hooks/useReplaceableTab.test.ts`
+- **deleted** `src/hooks/useReplaceableTab.ts`
+- **changed** `src/hooks/useSearchCommands.ts`
 - **deleted** `src/hooks/useSelectAllScope.test.ts`
 - **deleted** `src/hooks/useSelectAllScope.ts`
 - **changed** `src/hooks/useSettingsSync.test.ts`
@@ -1820,6 +2190,8 @@
 - **changed** `src/hooks/useSidebarContext.ts`
 - **changed** `src/hooks/useSidebarResize.test.tsx`
 - **changed** `src/hooks/useSidebarResize.ts`
+- **added** `src/hooks/useSlidevControls.test.ts`
+- **added** `src/hooks/useSlidevControls.ts`
 - **changed** `src/hooks/useSourceEditorSearch.test.ts`
 - **changed** `src/hooks/useSourceEditorSearch.ts`
 - **changed** `src/hooks/useSourceOutlineSync.ts`
@@ -1827,6 +2199,7 @@
 - **added** `src/hooks/useStatusToasts.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.test.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.ts`
+- **deleted** `src/hooks/useTabOperations.test.ts`
 - **deleted** `src/hooks/useTabOperations.ts`
 - **deleted** `src/hooks/useTabShortcuts.statusbar.test.tsx`
 - **deleted** `src/hooks/useTabShortcuts.test.tsx`
@@ -1835,6 +2208,11 @@
 - **added** `src/hooks/useTabStripOverflow.ts`
 - **changed** `src/hooks/useTheme.test.ts`
 - **changed** `src/hooks/useTheme.ts`
+- **added** `src/hooks/useTiptapSettingsSync.test.tsx`
+- **added** `src/hooks/useTiptapUnmountFlush.test.tsx`
+- **deleted** `src/hooks/useUnifiedHistory.test.ts`
+- **deleted** `src/hooks/useUnifiedHistory.ts`
+- **deleted** `src/hooks/useUnifiedMenuCommands.test.tsx`
 - **deleted** `src/hooks/useUnifiedMenuCommands.ts`
 - **changed** `src/hooks/useUniversalToolbar.ts`
 - **changed** `src/hooks/useUpdateChecker.comprehensive.test.ts`
@@ -1857,20 +2235,26 @@
 - **changed** `src/hooks/useWindowClose.ts`
 - **changed** `src/hooks/useWindowFileWatcher.test.ts`
 - **changed** `src/hooks/useWindowFileWatcher.ts`
+- **deleted** `src/hooks/useWindowFocus.test.ts`
+- **deleted** `src/hooks/useWindowFocus.ts`
 - **changed** `src/hooks/useWindowStatus.test.ts`
 - **changed** `src/hooks/useWindowStatus.ts`
 - **added** `src/hooks/useWindowTitle.hook.test.tsx`
 - **changed** `src/hooks/useWindowTitle.test.ts`
 - **changed** `src/hooks/useWindowTitle.ts`
+- **changed** `src/hooks/useWorkflowExecution.test.tsx`
 - **changed** `src/hooks/useWorkflowExecution.ts`
 - **changed** `src/hooks/useWorkspaceBootstrap.test.tsx`
 - **changed** `src/hooks/useWorkspaceBootstrap.ts`
 - **changed** `src/hooks/useWorkspaceSync.ts`
+- **added** `src/hooks/useWysiwygFlusherRegistration.test.tsx`
 - **deleted** `src/hooks/workspaceConfig.ts`
 - **deleted** `src/hooks/workspaceSession.test.ts`
 - **deleted** `src/hooks/workspaceSession.ts`
 - **changed** `src/i18n.ts`
 - **changed** `src/lib/__tests__/pty.test.ts`
+- **added** `src/lib/browser/__tests__/uxPolicyLedger.test.ts`
+- **added** `src/lib/browser/__tests__/uxPolicyLedger.ts`
 - **changed** `src/lib/browser/agent/actScript.test.ts`
 - **changed** `src/lib/browser/agent/actScript.ts`
 - **added** `src/lib/browser/agent/actScript.webkit.test.ts`
@@ -1904,9 +2288,12 @@
 - **changed** `src/lib/browser/agent/powerScript.test.ts`
 - **changed** `src/lib/browser/agent/powerScript.ts`
 - **added** `src/lib/browser/agent/recorder.webkit.test.ts`
+- **added** `src/lib/browser/agent/recorderShim.labelTarget.test.ts`
+- **added** `src/lib/browser/agent/recorderShim.residuals.test.ts`
 - **added** `src/lib/browser/agent/recorderShim.src.js`
 - **added** `src/lib/browser/agent/recorderShim.test.ts`
 - **added** `src/lib/browser/agent/recorderShim.ts`
+- **added** `src/lib/browser/agent/recorderShim.walk.test.ts`
 - **added** `src/lib/browser/agent/recorderShimRustParity.test.ts`
 - **added** `src/lib/browser/agent/recorderShimSensitivity.src.js`
 - **added** `src/lib/browser/agent/shimDrain.test.ts`
@@ -1924,10 +2311,10 @@
 - **changed** `src/lib/browser/reader/siteReader.ts`
 - **changed** `src/lib/browser/url.test.ts`
 - **changed** `src/lib/browser/url.ts`
+- **added** `src/lib/browser/urlCredentials.test.ts`
+- **added** `src/lib/browser/urlCredentials.ts`
 - **changed** `src/lib/browser/uxPolicy.test.ts`
 - **changed** `src/lib/browser/uxPolicy.ts`
-- **added** `src/lib/browser/uxPolicyLedger.test.ts`
-- **added** `src/lib/browser/uxPolicyLedger.ts`
 - **added** `src/lib/browser/workflow/canonicalEncode.test.ts`
 - **added** `src/lib/browser/workflow/canonicalEncode.ts`
 - **changed** `src/lib/browser/workflow/classify.test.ts`
@@ -1966,6 +2353,8 @@
 - **added** `src/lib/cjkFormatter/__tests__/segmentEdges.test.ts`
 - **added** `src/lib/cjkFormatter/__tests__/trailingNewline.test.ts`
 - **changed** `src/lib/cjkFormatter/battleTest.test.ts`
+- **added** `src/lib/cjkFormatter/characterReferences.test.ts`
+- **added** `src/lib/cjkFormatter/characterReferences.ts`
 - **changed** `src/lib/cjkFormatter/formatter.test.ts`
 - **changed** `src/lib/cjkFormatter/formatter.ts`
 - **added** `src/lib/cjkFormatter/formatterTables.ts`
@@ -1976,6 +2365,8 @@
 - **changed** `src/lib/cjkFormatter/markdownParser.test.ts`
 - **changed** `src/lib/cjkFormatter/markdownParser.ts`
 - **added** `src/lib/cjkFormatter/markdownParserBlocks.ts`
+- **added** `src/lib/cjkFormatter/markdownParserInline.ts`
+- **added** `src/lib/cjkFormatter/protectedRegionSearch.ts`
 - **added** `src/lib/cjkFormatter/quoteClassification.ts`
 - **changed** `src/lib/cjkFormatter/quotePairing.test.ts`
 - **changed** `src/lib/cjkFormatter/quotePairing.ts`
@@ -2048,7 +2439,10 @@
 - **added** `src/lib/formats/adapters/yamlWorkflowRenderer.tsx`
 - **changed** `src/lib/formats/dispatch.test.ts`
 - **changed** `src/lib/formats/extSync.test.ts`
+- **added** `src/lib/formats/formatPathKeys.test.ts`
 - **added** `src/lib/formats/formatPathKeys.ts`
+- **added** `src/lib/formats/formatValidation.test.ts`
+- **added** `src/lib/formats/formatValidation.ts`
 - **changed** `src/lib/formats/index.test.ts`
 - **added** `src/lib/formats/lazySurfaces.test.ts`
 - **added** `src/lib/formats/lazySurfaces.ts`
@@ -2058,6 +2452,7 @@
 - **changed** `src/lib/formats/registry.test.ts`
 - **changed** `src/lib/formats/registry.ts`
 - **changed** `src/lib/formats/registryBootstrap.test.ts`
+- **changed** `src/lib/formats/registryBootstrap.ts`
 - **added** `src/lib/formats/saveFilters.test.ts`
 - **added** `src/lib/formats/saveFilters.ts`
 - **changed** `src/lib/formats/sourceLanguage.test.ts`
@@ -2067,11 +2462,13 @@
 - **changed** `src/lib/ghaWorkflow/actions/registry.ts`
 - **changed** `src/lib/ghaWorkflow/completion/expressionCompletion.test.ts`
 - **changed** `src/lib/ghaWorkflow/cron/readable.test.ts`
-- **changed** `src/lib/ghaWorkflow/eval/staticIf.test.ts`
+- **deleted** `src/lib/ghaWorkflow/eval/staticIf.test.ts`
+- **deleted** `src/lib/ghaWorkflow/eval/staticIf.ts`
 - **changed** `src/lib/ghaWorkflow/export/__tests__/saveExport.test.ts`
 - **changed** `src/lib/ghaWorkflow/export/__tests__/toMermaid.test.ts`
 - **changed** `src/lib/ghaWorkflow/lint/__tests__/actionlint.test.ts`
-- **changed** `src/lib/ghaWorkflow/lint/__tests__/schema.test.ts`
+- **deleted** `src/lib/ghaWorkflow/lint/__tests__/schema.test.ts`
+- **deleted** `src/lib/ghaWorkflow/lint/schema.ts`
 - **changed** `src/lib/ghaWorkflow/parser/__tests__/edges.test.ts`
 - **changed** `src/lib/ghaWorkflow/parser/__tests__/index.test.ts`
 - **added** `src/lib/ghaWorkflow/parser/__tests__/jobs.edges.test.ts`
@@ -2096,11 +2493,17 @@
 - **changed** `src/lib/ghaWorkflow/save/__tests__/cstParser.test.ts`
 - **changed** `src/lib/ghaWorkflow/save/__tests__/mutators.crud.test.ts`
 - **changed** `src/lib/ghaWorkflow/save/__tests__/mutators.test.ts`
+- **changed** `src/lib/ghaWorkflow/save/cstParser.ts`
+- **changed** `src/lib/ghaWorkflow/save/mutators.ts`
 - **changed** `src/lib/ghaWorkflow/save/previewIR.test.ts`
 - **changed** `src/lib/ghaWorkflow/save/previewIR.ts`
+- **changed** `src/lib/ghaWorkflow/types.ts`
 - **changed** `src/lib/lintEngine/__tests__/linter.test.ts`
 - **changed** `src/lib/lintEngine/__tests__/parserIntegration.test.ts`
-- **changed** `src/lib/lintEngine/rules/__tests__/codeBlockTracker.test.ts`
+- **changed** `src/lib/lintEngine/index.ts`
+- **added** `src/lib/lintEngine/ruleMeta.test.ts`
+- **added** `src/lib/lintEngine/ruleMeta.ts`
+- **deleted** `src/lib/lintEngine/rules/__tests__/codeBlockTracker.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/headingIncrement.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/linkFragments.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/noDuplicateDefs.test.ts`
@@ -2111,12 +2514,34 @@
 - **changed** `src/lib/lintEngine/rules/__tests__/noSpaceInEmphasis.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/noUndefinedRefs.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/noUnusedDefs.test.ts`
+- **added** `src/lib/lintEngine/rules/__tests__/positionOffset.test.ts`
+- **added** `src/lib/lintEngine/rules/__tests__/referenceScanner.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/requireAltText.test.ts`
+- **added** `src/lib/lintEngine/rules/__tests__/sourceMask.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/tableColumnCount.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/unclosedFencedCode.test.ts`
+- **deleted** `src/lib/lintEngine/rules/codeBlockTracker.ts`
+- **added** `src/lib/lintEngine/rules/definitionLines.ts`
+- **changed** `src/lib/lintEngine/rules/headingIncrement.ts`
+- **changed** `src/lib/lintEngine/rules/labelUtils.ts`
+- **changed** `src/lib/lintEngine/rules/linkFragments.ts`
+- **changed** `src/lib/lintEngine/rules/noDuplicateDefs.ts`
+- **changed** `src/lib/lintEngine/rules/noEmptyLinkHref.ts`
+- **changed** `src/lib/lintEngine/rules/noEmptyLinkText.ts`
+- **changed** `src/lib/lintEngine/rules/noMissingSpaceAtx.ts`
+- **changed** `src/lib/lintEngine/rules/noReversedLink.ts`
 - **changed** `src/lib/lintEngine/rules/noSpaceInEmphasis.ts`
+- **changed** `src/lib/lintEngine/rules/noUndefinedRefs.ts`
+- **changed** `src/lib/lintEngine/rules/noUnusedDefs.ts`
+- **added** `src/lib/lintEngine/rules/positionOffset.ts`
+- **added** `src/lib/lintEngine/rules/referenceScanner.ts`
+- **changed** `src/lib/lintEngine/rules/requireAltText.ts`
+- **added** `src/lib/lintEngine/rules/sourceMask.ts`
+- **changed** `src/lib/lintEngine/rules/tableColumnCount.ts`
+- **changed** `src/lib/lintEngine/rules/unclosedFencedCode.ts`
 - **changed** `src/lib/lintEngine/types.ts`
 - **changed** `src/lib/lintEngine/yaml.test.ts`
+- **changed** `src/lib/lintEngine/yaml.ts`
 - **changed** `src/lib/markdownLinkCheck/check.test.ts`
 - **changed** `src/lib/markdownLinkCheck/check.ts`
 - **added** `src/lib/markdownLinkCheck/detailsOffsets.test.ts`
@@ -2139,6 +2564,7 @@
 - **changed** `src/lib/workflow/layout.ts`
 - **changed** `src/lib/workflow/parser.ts`
 - **changed** `src/lib/workflow/types.ts`
+- **added** `src/lib/yamlValidation/parseErrors.test.ts`
 - **added** `src/locales/__tests__/localeShape.test.ts`
 - **added** `src/locales/__tests__/terminalI18nCoverage.test.ts`
 - **changed** `src/locales/de/ai.json`
@@ -2273,6 +2699,7 @@
 - **changed** `src/locales/zh-TW/workflowEditor.json`
 - **changed** `src/main.tsx`
 - **changed** `src/pages/PdfExportPage.tsx`
+- **added** `src/pages/Settings.devSection.test.tsx`
 - **changed** `src/pages/Settings.tsx`
 - **changed** `src/pages/settings/AboutSettings.test.tsx`
 - **changed** `src/pages/settings/AboutSettings.tsx`
@@ -2280,6 +2707,7 @@
 - **added** `src/pages/settings/AdvancedSettings.nonMac.test.tsx`
 - **changed** `src/pages/settings/AdvancedSettings.tsx`
 - **added** `src/pages/settings/AdvancedSettings.workflow.test.tsx`
+- **added** `src/pages/settings/AdvancedSettings.workflowViewer.test.tsx`
 - **changed** `src/pages/settings/AppearanceSettings.test.tsx`
 - **changed** `src/pages/settings/AppearanceSettings.tsx`
 - **changed** `src/pages/settings/CcSwitchImportRow.tsx`
@@ -2287,9 +2715,11 @@
 - **added** `src/pages/settings/CoherenceSettingsGroup.tsx`
 - **changed** `src/pages/settings/DiagnosticIcon.tsx`
 - **changed** `src/pages/settings/DocumentToolsSettings.tsx`
+- **added** `src/pages/settings/EditorSettings.test.tsx`
 - **changed** `src/pages/settings/EditorSettings.tsx`
 - **added** `src/pages/settings/FileBrowserSettingsGroup.test.tsx`
 - **added** `src/pages/settings/FileBrowserSettingsGroup.tsx`
+- **added** `src/pages/settings/FilesImagesSettings.test.tsx`
 - **changed** `src/pages/settings/FilesImagesSettings.tsx`
 - **changed** `src/pages/settings/FormatsSettings.test.tsx`
 - **changed** `src/pages/settings/FormatsSettings.tsx`
@@ -2313,16 +2743,19 @@
 - **added** `src/pages/settings/SettingsNav.tsx`
 - **changed** `src/pages/settings/SettingsSearchResults.tsx`
 - **added** `src/pages/settings/ShortcutsSettings.confirm.test.tsx`
+- **added** `src/pages/settings/ShortcutsSettings.conflict.test.tsx`
 - **changed** `src/pages/settings/ShortcutsSettings.tsx`
+- **added** `src/pages/settings/ShortcutsSettings.unassigned.test.tsx`
 - **changed** `src/pages/settings/TagInput.tsx`
 - **changed** `src/pages/settings/TerminalSettings.test.tsx`
 - **changed** `src/pages/settings/TerminalSettings.tsx`
 - **changed** `src/pages/settings/UpdateAvailableCard.test.tsx`
 - **changed** `src/pages/settings/UpdateAvailableCard.tsx`
+- **added** `src/pages/settings/WhitespaceSettings.test.tsx`
 - **added** `src/pages/settings/WhitespaceSettings.tsx`
 - **changed** `src/pages/settings/__tests__/CcSwitchImportRow.test.tsx`
 - **changed** `src/pages/settings/__tests__/languagePicker.test.ts`
-- **added** `src/pages/settings/__tests__/terminalDocDefaults.test.ts`
+- **added** `src/pages/settings/__tests__/terminalDocRanges.test.ts`
 - **changed** `src/pages/settings/buttons.tsx`
 - **added** `src/pages/settings/captureChord.test.ts`
 - **added** `src/pages/settings/captureChord.ts`
@@ -2337,9 +2770,11 @@
 - **added** `src/pages/settings/terminalSettingsHelpers.ts`
 - **added** `src/pages/settings/update-progress.css`
 - **changed** `src/plugins/actions/__tests__/actionRegistryExtra.test.ts`
+- **changed** `src/plugins/actions/actionDefinitionsBlocks.ts`
 - **changed** `src/plugins/actions/actionDefinitionsCore.ts`
 - **changed** `src/plugins/actions/actionRegistry.test.ts`
 - **changed** `src/plugins/actions/actionRegistry.ts`
+- **changed** `src/plugins/actions/menuMapping.ts`
 - **changed** `src/plugins/actions/types.ts`
 - **changed** `src/plugins/aiSuggestion/__tests__/tiptap.test.ts`
 - **changed** `src/plugins/aiSuggestion/ai-suggestion.css`
@@ -2452,6 +2887,7 @@
 - **changed** `src/plugins/codemirror/focusModePlugin.test.ts`
 - **changed** `src/plugins/codemirror/focusModePlugin.ts`
 - **changed** `src/plugins/codemirror/imeScrollGuard.test.ts`
+- **changed** `src/plugins/codemirror/index.ts`
 - **changed** `src/plugins/codemirror/listSmartIndent.ts`
 - **changed** `src/plugins/codemirror/markdownAutoPair.test.ts`
 - **changed** `src/plugins/codemirror/markdownAutoPair.ts`
@@ -2496,6 +2932,7 @@
 - **changed** `src/plugins/codemirror/sourceWorkflowGoto.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowPreview.ts`
 - **changed** `src/plugins/codemirror/sourceYamlLint.test.ts`
+- **changed** `src/plugins/codemirror/sourceYamlLint.ts`
 - **added** `src/plugins/codemirror/structuralCharDetection.ts`
 - **changed** `src/plugins/codemirror/structuralCharProtection.test.ts`
 - **changed** `src/plugins/codemirror/structuralCharProtection.ts`
@@ -2528,8 +2965,8 @@
 - **changed** `src/plugins/editorPlugins.tiptap.callbacks.test.ts`
 - **changed** `src/plugins/editorPlugins.tiptap.test.ts`
 - **changed** `src/plugins/editorPlugins.tiptap.ts`
-- **changed** `src/plugins/editorPlugins/bookmarkLinkCommand.test.ts`
-- **changed** `src/plugins/editorPlugins/bookmarkLinkCommand.ts`
+- **deleted** `src/plugins/editorPlugins/bookmarkLinkCommand.test.ts`
+- **deleted** `src/plugins/editorPlugins/bookmarkLinkCommand.ts`
 - **changed** `src/plugins/editorPlugins/expandedToggleMark.test.ts`
 - **changed** `src/plugins/editorPlugins/keymapUtils.test.ts`
 - **changed** `src/plugins/editorPlugins/keymapUtils.ts`
@@ -2537,6 +2974,8 @@
 - **deleted** `src/plugins/editorPlugins/lineOperationCommands.ts`
 - **changed** `src/plugins/editorPlugins/linkCommands.test.ts`
 - **changed** `src/plugins/editorPlugins/linkCommands.ts`
+- **deleted** `src/plugins/editorPlugins/textTransformCommands.test.ts`
+- **deleted** `src/plugins/editorPlugins/textTransformCommands.ts`
 - **changed** `src/plugins/focusMode/__tests__/focusMode.test.ts`
 - **deleted** `src/plugins/focusMode/manifest.ts`
 - **changed** `src/plugins/focusMode/tiptap.test.ts`
@@ -2552,7 +2991,8 @@
 - **added** `src/plugins/footnotePopup/hoverState.test.ts`
 - **added** `src/plugins/footnotePopup/hoverState.ts`
 - **deleted** `src/plugins/footnotePopup/manifest.ts`
-- **changed** `src/plugins/footnotePopup/operations.test.ts`
+- **deleted** `src/plugins/footnotePopup/operations.test.ts`
+- **deleted** `src/plugins/footnotePopup/operations.ts`
 - **changed** `src/plugins/footnotePopup/tiptap.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptap.ts`
 - **changed** `src/plugins/footnotePopup/tiptapCleanup.test.ts`
@@ -2573,10 +3013,12 @@
 - **changed** `src/plugins/formatToolbar/nodeActions.tiptap.test.ts`
 - **changed** `src/plugins/formatToolbar/nodeActions.tiptap.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContext.test.ts`
+- **changed** `src/plugins/formatToolbar/tiptapContext.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContextHelpers.test.ts`
 - **deleted** `src/plugins/formatToolbar/types.ts`
 - **changed** `src/plugins/frontmatterPanel/frontmatter-panel.css`
 - **deleted** `src/plugins/frontmatterPanel/manifest.ts`
+- **added** `src/plugins/frontmatterPanel/nodeView.test.ts`
 - **deleted** `src/plugins/ghaWorkflowPreview/GhaWorkflowSidePanel.tsx`
 - **deleted** `src/plugins/ghaWorkflowPreview/__tests__/GhaWorkflowSidePanel.test.tsx`
 - **deleted** `src/plugins/ghaWorkflowPreview/gha-workflow-side-panel.css`
@@ -2609,7 +3051,8 @@
 - **added** `src/plugins/imagePreview/resolveSrc.test.ts`
 - **changed** `src/plugins/imagePreview/resolveSrc.ts`
 - **deleted** `src/plugins/imageView/manifest.ts`
-- **changed** `src/plugins/imageView/operations.test.ts`
+- **deleted** `src/plugins/imageView/operations.test.ts`
+- **deleted** `src/plugins/imageView/operations.ts`
 - **changed** `src/plugins/imageView/plugin.ts`
 - **added** `src/plugins/imageView/resolveSrc.test.ts`
 - **added** `src/plugins/imageView/resolveSrc.ts`
@@ -2617,6 +3060,7 @@
 - **changed** `src/plugins/imageView/tiptap.ts`
 - **changed** `src/plugins/inactiveSelection/inactiveSelectionPlugin.ts`
 - **deleted** `src/plugins/inactiveSelection/manifest.ts`
+- **changed** `src/plugins/inactiveSelection/tiptap.ts`
 - **changed** `src/plugins/inlineCodeBoundary/__tests__/inlineCodeBoundary.test.ts`
 - **deleted** `src/plugins/inlineCodeBoundary/manifest.ts`
 - **changed** `src/plugins/inlineNodeEditing/__tests__/inlineNodeEditing.test.ts`
@@ -2676,6 +3120,7 @@
 - **changed** `src/plugins/markInputRules/tiptap.ts`
 - **changed** `src/plugins/markdownArtifacts/HtmlNodeView.ts`
 - **changed** `src/plugins/markdownArtifacts/__tests__/HtmlNodeView.test.ts`
+- **changed** `src/plugins/markdownArtifacts/frontmatter.ts`
 - **deleted** `src/plugins/markdownArtifacts/manifest.ts`
 - **deleted** `src/plugins/markdownCopy/manifest.ts`
 - **changed** `src/plugins/markdownCopy/tiptap.test.ts`
@@ -2692,7 +3137,8 @@
 - **changed** `src/plugins/mathPopup/__tests__/mathPopupStore.test.ts`
 - **deleted** `src/plugins/mathPopup/manifest.ts`
 - **changed** `src/plugins/mathPopup/math-popup.css`
-- **changed** `src/plugins/mathPopup/operations.test.ts`
+- **deleted** `src/plugins/mathPopup/operations.test.ts`
+- **deleted** `src/plugins/mathPopup/operations.ts`
 - **added** `src/plugins/mathPopup/tiptap.test.ts`
 - **changed** `src/plugins/mathPopup/tiptap.ts`
 - **changed** `src/plugins/mathPreview/MathPreviewView.test.ts`
@@ -2777,6 +3223,7 @@
 - **added** `src/plugins/shared/blockTemplates.ts`
 - **changed** `src/plugins/shared/diagramExport.ts`
 - **changed** `src/plugins/shared/diagramThemeTokens.ts`
+- **added** `src/plugins/shared/fenceDelimiter.test.ts`
 - **added** `src/plugins/shared/fenceDelimiter.ts`
 - **added** `src/plugins/shared/fenceScanner.ts`
 - **added** `src/plugins/shared/hostDocument.test.ts`
@@ -2822,7 +3269,7 @@
 - **changed** `src/plugins/sourceContextDetection/blockquoteActions.ts`
 - **changed** `src/plugins/sourceContextDetection/clearFormatting.test.ts`
 - **changed** `src/plugins/sourceContextDetection/codeFenceDetection.ts`
-- **changed** `src/plugins/sourceContextDetection/contextRouting.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/contextRouting.test.ts`
 - **changed** `src/plugins/sourceContextDetection/cursorContext.test.ts`
 - **changed** `src/plugins/sourceContextDetection/cursorContext.ts`
 - **changed** `src/plugins/sourceContextDetection/footnoteActions.test.ts`
@@ -2841,8 +3288,11 @@
 - **added** `src/plugins/sourceContextDetection/listMutations.test.ts`
 - **added** `src/plugins/sourceContextDetection/listMutations.ts`
 - **deleted** `src/plugins/sourceContextDetection/manifest.ts`
-- **changed** `src/plugins/sourceContextDetection/mathActions.test.ts`
-- **changed** `src/plugins/sourceContextDetection/shortcutUtils.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/mathActions.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/mathActions.ts`
+- **deleted** `src/plugins/sourceContextDetection/shortcutUtils.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/shortcutUtils.ts`
+- **deleted** `src/plugins/sourceContextDetection/sourceContextAdapter.ts`
 - **changed** `src/plugins/sourceContextDetection/sourceInsertions.test.ts`
 - **changed** `src/plugins/sourceContextDetection/sourceInsertions.ts`
 - **changed** `src/plugins/sourceContextDetection/tableActions.test.ts`
@@ -2918,7 +3368,10 @@
 - **changed** `src/plugins/svg/svgRender.ts`
 - **deleted** `src/plugins/syntaxReveal/manifest.ts`
 - **changed** `src/plugins/syntaxReveal/marks.test.ts`
-- **changed** `src/plugins/syntaxReveal/syntax-reveal.css`
+- **changed** `src/plugins/syntaxReveal/marks.ts`
+- **deleted** `src/plugins/syntaxReveal/syntax-reveal.css`
+- **deleted** `src/plugins/syntaxReveal/utils.test.ts`
+- **deleted** `src/plugins/syntaxReveal/utils.ts`
 - **changed** `src/plugins/tabIndent/__tests__/shiftTabEscape.test.ts`
 - **changed** `src/plugins/tabIndent/__tests__/tabEscapeCode.test.ts`
 - **deleted** `src/plugins/tabIndent/manifest.ts`
@@ -2944,6 +3397,7 @@
 - **changed** `src/plugins/tableUI/tableEscape.edge-cases.test.ts`
 - **changed** `src/plugins/tableUI/tableEscape.test.ts`
 - **deleted** `src/plugins/taskToggle/manifest.ts`
+- **changed** `src/plugins/taskToggle/tiptap.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.test.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.ts`
 - **added** `src/plugins/taskToggle/tiptapTaskListUtils.wrap.test.ts`
@@ -2975,6 +3429,7 @@
 - **changed** `src/plugins/toolbarActions/sourceAdapter.ts`
 - **changed** `src/plugins/toolbarActions/sourceAdapterLinks.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceAdapterLinks.ts`
+- **added** `src/plugins/toolbarActions/sourceAlertActions.ts`
 - **added** `src/plugins/toolbarActions/sourceBlockActions.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceBlockActions.ts`
 - **added** `src/plugins/toolbarActions/sourceBlockBuilders.test.ts`
@@ -2990,6 +3445,7 @@
 - **changed** `src/plugins/toolbarActions/sourceImageActions.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceImageActions.ts`
 - **changed** `src/plugins/toolbarActions/sourceInsertActions.ts`
+- **added** `src/plugins/toolbarActions/sourceInsertActions.unfence.test.ts`
 - **added** `src/plugins/toolbarActions/sourceLineClassifier.ts`
 - **added** `src/plugins/toolbarActions/sourceListToggle.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceMultiSelection.test.ts`
@@ -2997,6 +3453,7 @@
 - **added** `src/plugins/toolbarActions/sourceTextTransforms.boundaries.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceTextTransforms.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceTextTransforms.ts`
+- **added** `src/plugins/toolbarActions/sourceUnfence.ts`
 - **changed** `src/plugins/toolbarActions/types.ts`
 - **changed** `src/plugins/toolbarActions/wysiwygAdapter.test.ts`
 - **changed** `src/plugins/toolbarActions/wysiwygAdapter.ts`
@@ -3029,8 +3486,11 @@
 - **changed** `src/plugins/toolbarActions/wysiwygMultiSelection.test.ts`
 - **added** `src/plugins/toolbarActions/wysiwygTextPositionMap.test.ts`
 - **added** `src/plugins/toolbarActions/wysiwygTextPositionMap.ts`
+- **deleted** `src/plugins/toolbarContext/index.ts`
 - **deleted** `src/plugins/toolbarContext/manifest.ts`
-- **changed** `src/plugins/toolbarContext/toolbarIntent.test.ts`
+- **deleted** `src/plugins/toolbarContext/toolbarIntent.test.ts`
+- **deleted** `src/plugins/toolbarContext/toolbarIntent.ts`
+- **changed** `src/plugins/toolbarContext/types.ts`
 - **changed** `src/plugins/typewriterMode/__tests__/typewriterMode.test.ts`
 - **deleted** `src/plugins/typewriterMode/manifest.ts`
 - **changed** `src/plugins/typewriterMode/tiptap.test.ts`
@@ -3049,7 +3509,8 @@
 - **changed** `src/plugins/wikiLinkPopup/__tests__/tiptap.test.ts`
 - **changed** `src/plugins/wikiLinkPopup/__tests__/wikiLinkPopupStore.test.ts`
 - **deleted** `src/plugins/wikiLinkPopup/manifest.ts`
-- **changed** `src/plugins/wikiLinkPopup/operations.test.ts`
+- **deleted** `src/plugins/wikiLinkPopup/operations.test.ts`
+- **deleted** `src/plugins/wikiLinkPopup/operations.ts`
 - **changed** `src/plugins/wikiLinkPopup/tiptap.ts`
 - **changed** `src/plugins/wikiLinkPopup/wiki-link-popup.css`
 - **changed** `src/plugins/wikiLinkPopup/wikiLinkPaths.test.ts`
@@ -3059,6 +3520,7 @@
 - **deleted** `src/plugins/workflowPreview/manifest.ts`
 - **changed** `src/plugins/workflowPreview/workflow-node.css`
 - **changed** `src/plugins/workflowPreview/workflow-preview.css`
+- **added** `src/services/assembly/autoPairConfig.test.ts`
 - **added** `src/services/assembly/autoPairConfig.ts`
 - **added** `src/services/assembly/bindHostSettings.test.ts`
 - **added** `src/services/assembly/bindHostSettings.ts`
@@ -3083,6 +3545,7 @@
 - **added** `src/services/assembly/uiToggleOptions.ts`
 - **added** `src/services/assembly/workflowExtensionGates.test.ts`
 - **added** `src/services/assembly/workflowExtensionGates.ts`
+- **added** `src/services/breakdown/breakdownContextService.test.ts`
 - **added** `src/services/breakdown/breakdownContextService.ts`
 - **added** `src/services/breakdown/breakdownEdgeService.ts`
 - **added** `src/services/breakdown/breakdownRefresh.ts`
@@ -3093,6 +3556,8 @@
 - **added** `src/services/breakdown/refreshGuards.ts`
 - **added** `src/services/breakdown/semanticActs.test.ts`
 - **added** `src/services/breakdown/semanticActs.ts`
+- **renamed** `src/services/browser/overlayPolicies.test.ts` → `src/services/browser/__tests__/overlayPolicies.test.ts`
+- **renamed** `src/services/browser/overlayPolicies.ts` → `src/services/browser/__tests__/overlayPolicies.ts`
 - **changed** `src/services/browser/browserAiPolicySync.test.ts`
 - **changed** `src/services/browser/browserAiPolicySync.ts`
 - **changed** `src/services/browser/browserEventBroker.test.ts`
@@ -3133,8 +3598,6 @@
 - **changed** `src/services/browser/occlusion.test.ts`
 - **changed** `src/services/browser/occlusion.ts`
 - **added** `src/services/browser/oneShotMints.ts`
-- **changed** `src/services/browser/overlayPolicies.test.ts`
-- **changed** `src/services/browser/overlayPolicies.ts`
 - **deleted** `src/services/browser/profile.test.ts`
 - **deleted** `src/services/browser/profile.ts`
 - **added** `src/services/browser/recorderWiring.test.ts`
@@ -3165,12 +3628,20 @@
 - **added** `src/services/commands/commandContext.ts`
 - **added** `src/services/commands/commandError.test.ts`
 - **added** `src/services/commands/commandError.ts`
+- **added** `src/services/commands/commandFailure.test.ts`
+- **added** `src/services/commands/commandFailure.ts`
+- **added** `src/services/commands/commandText.test.ts`
+- **added** `src/services/commands/commandText.ts`
 - **added** `src/services/commands/editorCommandBridge.test.ts`
 - **added** `src/services/commands/editorCommandBridge.ts`
 - **added** `src/services/commands/editorCommandGates.test.ts`
+- **added** `src/services/commands/explorerCommands.test.ts`
+- **added** `src/services/commands/explorerCommands.ts`
 - **changed** `src/services/commands/exportCommands.test.ts`
+- **changed** `src/services/commands/exportCommands.ts`
 - **added** `src/services/commands/fileCommands.ts`
 - **changed** `src/services/commands/formatCommands.test.ts`
+- **changed** `src/services/commands/formatCommands.ts`
 - **added** `src/services/commands/genieCommands.test.ts`
 - **added** `src/services/commands/genieCommands.ts`
 - **changed** `src/services/commands/index.ts`
@@ -3178,7 +3649,7 @@
 - **added** `src/services/commands/lintCommands.ts`
 - **added** `src/services/commands/menuCommandsReady.test.ts`
 - **added** `src/services/commands/menuCommandsReady.ts`
-- **renamed** `src/hooks/useUnifiedMenuCommands.test.tsx` → `src/services/commands/menuListener.editorActions.test.tsx`
+- **added** `src/services/commands/menuListener.editorActions.test.tsx`
 - **changed** `src/services/commands/menuListener.test.ts`
 - **changed** `src/services/commands/menuListener.ts`
 - **changed** `src/services/commands/miscCommands.test.ts`
@@ -3188,28 +3659,41 @@
 - **changed** `src/services/commands/recentFilesCommands.ts`
 - **changed** `src/services/commands/recentWorkspacesCommands.test.ts`
 - **changed** `src/services/commands/recentWorkspacesCommands.ts`
+- **added** `src/services/commands/registerAllCommands.test.ts`
 - **added** `src/services/commands/registerAllCommands.ts`
+- **added** `src/services/commands/registrationFlag.test.ts`
+- **added** `src/services/commands/tabCommands.reopenClosed.test.ts`
 - **added** `src/services/commands/tabCommands.test.ts`
 - **added** `src/services/commands/tabCommands.ts`
+- **deleted** `src/services/commands/useCommandBootstrap.test.tsx`
 - **deleted** `src/services/commands/useCommandBootstrap.ts`
 - **changed** `src/services/commands/viewCommands.test.ts`
 - **changed** `src/services/commands/viewCommands.ts`
+- **added** `src/services/commands/viewZoomCommands.test.ts`
+- **added** `src/services/commands/viewZoomCommands.ts`
+- **added** `src/services/commands/windowCommands.test.ts`
+- **added** `src/services/commands/windowCommands.ts`
 - **changed** `src/services/commands/workspaceCommands.test.ts`
 - **changed** `src/services/commands/workspaceCommands.ts`
 - **changed** `src/services/contentServer/client.test.ts`
 - **changed** `src/services/contentServer/client.ts`
+- **added** `src/services/contentServer/slidevDeck.test.ts`
+- **added** `src/services/contentServer/slidevDeck.ts`
 - **added** `src/services/dialogs/confirmAction.test.ts`
 - **added** `src/services/dialogs/confirmAction.ts`
 - **changed** `src/services/dialogs/errorDialog.test.ts`
 - **changed** `src/services/dialogs/errorDialog.ts`
 - **changed** `src/services/dialogs/largeFilePrompts.test.ts`
 - **changed** `src/services/dialogs/largeFilePrompts.ts`
+- **added** `src/services/editor/activeSelectionText.test.ts`
+- **added** `src/services/editor/activeSelectionText.ts`
 - **added** `src/services/editor/clipboardBridge.ts`
 - **changed** `src/services/editor/clipboardUrl.test.ts`
 - **added** `src/services/editor/editorActionDispatch.ts`
 - **added** `src/services/editor/editorActionGates.ts`
 - **added** `src/services/editor/editorActionOwner.ts`
 - **changed** `src/services/editor/extractContext.test.ts`
+- **changed** `src/services/editor/extractContext.ts`
 - **renamed** `src/hooks/markdownSplitToggle.ts` → `src/services/editor/markdownSplitToggle.ts`
 - **changed** `src/services/editor/readOnlyGuard.test.ts`
 - **changed** `src/services/editor/readOnlyGuard.ts`
@@ -3218,24 +3702,27 @@
 - **added** `src/services/editor/scrollPosition.test.ts`
 - **added** `src/services/editor/scrollPosition.ts`
 - **changed** `src/services/editor/sourcePeek.test.ts`
+- **changed** `src/services/editor/sourcePeek.ts`
 - **changed** `src/services/editor/tiptapFocus.test.ts`
 - **changed** `src/services/editor/tiptapFocus.ts`
+- **changed** `src/services/editor/tiptapView.ts`
 - **added** `src/services/editor/unifiedHistoryDispatch.ts`
 - **added** `src/services/editor/universalToolbarToggle.test.ts`
 - **added** `src/services/editor/universalToolbarToggle.ts`
 - **changed** `src/services/editor/urlDetection.test.ts`
+- **changed** `src/services/editor/urlDetection.ts`
 - **added** `src/services/featureFlags/workflowFeatureFlag.test.ts`
 - **changed** `src/services/featureFlags/workflowFeatureFlag.ts`
 - **changed** `src/services/featureFlags/workspaceRailFeatureFlag.test.ts`
 - **added** `src/services/files/applyModifyPolicy.ts`
-- **renamed** `src/hooks/useDefaultSaveFolder.test.ts` → `src/services/files/defaultSaveFolder.test.ts`
-- **renamed** `src/hooks/useDefaultSaveFolder.ts` → `src/services/files/defaultSaveFolder.ts`
+- **added** `src/services/files/defaultSaveFolder.test.ts`
+- **added** `src/services/files/defaultSaveFolder.ts`
 - **added** `src/services/files/externalChangeBatchQueue.test.ts`
 - **added** `src/services/files/externalChangeBatchQueue.ts`
 - **renamed** `src/hooks/fileChangeBatch.test.ts` → `src/services/files/fileChangeBatch.test.ts`
 - **renamed** `src/hooks/fileChangeBatch.ts` → `src/services/files/fileChangeBatch.ts`
-- **renamed** `src/hooks/useFileSave.test.ts` → `src/services/files/fileSave.test.ts`
-- **renamed** `src/hooks/useFileSave.ts` → `src/services/files/fileSave.ts`
+- **added** `src/services/files/fileSave.test.ts`
+- **added** `src/services/files/fileSave.ts`
 - **added** `src/services/files/resolveDirtyBatch.ts`
 - **added** `src/services/fonts/verifiedMonoStack.test.ts`
 - **added** `src/services/fonts/verifiedMonoStack.ts`
@@ -3243,28 +3730,37 @@
 - **changed** `src/services/formats/formatSettingsBridge.test.ts`
 - **changed** `src/services/formats/formatSettingsBridge.ts`
 - **added** `src/services/formats/lineEndingMetadata.ts`
+- **added** `src/services/genieInvocation/applyGenieResult.ts`
+- **added** `src/services/genieInvocation/cancelRequest.test.ts`
+- **added** `src/services/genieInvocation/cancelRequest.ts`
+- **added** `src/services/genieInvocation/extraction.test.ts`
 - **renamed** `src/hooks/genieInvocation/extraction.ts` → `src/services/genieInvocation/extraction.ts`
-- **renamed** `src/hooks/genieInvocation/streamRunner.ts` → `src/services/genieInvocation/streamRunner.ts`
-- **renamed** `src/hooks/__tests__/useHistoryOperations.test.ts` → `src/services/history/__tests__/historyOperations.test.ts`
-- **renamed** `src/hooks/__tests__/useHistoryRecovery.test.ts` → `src/services/history/__tests__/historyRecovery.test.ts`
+- **added** `src/services/genieInvocation/providerValidation.test.ts`
+- **added** `src/services/genieInvocation/providerValidation.ts`
+- **added** `src/services/genieInvocation/streamRunner.test.ts`
+- **added** `src/services/genieInvocation/streamRunner.ts`
+- **added** `src/services/genieInvocation/streamRunnerContext.ts`
+- **added** `src/services/history/__tests__/historyOperations.test.ts`
+- **added** `src/services/history/__tests__/historyRecovery.test.ts`
 - **added** `src/services/history/checkpointRedoBranch.test.ts`
-- **renamed** `src/hooks/useHistoryOperations.test.ts` → `src/services/history/historyOperations.test.ts`
-- **renamed** `src/hooks/useHistoryOperations.ts` → `src/services/history/historyOperations.ts`
-- **renamed** `src/hooks/useHistoryRecovery.test.ts` → `src/services/history/historyRecovery.test.ts`
-- **renamed** `src/hooks/useHistoryRecovery.ts` → `src/services/history/historyRecovery.ts`
-- **renamed** `src/hooks/useUnifiedHistory.test.ts` → `src/services/history/unifiedHistory.test.ts`
-- **renamed** `src/hooks/useUnifiedHistory.ts` → `src/services/history/unifiedHistory.ts`
+- **added** `src/services/history/historyOperations.test.ts`
+- **added** `src/services/history/historyOperations.ts`
+- **added** `src/services/history/historyRecovery.test.ts`
+- **added** `src/services/history/historyRecovery.ts`
+- **added** `src/services/history/unifiedHistory.test.ts`
+- **added** `src/services/history/unifiedHistory.ts`
 - **added** `src/services/history/unifiedUndoRedo.ts`
 - **changed** `src/services/ime/imeToast.test.ts`
 - **changed** `src/services/ime/imeToast.ts`
+- **changed** `src/services/ime/imeToastPinAction.tsx`
+- **added** `src/services/keybinding/__tests__/editorMechanics.test.ts`
+- **added** `src/services/keybinding/__tests__/editorMechanics.ts`
 - **added** `src/services/keybinding/bindingConflicts.test.ts`
 - **added** `src/services/keybinding/bindingContext.test.ts`
 - **added** `src/services/keybinding/bindingContext.ts`
 - **added** `src/services/keybinding/bindingRegistry.test.ts`
 - **added** `src/services/keybinding/bindingRegistry.ts`
 - **added** `src/services/keybinding/crossWindowPropagation.test.ts`
-- **added** `src/services/keybinding/editorMechanics.test.ts`
-- **added** `src/services/keybinding/editorMechanics.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.test.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.ts`
 - **added** `src/services/keybinding/keybindingReferentialIntegrity.test.ts`
@@ -3288,17 +3784,17 @@
 - **added** `src/services/mcpBridge/focusedWindow.test.ts`
 - **added** `src/services/mcpBridge/focusedWindow.ts`
 - **renamed** `src/hooks/mcpBridge/__tests__/handleRequest.test.ts` → `src/services/mcpBridge/handleRequest.test.ts`
-- **renamed** `src/hooks/mcpBridge/handleRequest.ts` → `src/services/mcpBridge/handleRequest.ts`
+- **added** `src/services/mcpBridge/handleRequest.ts`
 - **renamed** `src/hooks/mcpBridge/requestDedup.test.ts` → `src/services/mcpBridge/requestDedup.test.ts`
 - **renamed** `src/hooks/mcpBridge/requestDedup.ts` → `src/services/mcpBridge/requestDedup.ts`
 - **renamed** `src/hooks/mcpBridge/revisionTracker.test.ts` → `src/services/mcpBridge/revisionTracker.test.ts`
 - **renamed** `src/hooks/mcpBridge/revisionTracker.ts` → `src/services/mcpBridge/revisionTracker.ts`
-- **renamed** `src/hooks/mcpBridge/types.ts` → `src/services/mcpBridge/types.ts`
-- **renamed** `src/hooks/mcpBridge/utils.ts` → `src/services/mcpBridge/utils.ts`
+- **added** `src/services/mcpBridge/types.ts`
+- **added** `src/services/mcpBridge/utils.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/bridgeFieldParity.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/browser.test.ts` → `src/services/mcpBridge/v2/__tests__/browser.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/browser.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserAccess.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/browserAct.test.ts` → `src/services/mcpBridge/v2/__tests__/browserAct.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/browserAct.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserActParse.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserApprovalFlow.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserAttachmentMirror.test.ts`
@@ -3313,29 +3809,30 @@
 - **renamed** `src/hooks/mcpBridge/v2/__tests__/browserReadClass.test.ts` → `src/services/mcpBridge/v2/__tests__/browserReadClass.test.ts`
 - **renamed** `src/hooks/mcpBridge/v2/__tests__/browserScreenshot.test.ts` → `src/services/mcpBridge/v2/__tests__/browserScreenshot.test.ts`
 - **renamed** `src/hooks/mcpBridge/v2/__tests__/browserSession.test.ts` → `src/services/mcpBridge/v2/__tests__/browserSession.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/browserWaitFor.test.ts` → `src/services/mcpBridge/v2/__tests__/browserWaitFor.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/browserWaitFor.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserWaitForPoll.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserWorkflow.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/dispatch.test.ts` → `src/services/mcpBridge/v2/__tests__/dispatch.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/document.test.ts` → `src/services/mcpBridge/v2/__tests__/document.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/dispatch.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/document.test.ts`
 - **renamed** `src/hooks/mcpBridge/v2/__tests__/fsGuardInvariant.test.ts` → `src/services/mcpBridge/v2/__tests__/fsGuardInvariant.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/operationManifest.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/operationManifestParity.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/readOperationArgs.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/scriptLimitParity.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/selection.test.ts` → `src/services/mcpBridge/v2/__tests__/selection.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/session.test.ts` → `src/services/mcpBridge/v2/__tests__/session.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/selection.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/session.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/sessionSerializers.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/sessionVisibility.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/waitBoundParity.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/workflow.test.ts` → `src/services/mcpBridge/v2/__tests__/workflow.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/workspace.test.ts` → `src/services/mcpBridge/v2/__tests__/workspace.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workflow.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspace.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenBackground.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenErrors.test.ts`
-- **renamed** `src/hooks/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts` → `src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceSwitchTabVerify.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts`
 - **added** `src/services/mcpBridge/v2/bridgeError.ts`
-- **renamed** `src/hooks/mcpBridge/v2/browser.ts` → `src/services/mcpBridge/v2/browser.ts`
+- **added** `src/services/mcpBridge/v2/browser.ts`
 - **added** `src/services/mcpBridge/v2/browserAccess.ts`
 - **added** `src/services/mcpBridge/v2/browserAct.ts`
 - **added** `src/services/mcpBridge/v2/browserActFlow.ts`
@@ -3349,42 +3846,41 @@
 - **added** `src/services/mcpBridge/v2/browserFailure.test.ts`
 - **added** `src/services/mcpBridge/v2/browserFailure.ts`
 - **added** `src/services/mcpBridge/v2/browserGateProbe.ts`
-- **renamed** `src/hooks/mcpBridge/v2/browserHelpers.ts` → `src/services/mcpBridge/v2/browserHelpers.ts`
+- **added** `src/services/mcpBridge/v2/browserHelpers.ts`
 - **added** `src/services/mcpBridge/v2/browserNavigation.ts`
 - **added** `src/services/mcpBridge/v2/browserNavigationShared.ts`
 - **added** `src/services/mcpBridge/v2/browserOpen.ts`
 - **added** `src/services/mcpBridge/v2/browserOpenFlow.ts`
 - **added** `src/services/mcpBridge/v2/browserPower.ts`
 - **added** `src/services/mcpBridge/v2/browserQuery.ts`
-- **renamed** `src/hooks/mcpBridge/v2/browserReadClass.ts` → `src/services/mcpBridge/v2/browserReadClass.ts`
+- **added** `src/services/mcpBridge/v2/browserReadClass.ts`
 - **added** `src/services/mcpBridge/v2/browserRecord.test.ts`
 - **added** `src/services/mcpBridge/v2/browserRecord.ts`
 - **renamed** `src/hooks/mcpBridge/v2/browserScreenshot.ts` → `src/services/mcpBridge/v2/browserScreenshot.ts`
-- **renamed** `src/hooks/mcpBridge/v2/browserSession.ts` → `src/services/mcpBridge/v2/browserSession.ts`
+- **added** `src/services/mcpBridge/v2/browserSession.ts`
 - **added** `src/services/mcpBridge/v2/browserStyleOps.ts`
 - **added** `src/services/mcpBridge/v2/browserWaitFor.ts`
 - **added** `src/services/mcpBridge/v2/browserWaitForPoll.ts`
 - **added** `src/services/mcpBridge/v2/browserWorkflow.ts`
 - **renamed** `src/hooks/mcpBridge/v2/cjkMaps.ts` → `src/services/mcpBridge/v2/cjkMaps.ts`
 - **added** `src/services/mcpBridge/v2/dispatch.ts`
-- **renamed** `src/hooks/mcpBridge/v2/document.ts` → `src/services/mcpBridge/v2/document.ts`
+- **added** `src/services/mcpBridge/v2/document.ts`
 - **added** `src/services/mcpBridge/v2/documentTransform.test.ts`
 - **added** `src/services/mcpBridge/v2/documentTransform.ts`
 - **added** `src/services/mcpBridge/v2/documentTransformRefusal.test.ts`
 - **added** `src/services/mcpBridge/v2/generated/bridgeContracts.ts`
-- **added** `src/services/mcpBridge/v2/operationManifest.ts`
 - **added** `src/services/mcpBridge/v2/readOperationArgs.ts`
-- **renamed** `src/hooks/mcpBridge/v2/selection.ts` → `src/services/mcpBridge/v2/selection.ts`
+- **added** `src/services/mcpBridge/v2/selection.ts`
 - **added** `src/services/mcpBridge/v2/session.ts`
 - **added** `src/services/mcpBridge/v2/sessionSerializers.ts`
-- **renamed** `src/hooks/mcpBridge/v2/types.ts` → `src/services/mcpBridge/v2/types.ts`
-- **renamed** `src/hooks/mcpBridge/v2/workflow.ts` → `src/services/mcpBridge/v2/workflow.ts`
-- **renamed** `src/hooks/mcpBridge/v2/workspace.ts` → `src/services/mcpBridge/v2/workspace.ts`
+- **added** `src/services/mcpBridge/v2/types.ts`
+- **added** `src/services/mcpBridge/v2/workflow.ts`
+- **added** `src/services/mcpBridge/v2/workspace.ts`
 - **added** `src/services/mcpBridge/v2/workspaceOpen.ts`
 - **added** `src/services/mcpBridge/v2/workspaceOpenFolder.test.ts`
 - **added** `src/services/mcpBridge/v2/workspaceOpenFolder.ts`
 - **added** `src/services/mcpBridge/v2/workspaceSave.ts`
-- **renamed** `src/hooks/mcpBridge/v2/workspaceSaveAs.ts` → `src/services/mcpBridge/v2/workspaceSaveAs.ts`
+- **added** `src/services/mcpBridge/v2/workspaceSaveAs.ts`
 - **added** `src/services/mcpBridge/v2/wrapHandler.ts`
 - **added** `src/services/mcpBridge/windowWorkspaceSync.test.ts`
 - **added** `src/services/mcpBridge/windowWorkspaceSync.ts`
@@ -3394,12 +3890,13 @@
 - **added** `src/services/media/crossWindowRefs.ts`
 - **changed** `src/services/media/imageHashRegistry.test.ts`
 - **changed** `src/services/media/imageHashRegistry.ts`
-- **renamed** `src/hooks/useImageOperations.test.ts` → `src/services/media/imageOperations.test.ts`
-- **renamed** `src/hooks/useImageOperations.ts` → `src/services/media/imageOperations.ts`
+- **added** `src/services/media/imageOperations.test.ts`
+- **added** `src/services/media/imageOperations.ts`
+- **changed** `src/services/media/imageResize.ts`
 - **added** `src/services/media/liveDocumentContents.test.ts`
 - **added** `src/services/media/liveDocumentContents.ts`
-- **renamed** `src/hooks/useMediaOperations.test.ts` → `src/services/media/mediaOperations.test.ts`
-- **renamed** `src/hooks/useMediaOperations.ts` → `src/services/media/mediaOperations.ts`
+- **added** `src/services/media/mediaOperations.test.ts`
+- **added** `src/services/media/mediaOperations.ts`
 - **changed** `src/services/media/orphanAssetCleanup.test.ts`
 - **changed** `src/services/media/orphanAssetCleanup.ts`
 - **added** `src/services/media/orphanCleanupPrompt.test.ts`
@@ -3410,7 +3907,9 @@
 - **added** `src/services/media/workspaceReferenceCheck.test.ts`
 - **added** `src/services/media/workspaceReferenceCheck.ts`
 - **changed** `src/services/menu/rebuildNativeMenu.test.ts`
-- **renamed** `src/hooks/__tests__/useFileOpen.test.ts` → `src/services/navigation/__tests__/fileOpen.test.ts`
+- **changed** `src/services/menu/rebuildNativeMenu.ts`
+- **changed** `src/services/menu/startupMenuSync.ts`
+- **added** `src/services/navigation/__tests__/fileOpen.test.ts`
 - **changed** `src/services/navigation/activateTabInFocusedPane.test.ts`
 - **changed** `src/services/navigation/activateTabInFocusedPane.ts`
 - **changed** `src/services/navigation/activeDocument.test.ts`
@@ -3421,43 +3920,47 @@
 - **renamed** `src/hooks/dragDropOpenFile.ts` → `src/services/navigation/dragDropOpenFile.ts`
 - **added** `src/services/navigation/executeOpenDecision.test.ts`
 - **added** `src/services/navigation/executeOpenDecision.ts`
-- **renamed** `src/hooks/useFileOpen.test.ts` → `src/services/navigation/fileOpen.test.ts`
-- **renamed** `src/hooks/useFileOpen.ts` → `src/services/navigation/fileOpen.ts`
-- **renamed** `src/hooks/finderOpenBranch.test.ts` → `src/services/navigation/finderOpenBranch.test.ts`
-- **renamed** `src/hooks/finderOpenBranch.ts` → `src/services/navigation/finderOpenBranch.ts`
+- **added** `src/services/navigation/fileOpen.test.ts`
+- **added** `src/services/navigation/fileOpen.ts`
+- **added** `src/services/navigation/finderOpenBranch.test.ts`
+- **added** `src/services/navigation/finderOpenBranch.ts`
 - **added** `src/services/navigation/finderOpenBranches.test.ts`
 - **added** `src/services/navigation/finderOpenBranches.ts`
 - **added** `src/services/navigation/finderOpenDispatch.ts`
 - **changed** `src/services/navigation/largeFileRouting.test.ts`
+- **changed** `src/services/navigation/largeFileRouting.ts`
 - **changed** `src/services/navigation/linkOpen.test.ts`
 - **changed** `src/services/navigation/linkOpen.ts`
 - **added** `src/services/navigation/linkSecurity.test.ts`
 - **added** `src/services/navigation/loadFileIntoTab.closeDuringRead.test.ts`
 - **added** `src/services/navigation/loadFileIntoTab.ts`
 - **changed** `src/services/navigation/newFile.test.ts`
+- **changed** `src/services/navigation/newFile.ts`
 - **changed** `src/services/navigation/openFileEvent.test.ts`
 - **changed** `src/services/navigation/openFileEvent.ts`
 - **added** `src/services/navigation/openFragment.test.ts`
 - **added** `src/services/navigation/openFragment.ts`
 - **renamed** `src/hooks/openMediaFile.test.ts` → `src/services/navigation/openMediaFile.test.ts`
 - **renamed** `src/hooks/openMediaFile.ts` → `src/services/navigation/openMediaFile.ts`
-- **renamed** `src/hooks/useOpenWorkflowTarget.ts` → `src/services/navigation/openWorkflowTarget.ts`
+- **added** `src/services/navigation/openWorkflowTarget.ts`
 - **changed** `src/services/navigation/pdfExportWindow.ts`
 - **renamed** `src/hooks/replaceTabWithFile.ts` → `src/services/navigation/replaceTabWithFile.ts`
 - **changed** `src/services/navigation/restoreSplitLayout.test.ts`
 - **changed** `src/services/navigation/restoreWorkspaceTabs.test.ts`
 - **changed** `src/services/navigation/restoreWorkspaceTabs.ts`
 - **changed** `src/services/navigation/settingsWindow.test.ts`
+- **changed** `src/services/navigation/settingsWindow.ts`
 - **added** `src/services/navigation/toggleSplitDocuments.test.ts`
 - **changed** `src/services/navigation/toggleSplitDocuments.ts`
-- **renamed** `src/hooks/useWindowFocus.test.ts` → `src/services/navigation/windowFocus.test.ts`
-- **renamed** `src/hooks/useWindowFocus.ts` → `src/services/navigation/windowFocus.ts`
+- **added** `src/services/navigation/windowFocus.test.ts`
+- **added** `src/services/navigation/windowFocus.ts`
 - **added** `src/services/operators/operatorService.test.ts`
 - **added** `src/services/operators/operatorService.ts`
 - **changed** `src/services/persistence/applyPathReconciliation.test.ts`
 - **changed** `src/services/persistence/applyPathReconciliation.ts`
 - **added** `src/services/persistence/applyPostSaveState.ts`
 - **changed** `src/services/persistence/crashRecovery.test.ts`
+- **changed** `src/services/persistence/crashRecovery.ts`
 - **changed** `src/services/persistence/hotExit/hotExitCoordination.test.ts`
 - **changed** `src/services/persistence/hotExit/hotExitWorkspaceInstances.coverage.test.ts`
 - **changed** `src/services/persistence/hotExit/hotExitWorkspaceInstances.test.ts`
@@ -3502,7 +4005,8 @@
 - **changed** `src/services/persistence/resilience/_hotExitRestore.test.ts`
 - **changed** `src/services/persistence/resilience/_hotExitRestore.ts`
 - **deleted** `src/services/persistence/resilience/index.ts`
-- **changed** `src/services/persistence/resilience/machine.test.ts`
+- **deleted** `src/services/persistence/resilience/machine.test.ts`
+- **deleted** `src/services/persistence/resilience/machine.ts`
 - **added** `src/services/persistence/resolveDirtyFileChange.test.ts`
 - **added** `src/services/persistence/resolveDirtyFileChange.ts`
 - **changed** `src/services/persistence/safeStorage.test.ts`
@@ -3523,22 +4027,30 @@
 - **changed** `src/services/persistence/windowStatusStorage.test.ts`
 - **changed** `src/services/persistence/windowStatusStorage.ts`
 - **changed** `src/services/persistence/workspaceBootstrap.test.ts`
+- **changed** `src/services/persistence/workspaceBootstrap.ts`
+- **changed** `src/services/persistence/workspaceStorage.ts`
+- **added** `src/services/promptHistory/promptHistoryCore.test.ts`
+- **added** `src/services/promptHistory/promptHistoryCore.ts`
 - **added** `src/services/runtimeWiring.test.ts`
 - **added** `src/services/runtimeWiring.ts`
+- **added** `src/services/search/seedFindFromSelection.test.ts`
+- **added** `src/services/search/seedFindFromSelection.ts`
 - **changed** `src/services/secrets/apiKeySecrets.test.ts`
 - **changed** `src/services/secrets/secureStorage.test.ts`
+- **added** `src/services/tabs/bulkCloseSelectors.test.ts`
 - **added** `src/services/tabs/bulkCloseSelectors.ts`
 - **added** `src/services/tabs/lastUsedTab.test.ts`
 - **added** `src/services/tabs/lastUsedTab.ts`
+- **added** `src/services/tabs/moveTabToNewWindow.test.ts`
 - **added** `src/services/tabs/moveTabToNewWindow.ts`
 - **added** `src/services/tabs/openToTheSide.test.ts`
 - **added** `src/services/tabs/openToTheSide.ts`
-- **renamed** `src/hooks/useReplaceableTab.test.ts` → `src/services/tabs/replaceableTab.test.ts`
-- **renamed** `src/hooks/useReplaceableTab.ts` → `src/services/tabs/replaceableTab.ts`
+- **added** `src/services/tabs/replaceableTab.test.ts`
+- **added** `src/services/tabs/replaceableTab.ts`
 - **added** `src/services/tabs/tabDiskActions.test.ts`
 - **added** `src/services/tabs/tabDiskActions.ts`
 - **added** `src/services/tabs/tabOperations.resolution.test.ts`
-- **renamed** `src/hooks/useTabOperations.test.ts` → `src/services/tabs/tabOperations.test.ts`
+- **added** `src/services/tabs/tabOperations.test.ts`
 - **added** `src/services/tabs/tabOperations.ts`
 - **added** `src/services/tabs/visibleWindowTabs.ts`
 - **added** `src/services/terminal/activeTerminal.test.ts`
@@ -3582,10 +4094,12 @@
 - **added** `src/services/windowClose/reserveBatchDestinations.test.ts`
 - **added** `src/services/windowClose/reserveBatchDestinations.ts`
 - **renamed** `src/hooks/saveDialog.ts` → `src/services/windowClose/saveDialog.ts`
-- **renamed** `src/hooks/__tests__/tabCleanup.test.ts` → `src/services/windowClose/tabCleanup.test.ts`
-- **renamed** `src/hooks/tabCleanup.ts` → `src/services/windowClose/tabCleanup.ts`
+- **added** `src/services/windowClose/tabCleanup.test.ts`
+- **added** `src/services/windowClose/tabCleanup.ts`
 - **added** `src/services/windowClose/windowCloseFlow.test.ts`
 - **added** `src/services/windowClose/windowCloseFlow.ts`
+- **added** `src/services/workflow/providerPayload.test.ts`
+- **added** `src/services/workflow/providerPayload.ts`
 - **added** `src/services/workflow/recorderSession.test.ts`
 - **added** `src/services/workflow/recorderSession.ts`
 - **added** `src/services/workflow/runApproval.test.ts`
@@ -3602,6 +4116,8 @@
 - **added** `src/services/workflow/runRegistry.ts`
 - **added** `src/services/workflow/runStepGuard.test.ts`
 - **added** `src/services/workflow/runStepGuard.ts`
+- **added** `src/services/workflow/saveGhaWorkflowDocument.test.ts`
+- **added** `src/services/workflow/saveGhaWorkflowDocument.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.test.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.ts`
 - **added** `src/services/workflow/workflowRunService.test.ts`
@@ -3634,8 +4150,8 @@
 - **added** `src/services/workspaces/instanceOperationLock.ts`
 - **added** `src/services/workspaces/openWorkspaceByPath.test.ts`
 - **added** `src/services/workspaces/openWorkspaceByPath.ts`
-- **renamed** `src/hooks/openWorkspaceWithConfig.test.ts` → `src/services/workspaces/openWorkspaceWithConfig.test.ts`
-- **renamed** `src/hooks/openWorkspaceWithConfig.ts` → `src/services/workspaces/openWorkspaceWithConfig.ts`
+- **added** `src/services/workspaces/openWorkspaceWithConfig.test.ts`
+- **added** `src/services/workspaces/openWorkspaceWithConfig.ts`
 - **added** `src/services/workspaces/reassignTabOwnershipForPath.test.ts`
 - **added** `src/services/workspaces/reassignTabOwnershipForPath.ts`
 - **added** `src/services/workspaces/reopenClosedTab.test.ts`
@@ -3709,6 +4225,8 @@
 - **deleted** `src/stores/_shimHelper.test.ts`
 - **deleted** `src/stores/_shimHelper.ts`
 - **changed** `src/stores/aiStore/genies.ts`
+- **added** `src/stores/aiStore/invocation.test.ts`
+- **changed** `src/stores/aiStore/invocation.ts`
 - **changed** `src/stores/aiStore/promptHistory.ts`
 - **changed** `src/stores/aiStore/provider.test.ts`
 - **changed** `src/stores/aiStore/provider.ts`
@@ -3735,9 +4253,12 @@
 - **deleted** `src/stores/browserStore.ts`
 - **changed** `src/stores/browserUiStore.test.ts`
 - **changed** `src/stores/browserUiStore.ts`
+- **added** `src/stores/claimStore.test.ts`
 - **added** `src/stores/claimStore.ts`
 - **renamed** `src/components/CommandPalette/commandPaletteStore.test.ts` → `src/stores/commandPaletteStore.test.ts`
 - **renamed** `src/components/CommandPalette/commandPaletteStore.ts` → `src/stores/commandPaletteStore.ts`
+- **changed** `src/stores/contentServerStore.test.ts`
+- **changed** `src/stores/contentServerStore.ts`
 - **added** `src/stores/createRecentsStore.ts`
 - **changed** `src/stores/documentStore.test.ts`
 - **changed** `src/stores/documentStore.ts`
@@ -3815,6 +4336,7 @@
 - **changed** `src/stores/settingsStore.browser.test.ts`
 - **changed** `src/stores/settingsStore.test.ts`
 - **changed** `src/stores/settingsStore.ts`
+- **added** `src/stores/settingsStore/__tests__/unusedSettings.test.ts`
 - **changed** `src/stores/settingsStore/clamp.ts`
 - **added** `src/stores/settingsStore/defaults.test.ts`
 - **changed** `src/stores/settingsStore/defaults.ts`
@@ -3870,8 +4392,13 @@
 - **changed** `src/stores/wikiLinkPopupStore.ts`
 - **changed** `src/stores/windowStatusStore.test.ts`
 - **changed** `src/stores/windowStatusStore.ts`
+- **added** `src/stores/workflowApprovalSlice.ts`
+- **added** `src/stores/workflowEditQueue.ts`
+- **added** `src/stores/workflowPreviewSlice.ts`
+- **added** `src/stores/workflowSerialize.ts`
 - **changed** `src/stores/workflowStore.test.ts`
 - **changed** `src/stores/workflowStore.ts`
+- **added** `src/stores/workflowViewSlice.ts`
 - **added** `src/stores/workspaceApprovalStore.test.ts`
 - **added** `src/stores/workspaceApprovalStore.ts`
 - **added** `src/stores/workspaceConfigDefaults.test.ts`
@@ -3883,10 +4410,14 @@
 - **changed** `src/stores/workspaceInstancesStore/helpers.ts`
 - **added** `src/stores/workspacePaneLayoutsStore.test.ts`
 - **added** `src/stores/workspacePaneLayoutsStore.ts`
+- **added** `src/stores/workspaceStore.blankRoot.test.ts`
 - **changed** `src/stores/workspaceStore.test.ts`
 - **changed** `src/stores/workspaceStore.ts`
+- **added** `src/stores/workspaceStoreConfig.test.ts`
 - **changed** `src/stores/workspaceStoreHelpers.test.ts`
 - **changed** `src/stores/workspaceStoreHelpers.ts`
+- **added** `src/stores/workspaceStorePersist.test.ts`
+- **added** `src/stores/workspaceStorePersist.ts`
 - **changed** `src/styles/block-media-shared.css`
 - **added** `src/styles/button-shared.css`
 - **added** `src/styles/icon-button-shared.css`
@@ -3930,7 +4461,7 @@
 - **renamed** `dev-docs/fixtures/gha-workflows/tj-actions/test.yml` → `src/test/fixtures/gha-workflows/tj-actions/test.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vite/ci.yml` → `src/test/fixtures/gha-workflows/vite/ci.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/ci.yml` → `src/test/fixtures/gha-workflows/vmark/ci.yml`
-- **renamed** `dev-docs/grills/gha-workflow/fixtures/claude-audit.yml` → `src/test/fixtures/gha-workflows/vmark/claude-audit.yml`
+- **added** `src/test/fixtures/gha-workflows/vmark/claude-audit.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/claude-cost-report.yml` → `src/test/fixtures/gha-workflows/vmark/claude-cost-report.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/claude.yml` → `src/test/fixtures/gha-workflows/vmark/claude.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/deploy-website.yml` → `src/test/fixtures/gha-workflows/vmark/deploy-website.yml`
@@ -3998,7 +4529,9 @@
 - **changed** `src/theme/themes/solarized.ts`
 - **changed** `src/theme/themes/white.ts`
 - **changed** `src/theme/tokens.ts`
+- **changed** `src/types/aiGenies.ts`
 - **changed** `src/types/cursorSync.ts`
+- **changed** `src/types/editorContextMenu.ts`
 - **changed** `src/types/tabTransfer.ts`
 - **changed** `src/types/workspaceTransfer.ts`
 - **changed** `src/utils/__tests__/debouncedSearchCount.test.ts`
@@ -4139,6 +4672,12 @@
 - **added** `src/utils/markdownPipeline/__tests__/characterization/corpus/22-table-hardbreaks.md`
 - **added** `src/utils/markdownPipeline/__tests__/characterization/corpus/23-setext-headings.md`
 - **added** `src/utils/markdownPipeline/__tests__/characterization/roundtrip.characterization.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/expectedDeltas.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/fixtures.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/parserConformance.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/projectionDiff.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/semanticProjection.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/semanticProjection.ts`
 - **added** `src/utils/markdownPipeline/__tests__/fidelity/README.md`
 - **added** `src/utils/markdownPipeline/__tests__/fidelity/docFingerprint.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/fidelity/docFingerprint.ts`
@@ -4186,12 +4725,6 @@
 - **changed** `src/utils/markdownPipeline/adapter.ts`
 - **added** `src/utils/markdownPipeline/blankLineCapture.test.ts`
 - **added** `src/utils/markdownPipeline/blankLineCapture.ts`
-- **added** `src/utils/markdownPipeline/conformance/expectedDeltas.ts`
-- **added** `src/utils/markdownPipeline/conformance/fixtures.ts`
-- **added** `src/utils/markdownPipeline/conformance/parserConformance.test.ts`
-- **added** `src/utils/markdownPipeline/conformance/projectionDiff.ts`
-- **added** `src/utils/markdownPipeline/conformance/semanticProjection.test.ts`
-- **added** `src/utils/markdownPipeline/conformance/semanticProjection.ts`
 - **added** `src/utils/markdownPipeline/dialect.test.ts`
 - **added** `src/utils/markdownPipeline/dialect.ts`
 - **added** `src/utils/markdownPipeline/dialectDescriptors.ts`
@@ -4302,13 +4835,17 @@
 - **changed** `src/utils/popupComponents.ts`
 - **changed** `src/utils/popupPosition.test.ts`
 - **changed** `src/utils/reentryGuard.test.ts`
+- **changed** `src/utils/reentryGuard.ts`
 - **added** `src/utils/referenceIdentity.test.ts`
 - **added** `src/utils/referenceIdentity.ts`
+- **changed** `src/utils/reloadGuard.ts`
 - **changed** `src/utils/safeUnlisten.test.ts`
 - **changed** `src/utils/safeUnlisten.ts`
 - **changed** `src/utils/sanitize.test.ts`
 - **changed** `src/utils/sanitize.ts`
+- **changed** `src/utils/shortcutMatch.ts`
 - **changed** `src/utils/sourceEditorSearch.test.ts`
+- **changed** `src/utils/sourceEditorSearch.ts`
 - **changed** `src/utils/sourceSelection.test.ts`
 - **changed** `src/utils/stringWidth.test.ts`
 - **changed** `src/utils/stringWidth.ts`
@@ -4324,6 +4861,7 @@
 - **added** `src/utils/svgSanitize.test.ts`
 - **added** `src/utils/svgSanitize.ts`
 - **changed** `src/utils/tabCycling.test.ts`
+- **changed** `src/utils/tabCycling.ts`
 - **added** `src/utils/tabStripOverflow.test.ts`
 - **added** `src/utils/tabStripOverflow.ts`
 - **changed** `src/utils/tableParser.test.ts`
@@ -4347,8 +4885,9 @@
 - **added** `src/utils/workspaceRailGlyphs.ts`
 - **changed** `src/utils/wysiwygFlush.test.ts`
 - **changed** `src/utils/youtubeUrlParser.test.ts`
-- **changed** `src/workspace/useWorkspace.test.tsx`
-- **changed** `src/workspace/useWorkspace.ts`
+- **changed** `src/workspace/index.ts`
+- **deleted** `src/workspace/useWorkspace.test.tsx`
+- **deleted** `src/workspace/useWorkspace.ts`
 - **changed** `stryker.config.json`
 - **changed** `tsconfig.json`
 - **changed** `tsconfig.node.json`
@@ -4359,30 +4898,47 @@
 - **added** `vitest.gates.config.ts`
 - **added** `vitest.shared.ts`
 - **added** `vitest.soak.config.ts`
+- **deleted** `vmark-content-server/package.json`
 - **deleted** `vmark-content-server/scripts/smoke.mjs`
 - **deleted** `vmark-content-server/src/cli.ts`
+- **deleted** `vmark-content-server/src/server/assets.ts`
+- **deleted** `vmark-content-server/src/server/auth.ts`
+- **deleted** `vmark-content-server/src/server/createServer.test.ts`
+- **deleted** `vmark-content-server/src/server/runtime.test.ts`
 - **deleted** `vmark-content-server/src/slidev/manager.test.ts`
 - **deleted** `vmark-content-server/src/slidev/manager.ts`
+- **deleted** `vmark-content-server/tsconfig.json`
 - **deleted** `vmark-content-server/vitest.config.ts`
 - **deleted** `vmark-mcp-server/README.md`
 - **deleted** `vmark-mcp-server/__tests__/mocks/mockBridge.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/mocks/mockBridge.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/bridge/websocket.test.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/server.test.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/tools/browser.test.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/tools/session.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/unit/utils/mcpAdapters.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.js`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.js.map`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.ts`
+- **deleted** `vmark-mcp-server/package.json`
 - **deleted** `vmark-mcp-server/scripts/build-sidecar.js`
+- **deleted** `vmark-mcp-server/src/bridge/core-types.ts`
+- **deleted** `vmark-mcp-server/src/bridge/types.ts`
 - **deleted** `vmark-mcp-server/src/bridge/websocket.ts`
 - **deleted** `vmark-mcp-server/src/cli.ts`
+- **deleted** `vmark-mcp-server/src/index.ts`
 - **deleted** `vmark-mcp-server/src/server.ts`
 - **deleted** `vmark-mcp-server/src/tools/browser.ts`
 - **deleted** `vmark-mcp-server/src/tools/document.ts`
 - **deleted** `vmark-mcp-server/src/tools/selection.ts`
 - **deleted** `vmark-mcp-server/src/tools/session.ts`
+- **deleted** `vmark-mcp-server/src/tools/workflow.ts`
 - **deleted** `vmark-mcp-server/src/tools/workspace.ts`
 - **deleted** `vmark-mcp-server/src/types.ts`
 - **deleted** `vmark-mcp-server/src/utils/mcpAdapters.ts`
+- **deleted** `vmark-mcp-server/src/utils/parentProcess.ts`
+- **deleted** `vmark-mcp-server/tsconfig.json`
 - **deleted** `vmark-mcp-server/vitest.config.ts`
 - **changed** `website/.vitepress/components/demos/cjkFormatter.ts`
 - **changed** `website/.vitepress/config/de.ts`
@@ -4402,6 +4958,7 @@
 - **added** `website/de/guide/knowledge-base.md`
 - **changed** `website/de/guide/mcp-tools.md`
 - **changed** `website/de/guide/settings.md`
+- **changed** `website/de/guide/workflow-genies.md`
 - **added** `website/de/guide/workflows.md`
 - **added** `website/de/guide/workspace-rail.md`
 - **changed** `website/download.md`
@@ -4412,6 +4969,7 @@
 - **added** `website/es/guide/knowledge-base.md`
 - **changed** `website/es/guide/mcp-tools.md`
 - **changed** `website/es/guide/settings.md`
+- **changed** `website/es/guide/workflow-genies.md`
 - **added** `website/es/guide/workflows.md`
 - **added** `website/es/guide/workspace-rail.md`
 - **changed** `website/fr/download.md`
@@ -4421,25 +4979,35 @@
 - **added** `website/fr/guide/knowledge-base.md`
 - **changed** `website/fr/guide/mcp-tools.md`
 - **changed** `website/fr/guide/settings.md`
+- **changed** `website/fr/guide/workflow-genies.md`
 - **added** `website/fr/guide/workflows.md`
 - **added** `website/fr/guide/workspace-rail.md`
+- **changed** `website/guide/ai-genies.md`
+- **changed** `website/guide/ai-providers.md`
 - **changed** `website/guide/browser.md`
 - **changed** `website/guide/cjk-formatting.md`
 - **added** `website/guide/coherence.md`
 - **changed** `website/guide/export.md`
 - **changed** `website/guide/features.md`
 - **changed** `website/guide/formats.md`
+- **changed** `website/guide/index.md`
+- **changed** `website/guide/knowledge-base.md`
 - **changed** `website/guide/link-check.md`
 - **changed** `website/guide/lint.md`
 - **changed** `website/guide/mcp-setup.md`
 - **changed** `website/guide/mcp-tools.md`
 - **changed** `website/guide/media-support.md`
+- **changed** `website/guide/popups.md`
+- **changed** `website/guide/privacy.md`
 - **changed** `website/guide/settings.md`
 - **changed** `website/guide/shortcuts.md`
 - **changed** `website/guide/svg.md`
 - **changed** `website/guide/tab-navigation.md`
 - **changed** `website/guide/terminal.md`
+- **changed** `website/guide/troubleshooting.md`
+- **changed** `website/guide/workflow-genies.md`
 - **changed** `website/guide/workflow-viewer.md`
+- **changed** `website/guide/workflows.md`
 - **changed** `website/guide/workspace-management.md`
 - **added** `website/guide/workspace-rail.md`
 - **changed** `website/it/download.md`
@@ -4449,6 +5017,7 @@
 - **added** `website/it/guide/knowledge-base.md`
 - **changed** `website/it/guide/mcp-tools.md`
 - **changed** `website/it/guide/settings.md`
+- **changed** `website/it/guide/workflow-genies.md`
 - **added** `website/it/guide/workflows.md`
 - **added** `website/it/guide/workspace-rail.md`
 - **changed** `website/ja/download.md`
@@ -4458,6 +5027,7 @@
 - **added** `website/ja/guide/knowledge-base.md`
 - **changed** `website/ja/guide/mcp-tools.md`
 - **changed** `website/ja/guide/settings.md`
+- **changed** `website/ja/guide/workflow-genies.md`
 - **added** `website/ja/guide/workflows.md`
 - **added** `website/ja/guide/workspace-rail.md`
 - **changed** `website/ko/download.md`
@@ -4467,6 +5037,7 @@
 - **added** `website/ko/guide/knowledge-base.md`
 - **changed** `website/ko/guide/mcp-tools.md`
 - **changed** `website/ko/guide/settings.md`
+- **changed** `website/ko/guide/workflow-genies.md`
 - **added** `website/ko/guide/workflows.md`
 - **added** `website/ko/guide/workspace-rail.md`
 - **changed** `website/package.json`
@@ -4478,6 +5049,7 @@
 - **added** `website/pt-BR/guide/knowledge-base.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
 - **changed** `website/pt-BR/guide/settings.md`
+- **changed** `website/pt-BR/guide/workflow-genies.md`
 - **added** `website/pt-BR/guide/workflows.md`
 - **added** `website/pt-BR/guide/workspace-rail.md`
 - **changed** `website/public/favicon.ico`
@@ -4490,6 +5062,7 @@
 - **added** `website/zh-CN/guide/knowledge-base.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
 - **changed** `website/zh-CN/guide/settings.md`
+- **changed** `website/zh-CN/guide/workflow-genies.md`
 - **added** `website/zh-CN/guide/workflows.md`
 - **added** `website/zh-CN/guide/workspace-rail.md`
 - **changed** `website/zh-TW/download.md`
@@ -4499,6 +5072,7 @@
 - **added** `website/zh-TW/guide/knowledge-base.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
 - **changed** `website/zh-TW/guide/settings.md`
+- **changed** `website/zh-TW/guide/workflow-genies.md`
 - **added** `website/zh-TW/guide/workflows.md`
 - **added** `website/zh-TW/guide/workspace-rail.md`
 
@@ -4550,28 +5124,28 @@
 
 - Disposition: `rewritten`
 - Last compared commit: `2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c` (stale)
-- Matched upstream changes: 4
+- Matched upstream changes: 5
 - Missing Auris targets: 0
 
 ### `multi-window-status`
 
 - Disposition: `rewritten`
 - Last compared commit: `2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c` (stale)
-- Matched upstream changes: 29
+- Matched upstream changes: 34
 - Missing Auris targets: 0
 
 ### `nia-legacy-genie`
 
 - Disposition: `rewritten`
 - Last compared commit: `2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c` (stale)
-- Matched upstream changes: 14
+- Matched upstream changes: 42
 - Missing Auris targets: 0
 
 ### `nia-yaml-workflows`
 
 - Disposition: `rewritten`
 - Last compared commit: `2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c` (stale)
-- Matched upstream changes: 16
+- Matched upstream changes: 43
 - Missing Auris targets: 0
 
 ### `source-license-attribution`
@@ -4605,7 +5179,7 @@
 - `mcp-contract` (`adapt`): **added** `server/mcp/src/tools/session.ts`
 - `mcp-contract` (`adapt`): **added** `server/mcp/src/tools/staleError.ts`
 - `mcp-contract` (`adapt`): **added** `server/mcp/src/tools/toolArgs.ts`
-- `mcp-contract` (`adapt`): **renamed** `vmark-mcp-server/src/tools/workflow.ts` → `server/mcp/src/tools/workflow.ts`
+- `mcp-contract` (`adapt`): **added** `server/mcp/src/tools/workflow.ts`
 - `mcp-contract` (`adapt`): **added** `server/mcp/src/tools/workspace.ts`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/accept.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/accept.test.rs`
@@ -4720,7 +5294,13 @@
 - `terminal` (`defer`): **added** `src-tauri/src/pty/reader.rs`
 - `terminal` (`defer`): **added** `src-tauri/src/pty/session.rs`
 - `terminal` (`defer`): **added** `src-tauri/src/pty/session.test.rs`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/DocumentSplitContainer.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/SplitDivider.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/SplitDivider.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/document-split.css`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/useSplitDrag.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/Editor.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/Editor.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/EditorContextMenu/EditorContextMenu.test.tsx`
@@ -4748,6 +5328,8 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SourcePane.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/ValidationGutter.i18n.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/read-only-banner.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/sourcePaneExtensions.test.ts`
@@ -4755,6 +5337,7 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/split-pane-editor.css`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/validation-gutter.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/view-mode-toggle.css`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/TiptapEditor.callbacks.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/TiptapEditor.lifecycle.test.tsx`
@@ -4764,6 +5347,7 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/GroupDropdown.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/ToolbarButton.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/UniversalToolbar.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/UniversalToolbar.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/toolbarFocus.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/toolbarGroups.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/toolbarGroups.ts`
@@ -4771,6 +5355,7 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/toolbarI18n.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/toolbarNavigation.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/UniversalToolbar/universal-toolbar.css`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/AddJobControl.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/ConcurrencyForm.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/DiagnosticsBanner.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/ExpressionEditor.tsx`
@@ -4780,27 +5365,41 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/StepForm.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/TriggerForm.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/__tests__/AddJobControl.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/PermissionsForm.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/StepForm.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/WorkflowEditorPanel.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/__tests__/stepSelection.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/__tests__/useActionlintDiagnostics.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/__tests__/useStepFocusRestore.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/__tests__/withRowPlans.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/diagnosticI18n.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/diagnosticI18n.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/stepSelection.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/useActionMetadata.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/useActionlintDiagnostics.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/useStepFocusRestore.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/withRowPlans.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/workflow-editor.css`
+- `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/GhaWorkflowPanel.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/GhaWorkflowWorkbench.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/JobNode.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/WorkflowCanvasInner.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/WorkflowEngineSlot.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/WorkflowEngineSlot.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/WorkflowExportControl.tsx`
+- `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/WorkflowPanelShell.tsx`
 - `editor-infrastructure` (`adapt`): **renamed** `src/plugins/workflowPreview/WorkflowSidePanel.tsx` → `src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx`
+- `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowPanel.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowWorkbench.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx`
+- `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/__tests__/WorkflowPanelShell.test.tsx`
 - `editor-infrastructure` (`adapt`): **renamed** `src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx` → `src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/gha-workflow-workbench.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/job-node.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/workflow-canvas.css`
-- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/workflow-panel-shell.css`
+- `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/workflow-panel-shell.css`
 - `editor-infrastructure` (`adapt`): **renamed** `src/plugins/workflowPreview/workflow-side-panel.css` → `src/components/Editor/WorkflowPanel/workflow-side-panel.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
@@ -4929,15 +5528,36 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalShellLifecycle.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useVisibleTerminalSessions.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/isValidMcpRequestRaw.test.ts` → `src/hooks/isValidMcpRequestRaw.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/handleRequest.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/index.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/types.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/useMcpBridge.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/utils.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/browser.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/browserAct.test.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/browserNavigation.test.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/browserPower.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/browserWaitFor.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/dispatch.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/document.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/selection.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/session.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/workflow.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/workspace.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/__tests__/wrapHandler.test.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/browserHelpers.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/browserPower.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/browserSession.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/browserWaitFor.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/dispatch.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/document.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/selection.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/session.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/types.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/workflow.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/workspace.ts`
+- `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/workspaceSaveAs.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/v2/wrapHandler.ts`
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/resilience/_crashRecoveryCleanup.test.ts` → `src/hooks/resilience/_crashRecoveryCleanup.test.ts`
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/resilience/_crashRecoveryCleanup.ts` → `src/hooks/resilience/_crashRecoveryCleanup.ts`
@@ -4948,7 +5568,6 @@
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/resilience/_hotExitCapture.ts` → `src/hooks/resilience/_hotExitCapture.ts`
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/resilience/_hotExitStartup.ts` → `src/hooks/resilience/_hotExitStartup.ts`
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/resilience/useDocumentResilience.ts` → `src/hooks/resilience/useDocumentResilience.ts`
-- `editor-infrastructure` (`adapt`): **renamed** `src/services/commands/useCommandBootstrap.test.tsx` → `src/hooks/useCommandBootstrap.test.tsx`
 - `theme-i18n` (`adapt`): **added** `src/hooks/useEffectiveTheme.ts`
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/hotExit/useHotExitCaptureWarning.test.ts` → `src/hooks/useHotExitCaptureWarning.test.ts`
 - `editor-infrastructure` (`adapt`): **renamed** `src/services/persistence/hotExit/useHotExitCaptureWarning.ts` → `src/hooks/useHotExitCaptureWarning.ts`
@@ -5007,7 +5626,10 @@
 - `formats` (`port`): **added** `src/lib/formats/adapters/yamlWorkflowRenderer.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/dispatch.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/extSync.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/formatPathKeys.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/formatPathKeys.ts`
+- `formats` (`port`): **added** `src/lib/formats/formatValidation.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/formatValidation.ts`
 - `formats` (`port`): **changed** `src/lib/formats/index.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/lazySurfaces.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/lazySurfaces.ts`
@@ -5017,6 +5639,7 @@
 - `formats` (`port`): **changed** `src/lib/formats/registry.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/registry.ts`
 - `formats` (`port`): **changed** `src/lib/formats/registryBootstrap.test.ts`
+- `formats` (`port`): **changed** `src/lib/formats/registryBootstrap.ts`
 - `formats` (`port`): **added** `src/lib/formats/saveFilters.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/saveFilters.ts`
 - `formats` (`port`): **changed** `src/lib/formats/sourceLanguage.test.ts`
@@ -5036,12 +5659,20 @@
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandContext.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandError.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandError.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandFailure.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandFailure.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandText.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/commandText.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/editorCommandBridge.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/editorCommandBridge.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/editorCommandGates.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/explorerCommands.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/explorerCommands.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/exportCommands.test.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/services/commands/exportCommands.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/fileCommands.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/formatCommands.test.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/services/commands/formatCommands.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/genieCommands.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/genieCommands.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/index.ts`
@@ -5049,7 +5680,7 @@
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/lintCommands.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/menuCommandsReady.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/menuCommandsReady.ts`
-- `editor-infrastructure` (`adapt`): **renamed** `src/hooks/useUnifiedMenuCommands.test.tsx` → `src/services/commands/menuListener.editorActions.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/menuListener.editorActions.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/menuListener.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/menuListener.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/miscCommands.test.ts`
@@ -5059,51 +5690,39 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/recentFilesCommands.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/recentWorkspacesCommands.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/recentWorkspacesCommands.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/registerAllCommands.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/registerAllCommands.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/registrationFlag.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/tabCommands.reopenClosed.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/tabCommands.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/commands/tabCommands.ts`
+- `editor-infrastructure` (`adapt`): **deleted** `src/services/commands/useCommandBootstrap.test.tsx`
 - `editor-infrastructure` (`adapt`): **deleted** `src/services/commands/useCommandBootstrap.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/viewCommands.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/viewCommands.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/viewZoomCommands.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/viewZoomCommands.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/windowCommands.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/commands/windowCommands.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/workspaceCommands.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/commands/workspaceCommands.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/__tests__/handleRequest.test.ts` → `src/services/mcpBridge/handleRequest.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/handleRequest.ts` → `src/services/mcpBridge/handleRequest.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/requestDedup.test.ts` → `src/services/mcpBridge/requestDedup.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/requestDedup.ts` → `src/services/mcpBridge/requestDedup.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/revisionTracker.test.ts` → `src/services/mcpBridge/revisionTracker.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/revisionTracker.ts` → `src/services/mcpBridge/revisionTracker.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/types.ts` → `src/services/mcpBridge/types.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/utils.ts` → `src/services/mcpBridge/utils.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browser.test.ts` → `src/services/mcpBridge/v2/__tests__/browser.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browserAct.test.ts` → `src/services/mcpBridge/v2/__tests__/browserAct.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browserConsole.test.ts` → `src/services/mcpBridge/v2/__tests__/browserConsole.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browserReadClass.test.ts` → `src/services/mcpBridge/v2/__tests__/browserReadClass.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browserScreenshot.test.ts` → `src/services/mcpBridge/v2/__tests__/browserScreenshot.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browserSession.test.ts` → `src/services/mcpBridge/v2/__tests__/browserSession.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/browserWaitFor.test.ts` → `src/services/mcpBridge/v2/__tests__/browserWaitFor.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/dispatch.test.ts` → `src/services/mcpBridge/v2/__tests__/dispatch.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/document.test.ts` → `src/services/mcpBridge/v2/__tests__/document.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/fsGuardInvariant.test.ts` → `src/services/mcpBridge/v2/__tests__/fsGuardInvariant.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/selection.test.ts` → `src/services/mcpBridge/v2/__tests__/selection.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/session.test.ts` → `src/services/mcpBridge/v2/__tests__/session.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/workflow.test.ts` → `src/services/mcpBridge/v2/__tests__/workflow.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/workspace.test.ts` → `src/services/mcpBridge/v2/__tests__/workspace.test.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts` → `src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/browserConsole.ts` → `src/services/mcpBridge/v2/browserConsole.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/browserHelpers.ts` → `src/services/mcpBridge/v2/browserHelpers.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/browserSession.ts` → `src/services/mcpBridge/v2/browserSession.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/cjkMaps.ts` → `src/services/mcpBridge/v2/cjkMaps.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/document.ts` → `src/services/mcpBridge/v2/document.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/selection.ts` → `src/services/mcpBridge/v2/selection.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/types.ts` → `src/services/mcpBridge/v2/types.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/workflow.ts` → `src/services/mcpBridge/v2/workflow.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/workspace.ts` → `src/services/mcpBridge/v2/workspace.ts`
-- `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/v2/workspaceSaveAs.ts` → `src/services/mcpBridge/v2/workspaceSaveAs.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/applyPathReconciliation.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/applyPathReconciliation.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/persistence/applyPostSaveState.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/crashRecovery.test.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/crashRecovery.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/hotExit/hotExitCoordination.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/hotExit/hotExitWorkspaceInstances.coverage.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/hotExit/hotExitWorkspaceInstances.test.ts`
@@ -5148,7 +5767,8 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/resilience/_hotExitRestore.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/resilience/_hotExitRestore.ts`
 - `editor-infrastructure` (`adapt`): **deleted** `src/services/persistence/resilience/index.ts`
-- `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/resilience/machine.test.ts`
+- `editor-infrastructure` (`adapt`): **deleted** `src/services/persistence/resilience/machine.test.ts`
+- `editor-infrastructure` (`adapt`): **deleted** `src/services/persistence/resilience/machine.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/persistence/resolveDirtyFileChange.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/persistence/resolveDirtyFileChange.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/safeStorage.test.ts`
@@ -5167,10 +5787,13 @@
 - `editor-infrastructure` (`adapt`): **added** `src/services/persistence/windowBrowserSession.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/services/persistence/windowBrowserSession.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/workspaceBootstrap.test.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/workspaceBootstrap.ts`
+- `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/workspaceStorage.ts`
 - `terminal` (`defer`): **renamed** `src/components/Terminal/terminalGate.test.ts` → `src/services/terminal/terminalGate.test.ts`
 - `terminal` (`defer`): **renamed** `src/components/Terminal/terminalGate.ts` → `src/services/terminal/terminalGate.ts`
 - `theme-i18n` (`adapt`): **added** `src/services/theme/nativeTheme.test.ts`
 - `theme-i18n` (`adapt`): **added** `src/services/theme/nativeTheme.ts`
+- `formats` (`port`): **added** `src/stores/settingsStore/__tests__/unusedSettings.test.ts`
 - `formats` (`port`): **changed** `src/stores/settingsStore/clamp.ts`
 - `formats` (`port`): **added** `src/stores/settingsStore/defaults.test.ts`
 - `formats` (`port`): **changed** `src/stores/settingsStore/defaults.ts`
@@ -5235,6 +5858,8 @@
 - **added** `.cc-suite/audits/audit-fix-20260831-211200-r2-findings.md`
 - **added** `.cc-suite/audits/audit-fix-20260831-213000-r3-findings.md`
 - **added** `.cc-suite/audits/audit-fix-20260903-141632-findings.md`
+- **added** `.cc-suite/audits/audit-fix-20260907-144403-findings.md`
+- **added** `.cc-suite/audits/audit-fix-20260908-round2-findings.md`
 - **changed** `.claude/commands/bump.md`
 - **changed** `.claude/docs-guardian/config.json`
 - **changed** `.claude/hooks/gha-tdd-guard.mjs`
@@ -5396,6 +6021,7 @@
 - **deleted** `dev-docs/grills/embedded-browser/spike1-probe/src/main.rs`
 - **deleted** `dev-docs/grills/gha-workflow/README.md`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/ci.yml`
+- **deleted** `dev-docs/grills/gha-workflow/fixtures/claude-audit.yml`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/claude-cost-report.yml`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/claude.yml`
 - **deleted** `dev-docs/grills/gha-workflow/fixtures/deploy-website.yml`
@@ -5495,6 +6121,7 @@
 - **deleted** `docs/superpowers/specs/2026-03-16-markdown-lint-design.md`
 - **changed** `e2e/README.md`
 - **changed** `e2e/journeys/01-boot-editor-ready.mjs`
+- **changed** `e2e/journeys/07-find-bar.mjs`
 - **changed** `e2e/journeys/09-open-from-disk.mjs`
 - **changed** `e2e/journeys/10-save-to-disk.mjs`
 - **added** `e2e/journeys/11-d1-d4-roundtrip.mjs`
@@ -5523,6 +6150,8 @@
 - **added** `e2e/journeys/35-terminal-rail-scoping.mjs`
 - **added** `e2e/journeys/36-browser-takeover.mjs`
 - **added** `e2e/journeys/37-browser-secondary-window-teardown.mjs`
+- **added** `e2e/journeys/38-export-html-to-disk.mjs`
+- **added** `e2e/journeys/39-knowledge-base-runtime-state.mjs`
 - **added** `e2e/jsonRpcStdio.test.mjs`
 - **changed** `e2e/lib/bridge.mjs`
 - **added** `e2e/lib/browser.mjs`
@@ -5532,6 +6161,7 @@
 - **added** `e2e/lib/jsonRpcStdio.mjs`
 - **added** `e2e/lib/mockBridge.mjs`
 - **added** `e2e/lib/rail.mjs`
+- **added** `e2e/lib/rail.test.mjs`
 - **added** `e2e/lib/readiness.mjs`
 - **added** `e2e/lib/readiness.test.mjs`
 - **added** `e2e/lib/settingsPatch.mjs`
@@ -5541,6 +6171,7 @@
 - **changed** `e2e/lib/vmark.mjs`
 - **added** `e2e/lib/vmarkMcp.mjs`
 - **added** `e2e/lib/workspace.mjs`
+- **added** `e2e/lib/workspace.test.mjs`
 - **added** `e2e/portFileAgreement.test.mjs`
 - **added** `e2e/run-ime.mjs`
 - **changed** `e2e/run-journeys.mjs`
@@ -5591,20 +6222,29 @@
 - **added** `scripts/check-comment-headers.test.mjs`
 - **added** `scripts/check-commit-message.mjs`
 - **added** `scripts/check-commit-message.test.mjs`
+- **changed** `scripts/check-context-menu-phase.sh`
 - **changed** `scripts/check-cross-target.sh`
 - **added** `scripts/check-deleted-names.mjs`
 - **added** `scripts/check-deleted-names.test.mjs`
 - **changed** `scripts/check-design-tokens.mjs`
 - **added** `scripts/check-design-tokens.test.ts`
+- **added** `scripts/check-doc-joins.mjs`
+- **added** `scripts/check-doc-joins.test.mjs`
 - **changed** `scripts/check-eager-chunks.mjs`
 - **changed** `scripts/check-eager-chunks.test.ts`
 - **added** `scripts/check-extension-budget.mjs`
+- **added** `scripts/check-feature-ledger-phase.sh`
+- **added** `scripts/check-feature-ledger-phase.test.mjs`
 - **changed** `scripts/check-file-size.mjs`
 - **added** `scripts/check-file-size.test.ts`
 - **added** `scripts/check-followups-phase.sh`
 - **added** `scripts/check-followups-phase.test.mjs`
 - **added** `scripts/check-gate-liveness.mjs`
 - **added** `scripts/check-gate-liveness.test.mjs`
+- **added** `scripts/check-gates-tier-binaries.test.mjs`
+- **changed** `scripts/check-gha-phase.sh`
+- **added** `scripts/check-header-references.mjs`
+- **added** `scripts/check-header-references.test.mjs`
 - **added** `scripts/check-hooks-react-purity.mjs`
 - **added** `scripts/check-i18n-copy.test.ts`
 - **changed** `scripts/check-i18n-keys.ts`
@@ -5645,7 +6285,12 @@
 - **added** `scripts/check-tag-green.sh`
 - **added** `scripts/check-tag-green.test.mjs`
 - **added** `scripts/check-terminal-edge-phase.sh`
+- **added** `scripts/check-terminal-edge-phase.test.mjs`
+- **changed** `scripts/check-terminal-gaps-phase.sh`
 - **added** `scripts/check-terminal-input-phase.sh`
+- **changed** `scripts/check-terminal-phase.sh`
+- **added** `scripts/check-test-only-modules.mjs`
+- **added** `scripts/check-test-only-modules.test.mjs`
 - **added** `scripts/check-test-timer-isolation.mjs`
 - **added** `scripts/check-test-types.mjs`
 - **added** `scripts/check-test-types.test.mjs`
@@ -5677,6 +6322,8 @@
 - **added** `scripts/design-tokens-baseline.json`
 - **added** `scripts/dev-disk.mjs`
 - **added** `scripts/dev-disk.test.mjs`
+- **added** `scripts/dod-syntax.mjs`
+- **added** `scripts/dod-syntax.test.mjs`
 - **added** `scripts/extension-budget.json`
 - **added** `scripts/feature-map.json`
 - **changed** `scripts/fetch-gha-fixtures.sh`
@@ -5687,40 +6334,75 @@
 - **added** `scripts/fixtures/stryker-canary/vitest.config.js`
 - **added** `scripts/gate-tests-baseline.json`
 - **added** `scripts/gen-feature-ledger.mjs`
+- **added** `scripts/gen-feature-ledger.test.mjs`
+- **changed** `scripts/gen-large-file-corpus.mjs`
+- **added** `scripts/header-references-baseline.json`
 - **added** `scripts/i18n-copy-baseline.json`
 - **added** `scripts/i18n-untranslated-baseline.json`
 - **added** `scripts/i18nIdenticalAllowlist.ts`
 - **added** `scripts/knip-baseline.json`
+- **added** `scripts/knip-production.json`
 - **added** `scripts/landing-differential.sh`
+- **added** `scripts/lib/arrayLiteralEnd.mjs`
+- **added** `scripts/lib/arrayLiteralEnd.test.mjs`
 - **added** `scripts/lib/cssRules.mjs`
+- **added** `scripts/lib/deletedNamesRegistry.mjs`
 - **added** `scripts/lib/designTokenChecks.mjs`
 - **added** `scripts/lib/designTokensTsx.mjs`
+- **added** `scripts/lib/docJoins/journeyInventory.mjs`
+- **added** `scripts/lib/docJoins/journeyInventory.test.mjs`
+- **added** `scripts/lib/docJoins/lintTable.mjs`
+- **added** `scripts/lib/docJoins/lintTable.test.mjs`
+- **added** `scripts/lib/docJoins/markdownTables.mjs`
+- **added** `scripts/lib/docJoins/readmeClaims.mjs`
+- **added** `scripts/lib/docJoins/readmeClaims.test.mjs`
+- **added** `scripts/lib/docJoins/readmeRegistries.mjs`
+- **added** `scripts/lib/docJoins/settingsDefaults.mjs`
+- **added** `scripts/lib/docJoins/settingsDefaults.test.mjs`
+- **added** `scripts/lib/docJoins/settingsDefaultsRowMap.mjs`
+- **added** `scripts/lib/dod-assertions.sh`
+- **added** `scripts/lib/dod-assertions.test.mjs`
+- **added** `scripts/lib/featureLedgerRender.mjs`
+- **added** `scripts/lib/headerReferenceTargets.mjs`
+- **added** `scripts/lib/headerReferences.mjs`
+- **added** `scripts/lib/keybindingFormat.mjs`
+- **added** `scripts/lib/keybindingFormat.test.mjs`
 - **added** `scripts/lib/packageScripts.mjs`
+- **added** `scripts/lib/ptyRun.py`
+- **added** `scripts/lib/ptyRun.test.mjs`
+- **added** `scripts/lib/rustSource.mjs`
 - **added** `scripts/lib/uiConsistencyCss.mjs`
 - **added** `scripts/lib/uiConsistencyTsx.mjs`
 - **changed** `scripts/manualChunks.test.ts`
 - **changed** `scripts/manualChunks.ts`
+- **changed** `scripts/measure-open-latency.mjs`
 - **added** `scripts/merge-drop-allowlist.json`
 - **added** `scripts/mock-boundaries-baseline.json`
 - **added** `scripts/npm-audit-baseline.json`
 - **added** `scripts/pipeline-scope-inventory.mjs`
 - **added** `scripts/plugin-store-coupling-baseline.json`
 - **added** `scripts/pre-push-hook.test.mjs`
+- **added** `scripts/release-smoke-kb-runtime.test.mjs`
+- **added** `scripts/release-smoke-windows-installer.test.mjs`
 - **added** `scripts/render-dock-icon.swift`
 - **changed** `scripts/setup-local-git.mjs`
+- **added** `scripts/shell-integration-smoke.test.mjs`
 - **added** `scripts/shell-slots-baseline.json`
 - **added** `scripts/stryker-break-canary.test.mjs`
 - **changed** `scripts/tauri-wrapper.mjs`
 - **added** `scripts/tauri-wrapper.test.ts`
 - **added** `scripts/test-changed.mjs`
 - **added** `scripts/test-changed.test.mjs`
+- **added** `scripts/test-only-modules-baseline.json`
 - **added** `scripts/test-types-baseline.json`
 - **added** `scripts/theme-contrast-baseline.json`
 - **added** `scripts/type-aware-baseline.json`
 - **added** `scripts/ui-consistency-baseline.json`
 - **added** `scripts/vendor-spec-corpus.d.mts`
 - **added** `scripts/vendor-spec-corpus.mjs`
-- **renamed** `vmark-content-server/package.json` → `server/content/package.json`
+- **added** `scripts/vitestReportVerdict.mjs`
+- **added** `scripts/vitestReportVerdict.test.mjs`
+- **added** `server/content/package.json`
 - **added** `server/content/scripts/smoke.mjs`
 - **added** `server/content/src/cli.ts`
 - **added** `server/content/src/cliMain.test.ts`
@@ -5743,17 +6425,17 @@
 - **renamed** `vmark-content-server/src/render/renderMarkdown.ts` → `server/content/src/render/renderMarkdown.ts`
 - **added** `server/content/src/server/assetRoute.test.ts`
 - **added** `server/content/src/server/assetRoute.ts`
-- **renamed** `vmark-content-server/src/server/assets.ts` → `server/content/src/server/assets.ts`
+- **added** `server/content/src/server/assets.ts`
 - **renamed** `vmark-content-server/src/server/auth.test.ts` → `server/content/src/server/auth.test.ts`
-- **renamed** `vmark-content-server/src/server/auth.ts` → `server/content/src/server/auth.ts`
-- **renamed** `vmark-content-server/src/server/createServer.test.ts` → `server/content/src/server/createServer.test.ts`
+- **added** `server/content/src/server/auth.ts`
+- **added** `server/content/src/server/createServer.test.ts`
 - **renamed** `vmark-content-server/src/server/createServer.ts` → `server/content/src/server/createServer.ts`
 - **renamed** `vmark-content-server/src/server/headers.test.ts` → `server/content/src/server/headers.test.ts`
 - **renamed** `vmark-content-server/src/server/headers.ts` → `server/content/src/server/headers.ts`
 - **renamed** `vmark-content-server/src/server/logger.test.ts` → `server/content/src/server/logger.test.ts`
 - **renamed** `vmark-content-server/src/server/logger.ts` → `server/content/src/server/logger.ts`
 - **added** `server/content/src/server/pathContainment.ts`
-- **renamed** `vmark-content-server/src/server/runtime.test.ts` → `server/content/src/server/runtime.test.ts`
+- **added** `server/content/src/server/runtime.test.ts`
 - **renamed** `vmark-content-server/src/server/runtime.ts` → `server/content/src/server/runtime.ts`
 - **renamed** `vmark-content-server/src/server/search.test.ts` → `server/content/src/server/search.test.ts`
 - **renamed** `vmark-content-server/src/server/search.ts` → `server/content/src/server/search.ts`
@@ -5765,7 +6447,7 @@
 - **added** `server/content/src/slidev/manager.ts`
 - **renamed** `vmark-content-server/src/slidev/server.test.ts` → `server/content/src/slidev/server.test.ts`
 - **renamed** `vmark-content-server/src/slidev/server.ts` → `server/content/src/slidev/server.ts`
-- **renamed** `vmark-content-server/tsconfig.json` → `server/content/tsconfig.json`
+- **added** `server/content/tsconfig.json`
 - **renamed** `vmark-content-server/tsup.config.ts` → `server/content/tsup.config.ts`
 - **added** `server/content/vitest.config.ts`
 - **added** `server/mcp/.gitignore`
@@ -5780,10 +6462,11 @@
 - **added** `server/mcp/__tests__/unit/bridge/operationSchemaPrimitives.test.ts`
 - **added** `server/mcp/__tests__/unit/bridge/operationSends.test.ts`
 - **added** `server/mcp/__tests__/unit/bridge/requestQueue.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/bridge/websocket.test.ts` → `server/mcp/__tests__/unit/bridge/websocket.test.ts`
+- **added** `server/mcp/__tests__/unit/bridge/websocket.test.ts`
+- **added** `server/mcp/__tests__/unit/cli.test.ts`
 - **added** `server/mcp/__tests__/unit/instructions.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/server.test.ts` → `server/mcp/__tests__/unit/server.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/tools/browser.test.ts` → `server/mcp/__tests__/unit/tools/browser.test.ts`
+- **added** `server/mcp/__tests__/unit/server.test.ts`
+- **added** `server/mcp/__tests__/unit/tools/browser.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/browserActions.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/browserArgs.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/browserDispatch.test.ts`
@@ -5794,25 +6477,27 @@
 - **added** `server/mcp/__tests__/unit/tools/coherenceResolve.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/document.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/selection.test.ts`
-- **renamed** `vmark-mcp-server/__tests__/unit/tools/session.test.ts` → `server/mcp/__tests__/unit/tools/session.test.ts`
+- **added** `server/mcp/__tests__/unit/tools/session.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/toolContract.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/workflow.test.ts`
 - **added** `server/mcp/__tests__/unit/tools/workspace.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/clientIdentity.test.ts`
+- **added** `server/mcp/__tests__/unit/utils/healthCheck.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/mcpAdapters.test.ts`
 - **renamed** `vmark-mcp-server/__tests__/unit/utils/parentProcess.test.ts` → `server/mcp/__tests__/unit/utils/parentProcess.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/portFile.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/shutdown.test.ts`
 - **added** `server/mcp/__tests__/unit/utils/toolOutput.test.ts`
 - **added** `server/mcp/__tests__/utils/toolResult.ts`
-- **renamed** `vmark-mcp-server/package.json` → `server/mcp/package.json`
+- **added** `server/mcp/__tests__/utils/toolSchema.ts`
+- **added** `server/mcp/package.json`
 - **added** `server/mcp/scripts/build-sidecar-core.d.mts`
 - **added** `server/mcp/scripts/build-sidecar-core.mjs`
 - **added** `server/mcp/scripts/build-sidecar.js`
 - **added** `server/mcp/scripts/gen-mcp-contracts.ts`
 - **added** `server/mcp/src/bridge/authHandshake.ts`
 - **added** `server/mcp/src/bridge/connection.ts`
-- **renamed** `vmark-mcp-server/src/bridge/core-types.ts` → `server/mcp/src/bridge/core-types.ts`
+- **added** `server/mcp/src/bridge/core-types.ts`
 - **added** `server/mcp/src/bridge/generated/bridgeRequests.ts`
 - **added** `server/mcp/src/bridge/operationSchemas.browser.ts`
 - **added** `server/mcp/src/bridge/operationSchemas.primitives.ts`
@@ -5821,27 +6506,27 @@
 - **added** `server/mcp/src/bridge/rateLimiter.ts`
 - **added** `server/mcp/src/bridge/reconnect.ts`
 - **added** `server/mcp/src/bridge/requestQueue.ts`
-- **renamed** `vmark-mcp-server/src/bridge/types.ts` → `server/mcp/src/bridge/types.ts`
+- **added** `server/mcp/src/bridge/types.ts`
 - **added** `server/mcp/src/bridge/websocket.ts`
 - **added** `server/mcp/src/bridge/websocketConfig.ts`
 - **added** `server/mcp/src/bridge/wsProtocol.ts`
 - **added** `server/mcp/src/cli.ts`
-- **renamed** `vmark-mcp-server/src/index.ts` → `server/mcp/src/index.ts`
+- **added** `server/mcp/src/index.ts`
 - **added** `server/mcp/src/instructions.ts`
 - **added** `server/mcp/src/server.ts`
 - **added** `server/mcp/src/types.ts`
 - **added** `server/mcp/src/utils/clientIdentity.ts`
 - **added** `server/mcp/src/utils/errorOutput.ts`
+- **added** `server/mcp/src/utils/healthCheck.ts`
 - **added** `server/mcp/src/utils/mcpAdapters.ts`
-- **renamed** `vmark-mcp-server/src/utils/parentProcess.ts` → `server/mcp/src/utils/parentProcess.ts`
+- **added** `server/mcp/src/utils/parentProcess.ts`
 - **added** `server/mcp/src/utils/portFile.ts`
 - **added** `server/mcp/src/utils/shutdown.ts`
 - **added** `server/mcp/src/utils/toolOutput.ts`
-- **added** `server/mcp/src/utils/toolSchema.ts`
-- **renamed** `vmark-mcp-server/tsconfig.json` → `server/mcp/tsconfig.json`
+- **added** `server/mcp/tsconfig.json`
 - **added** `server/mcp/tsconfig.test.json`
 - **added** `server/mcp/vitest.config.ts`
-- **renamed** `src-tauri/mutants.toml` → `src-tauri/.cargo/mutants.toml`
+- **added** `src-tauri/.cargo/mutants.toml`
 - **changed** `src-tauri/Cargo.lock`
 - **changed** `src-tauri/Cargo.toml`
 - **changed** `src-tauri/Info.plist`
@@ -5944,19 +6629,28 @@
 - **changed** `src-tauri/locales/pt-BR.yml`
 - **changed** `src-tauri/locales/zh-CN.yml`
 - **changed** `src-tauri/locales/zh-TW.yml`
+- **deleted** `src-tauri/mutants.toml`
 - **added** `src-tauri/resources/shell-integration/vmark.bash`
 - **changed** `src-tauri/src/app_paths.rs`
+- **added** `src-tauri/src/app_plugins.rs`
 - **changed** `src-tauri/src/app_setup.rs`
+- **added** `src-tauri/src/app_setup.test.rs`
+- **added** `src-tauri/src/atomic_persist.rs`
 - **added** `src-tauri/src/atomic_replace.rs`
 - **added** `src-tauri/src/atomic_replace.test.rs`
+- **added** `src-tauri/src/automation_port.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/fixtures.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/html_text.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/main.rs`
+- **added** `src-tauri/src/bin/pdf_smoke/missing_path.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/page_number_fixture.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/page_numbers_case.rs`
+- **added** `src-tauri/src/bin/pdf_smoke/progress_case.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/render_one.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/scenarios.rs`
 - **added** `src-tauri/src/bin/pdf_smoke/verify.rs`
+- **added** `src-tauri/src/bounded_read.rs`
+- **added** `src-tauri/src/bounded_read.test.rs`
 - **changed** `src-tauri/src/browser/ai_commands.rs`
 - **changed** `src-tauri/src/browser/ai_commands.test.rs`
 - **added** `src-tauri/src/browser/ai_content_rules.rs`
@@ -6042,6 +6736,7 @@
 - **changed** `src-tauri/src/browser/teardown.test.rs`
 - **added** `src-tauri/src/browser/user_input_monitor_macos.rs`
 - **added** `src-tauri/src/browser/user_input_resolve_macos.rs`
+- **added** `src-tauri/src/canonical_path.rs`
 - **added** `src-tauri/src/capabilities.test.rs`
 - **added** `src-tauri/src/command_error.rs`
 - **added** `src-tauri/src/command_error.test.rs`
@@ -6051,12 +6746,42 @@
 - **changed** `src-tauri/src/content_search.rs`
 - **changed** `src-tauri/src/content_search.test.rs`
 - **added** `src-tauri/src/content_search_match.rs`
+- **added** `src-tauri/src/content_server/bundle_manifest.rs`
+- **added** `src-tauri/src/content_server/bundle_manifest.test.rs`
+- **added** `src-tauri/src/content_server/cleanup.rs`
+- **added** `src-tauri/src/content_server/cleanup.test.rs`
+- **added** `src-tauri/src/content_server/client.rs`
+- **added** `src-tauri/src/content_server/client.test.rs`
 - **changed** `src-tauri/src/content_server/commands.rs`
+- **added** `src-tauri/src/content_server/commands.test.rs`
+- **added** `src-tauri/src/content_server/drain.rs`
+- **added** `src-tauri/src/content_server/drain.test.rs`
 - **added** `src-tauri/src/content_server/http.rs`
+- **added** `src-tauri/src/content_server/http.test.rs`
 - **changed** `src-tauri/src/content_server/manager.rs`
 - **added** `src-tauri/src/content_server/manager.test.rs`
+- **added** `src-tauri/src/content_server/manager_poll.rs`
+- **added** `src-tauri/src/content_server/manager_teardown.rs`
 - **deleted** `src-tauri/src/content_server/manager_tests.rs`
 - **changed** `src-tauri/src/content_server/mod.rs`
+- **added** `src-tauri/src/content_server/port_wait.rs`
+- **added** `src-tauri/src/content_server/port_wait.test.rs`
+- **changed** `src-tauri/src/content_server/provision.rs`
+- **added** `src-tauri/src/content_server/runtime.rs`
+- **added** `src-tauri/src/content_server/runtime.test.rs`
+- **changed** `src-tauri/src/content_server/signature.rs`
+- **deleted** `src-tauri/src/content_server/slidev.rs`
+- **changed** `src-tauri/src/content_server/slidev_commands.rs`
+- **added** `src-tauri/src/content_server/slidev_commands.test.rs`
+- **changed** `src-tauri/src/content_server/spawn.rs`
+- **added** `src-tauri/src/content_server/spawn.test.rs`
+- **added** `src-tauri/src/content_server/start.rs`
+- **added** `src-tauri/src/content_server/start.test.rs`
+- **added** `src-tauri/src/content_server/supervisor.rs`
+- **added** `src-tauri/src/content_server/supervisor.test.rs`
+- **changed** `src-tauri/src/content_server/swap.rs`
+- **changed** `src-tauri/src/dock_recent.rs`
+- **added** `src-tauri/src/dock_recent.test.rs`
 - **changed** `src-tauri/src/external_editor.rs`
 - **added** `src-tauri/src/external_editor.test.rs`
 - **changed** `src-tauri/src/file_open.rs`
@@ -6070,10 +6795,13 @@
 - **added** `src-tauri/src/fs_scope.rs`
 - **added** `src-tauri/src/fs_scope.test.rs`
 - **changed** `src-tauri/src/gha_workflow/action_fetch.rs`
+- **changed** `src-tauri/src/gha_workflow/commands.rs`
+- **changed** `src-tauri/src/gha_workflow/mod.rs`
 - **changed** `src-tauri/src/hot_exit/commands.rs`
 - **changed** `src-tauri/src/hot_exit/coordinator.rs`
 - **changed** `src-tauri/src/hot_exit/coordinator.test.rs`
 - **added** `src-tauri/src/hot_exit/coordinator_pins.test.rs`
+- **changed** `src-tauri/src/hot_exit/dedup.rs`
 - **added** `src-tauri/src/hot_exit/loaded.rs`
 - **changed** `src-tauri/src/hot_exit/merge.test.rs`
 - **changed** `src-tauri/src/hot_exit/migration.rs`
@@ -6081,7 +6809,7 @@
 - **changed** `src-tauri/src/hot_exit/mod.rs`
 - **added** `src-tauri/src/hot_exit/path_containment_tests.rs`
 - **added** `src-tauri/src/hot_exit/read_session.rs`
-- **renamed** `src-tauri/src/hot_exit/storage.test.rs` → `src-tauri/src/hot_exit/read_session.test.rs`
+- **added** `src-tauri/src/hot_exit/read_session.test.rs`
 - **added** `src-tauri/src/hot_exit/restore_plan.rs`
 - **added** `src-tauri/src/hot_exit/restore_plan.test.rs`
 - **added** `src-tauri/src/hot_exit/salvage.rs`
@@ -6091,15 +6819,21 @@
 - **added** `src-tauri/src/hot_exit/state.rs`
 - **added** `src-tauri/src/hot_exit/state.test.rs`
 - **changed** `src-tauri/src/hot_exit/storage.rs`
+- **deleted** `src-tauri/src/hot_exit/storage.test.rs`
 - **changed** `src-tauri/src/hot_exit/validation.rs`
 - **changed** `src-tauri/src/hot_exit/validation.test.rs`
 - **changed** `src-tauri/src/lib.rs`
+- **changed** `src-tauri/src/lib.test.rs`
 - **added** `src-tauri/src/link_target.rs`
 - **added** `src-tauri/src/link_target.test.rs`
 - **added** `src-tauri/src/live_docs.rs`
 - **added** `src-tauri/src/live_docs.test.rs`
 - **changed** `src-tauri/src/macos_menu.rs`
+- **added** `src-tauri/src/macos_menu.test.rs`
 - **changed** `src-tauri/src/macos_menu_icons.rs`
+- **added** `src-tauri/src/mcp_bridge/accept_loop.rs`
+- **added** `src-tauri/src/mcp_bridge/accept_loop.test.rs`
+- **added** `src-tauri/src/mcp_bridge/bind.rs`
 - **added** `src-tauri/src/mcp_bridge/coherence_answers.rs`
 - **changed** `src-tauri/src/mcp_bridge/commands.rs`
 - **added** `src-tauri/src/mcp_bridge/connection.rs`
@@ -6110,16 +6844,26 @@
 - **added** `src-tauri/src/mcp_bridge/frames.test.rs`
 - **added** `src-tauri/src/mcp_bridge/handshake.rs`
 - **added** `src-tauri/src/mcp_bridge/handshake.test.rs`
+- **added** `src-tauri/src/mcp_bridge/identify.rs`
+- **added** `src-tauri/src/mcp_bridge/identify.test.rs`
+- **added** `src-tauri/src/mcp_bridge/lifecycle.rs`
+- **added** `src-tauri/src/mcp_bridge/lifecycle.test.rs`
 - **added** `src-tauri/src/mcp_bridge/managed.rs`
 - **added** `src-tauri/src/mcp_bridge/managed.test.rs`
 - **added** `src-tauri/src/mcp_bridge/message_loop.rs`
 - **changed** `src-tauri/src/mcp_bridge/mod.rs`
+- **added** `src-tauri/src/mcp_bridge/peer_text.rs`
+- **added** `src-tauri/src/mcp_bridge/peer_text.test.rs`
 - **added** `src-tauri/src/mcp_bridge/principal.rs`
 - **added** `src-tauri/src/mcp_bridge/principal.test.rs`
+- **added** `src-tauri/src/mcp_bridge/routed_request.rs`
+- **added** `src-tauri/src/mcp_bridge/routed_request.test.rs`
 - **added** `src-tauri/src/mcp_bridge/routing.rs`
 - **added** `src-tauri/src/mcp_bridge/routing.test.rs`
 - **changed** `src-tauri/src/mcp_bridge/server.rs`
 - **added** `src-tauri/src/mcp_bridge/server.test.rs`
+- **added** `src-tauri/src/mcp_bridge/start.rs`
+- **added** `src-tauri/src/mcp_bridge/start.test.rs`
 - **changed** `src-tauri/src/mcp_bridge/state.rs`
 - **added** `src-tauri/src/mcp_bridge/state.test.rs`
 - **added** `src-tauri/src/mcp_bridge/state_lifecycle.test.rs`
@@ -6155,13 +6899,17 @@
 - **added** `src-tauri/src/mcp_config/vmark_entry.rs`
 - **added** `src-tauri/src/mcp_config/vmark_entry.test.rs`
 - **changed** `src-tauri/src/mcp_server.rs`
+- **added** `src-tauri/src/mcp_server.test.rs`
+- **added** `src-tauri/src/mcp_server_health.rs`
 - **changed** `src-tauri/src/menu/accelerators.rs`
 - **added** `src-tauri/src/menu/browser_menu_item.rs`
 - **changed** `src-tauri/src/menu/commands.rs`
+- **changed** `src-tauri/src/menu/localized.rs`
 - **changed** `src-tauri/src/menu/localized.test.rs`
 - **changed** `src-tauri/src/menu/localized/edit_menu.rs`
 - **changed** `src-tauri/src/menu/localized/export_menu.rs`
 - **changed** `src-tauri/src/menu/localized/file_menu.rs`
+- **changed** `src-tauri/src/menu/localized/insert_menu.rs`
 - **changed** `src-tauri/src/menu/localized/view_menu.rs`
 - **changed** `src-tauri/src/menu/localized/window_help_menu.rs`
 - **changed** `src-tauri/src/menu/menu_state.rs`
@@ -6175,6 +6923,8 @@
 - **deleted** `src-tauri/src/pdf_export/bookmarks.rs`
 - **changed** `src-tauri/src/pdf_export/commands.rs`
 - **added** `src-tauri/src/pdf_export/commands.test.rs`
+- **added** `src-tauri/src/pdf_export/export_gate.rs`
+- **added** `src-tauri/src/pdf_export/export_gate.test.rs`
 - **added** `src-tauri/src/pdf_export/heading.rs`
 - **changed** `src-tauri/src/pdf_export/mod.rs`
 - **added** `src-tauri/src/pdf_export/outline.rs`
@@ -6192,14 +6942,36 @@
 - **added** `src-tauri/src/pdf_export/pdf_io.rs`
 - **deleted** `src-tauri/src/pdf_export/renderer.rs`
 - **added** `src-tauri/src/pdf_export/renderer/linux.rs`
+- **added** `src-tauri/src/pdf_export/renderer/linux_nav.rs`
 - **added** `src-tauri/src/pdf_export/renderer/linux_print.rs`
 - **added** `src-tauri/src/pdf_export/renderer/macos.rs`
 - **added** `src-tauri/src/pdf_export/renderer/macos_ops.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_print.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_print.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_save_job.rs`
+- **added** `src-tauri/src/pdf_export/renderer/macos_save_job.test.rs`
 - **added** `src-tauri/src/pdf_export/renderer/mod.rs`
 - **added** `src-tauri/src/pdf_export/renderer/mod.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/navigation.rs`
+- **added** `src-tauri/src/pdf_export/renderer/navigation.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/outcome.rs`
+- **added** `src-tauri/src/pdf_export/renderer/outcome.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/progress.rs`
+- **added** `src-tauri/src/pdf_export/renderer/progress.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/shell.rs`
+- **added** `src-tauri/src/pdf_export/renderer/shell.test.rs`
 - **added** `src-tauri/src/pdf_export/renderer/sink.rs`
+- **added** `src-tauri/src/pdf_export/renderer/sink_phase.rs`
+- **added** `src-tauri/src/pdf_export/renderer/sink_phase.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/staging.rs`
+- **added** `src-tauri/src/pdf_export/renderer/staging.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/teardown.rs`
+- **added** `src-tauri/src/pdf_export/renderer/teardown.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/wait.rs`
+- **added** `src-tauri/src/pdf_export/renderer/wait.test.rs`
 - **added** `src-tauri/src/pdf_export/renderer/windows.rs`
 - **added** `src-tauri/src/pdf_export/renderer/windows.test.rs`
+- **added** `src-tauri/src/pdf_export/renderer/windows_nav.rs`
 - **added** `src-tauri/src/pdf_export/renderer/windows_print.rs`
 - **changed** `src-tauri/src/pty.rs`
 - **changed** `src-tauri/src/quit.rs`
@@ -6207,6 +6979,9 @@
 - **added** `src-tauri/src/secret_token.rs`
 - **added** `src-tauri/src/secret_token.test.rs`
 - **changed** `src-tauri/src/secure_store.rs`
+- **added** `src-tauri/src/secure_store.test.rs`
+- **added** `src-tauri/src/session_bus.rs`
+- **added** `src-tauri/src/session_bus.test.rs`
 - **changed** `src-tauri/src/shell_env.rs`
 - **changed** `src-tauri/src/shell_integration.rs`
 - **added** `src-tauri/src/shell_integration.test.rs`
@@ -6240,6 +7015,9 @@
 - **added** `src/bench/cjkFormatter.bench.ts`
 - **changed** `src/bench/editor.bench.ts`
 - **added** `src/bench/pipelinePerf.bench.ts`
+- **changed** `src/bench/statusMetrics.bench.ts`
+- **changed** `src/bench/terminal.bench.ts`
+- **changed** `src/bench/workflow.bench.ts`
 - **changed** `src/components/BottomBar/BottomBar.test.tsx`
 - **added** `src/components/BreakdownPanel/AnchorAction.test.tsx`
 - **added** `src/components/BreakdownPanel/AnchorAction.tsx`
@@ -6316,6 +7094,7 @@
 - **changed** `src/components/ContentSearch/__tests__/ContentSearch.test.tsx`
 - **deleted** `src/components/ContentSearch/__tests__/useContentSearchShortcuts.test.ts`
 - **changed** `src/components/ContentSearch/content-search.css`
+- **changed** `src/components/ContentSearch/contentSearchUtils.tsx`
 - **changed** `src/components/ContentSearch/useContentSearchScheduler.test.ts`
 - **changed** `src/components/ContentSearch/useContentSearchScheduler.ts`
 - **deleted** `src/components/ContentSearch/useContentSearchShortcuts.ts`
@@ -6324,13 +7103,28 @@
 - **changed** `src/components/FindBar/FindBar.css`
 - **changed** `src/components/FindBar/FindBar.test.tsx`
 - **changed** `src/components/FindBar/FindBar.tsx`
+- **added** `src/components/FindBar/FindBar.useSelectionForFind.test.tsx`
+- **added** `src/components/FindBar/FindBarControls.test.tsx`
+- **added** `src/components/FindBar/FindBarControls.tsx`
+- **added** `src/components/FindBar/preventSelectAllOnButtons.test.ts`
+- **added** `src/components/FindBar/preventSelectAllOnButtons.ts`
+- **added** `src/components/FindBar/useFindBarFocus.eventName.test.ts`
+- **added** `src/components/FindBar/useFindBarFocus.test.tsx`
+- **added** `src/components/FindBar/useFindBarFocus.ts`
+- **added** `src/components/FindBar/useFindBarKeyboard.ts`
 - **added** `src/components/KnowledgeBasePanel/KbGraphChunkFailure.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBaseOverlay.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.runtime.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBasePanelViews.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBaseRuntimeState.tsx`
 - **changed** `src/components/KnowledgeBasePanel/graphToFlow.test.ts`
 - **changed** `src/components/KnowledgeBasePanel/knowledge-base-overlay.css`
 - **changed** `src/components/KnowledgeBasePanel/knowledge-base-panel.css`
+- **added** `src/components/KnowledgeBasePanel/runtimeState.test.ts`
+- **added** `src/components/KnowledgeBasePanel/runtimeState.ts`
+- **added** `src/components/KnowledgeBasePanel/useContentServerRuntime.ts`
 - **changed** `src/components/McpHistory/McpHistoryButton.tsx`
 - **changed** `src/components/McpHistory/mcp-history.css`
 - **changed** `src/components/QuickLook/QuickLookOverlay.css`
@@ -6361,6 +7155,10 @@
 - **added** `src/components/Sidebar/FileExplorer/rescanScheduler.test.ts`
 - **added** `src/components/Sidebar/FileExplorer/rescanScheduler.ts`
 - **changed** `src/components/Sidebar/FileExplorer/types.ts`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerActionWiring.test.ts`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerActionWiring.ts`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerContextMenu.test.tsx`
+- **added** `src/components/Sidebar/FileExplorer/useExplorerContextMenu.ts`
 - **added** `src/components/Sidebar/FileExplorer/useExplorerCreateFlow.test.tsx`
 - **added** `src/components/Sidebar/FileExplorer/useExplorerCreateFlow.ts`
 - **added** `src/components/Sidebar/FileExplorer/useExplorerOperations.duplicateFile.test.ts`
@@ -6373,6 +7171,8 @@
 - **changed** `src/components/Sidebar/FileExplorer/useFileTree.ts`
 - **added** `src/components/Sidebar/FileExplorer/useObservedHeight.test.ts`
 - **changed** `src/components/Sidebar/FileExplorer/useObservedHeight.ts`
+- **added** `src/components/Sidebar/FileExplorer/useRefreshOnWindowFocus.test.ts`
+- **added** `src/components/Sidebar/FileExplorer/useRefreshOnWindowFocus.ts`
 - **added** `src/components/Sidebar/FileExplorer/useTreeWiring.tsx`
 - **changed** `src/components/Sidebar/HistoryView.tsx`
 - **changed** `src/components/Sidebar/OutlineView.a11y.test.tsx`
@@ -6391,6 +7191,7 @@
 - **added** `src/components/Sidebar/useSidebarInstanceSync.ts`
 - **changed** `src/components/StatusBar/FileLoadIndicator.tsx`
 - **changed** `src/components/StatusBar/LintBadge.tsx`
+- **changed** `src/components/StatusBar/SourceModeUpgrade.tsx`
 - **added** `src/components/StatusBar/StatusBar.a11y.test.tsx`
 - **changed** `src/components/StatusBar/StatusBar.css`
 - **changed** `src/components/StatusBar/StatusBar.test.tsx`
@@ -6419,6 +7220,7 @@
 - **added** `src/components/StatusBar/tabStripHarnessContract.test.tsx`
 - **changed** `src/components/StatusBar/tabTransferActions.test.ts`
 - **changed** `src/components/StatusBar/tabTransferActions.ts`
+- **added** `src/components/StatusBar/useQuitFeedback.test.ts`
 - **added** `src/components/StatusBar/useScrollActiveTabIntoView.test.tsx`
 - **changed** `src/components/StatusBar/useStatusBarTabDrag.ts`
 - **changed** `src/components/StatusBar/word-count-popover.css`
@@ -6431,6 +7233,7 @@
 - **changed** `src/components/Tabs/TabRenameInput.tsx`
 - **changed** `src/components/Tabs/useTabContextMenuActions.test.ts`
 - **changed** `src/components/Tabs/useTabContextMenuActions.ts`
+- **added** `src/components/ThemedToaster.test.tsx`
 - **added** `src/components/ThemedToaster.tsx`
 - **changed** `src/components/TitleBar/TitleBar.a11y.test.tsx`
 - **added** `src/components/TitleBar/TitleBar.filename.test.tsx`
@@ -6452,13 +7255,17 @@
 - **changed** `src/components/WorkspaceRail/WorkspaceRail.test.tsx`
 - **changed** `src/components/WorkspaceRail/WorkspaceRail.tsx`
 - **added** `src/components/WorkspaceRail/WorkspaceRailContextMenu.css`
+- **added** `src/components/WorkspaceRail/WorkspaceRailContextMenu.test.tsx`
 - **added** `src/components/WorkspaceRail/WorkspaceRailContextMenu.tsx`
 - **changed** `src/components/WorkspaceRail/index.ts`
 - **added** `src/components/WorkspaceRail/workspaceRailHandlers.test.ts`
 - **added** `src/components/WorkspaceRail/workspaceRailHandlers.ts`
+- **added** `src/components/WorkspaceRail/workspaceRailMenuLayout.test.ts`
+- **added** `src/components/WorkspaceRail/workspaceRailMenuLayout.ts`
 - **added** `src/components/shared/TabStripButton.test.tsx`
 - **added** `src/components/shared/TabStripButton.tsx`
 - **changed** `src/components/spotlight/spotlightDialog.tsx`
+- **added** `src/components/toastIcons.test.tsx`
 - **added** `src/components/toastIcons.tsx`
 - **changed** `src/contexts/WindowContext.test.tsx`
 - **changed** `src/contexts/WindowContext.tsx`
@@ -6474,22 +7281,45 @@
 - **changed** `src/export/PdfExportDialog.tsx`
 - **changed** `src/export/PdfSettingsSidebar.tsx`
 - **added** `src/export/PdfSidebarPrimitives.tsx`
+- **added** `src/export/__tests__/copyAsHtml.test.ts`
 - **changed** `src/export/__tests__/editorCSSBundle.test.ts`
 - **added** `src/export/__tests__/exportCssVarCoverage.test.ts`
 - **added** `src/export/__tests__/exportDialogNamespaces.test.ts`
+- **added** `src/export/__tests__/exportFolderPath.test.ts`
+- **added** `src/export/__tests__/exportFsHarness.ts`
+- **added** `src/export/__tests__/exportLock.test.ts`
+- **added** `src/export/__tests__/exportStaging.test.ts`
+- **changed** `src/export/__tests__/exportToPdfImages.test.ts`
+- **added** `src/export/__tests__/exportWarningCount.test.ts`
 - **changed** `src/export/__tests__/fontEmbedder.test.ts`
+- **added** `src/export/__tests__/htmlExportAssets.test.ts`
 - **changed** `src/export/__tests__/htmlExportCleanup.test.ts`
+- **added** `src/export/__tests__/htmlExportResources.test.ts`
 - **changed** `src/export/__tests__/htmlExportStylesContent.test.ts`
 - **changed** `src/export/__tests__/htmlTemplatesKatex.test.ts`
 - **changed** `src/export/__tests__/katexFontEmbed.test.ts`
 - **added** `src/export/__tests__/pageNumberSpec.test.ts`
 - **changed** `src/export/__tests__/pdfHtmlTemplate.test.ts`
 - **changed** `src/export/__tests__/pdfPresets.test.ts`
+- **added** `src/export/__tests__/printDocument.test.ts`
 - **added** `src/export/__tests__/printFailureToast.test.ts`
+- **added** `src/export/__tests__/printLiveEditor.test.ts`
+- **added** `src/export/__tests__/printOutcome.test.ts`
 - **changed** `src/export/__tests__/uint8ArrayToBase64.test.ts`
+- **changed** `src/export/__tests__/waitForAssets.test.ts`
+- **added** `src/export/assetReadiness.ts`
 - **changed** `src/export/createExportExtensions.ts`
+- **added** `src/export/exportGuards.ts`
+- **added** `src/export/exportLock.ts`
+- **added** `src/export/exportLockFile.ts`
+- **added** `src/export/exportLockTakeover.ts`
 - **changed** `src/export/exportOverrides.ts`
+- **added** `src/export/exportPublish.ts`
+- **added** `src/export/exportStaging.ts`
+- **added** `src/export/exportToHtmlFolder.ts`
+- **changed** `src/export/fontEmbedder.ts`
 - **changed** `src/export/htmlExport.ts`
+- **added** `src/export/htmlExportAssets.ts`
 - **added** `src/export/pageSpec.test.ts`
 - **added** `src/export/pageSpec.ts`
 - **changed** `src/export/pandocExport.test.ts`
@@ -6503,6 +7333,8 @@
 - **changed** `src/export/pdfPresets.ts`
 - **added** `src/export/pdfPrintCss.ts`
 - **added** `src/export/primitiveTokens.ts`
+- **added** `src/export/printDocument.ts`
+- **added** `src/export/printOutcome.ts`
 - **changed** `src/export/reader/readerBundle.test.ts`
 - **changed** `src/export/reader/readerBundle.ts`
 - **added** `src/export/reader/readerDarkPalette.ts`
@@ -6512,7 +7344,19 @@
 - **added** `src/export/renderMarkdownToHtml.ts`
 - **changed** `src/export/themeSnapshot.ts`
 - **changed** `src/export/useExportOperations.ts`
+- **changed** `src/export/waitForAssets.ts`
+- **deleted** `src/hooks/__tests__/tabCleanup.test.ts`
+- **deleted** `src/hooks/__tests__/useFileOpen.test.ts`
+- **added** `src/hooks/__tests__/useGenieInvocation.cancel.test.ts`
+- **added** `src/hooks/__tests__/useGenieInvocation.dispatchGating.test.ts`
+- **changed** `src/hooks/__tests__/useGenieInvocation.test.ts`
+- **changed** `src/hooks/__tests__/useGenieInvocation.workflowRace.test.ts`
+- **deleted** `src/hooks/__tests__/useHistoryOperations.test.ts`
+- **deleted** `src/hooks/__tests__/useHistoryRecovery.test.ts`
+- **changed** `src/hooks/__tests__/useMcpHealthCheck.test.tsx`
 - **deleted** `src/hooks/closeSave.ts`
+- **deleted** `src/hooks/finderOpenBranch.test.ts`
+- **deleted** `src/hooks/finderOpenBranch.ts`
 - **deleted** `src/hooks/fsChangeHandlers.test.ts`
 - **deleted** `src/hooks/fsChangeHandlers.ts`
 - **changed** `src/hooks/lifecycle/DocumentWindowMount.tsx`
@@ -6527,16 +7371,28 @@
 - **changed** `src/hooks/lifecycle/useEditorLifecycle.ts`
 - **changed** `src/hooks/lifecycle/useWindowLifecycle.ts`
 - **changed** `src/hooks/lifecycle/useWorkspaceLifecycle.ts`
+- **added** `src/hooks/menuRouting.fileWindow.test.ts`
 - **added** `src/hooks/menuRouting.test.ts`
+- **deleted** `src/hooks/openWorkspaceWithConfig.test.ts`
+- **deleted** `src/hooks/openWorkspaceWithConfig.ts`
 - **added** `src/hooks/resilience/_crashRecoveryStartup.ts`
 - **added** `src/hooks/resilience/_hotExitRestore.ts`
 - **added** `src/hooks/resilience/index.ts`
+- **deleted** `src/hooks/tabCleanup.ts`
 - **added** `src/hooks/useAiProviderSync.test.ts`
 - **added** `src/hooks/useAiProviderSync.ts`
 - **changed** `src/hooks/useAutoSave.ts`
+- **changed** `src/hooks/useBrowserOccluder.ts`
+- **added** `src/hooks/useCommandBootstrap.bindings.test.ts`
+- **added** `src/hooks/useCommandBootstrap.test.tsx`
 - **added** `src/hooks/useCommandBootstrap.ts`
 - **changed** `src/hooks/useContentServer.test.ts`
 - **changed** `src/hooks/useContentServer.ts`
+- **added** `src/hooks/useContentServerSupervisor.ts`
+- **added** `src/hooks/useContentServerWorkspaceSync.test.ts`
+- **added** `src/hooks/useContentServerWorkspaceSync.ts`
+- **deleted** `src/hooks/useDefaultSaveFolder.test.ts`
+- **deleted** `src/hooks/useDefaultSaveFolder.ts`
 - **changed** `src/hooks/useDocumentState.test.tsx`
 - **changed** `src/hooks/useDocumentState.ts`
 - **changed** `src/hooks/useDragDropOpen.test.ts`
@@ -6550,8 +7406,12 @@
 - **changed** `src/hooks/useExternalFileChanges.ts`
 - **deleted** `src/hooks/useFileExplorerShortcuts.test.ts`
 - **deleted** `src/hooks/useFileExplorerShortcuts.ts`
+- **deleted** `src/hooks/useFileOpen.test.ts`
+- **deleted** `src/hooks/useFileOpen.ts`
 - **changed** `src/hooks/useFileOperations.test.ts`
 - **changed** `src/hooks/useFileOperations.ts`
+- **deleted** `src/hooks/useFileSave.test.ts`
+- **deleted** `src/hooks/useFileSave.ts`
 - **deleted** `src/hooks/useFileShortcuts.test.ts`
 - **deleted** `src/hooks/useFileShortcuts.ts`
 - **changed** `src/hooks/useFinderFileOpen.comprehensive.test.tsx`
@@ -6561,27 +7421,51 @@
 - **added** `src/hooks/useFormatSettingsBridge.ts`
 - **changed** `src/hooks/useGenieInvocation.ts`
 - **added** `src/hooks/useGenieShortcuts.invokeGenie.test.ts`
+- **added** `src/hooks/useGenieShortcuts.lifecycle.test.tsx`
 - **changed** `src/hooks/useGenieShortcuts.test.ts`
 - **changed** `src/hooks/useGenieShortcuts.ts`
+- **deleted** `src/hooks/useHistoryOperations.test.ts`
+- **deleted** `src/hooks/useHistoryOperations.ts`
+- **deleted** `src/hooks/useHistoryRecovery.test.ts`
+- **deleted** `src/hooks/useHistoryRecovery.ts`
 - **changed** `src/hooks/useImageContextMenu.test.ts`
 - **changed** `src/hooks/useImageContextMenu.ts`
 - **changed** `src/hooks/useImageDragDrop.test.ts`
 - **changed** `src/hooks/useImageDragDrop.ts`
+- **deleted** `src/hooks/useImageOperations.test.ts`
+- **deleted** `src/hooks/useImageOperations.ts`
 - **changed** `src/hooks/useImagePasteToast.ts`
 - **changed** `src/hooks/useIsDarkTheme.test.ts`
 - **changed** `src/hooks/useIsDarkTheme.ts`
 - **added** `src/hooks/useKeybindingRouter.test.ts`
 - **added** `src/hooks/useKeybindingRouter.ts`
+- **added** `src/hooks/useLiveDocsResponder.test.ts`
 - **added** `src/hooks/useLiveDocsResponder.ts`
+- **changed** `src/hooks/useMcpAutoStart.test.ts`
+- **changed** `src/hooks/useMcpAutoStart.ts`
 - **added** `src/hooks/useMcpBridge.integration.test.ts`
 - **changed** `src/hooks/useMcpBridge.ts`
 - **changed** `src/hooks/useMcpClients.ts`
 - **changed** `src/hooks/useMcpHealthCheck.ts`
+- **added** `src/hooks/useMcpServer.test.ts`
 - **changed** `src/hooks/useMcpServer.ts`
+- **deleted** `src/hooks/useMediaOperations.test.ts`
+- **deleted** `src/hooks/useMediaOperations.ts`
 - **added** `src/hooks/useOpenFileEvent.ts`
+- **deleted** `src/hooks/useOpenWorkflowTarget.ts`
 - **changed** `src/hooks/useOutlineSync.ts`
+- **added** `src/hooks/usePromptHistory.clearHistory.test.ts`
+- **changed** `src/hooks/usePromptHistory.comprehensive.test.ts`
+- **added** `src/hooks/usePromptHistory.filterIndex.test.tsx`
+- **added** `src/hooks/usePromptHistory.liveEntries.test.ts`
+- **changed** `src/hooks/usePromptHistory.ts`
 - **deleted** `src/hooks/useQuickOpenShortcuts.test.ts`
 - **deleted** `src/hooks/useQuickOpenShortcuts.ts`
+- **changed** `src/hooks/useRecentFilesSync.ts`
+- **changed** `src/hooks/useRecentWorkspacesSync.ts`
+- **deleted** `src/hooks/useReplaceableTab.test.ts`
+- **deleted** `src/hooks/useReplaceableTab.ts`
+- **changed** `src/hooks/useSearchCommands.ts`
 - **deleted** `src/hooks/useSelectAllScope.test.ts`
 - **deleted** `src/hooks/useSelectAllScope.ts`
 - **changed** `src/hooks/useSettingsSync.test.ts`
@@ -6591,6 +7475,8 @@
 - **changed** `src/hooks/useSidebarContext.ts`
 - **changed** `src/hooks/useSidebarResize.test.tsx`
 - **changed** `src/hooks/useSidebarResize.ts`
+- **added** `src/hooks/useSlidevControls.test.ts`
+- **added** `src/hooks/useSlidevControls.ts`
 - **changed** `src/hooks/useSourceEditorSearch.test.ts`
 - **changed** `src/hooks/useSourceEditorSearch.ts`
 - **changed** `src/hooks/useSourceOutlineSync.ts`
@@ -6598,6 +7484,7 @@
 - **added** `src/hooks/useStatusToasts.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.test.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.ts`
+- **deleted** `src/hooks/useTabOperations.test.ts`
 - **deleted** `src/hooks/useTabOperations.ts`
 - **deleted** `src/hooks/useTabShortcuts.statusbar.test.tsx`
 - **deleted** `src/hooks/useTabShortcuts.test.tsx`
@@ -6606,6 +7493,11 @@
 - **added** `src/hooks/useTabStripOverflow.ts`
 - **changed** `src/hooks/useTheme.test.ts`
 - **changed** `src/hooks/useTheme.ts`
+- **added** `src/hooks/useTiptapSettingsSync.test.tsx`
+- **added** `src/hooks/useTiptapUnmountFlush.test.tsx`
+- **deleted** `src/hooks/useUnifiedHistory.test.ts`
+- **deleted** `src/hooks/useUnifiedHistory.ts`
+- **deleted** `src/hooks/useUnifiedMenuCommands.test.tsx`
 - **deleted** `src/hooks/useUnifiedMenuCommands.ts`
 - **changed** `src/hooks/useUniversalToolbar.ts`
 - **changed** `src/hooks/useUpdateChecker.comprehensive.test.ts`
@@ -6628,20 +7520,26 @@
 - **changed** `src/hooks/useWindowClose.ts`
 - **changed** `src/hooks/useWindowFileWatcher.test.ts`
 - **changed** `src/hooks/useWindowFileWatcher.ts`
+- **deleted** `src/hooks/useWindowFocus.test.ts`
+- **deleted** `src/hooks/useWindowFocus.ts`
 - **changed** `src/hooks/useWindowStatus.test.ts`
 - **changed** `src/hooks/useWindowStatus.ts`
 - **added** `src/hooks/useWindowTitle.hook.test.tsx`
 - **changed** `src/hooks/useWindowTitle.test.ts`
 - **changed** `src/hooks/useWindowTitle.ts`
+- **changed** `src/hooks/useWorkflowExecution.test.tsx`
 - **changed** `src/hooks/useWorkflowExecution.ts`
 - **changed** `src/hooks/useWorkspaceBootstrap.test.tsx`
 - **changed** `src/hooks/useWorkspaceBootstrap.ts`
 - **changed** `src/hooks/useWorkspaceSync.ts`
+- **added** `src/hooks/useWysiwygFlusherRegistration.test.tsx`
 - **deleted** `src/hooks/workspaceConfig.ts`
 - **deleted** `src/hooks/workspaceSession.test.ts`
 - **deleted** `src/hooks/workspaceSession.ts`
 - **changed** `src/i18n.ts`
 - **changed** `src/lib/__tests__/pty.test.ts`
+- **added** `src/lib/browser/__tests__/uxPolicyLedger.test.ts`
+- **added** `src/lib/browser/__tests__/uxPolicyLedger.ts`
 - **changed** `src/lib/browser/agent/actScript.test.ts`
 - **changed** `src/lib/browser/agent/actScript.ts`
 - **added** `src/lib/browser/agent/actScript.webkit.test.ts`
@@ -6674,9 +7572,12 @@
 - **changed** `src/lib/browser/agent/powerScript.test.ts`
 - **changed** `src/lib/browser/agent/powerScript.ts`
 - **added** `src/lib/browser/agent/recorder.webkit.test.ts`
+- **added** `src/lib/browser/agent/recorderShim.labelTarget.test.ts`
+- **added** `src/lib/browser/agent/recorderShim.residuals.test.ts`
 - **added** `src/lib/browser/agent/recorderShim.src.js`
 - **added** `src/lib/browser/agent/recorderShim.test.ts`
 - **added** `src/lib/browser/agent/recorderShim.ts`
+- **added** `src/lib/browser/agent/recorderShim.walk.test.ts`
 - **added** `src/lib/browser/agent/recorderShimRustParity.test.ts`
 - **added** `src/lib/browser/agent/recorderShimSensitivity.src.js`
 - **added** `src/lib/browser/agent/shimDrain.test.ts`
@@ -6691,9 +7592,9 @@
 - **changed** `src/lib/browser/origin/originGuard.test.ts`
 - **changed** `src/lib/browser/reader/siteReader.ts`
 - **changed** `src/lib/browser/url.test.ts`
+- **added** `src/lib/browser/urlCredentials.test.ts`
+- **added** `src/lib/browser/urlCredentials.ts`
 - **changed** `src/lib/browser/uxPolicy.test.ts`
-- **added** `src/lib/browser/uxPolicyLedger.test.ts`
-- **added** `src/lib/browser/uxPolicyLedger.ts`
 - **added** `src/lib/browser/workflow/canonicalEncode.test.ts`
 - **added** `src/lib/browser/workflow/canonicalEncode.ts`
 - **changed** `src/lib/browser/workflow/classify.test.ts`
@@ -6724,6 +7625,8 @@
 - **added** `src/lib/cjkFormatter/__tests__/segmentEdges.test.ts`
 - **added** `src/lib/cjkFormatter/__tests__/trailingNewline.test.ts`
 - **changed** `src/lib/cjkFormatter/battleTest.test.ts`
+- **added** `src/lib/cjkFormatter/characterReferences.test.ts`
+- **added** `src/lib/cjkFormatter/characterReferences.ts`
 - **changed** `src/lib/cjkFormatter/formatter.test.ts`
 - **changed** `src/lib/cjkFormatter/formatter.ts`
 - **added** `src/lib/cjkFormatter/formatterTables.ts`
@@ -6734,6 +7637,8 @@
 - **changed** `src/lib/cjkFormatter/markdownParser.test.ts`
 - **changed** `src/lib/cjkFormatter/markdownParser.ts`
 - **added** `src/lib/cjkFormatter/markdownParserBlocks.ts`
+- **added** `src/lib/cjkFormatter/markdownParserInline.ts`
+- **added** `src/lib/cjkFormatter/protectedRegionSearch.ts`
 - **added** `src/lib/cjkFormatter/quoteClassification.ts`
 - **changed** `src/lib/cjkFormatter/quotePairing.test.ts`
 - **changed** `src/lib/cjkFormatter/quotePairing.ts`
@@ -6757,11 +7662,13 @@
 - **changed** `src/lib/ghaWorkflow/actions/registry.ts`
 - **changed** `src/lib/ghaWorkflow/completion/expressionCompletion.test.ts`
 - **changed** `src/lib/ghaWorkflow/cron/readable.test.ts`
-- **changed** `src/lib/ghaWorkflow/eval/staticIf.test.ts`
+- **deleted** `src/lib/ghaWorkflow/eval/staticIf.test.ts`
+- **deleted** `src/lib/ghaWorkflow/eval/staticIf.ts`
 - **changed** `src/lib/ghaWorkflow/export/__tests__/saveExport.test.ts`
 - **changed** `src/lib/ghaWorkflow/export/__tests__/toMermaid.test.ts`
 - **changed** `src/lib/ghaWorkflow/lint/__tests__/actionlint.test.ts`
-- **changed** `src/lib/ghaWorkflow/lint/__tests__/schema.test.ts`
+- **deleted** `src/lib/ghaWorkflow/lint/__tests__/schema.test.ts`
+- **deleted** `src/lib/ghaWorkflow/lint/schema.ts`
 - **changed** `src/lib/ghaWorkflow/parser/__tests__/edges.test.ts`
 - **changed** `src/lib/ghaWorkflow/parser/__tests__/index.test.ts`
 - **added** `src/lib/ghaWorkflow/parser/__tests__/jobs.edges.test.ts`
@@ -6786,11 +7693,17 @@
 - **changed** `src/lib/ghaWorkflow/save/__tests__/cstParser.test.ts`
 - **changed** `src/lib/ghaWorkflow/save/__tests__/mutators.crud.test.ts`
 - **changed** `src/lib/ghaWorkflow/save/__tests__/mutators.test.ts`
+- **changed** `src/lib/ghaWorkflow/save/cstParser.ts`
+- **changed** `src/lib/ghaWorkflow/save/mutators.ts`
 - **changed** `src/lib/ghaWorkflow/save/previewIR.test.ts`
 - **changed** `src/lib/ghaWorkflow/save/previewIR.ts`
+- **changed** `src/lib/ghaWorkflow/types.ts`
 - **changed** `src/lib/lintEngine/__tests__/linter.test.ts`
 - **changed** `src/lib/lintEngine/__tests__/parserIntegration.test.ts`
-- **changed** `src/lib/lintEngine/rules/__tests__/codeBlockTracker.test.ts`
+- **changed** `src/lib/lintEngine/index.ts`
+- **added** `src/lib/lintEngine/ruleMeta.test.ts`
+- **added** `src/lib/lintEngine/ruleMeta.ts`
+- **deleted** `src/lib/lintEngine/rules/__tests__/codeBlockTracker.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/headingIncrement.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/linkFragments.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/noDuplicateDefs.test.ts`
@@ -6801,12 +7714,34 @@
 - **changed** `src/lib/lintEngine/rules/__tests__/noSpaceInEmphasis.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/noUndefinedRefs.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/noUnusedDefs.test.ts`
+- **added** `src/lib/lintEngine/rules/__tests__/positionOffset.test.ts`
+- **added** `src/lib/lintEngine/rules/__tests__/referenceScanner.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/requireAltText.test.ts`
+- **added** `src/lib/lintEngine/rules/__tests__/sourceMask.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/tableColumnCount.test.ts`
 - **changed** `src/lib/lintEngine/rules/__tests__/unclosedFencedCode.test.ts`
+- **deleted** `src/lib/lintEngine/rules/codeBlockTracker.ts`
+- **added** `src/lib/lintEngine/rules/definitionLines.ts`
+- **changed** `src/lib/lintEngine/rules/headingIncrement.ts`
+- **changed** `src/lib/lintEngine/rules/labelUtils.ts`
+- **changed** `src/lib/lintEngine/rules/linkFragments.ts`
+- **changed** `src/lib/lintEngine/rules/noDuplicateDefs.ts`
+- **changed** `src/lib/lintEngine/rules/noEmptyLinkHref.ts`
+- **changed** `src/lib/lintEngine/rules/noEmptyLinkText.ts`
+- **changed** `src/lib/lintEngine/rules/noMissingSpaceAtx.ts`
+- **changed** `src/lib/lintEngine/rules/noReversedLink.ts`
 - **changed** `src/lib/lintEngine/rules/noSpaceInEmphasis.ts`
+- **changed** `src/lib/lintEngine/rules/noUndefinedRefs.ts`
+- **changed** `src/lib/lintEngine/rules/noUnusedDefs.ts`
+- **added** `src/lib/lintEngine/rules/positionOffset.ts`
+- **added** `src/lib/lintEngine/rules/referenceScanner.ts`
+- **changed** `src/lib/lintEngine/rules/requireAltText.ts`
+- **added** `src/lib/lintEngine/rules/sourceMask.ts`
+- **changed** `src/lib/lintEngine/rules/tableColumnCount.ts`
+- **changed** `src/lib/lintEngine/rules/unclosedFencedCode.ts`
 - **changed** `src/lib/lintEngine/types.ts`
 - **changed** `src/lib/lintEngine/yaml.test.ts`
+- **changed** `src/lib/lintEngine/yaml.ts`
 - **changed** `src/lib/markdownLinkCheck/check.test.ts`
 - **changed** `src/lib/markdownLinkCheck/check.ts`
 - **added** `src/lib/markdownLinkCheck/detailsOffsets.test.ts`
@@ -6823,6 +7758,7 @@
 - **added** `src/lib/sites/wikipedia/__fixtures__/article.html`
 - **added** `src/lib/sites/wikipedia/wikipedia.test.ts`
 - **added** `src/lib/sites/wikipedia/wikipedia.ts`
+- **added** `src/lib/yamlValidation/parseErrors.test.ts`
 - **added** `src/locales/__tests__/localeShape.test.ts`
 - **added** `src/locales/__tests__/terminalI18nCoverage.test.ts`
 - **changed** `src/locales/de/ai.json`
@@ -6957,6 +7893,7 @@
 - **changed** `src/locales/zh-TW/workflowEditor.json`
 - **changed** `src/main.tsx`
 - **changed** `src/pages/PdfExportPage.tsx`
+- **added** `src/pages/Settings.devSection.test.tsx`
 - **changed** `src/pages/Settings.tsx`
 - **changed** `src/pages/settings/AboutSettings.test.tsx`
 - **changed** `src/pages/settings/AboutSettings.tsx`
@@ -6964,6 +7901,7 @@
 - **added** `src/pages/settings/AdvancedSettings.nonMac.test.tsx`
 - **changed** `src/pages/settings/AdvancedSettings.tsx`
 - **added** `src/pages/settings/AdvancedSettings.workflow.test.tsx`
+- **added** `src/pages/settings/AdvancedSettings.workflowViewer.test.tsx`
 - **changed** `src/pages/settings/AppearanceSettings.test.tsx`
 - **changed** `src/pages/settings/AppearanceSettings.tsx`
 - **changed** `src/pages/settings/CcSwitchImportRow.tsx`
@@ -6971,9 +7909,11 @@
 - **added** `src/pages/settings/CoherenceSettingsGroup.tsx`
 - **changed** `src/pages/settings/DiagnosticIcon.tsx`
 - **changed** `src/pages/settings/DocumentToolsSettings.tsx`
+- **added** `src/pages/settings/EditorSettings.test.tsx`
 - **changed** `src/pages/settings/EditorSettings.tsx`
 - **added** `src/pages/settings/FileBrowserSettingsGroup.test.tsx`
 - **added** `src/pages/settings/FileBrowserSettingsGroup.tsx`
+- **added** `src/pages/settings/FilesImagesSettings.test.tsx`
 - **changed** `src/pages/settings/FilesImagesSettings.tsx`
 - **changed** `src/pages/settings/FormatsSettings.test.tsx`
 - **changed** `src/pages/settings/FormatsSettings.tsx`
@@ -6997,16 +7937,19 @@
 - **added** `src/pages/settings/SettingsNav.tsx`
 - **changed** `src/pages/settings/SettingsSearchResults.tsx`
 - **added** `src/pages/settings/ShortcutsSettings.confirm.test.tsx`
+- **added** `src/pages/settings/ShortcutsSettings.conflict.test.tsx`
 - **changed** `src/pages/settings/ShortcutsSettings.tsx`
+- **added** `src/pages/settings/ShortcutsSettings.unassigned.test.tsx`
 - **changed** `src/pages/settings/TagInput.tsx`
 - **changed** `src/pages/settings/TerminalSettings.test.tsx`
 - **changed** `src/pages/settings/TerminalSettings.tsx`
 - **changed** `src/pages/settings/UpdateAvailableCard.test.tsx`
 - **changed** `src/pages/settings/UpdateAvailableCard.tsx`
+- **added** `src/pages/settings/WhitespaceSettings.test.tsx`
 - **added** `src/pages/settings/WhitespaceSettings.tsx`
 - **changed** `src/pages/settings/__tests__/CcSwitchImportRow.test.tsx`
 - **changed** `src/pages/settings/__tests__/languagePicker.test.ts`
-- **added** `src/pages/settings/__tests__/terminalDocDefaults.test.ts`
+- **added** `src/pages/settings/__tests__/terminalDocRanges.test.ts`
 - **changed** `src/pages/settings/buttons.tsx`
 - **added** `src/pages/settings/captureChord.test.ts`
 - **added** `src/pages/settings/captureChord.ts`
@@ -7021,9 +7964,11 @@
 - **added** `src/pages/settings/terminalSettingsHelpers.ts`
 - **added** `src/pages/settings/update-progress.css`
 - **changed** `src/plugins/actions/__tests__/actionRegistryExtra.test.ts`
+- **changed** `src/plugins/actions/actionDefinitionsBlocks.ts`
 - **changed** `src/plugins/actions/actionDefinitionsCore.ts`
 - **changed** `src/plugins/actions/actionRegistry.test.ts`
 - **changed** `src/plugins/actions/actionRegistry.ts`
+- **changed** `src/plugins/actions/menuMapping.ts`
 - **changed** `src/plugins/actions/types.ts`
 - **changed** `src/plugins/aiSuggestion/__tests__/tiptap.test.ts`
 - **changed** `src/plugins/aiSuggestion/ai-suggestion.css`
@@ -7136,6 +8081,7 @@
 - **changed** `src/plugins/codemirror/focusModePlugin.test.ts`
 - **changed** `src/plugins/codemirror/focusModePlugin.ts`
 - **changed** `src/plugins/codemirror/imeScrollGuard.test.ts`
+- **changed** `src/plugins/codemirror/index.ts`
 - **changed** `src/plugins/codemirror/listSmartIndent.ts`
 - **changed** `src/plugins/codemirror/markdownAutoPair.test.ts`
 - **changed** `src/plugins/codemirror/markdownAutoPair.ts`
@@ -7180,6 +8126,7 @@
 - **changed** `src/plugins/codemirror/sourceWorkflowGoto.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowPreview.ts`
 - **changed** `src/plugins/codemirror/sourceYamlLint.test.ts`
+- **changed** `src/plugins/codemirror/sourceYamlLint.ts`
 - **added** `src/plugins/codemirror/structuralCharDetection.ts`
 - **changed** `src/plugins/codemirror/structuralCharProtection.test.ts`
 - **changed** `src/plugins/codemirror/structuralCharProtection.ts`
@@ -7212,8 +8159,8 @@
 - **changed** `src/plugins/editorPlugins.tiptap.callbacks.test.ts`
 - **changed** `src/plugins/editorPlugins.tiptap.test.ts`
 - **changed** `src/plugins/editorPlugins.tiptap.ts`
-- **changed** `src/plugins/editorPlugins/bookmarkLinkCommand.test.ts`
-- **changed** `src/plugins/editorPlugins/bookmarkLinkCommand.ts`
+- **deleted** `src/plugins/editorPlugins/bookmarkLinkCommand.test.ts`
+- **deleted** `src/plugins/editorPlugins/bookmarkLinkCommand.ts`
 - **changed** `src/plugins/editorPlugins/expandedToggleMark.test.ts`
 - **changed** `src/plugins/editorPlugins/keymapUtils.test.ts`
 - **changed** `src/plugins/editorPlugins/keymapUtils.ts`
@@ -7221,6 +8168,8 @@
 - **deleted** `src/plugins/editorPlugins/lineOperationCommands.ts`
 - **changed** `src/plugins/editorPlugins/linkCommands.test.ts`
 - **changed** `src/plugins/editorPlugins/linkCommands.ts`
+- **deleted** `src/plugins/editorPlugins/textTransformCommands.test.ts`
+- **deleted** `src/plugins/editorPlugins/textTransformCommands.ts`
 - **changed** `src/plugins/focusMode/__tests__/focusMode.test.ts`
 - **deleted** `src/plugins/focusMode/manifest.ts`
 - **changed** `src/plugins/focusMode/tiptap.test.ts`
@@ -7236,7 +8185,8 @@
 - **added** `src/plugins/footnotePopup/hoverState.test.ts`
 - **added** `src/plugins/footnotePopup/hoverState.ts`
 - **deleted** `src/plugins/footnotePopup/manifest.ts`
-- **changed** `src/plugins/footnotePopup/operations.test.ts`
+- **deleted** `src/plugins/footnotePopup/operations.test.ts`
+- **deleted** `src/plugins/footnotePopup/operations.ts`
 - **changed** `src/plugins/footnotePopup/tiptap.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptap.ts`
 - **changed** `src/plugins/footnotePopup/tiptapCleanup.test.ts`
@@ -7257,10 +8207,12 @@
 - **changed** `src/plugins/formatToolbar/nodeActions.tiptap.test.ts`
 - **changed** `src/plugins/formatToolbar/nodeActions.tiptap.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContext.test.ts`
+- **changed** `src/plugins/formatToolbar/tiptapContext.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContextHelpers.test.ts`
 - **deleted** `src/plugins/formatToolbar/types.ts`
 - **changed** `src/plugins/frontmatterPanel/frontmatter-panel.css`
 - **deleted** `src/plugins/frontmatterPanel/manifest.ts`
+- **added** `src/plugins/frontmatterPanel/nodeView.test.ts`
 - **deleted** `src/plugins/ghaWorkflowPreview/GhaWorkflowSidePanel.tsx`
 - **deleted** `src/plugins/ghaWorkflowPreview/__tests__/GhaWorkflowSidePanel.test.tsx`
 - **deleted** `src/plugins/ghaWorkflowPreview/gha-workflow-side-panel.css`
@@ -7293,7 +8245,8 @@
 - **added** `src/plugins/imagePreview/resolveSrc.test.ts`
 - **changed** `src/plugins/imagePreview/resolveSrc.ts`
 - **deleted** `src/plugins/imageView/manifest.ts`
-- **changed** `src/plugins/imageView/operations.test.ts`
+- **deleted** `src/plugins/imageView/operations.test.ts`
+- **deleted** `src/plugins/imageView/operations.ts`
 - **changed** `src/plugins/imageView/plugin.ts`
 - **added** `src/plugins/imageView/resolveSrc.test.ts`
 - **added** `src/plugins/imageView/resolveSrc.ts`
@@ -7301,6 +8254,7 @@
 - **changed** `src/plugins/imageView/tiptap.ts`
 - **changed** `src/plugins/inactiveSelection/inactiveSelectionPlugin.ts`
 - **deleted** `src/plugins/inactiveSelection/manifest.ts`
+- **changed** `src/plugins/inactiveSelection/tiptap.ts`
 - **changed** `src/plugins/inlineCodeBoundary/__tests__/inlineCodeBoundary.test.ts`
 - **deleted** `src/plugins/inlineCodeBoundary/manifest.ts`
 - **changed** `src/plugins/inlineNodeEditing/__tests__/inlineNodeEditing.test.ts`
@@ -7360,6 +8314,7 @@
 - **changed** `src/plugins/markInputRules/tiptap.ts`
 - **changed** `src/plugins/markdownArtifacts/HtmlNodeView.ts`
 - **changed** `src/plugins/markdownArtifacts/__tests__/HtmlNodeView.test.ts`
+- **changed** `src/plugins/markdownArtifacts/frontmatter.ts`
 - **deleted** `src/plugins/markdownArtifacts/manifest.ts`
 - **deleted** `src/plugins/markdownCopy/manifest.ts`
 - **changed** `src/plugins/markdownCopy/tiptap.test.ts`
@@ -7376,7 +8331,8 @@
 - **changed** `src/plugins/mathPopup/__tests__/mathPopupStore.test.ts`
 - **deleted** `src/plugins/mathPopup/manifest.ts`
 - **changed** `src/plugins/mathPopup/math-popup.css`
-- **changed** `src/plugins/mathPopup/operations.test.ts`
+- **deleted** `src/plugins/mathPopup/operations.test.ts`
+- **deleted** `src/plugins/mathPopup/operations.ts`
 - **added** `src/plugins/mathPopup/tiptap.test.ts`
 - **changed** `src/plugins/mathPopup/tiptap.ts`
 - **changed** `src/plugins/mathPreview/MathPreviewView.test.ts`
@@ -7461,6 +8417,7 @@
 - **added** `src/plugins/shared/blockTemplates.ts`
 - **changed** `src/plugins/shared/diagramExport.ts`
 - **changed** `src/plugins/shared/diagramThemeTokens.ts`
+- **added** `src/plugins/shared/fenceDelimiter.test.ts`
 - **added** `src/plugins/shared/fenceDelimiter.ts`
 - **added** `src/plugins/shared/fenceScanner.ts`
 - **added** `src/plugins/shared/hostDocument.test.ts`
@@ -7506,7 +8463,7 @@
 - **changed** `src/plugins/sourceContextDetection/blockquoteActions.ts`
 - **changed** `src/plugins/sourceContextDetection/clearFormatting.test.ts`
 - **changed** `src/plugins/sourceContextDetection/codeFenceDetection.ts`
-- **changed** `src/plugins/sourceContextDetection/contextRouting.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/contextRouting.test.ts`
 - **changed** `src/plugins/sourceContextDetection/cursorContext.test.ts`
 - **changed** `src/plugins/sourceContextDetection/cursorContext.ts`
 - **changed** `src/plugins/sourceContextDetection/footnoteActions.test.ts`
@@ -7525,8 +8482,11 @@
 - **added** `src/plugins/sourceContextDetection/listMutations.test.ts`
 - **added** `src/plugins/sourceContextDetection/listMutations.ts`
 - **deleted** `src/plugins/sourceContextDetection/manifest.ts`
-- **changed** `src/plugins/sourceContextDetection/mathActions.test.ts`
-- **changed** `src/plugins/sourceContextDetection/shortcutUtils.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/mathActions.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/mathActions.ts`
+- **deleted** `src/plugins/sourceContextDetection/shortcutUtils.test.ts`
+- **deleted** `src/plugins/sourceContextDetection/shortcutUtils.ts`
+- **deleted** `src/plugins/sourceContextDetection/sourceContextAdapter.ts`
 - **changed** `src/plugins/sourceContextDetection/sourceInsertions.test.ts`
 - **changed** `src/plugins/sourceContextDetection/sourceInsertions.ts`
 - **changed** `src/plugins/sourceContextDetection/tableActions.test.ts`
@@ -7602,7 +8562,10 @@
 - **changed** `src/plugins/svg/svgRender.ts`
 - **deleted** `src/plugins/syntaxReveal/manifest.ts`
 - **changed** `src/plugins/syntaxReveal/marks.test.ts`
-- **changed** `src/plugins/syntaxReveal/syntax-reveal.css`
+- **changed** `src/plugins/syntaxReveal/marks.ts`
+- **deleted** `src/plugins/syntaxReveal/syntax-reveal.css`
+- **deleted** `src/plugins/syntaxReveal/utils.test.ts`
+- **deleted** `src/plugins/syntaxReveal/utils.ts`
 - **changed** `src/plugins/tabIndent/__tests__/shiftTabEscape.test.ts`
 - **changed** `src/plugins/tabIndent/__tests__/tabEscapeCode.test.ts`
 - **deleted** `src/plugins/tabIndent/manifest.ts`
@@ -7628,6 +8591,7 @@
 - **changed** `src/plugins/tableUI/tableEscape.edge-cases.test.ts`
 - **changed** `src/plugins/tableUI/tableEscape.test.ts`
 - **deleted** `src/plugins/taskToggle/manifest.ts`
+- **changed** `src/plugins/taskToggle/tiptap.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.test.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.ts`
 - **added** `src/plugins/taskToggle/tiptapTaskListUtils.wrap.test.ts`
@@ -7659,6 +8623,7 @@
 - **changed** `src/plugins/toolbarActions/sourceAdapter.ts`
 - **changed** `src/plugins/toolbarActions/sourceAdapterLinks.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceAdapterLinks.ts`
+- **added** `src/plugins/toolbarActions/sourceAlertActions.ts`
 - **added** `src/plugins/toolbarActions/sourceBlockActions.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceBlockActions.ts`
 - **added** `src/plugins/toolbarActions/sourceBlockBuilders.test.ts`
@@ -7674,6 +8639,7 @@
 - **changed** `src/plugins/toolbarActions/sourceImageActions.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceImageActions.ts`
 - **changed** `src/plugins/toolbarActions/sourceInsertActions.ts`
+- **added** `src/plugins/toolbarActions/sourceInsertActions.unfence.test.ts`
 - **added** `src/plugins/toolbarActions/sourceLineClassifier.ts`
 - **added** `src/plugins/toolbarActions/sourceListToggle.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceMultiSelection.test.ts`
@@ -7681,6 +8647,7 @@
 - **added** `src/plugins/toolbarActions/sourceTextTransforms.boundaries.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceTextTransforms.test.ts`
 - **changed** `src/plugins/toolbarActions/sourceTextTransforms.ts`
+- **added** `src/plugins/toolbarActions/sourceUnfence.ts`
 - **changed** `src/plugins/toolbarActions/types.ts`
 - **changed** `src/plugins/toolbarActions/wysiwygAdapter.test.ts`
 - **changed** `src/plugins/toolbarActions/wysiwygAdapter.ts`
@@ -7713,8 +8680,11 @@
 - **changed** `src/plugins/toolbarActions/wysiwygMultiSelection.test.ts`
 - **added** `src/plugins/toolbarActions/wysiwygTextPositionMap.test.ts`
 - **added** `src/plugins/toolbarActions/wysiwygTextPositionMap.ts`
+- **deleted** `src/plugins/toolbarContext/index.ts`
 - **deleted** `src/plugins/toolbarContext/manifest.ts`
-- **changed** `src/plugins/toolbarContext/toolbarIntent.test.ts`
+- **deleted** `src/plugins/toolbarContext/toolbarIntent.test.ts`
+- **deleted** `src/plugins/toolbarContext/toolbarIntent.ts`
+- **changed** `src/plugins/toolbarContext/types.ts`
 - **changed** `src/plugins/typewriterMode/__tests__/typewriterMode.test.ts`
 - **deleted** `src/plugins/typewriterMode/manifest.ts`
 - **changed** `src/plugins/typewriterMode/tiptap.test.ts`
@@ -7733,7 +8703,8 @@
 - **changed** `src/plugins/wikiLinkPopup/__tests__/tiptap.test.ts`
 - **changed** `src/plugins/wikiLinkPopup/__tests__/wikiLinkPopupStore.test.ts`
 - **deleted** `src/plugins/wikiLinkPopup/manifest.ts`
-- **changed** `src/plugins/wikiLinkPopup/operations.test.ts`
+- **deleted** `src/plugins/wikiLinkPopup/operations.test.ts`
+- **deleted** `src/plugins/wikiLinkPopup/operations.ts`
 - **changed** `src/plugins/wikiLinkPopup/tiptap.ts`
 - **changed** `src/plugins/wikiLinkPopup/wiki-link-popup.css`
 - **changed** `src/plugins/wikiLinkPopup/wikiLinkPaths.test.ts`
@@ -7743,6 +8714,7 @@
 - **deleted** `src/plugins/workflowPreview/manifest.ts`
 - **changed** `src/plugins/workflowPreview/workflow-node.css`
 - **changed** `src/plugins/workflowPreview/workflow-preview.css`
+- **added** `src/services/assembly/autoPairConfig.test.ts`
 - **added** `src/services/assembly/autoPairConfig.ts`
 - **added** `src/services/assembly/bindHostSettings.test.ts`
 - **added** `src/services/assembly/bindHostSettings.ts`
@@ -7767,6 +8739,7 @@
 - **added** `src/services/assembly/uiToggleOptions.ts`
 - **added** `src/services/assembly/workflowExtensionGates.test.ts`
 - **added** `src/services/assembly/workflowExtensionGates.ts`
+- **added** `src/services/breakdown/breakdownContextService.test.ts`
 - **added** `src/services/breakdown/breakdownContextService.ts`
 - **added** `src/services/breakdown/breakdownEdgeService.ts`
 - **added** `src/services/breakdown/breakdownRefresh.ts`
@@ -7832,18 +8805,23 @@
 - **added** `src/services/coherence/scanOnChange.ts`
 - **changed** `src/services/contentServer/client.test.ts`
 - **changed** `src/services/contentServer/client.ts`
+- **added** `src/services/contentServer/slidevDeck.test.ts`
+- **added** `src/services/contentServer/slidevDeck.ts`
 - **added** `src/services/dialogs/confirmAction.test.ts`
 - **added** `src/services/dialogs/confirmAction.ts`
 - **changed** `src/services/dialogs/errorDialog.test.ts`
 - **changed** `src/services/dialogs/errorDialog.ts`
 - **changed** `src/services/dialogs/largeFilePrompts.test.ts`
 - **changed** `src/services/dialogs/largeFilePrompts.ts`
+- **added** `src/services/editor/activeSelectionText.test.ts`
+- **added** `src/services/editor/activeSelectionText.ts`
 - **added** `src/services/editor/clipboardBridge.ts`
 - **changed** `src/services/editor/clipboardUrl.test.ts`
 - **added** `src/services/editor/editorActionDispatch.ts`
 - **added** `src/services/editor/editorActionGates.ts`
 - **added** `src/services/editor/editorActionOwner.ts`
 - **changed** `src/services/editor/extractContext.test.ts`
+- **changed** `src/services/editor/extractContext.ts`
 - **renamed** `src/hooks/markdownSplitToggle.ts` → `src/services/editor/markdownSplitToggle.ts`
 - **changed** `src/services/editor/readOnlyGuard.test.ts`
 - **changed** `src/services/editor/readOnlyGuard.ts`
@@ -7852,24 +8830,27 @@
 - **added** `src/services/editor/scrollPosition.test.ts`
 - **added** `src/services/editor/scrollPosition.ts`
 - **changed** `src/services/editor/sourcePeek.test.ts`
+- **changed** `src/services/editor/sourcePeek.ts`
 - **changed** `src/services/editor/tiptapFocus.test.ts`
 - **changed** `src/services/editor/tiptapFocus.ts`
+- **changed** `src/services/editor/tiptapView.ts`
 - **added** `src/services/editor/unifiedHistoryDispatch.ts`
 - **added** `src/services/editor/universalToolbarToggle.test.ts`
 - **added** `src/services/editor/universalToolbarToggle.ts`
 - **changed** `src/services/editor/urlDetection.test.ts`
+- **changed** `src/services/editor/urlDetection.ts`
 - **added** `src/services/featureFlags/workflowFeatureFlag.test.ts`
 - **changed** `src/services/featureFlags/workflowFeatureFlag.ts`
 - **changed** `src/services/featureFlags/workspaceRailFeatureFlag.test.ts`
 - **added** `src/services/files/applyModifyPolicy.ts`
-- **renamed** `src/hooks/useDefaultSaveFolder.test.ts` → `src/services/files/defaultSaveFolder.test.ts`
-- **renamed** `src/hooks/useDefaultSaveFolder.ts` → `src/services/files/defaultSaveFolder.ts`
+- **added** `src/services/files/defaultSaveFolder.test.ts`
+- **added** `src/services/files/defaultSaveFolder.ts`
 - **added** `src/services/files/externalChangeBatchQueue.test.ts`
 - **added** `src/services/files/externalChangeBatchQueue.ts`
 - **renamed** `src/hooks/fileChangeBatch.test.ts` → `src/services/files/fileChangeBatch.test.ts`
 - **renamed** `src/hooks/fileChangeBatch.ts` → `src/services/files/fileChangeBatch.ts`
-- **renamed** `src/hooks/useFileSave.test.ts` → `src/services/files/fileSave.test.ts`
-- **renamed** `src/hooks/useFileSave.ts` → `src/services/files/fileSave.ts`
+- **added** `src/services/files/fileSave.test.ts`
+- **added** `src/services/files/fileSave.ts`
 - **added** `src/services/files/resolveDirtyBatch.ts`
 - **added** `src/services/fonts/verifiedMonoStack.test.ts`
 - **added** `src/services/fonts/verifiedMonoStack.ts`
@@ -7877,26 +8858,36 @@
 - **changed** `src/services/formats/formatSettingsBridge.test.ts`
 - **changed** `src/services/formats/formatSettingsBridge.ts`
 - **added** `src/services/formats/lineEndingMetadata.ts`
-- **renamed** `src/hooks/__tests__/useHistoryOperations.test.ts` → `src/services/history/__tests__/historyOperations.test.ts`
-- **renamed** `src/hooks/__tests__/useHistoryRecovery.test.ts` → `src/services/history/__tests__/historyRecovery.test.ts`
+- **added** `src/services/genieInvocation/applyGenieResult.ts`
+- **added** `src/services/genieInvocation/cancelRequest.test.ts`
+- **added** `src/services/genieInvocation/cancelRequest.ts`
+- **added** `src/services/genieInvocation/extraction.test.ts`
+- **added** `src/services/genieInvocation/providerValidation.test.ts`
+- **added** `src/services/genieInvocation/providerValidation.ts`
+- **added** `src/services/genieInvocation/streamRunner.test.ts`
+- **added** `src/services/genieInvocation/streamRunner.ts`
+- **added** `src/services/genieInvocation/streamRunnerContext.ts`
+- **added** `src/services/history/__tests__/historyOperations.test.ts`
+- **added** `src/services/history/__tests__/historyRecovery.test.ts`
 - **added** `src/services/history/checkpointRedoBranch.test.ts`
-- **renamed** `src/hooks/useHistoryOperations.test.ts` → `src/services/history/historyOperations.test.ts`
-- **renamed** `src/hooks/useHistoryOperations.ts` → `src/services/history/historyOperations.ts`
-- **renamed** `src/hooks/useHistoryRecovery.test.ts` → `src/services/history/historyRecovery.test.ts`
-- **renamed** `src/hooks/useHistoryRecovery.ts` → `src/services/history/historyRecovery.ts`
-- **renamed** `src/hooks/useUnifiedHistory.test.ts` → `src/services/history/unifiedHistory.test.ts`
-- **renamed** `src/hooks/useUnifiedHistory.ts` → `src/services/history/unifiedHistory.ts`
+- **added** `src/services/history/historyOperations.test.ts`
+- **added** `src/services/history/historyOperations.ts`
+- **added** `src/services/history/historyRecovery.test.ts`
+- **added** `src/services/history/historyRecovery.ts`
+- **added** `src/services/history/unifiedHistory.test.ts`
+- **added** `src/services/history/unifiedHistory.ts`
 - **added** `src/services/history/unifiedUndoRedo.ts`
 - **changed** `src/services/ime/imeToast.test.ts`
 - **changed** `src/services/ime/imeToast.ts`
+- **changed** `src/services/ime/imeToastPinAction.tsx`
+- **added** `src/services/keybinding/__tests__/editorMechanics.test.ts`
+- **added** `src/services/keybinding/__tests__/editorMechanics.ts`
 - **added** `src/services/keybinding/bindingConflicts.test.ts`
 - **added** `src/services/keybinding/bindingContext.test.ts`
 - **added** `src/services/keybinding/bindingContext.ts`
 - **added** `src/services/keybinding/bindingRegistry.test.ts`
 - **added** `src/services/keybinding/bindingRegistry.ts`
 - **added** `src/services/keybinding/crossWindowPropagation.test.ts`
-- **added** `src/services/keybinding/editorMechanics.test.ts`
-- **added** `src/services/keybinding/editorMechanics.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.test.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.ts`
 - **added** `src/services/keybinding/keybindingReferentialIntegrity.test.ts`
@@ -7919,8 +8910,13 @@
 - **changed** `src/services/mcpBridge/bridgePathGuard.test.ts`
 - **added** `src/services/mcpBridge/focusedWindow.test.ts`
 - **added** `src/services/mcpBridge/focusedWindow.ts`
+- **added** `src/services/mcpBridge/handleRequest.ts`
+- **added** `src/services/mcpBridge/types.ts`
+- **added** `src/services/mcpBridge/utils.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/bridgeFieldParity.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/browser.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserAccess.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/browserAct.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserActParse.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserApprovalFlow.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserAttachmentMirror.test.ts`
@@ -7931,19 +8927,29 @@
 - **added** `src/services/mcpBridge/v2/__tests__/browserNavigation.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserOpenFlow.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserPower.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/browserWaitFor.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserWaitForPoll.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/browserWorkflow.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/dispatch.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/document.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/operationManifest.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/operationManifestParity.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/readOperationArgs.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/scriptLimitParity.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/selection.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/session.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/sessionSerializers.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/sessionVisibility.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/waitBoundParity.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workflow.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspace.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenBackground.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenErrors.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceSwitchTabVerify.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts`
 - **added** `src/services/mcpBridge/v2/bridgeError.ts`
+- **added** `src/services/mcpBridge/v2/browser.ts`
 - **added** `src/services/mcpBridge/v2/browserAccess.ts`
 - **added** `src/services/mcpBridge/v2/browserAct.ts`
 - **added** `src/services/mcpBridge/v2/browserActFlow.ts`
@@ -7956,31 +8962,39 @@
 - **added** `src/services/mcpBridge/v2/browserFailure.test.ts`
 - **added** `src/services/mcpBridge/v2/browserFailure.ts`
 - **added** `src/services/mcpBridge/v2/browserGateProbe.ts`
+- **added** `src/services/mcpBridge/v2/browserHelpers.ts`
 - **added** `src/services/mcpBridge/v2/browserNavigation.ts`
 - **added** `src/services/mcpBridge/v2/browserNavigationShared.ts`
 - **added** `src/services/mcpBridge/v2/browserOpen.ts`
 - **added** `src/services/mcpBridge/v2/browserOpenFlow.ts`
 - **added** `src/services/mcpBridge/v2/browserPower.ts`
 - **added** `src/services/mcpBridge/v2/browserQuery.ts`
+- **added** `src/services/mcpBridge/v2/browserReadClass.ts`
 - **added** `src/services/mcpBridge/v2/browserRecord.test.ts`
 - **added** `src/services/mcpBridge/v2/browserRecord.ts`
+- **added** `src/services/mcpBridge/v2/browserSession.ts`
 - **added** `src/services/mcpBridge/v2/browserStyleOps.ts`
 - **added** `src/services/mcpBridge/v2/browserWaitFor.ts`
 - **added** `src/services/mcpBridge/v2/browserWaitForPoll.ts`
 - **added** `src/services/mcpBridge/v2/browserWorkflow.ts`
 - **added** `src/services/mcpBridge/v2/dispatch.ts`
+- **added** `src/services/mcpBridge/v2/document.ts`
 - **added** `src/services/mcpBridge/v2/documentTransform.test.ts`
 - **added** `src/services/mcpBridge/v2/documentTransform.ts`
 - **added** `src/services/mcpBridge/v2/documentTransformRefusal.test.ts`
 - **added** `src/services/mcpBridge/v2/generated/bridgeContracts.ts`
-- **added** `src/services/mcpBridge/v2/operationManifest.ts`
 - **added** `src/services/mcpBridge/v2/readOperationArgs.ts`
+- **added** `src/services/mcpBridge/v2/selection.ts`
 - **added** `src/services/mcpBridge/v2/session.ts`
 - **added** `src/services/mcpBridge/v2/sessionSerializers.ts`
+- **added** `src/services/mcpBridge/v2/types.ts`
+- **added** `src/services/mcpBridge/v2/workflow.ts`
+- **added** `src/services/mcpBridge/v2/workspace.ts`
 - **added** `src/services/mcpBridge/v2/workspaceOpen.ts`
 - **added** `src/services/mcpBridge/v2/workspaceOpenFolder.test.ts`
 - **added** `src/services/mcpBridge/v2/workspaceOpenFolder.ts`
 - **added** `src/services/mcpBridge/v2/workspaceSave.ts`
+- **added** `src/services/mcpBridge/v2/workspaceSaveAs.ts`
 - **added** `src/services/mcpBridge/v2/wrapHandler.ts`
 - **added** `src/services/mcpBridge/windowWorkspaceSync.test.ts`
 - **added** `src/services/mcpBridge/windowWorkspaceSync.ts`
@@ -7990,12 +9004,13 @@
 - **added** `src/services/media/crossWindowRefs.ts`
 - **changed** `src/services/media/imageHashRegistry.test.ts`
 - **changed** `src/services/media/imageHashRegistry.ts`
-- **renamed** `src/hooks/useImageOperations.test.ts` → `src/services/media/imageOperations.test.ts`
-- **renamed** `src/hooks/useImageOperations.ts` → `src/services/media/imageOperations.ts`
+- **added** `src/services/media/imageOperations.test.ts`
+- **added** `src/services/media/imageOperations.ts`
+- **changed** `src/services/media/imageResize.ts`
 - **added** `src/services/media/liveDocumentContents.test.ts`
 - **added** `src/services/media/liveDocumentContents.ts`
-- **renamed** `src/hooks/useMediaOperations.test.ts` → `src/services/media/mediaOperations.test.ts`
-- **renamed** `src/hooks/useMediaOperations.ts` → `src/services/media/mediaOperations.ts`
+- **added** `src/services/media/mediaOperations.test.ts`
+- **added** `src/services/media/mediaOperations.ts`
 - **changed** `src/services/media/orphanAssetCleanup.test.ts`
 - **changed** `src/services/media/orphanAssetCleanup.ts`
 - **added** `src/services/media/orphanCleanupPrompt.test.ts`
@@ -8006,7 +9021,9 @@
 - **added** `src/services/media/workspaceReferenceCheck.test.ts`
 - **added** `src/services/media/workspaceReferenceCheck.ts`
 - **changed** `src/services/menu/rebuildNativeMenu.test.ts`
-- **renamed** `src/hooks/__tests__/useFileOpen.test.ts` → `src/services/navigation/__tests__/fileOpen.test.ts`
+- **changed** `src/services/menu/rebuildNativeMenu.ts`
+- **changed** `src/services/menu/startupMenuSync.ts`
+- **added** `src/services/navigation/__tests__/fileOpen.test.ts`
 - **changed** `src/services/navigation/activateTabInFocusedPane.test.ts`
 - **changed** `src/services/navigation/activateTabInFocusedPane.ts`
 - **changed** `src/services/navigation/activeDocument.test.ts`
@@ -8017,55 +9034,64 @@
 - **renamed** `src/hooks/dragDropOpenFile.ts` → `src/services/navigation/dragDropOpenFile.ts`
 - **added** `src/services/navigation/executeOpenDecision.test.ts`
 - **added** `src/services/navigation/executeOpenDecision.ts`
-- **renamed** `src/hooks/useFileOpen.test.ts` → `src/services/navigation/fileOpen.test.ts`
-- **renamed** `src/hooks/useFileOpen.ts` → `src/services/navigation/fileOpen.ts`
-- **renamed** `src/hooks/finderOpenBranch.test.ts` → `src/services/navigation/finderOpenBranch.test.ts`
-- **renamed** `src/hooks/finderOpenBranch.ts` → `src/services/navigation/finderOpenBranch.ts`
+- **added** `src/services/navigation/fileOpen.test.ts`
+- **added** `src/services/navigation/fileOpen.ts`
+- **added** `src/services/navigation/finderOpenBranch.test.ts`
+- **added** `src/services/navigation/finderOpenBranch.ts`
 - **added** `src/services/navigation/finderOpenBranches.test.ts`
 - **added** `src/services/navigation/finderOpenBranches.ts`
 - **added** `src/services/navigation/finderOpenDispatch.ts`
 - **changed** `src/services/navigation/largeFileRouting.test.ts`
+- **changed** `src/services/navigation/largeFileRouting.ts`
 - **changed** `src/services/navigation/linkOpen.test.ts`
 - **changed** `src/services/navigation/linkOpen.ts`
 - **added** `src/services/navigation/linkSecurity.test.ts`
 - **added** `src/services/navigation/loadFileIntoTab.closeDuringRead.test.ts`
 - **added** `src/services/navigation/loadFileIntoTab.ts`
 - **changed** `src/services/navigation/newFile.test.ts`
+- **changed** `src/services/navigation/newFile.ts`
 - **changed** `src/services/navigation/openFileEvent.test.ts`
 - **changed** `src/services/navigation/openFileEvent.ts`
 - **added** `src/services/navigation/openFragment.test.ts`
 - **added** `src/services/navigation/openFragment.ts`
 - **renamed** `src/hooks/openMediaFile.test.ts` → `src/services/navigation/openMediaFile.test.ts`
 - **renamed** `src/hooks/openMediaFile.ts` → `src/services/navigation/openMediaFile.ts`
-- **renamed** `src/hooks/useOpenWorkflowTarget.ts` → `src/services/navigation/openWorkflowTarget.ts`
+- **added** `src/services/navigation/openWorkflowTarget.ts`
 - **changed** `src/services/navigation/pdfExportWindow.ts`
 - **renamed** `src/hooks/replaceTabWithFile.ts` → `src/services/navigation/replaceTabWithFile.ts`
 - **changed** `src/services/navigation/restoreSplitLayout.test.ts`
 - **changed** `src/services/navigation/restoreWorkspaceTabs.test.ts`
 - **changed** `src/services/navigation/restoreWorkspaceTabs.ts`
 - **changed** `src/services/navigation/settingsWindow.test.ts`
+- **changed** `src/services/navigation/settingsWindow.ts`
 - **added** `src/services/navigation/toggleSplitDocuments.test.ts`
 - **changed** `src/services/navigation/toggleSplitDocuments.ts`
-- **renamed** `src/hooks/useWindowFocus.test.ts` → `src/services/navigation/windowFocus.test.ts`
-- **renamed** `src/hooks/useWindowFocus.ts` → `src/services/navigation/windowFocus.ts`
+- **added** `src/services/navigation/windowFocus.test.ts`
+- **added** `src/services/navigation/windowFocus.ts`
 - **added** `src/services/operators/operatorService.test.ts`
 - **added** `src/services/operators/operatorService.ts`
+- **added** `src/services/promptHistory/promptHistoryCore.test.ts`
+- **added** `src/services/promptHistory/promptHistoryCore.ts`
 - **added** `src/services/runtimeWiring.test.ts`
 - **added** `src/services/runtimeWiring.ts`
+- **added** `src/services/search/seedFindFromSelection.test.ts`
+- **added** `src/services/search/seedFindFromSelection.ts`
 - **changed** `src/services/secrets/apiKeySecrets.test.ts`
 - **changed** `src/services/secrets/secureStorage.test.ts`
+- **added** `src/services/tabs/bulkCloseSelectors.test.ts`
 - **added** `src/services/tabs/bulkCloseSelectors.ts`
 - **added** `src/services/tabs/lastUsedTab.test.ts`
 - **added** `src/services/tabs/lastUsedTab.ts`
+- **added** `src/services/tabs/moveTabToNewWindow.test.ts`
 - **added** `src/services/tabs/moveTabToNewWindow.ts`
 - **added** `src/services/tabs/openToTheSide.test.ts`
 - **added** `src/services/tabs/openToTheSide.ts`
-- **renamed** `src/hooks/useReplaceableTab.test.ts` → `src/services/tabs/replaceableTab.test.ts`
-- **renamed** `src/hooks/useReplaceableTab.ts` → `src/services/tabs/replaceableTab.ts`
+- **added** `src/services/tabs/replaceableTab.test.ts`
+- **added** `src/services/tabs/replaceableTab.ts`
 - **added** `src/services/tabs/tabDiskActions.test.ts`
 - **added** `src/services/tabs/tabDiskActions.ts`
 - **added** `src/services/tabs/tabOperations.resolution.test.ts`
-- **renamed** `src/hooks/useTabOperations.test.ts` → `src/services/tabs/tabOperations.test.ts`
+- **added** `src/services/tabs/tabOperations.test.ts`
 - **added** `src/services/tabs/tabOperations.ts`
 - **added** `src/services/tabs/visibleWindowTabs.ts`
 - **added** `src/services/terminal/activeTerminal.test.ts`
@@ -8105,10 +9131,12 @@
 - **added** `src/services/windowClose/reserveBatchDestinations.test.ts`
 - **added** `src/services/windowClose/reserveBatchDestinations.ts`
 - **renamed** `src/hooks/saveDialog.ts` → `src/services/windowClose/saveDialog.ts`
-- **renamed** `src/hooks/__tests__/tabCleanup.test.ts` → `src/services/windowClose/tabCleanup.test.ts`
-- **renamed** `src/hooks/tabCleanup.ts` → `src/services/windowClose/tabCleanup.ts`
+- **added** `src/services/windowClose/tabCleanup.test.ts`
+- **added** `src/services/windowClose/tabCleanup.ts`
 - **added** `src/services/windowClose/windowCloseFlow.test.ts`
 - **added** `src/services/windowClose/windowCloseFlow.ts`
+- **added** `src/services/workflow/providerPayload.test.ts`
+- **added** `src/services/workflow/providerPayload.ts`
 - **added** `src/services/workflow/recorderSession.test.ts`
 - **added** `src/services/workflow/recorderSession.ts`
 - **added** `src/services/workflow/runApproval.test.ts`
@@ -8125,6 +9153,8 @@
 - **added** `src/services/workflow/runRegistry.ts`
 - **added** `src/services/workflow/runStepGuard.test.ts`
 - **added** `src/services/workflow/runStepGuard.ts`
+- **added** `src/services/workflow/saveGhaWorkflowDocument.test.ts`
+- **added** `src/services/workflow/saveGhaWorkflowDocument.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.test.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.ts`
 - **added** `src/services/workflow/workflowRunService.test.ts`
@@ -8157,8 +9187,8 @@
 - **added** `src/services/workspaces/instanceOperationLock.ts`
 - **added** `src/services/workspaces/openWorkspaceByPath.test.ts`
 - **added** `src/services/workspaces/openWorkspaceByPath.ts`
-- **renamed** `src/hooks/openWorkspaceWithConfig.test.ts` → `src/services/workspaces/openWorkspaceWithConfig.test.ts`
-- **renamed** `src/hooks/openWorkspaceWithConfig.ts` → `src/services/workspaces/openWorkspaceWithConfig.ts`
+- **added** `src/services/workspaces/openWorkspaceWithConfig.test.ts`
+- **added** `src/services/workspaces/openWorkspaceWithConfig.ts`
 - **added** `src/services/workspaces/reassignTabOwnershipForPath.test.ts`
 - **added** `src/services/workspaces/reassignTabOwnershipForPath.ts`
 - **added** `src/services/workspaces/reopenClosedTab.test.ts`
@@ -8232,6 +9262,8 @@
 - **deleted** `src/stores/_shimHelper.test.ts`
 - **deleted** `src/stores/_shimHelper.ts`
 - **changed** `src/stores/aiStore/genies.ts`
+- **added** `src/stores/aiStore/invocation.test.ts`
+- **changed** `src/stores/aiStore/invocation.ts`
 - **changed** `src/stores/aiStore/promptHistory.ts`
 - **changed** `src/stores/aiStore/provider.test.ts`
 - **changed** `src/stores/aiStore/provider.ts`
@@ -8255,9 +9287,12 @@
 - **changed** `src/stores/browserSessionStore.test.ts`
 - **changed** `src/stores/browserSessionStore.ts`
 - **changed** `src/stores/browserUiStore.test.ts`
+- **added** `src/stores/claimStore.test.ts`
 - **added** `src/stores/claimStore.ts`
 - **renamed** `src/components/CommandPalette/commandPaletteStore.test.ts` → `src/stores/commandPaletteStore.test.ts`
 - **renamed** `src/components/CommandPalette/commandPaletteStore.ts` → `src/stores/commandPaletteStore.ts`
+- **changed** `src/stores/contentServerStore.test.ts`
+- **changed** `src/stores/contentServerStore.ts`
 - **added** `src/stores/createRecentsStore.ts`
 - **changed** `src/stores/documentStore.test.ts`
 - **changed** `src/stores/documentStore.ts`
@@ -8378,8 +9413,13 @@
 - **changed** `src/stores/uiStore/types.ts`
 - **changed** `src/stores/unifiedHistoryStore.test.ts`
 - **changed** `src/stores/wikiLinkPopupStore.ts`
+- **added** `src/stores/workflowApprovalSlice.ts`
+- **added** `src/stores/workflowEditQueue.ts`
+- **added** `src/stores/workflowPreviewSlice.ts`
+- **added** `src/stores/workflowSerialize.ts`
 - **changed** `src/stores/workflowStore.test.ts`
 - **changed** `src/stores/workflowStore.ts`
+- **added** `src/stores/workflowViewSlice.ts`
 - **added** `src/stores/workspaceApprovalStore.test.ts`
 - **added** `src/stores/workspaceApprovalStore.ts`
 - **added** `src/stores/workspaceConfigDefaults.test.ts`
@@ -8391,10 +9431,14 @@
 - **changed** `src/stores/workspaceInstancesStore/helpers.ts`
 - **added** `src/stores/workspacePaneLayoutsStore.test.ts`
 - **added** `src/stores/workspacePaneLayoutsStore.ts`
+- **added** `src/stores/workspaceStore.blankRoot.test.ts`
 - **changed** `src/stores/workspaceStore.test.ts`
 - **changed** `src/stores/workspaceStore.ts`
+- **added** `src/stores/workspaceStoreConfig.test.ts`
 - **changed** `src/stores/workspaceStoreHelpers.test.ts`
 - **changed** `src/stores/workspaceStoreHelpers.ts`
+- **added** `src/stores/workspaceStorePersist.test.ts`
+- **added** `src/stores/workspaceStorePersist.ts`
 - **changed** `src/styles/block-media-shared.css`
 - **added** `src/styles/button-shared.css`
 - **added** `src/styles/icon-button-shared.css`
@@ -8438,7 +9482,7 @@
 - **renamed** `dev-docs/fixtures/gha-workflows/tj-actions/test.yml` → `src/test/fixtures/gha-workflows/tj-actions/test.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vite/ci.yml` → `src/test/fixtures/gha-workflows/vite/ci.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/ci.yml` → `src/test/fixtures/gha-workflows/vmark/ci.yml`
-- **renamed** `dev-docs/grills/gha-workflow/fixtures/claude-audit.yml` → `src/test/fixtures/gha-workflows/vmark/claude-audit.yml`
+- **added** `src/test/fixtures/gha-workflows/vmark/claude-audit.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/claude-cost-report.yml` → `src/test/fixtures/gha-workflows/vmark/claude-cost-report.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/claude.yml` → `src/test/fixtures/gha-workflows/vmark/claude.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/vmark/deploy-website.yml` → `src/test/fixtures/gha-workflows/vmark/deploy-website.yml`
@@ -8477,7 +9521,9 @@
 - **added** `src/test/viteConfigNativeLoader.test.ts`
 - **added** `src/test/waitBudget.ts`
 - **added** `src/test/windowReadyContract.test.ts`
+- **changed** `src/types/aiGenies.ts`
 - **changed** `src/types/cursorSync.ts`
+- **changed** `src/types/editorContextMenu.ts`
 - **changed** `src/types/tabTransfer.ts`
 - **changed** `src/types/workspaceTransfer.ts`
 - **changed** `src/utils/__tests__/debouncedSearchCount.test.ts`
@@ -8618,6 +9664,12 @@
 - **added** `src/utils/markdownPipeline/__tests__/characterization/corpus/22-table-hardbreaks.md`
 - **added** `src/utils/markdownPipeline/__tests__/characterization/corpus/23-setext-headings.md`
 - **added** `src/utils/markdownPipeline/__tests__/characterization/roundtrip.characterization.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/expectedDeltas.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/fixtures.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/parserConformance.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/projectionDiff.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/semanticProjection.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/conformance/semanticProjection.ts`
 - **added** `src/utils/markdownPipeline/__tests__/fidelity/README.md`
 - **added** `src/utils/markdownPipeline/__tests__/fidelity/docFingerprint.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/fidelity/docFingerprint.ts`
@@ -8665,12 +9717,6 @@
 - **changed** `src/utils/markdownPipeline/adapter.ts`
 - **added** `src/utils/markdownPipeline/blankLineCapture.test.ts`
 - **added** `src/utils/markdownPipeline/blankLineCapture.ts`
-- **added** `src/utils/markdownPipeline/conformance/expectedDeltas.ts`
-- **added** `src/utils/markdownPipeline/conformance/fixtures.ts`
-- **added** `src/utils/markdownPipeline/conformance/parserConformance.test.ts`
-- **added** `src/utils/markdownPipeline/conformance/projectionDiff.ts`
-- **added** `src/utils/markdownPipeline/conformance/semanticProjection.test.ts`
-- **added** `src/utils/markdownPipeline/conformance/semanticProjection.ts`
 - **added** `src/utils/markdownPipeline/dialect.test.ts`
 - **added** `src/utils/markdownPipeline/dialect.ts`
 - **added** `src/utils/markdownPipeline/dialectDescriptors.ts`
@@ -8781,13 +9827,17 @@
 - **changed** `src/utils/popupComponents.ts`
 - **changed** `src/utils/popupPosition.test.ts`
 - **changed** `src/utils/reentryGuard.test.ts`
+- **changed** `src/utils/reentryGuard.ts`
 - **added** `src/utils/referenceIdentity.test.ts`
 - **added** `src/utils/referenceIdentity.ts`
+- **changed** `src/utils/reloadGuard.ts`
 - **changed** `src/utils/safeUnlisten.test.ts`
 - **changed** `src/utils/safeUnlisten.ts`
 - **changed** `src/utils/sanitize.test.ts`
 - **changed** `src/utils/sanitize.ts`
+- **changed** `src/utils/shortcutMatch.ts`
 - **changed** `src/utils/sourceEditorSearch.test.ts`
+- **changed** `src/utils/sourceEditorSearch.ts`
 - **changed** `src/utils/sourceSelection.test.ts`
 - **changed** `src/utils/stringWidth.test.ts`
 - **changed** `src/utils/stringWidth.ts`
@@ -8803,6 +9853,7 @@
 - **added** `src/utils/svgSanitize.test.ts`
 - **added** `src/utils/svgSanitize.ts`
 - **changed** `src/utils/tabCycling.test.ts`
+- **changed** `src/utils/tabCycling.ts`
 - **added** `src/utils/tabStripOverflow.test.ts`
 - **added** `src/utils/tabStripOverflow.ts`
 - **changed** `src/utils/tableParser.test.ts`
@@ -8826,8 +9877,9 @@
 - **added** `src/utils/workspaceRailGlyphs.ts`
 - **changed** `src/utils/wysiwygFlush.test.ts`
 - **changed** `src/utils/youtubeUrlParser.test.ts`
-- **changed** `src/workspace/useWorkspace.test.tsx`
-- **changed** `src/workspace/useWorkspace.ts`
+- **changed** `src/workspace/index.ts`
+- **deleted** `src/workspace/useWorkspace.test.tsx`
+- **deleted** `src/workspace/useWorkspace.ts`
 - **changed** `stryker.config.json`
 - **changed** `tsconfig.json`
 - **changed** `tsconfig.node.json`
@@ -8838,30 +9890,47 @@
 - **added** `vitest.gates.config.ts`
 - **added** `vitest.shared.ts`
 - **added** `vitest.soak.config.ts`
+- **deleted** `vmark-content-server/package.json`
 - **deleted** `vmark-content-server/scripts/smoke.mjs`
 - **deleted** `vmark-content-server/src/cli.ts`
+- **deleted** `vmark-content-server/src/server/assets.ts`
+- **deleted** `vmark-content-server/src/server/auth.ts`
+- **deleted** `vmark-content-server/src/server/createServer.test.ts`
+- **deleted** `vmark-content-server/src/server/runtime.test.ts`
 - **deleted** `vmark-content-server/src/slidev/manager.test.ts`
 - **deleted** `vmark-content-server/src/slidev/manager.ts`
+- **deleted** `vmark-content-server/tsconfig.json`
 - **deleted** `vmark-content-server/vitest.config.ts`
 - **deleted** `vmark-mcp-server/README.md`
 - **deleted** `vmark-mcp-server/__tests__/mocks/mockBridge.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/mocks/mockBridge.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/bridge/websocket.test.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/server.test.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/tools/browser.test.ts`
+- **deleted** `vmark-mcp-server/__tests__/unit/tools/session.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/unit/utils/mcpAdapters.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.js`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.js.map`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.test.ts`
 - **deleted** `vmark-mcp-server/__tests__/utils/McpTestClient.ts`
+- **deleted** `vmark-mcp-server/package.json`
 - **deleted** `vmark-mcp-server/scripts/build-sidecar.js`
+- **deleted** `vmark-mcp-server/src/bridge/core-types.ts`
+- **deleted** `vmark-mcp-server/src/bridge/types.ts`
 - **deleted** `vmark-mcp-server/src/bridge/websocket.ts`
 - **deleted** `vmark-mcp-server/src/cli.ts`
+- **deleted** `vmark-mcp-server/src/index.ts`
 - **deleted** `vmark-mcp-server/src/server.ts`
 - **deleted** `vmark-mcp-server/src/tools/browser.ts`
 - **deleted** `vmark-mcp-server/src/tools/document.ts`
 - **deleted** `vmark-mcp-server/src/tools/selection.ts`
 - **deleted** `vmark-mcp-server/src/tools/session.ts`
+- **deleted** `vmark-mcp-server/src/tools/workflow.ts`
 - **deleted** `vmark-mcp-server/src/tools/workspace.ts`
 - **deleted** `vmark-mcp-server/src/types.ts`
 - **deleted** `vmark-mcp-server/src/utils/mcpAdapters.ts`
+- **deleted** `vmark-mcp-server/src/utils/parentProcess.ts`
+- **deleted** `vmark-mcp-server/tsconfig.json`
 - **deleted** `vmark-mcp-server/vitest.config.ts`
 - **changed** `website/.vitepress/components/demos/cjkFormatter.ts`
 - **changed** `website/.vitepress/config/de.ts`
@@ -8881,6 +9950,7 @@
 - **added** `website/de/guide/knowledge-base.md`
 - **changed** `website/de/guide/mcp-tools.md`
 - **changed** `website/de/guide/settings.md`
+- **changed** `website/de/guide/workflow-genies.md`
 - **added** `website/de/guide/workflows.md`
 - **added** `website/de/guide/workspace-rail.md`
 - **changed** `website/download.md`
@@ -8891,6 +9961,7 @@
 - **added** `website/es/guide/knowledge-base.md`
 - **changed** `website/es/guide/mcp-tools.md`
 - **changed** `website/es/guide/settings.md`
+- **changed** `website/es/guide/workflow-genies.md`
 - **added** `website/es/guide/workflows.md`
 - **added** `website/es/guide/workspace-rail.md`
 - **changed** `website/fr/download.md`
@@ -8900,25 +9971,35 @@
 - **added** `website/fr/guide/knowledge-base.md`
 - **changed** `website/fr/guide/mcp-tools.md`
 - **changed** `website/fr/guide/settings.md`
+- **changed** `website/fr/guide/workflow-genies.md`
 - **added** `website/fr/guide/workflows.md`
 - **added** `website/fr/guide/workspace-rail.md`
+- **changed** `website/guide/ai-genies.md`
+- **changed** `website/guide/ai-providers.md`
 - **changed** `website/guide/browser.md`
 - **changed** `website/guide/cjk-formatting.md`
 - **added** `website/guide/coherence.md`
 - **changed** `website/guide/export.md`
 - **changed** `website/guide/features.md`
 - **changed** `website/guide/formats.md`
+- **changed** `website/guide/index.md`
+- **changed** `website/guide/knowledge-base.md`
 - **changed** `website/guide/link-check.md`
 - **changed** `website/guide/lint.md`
 - **changed** `website/guide/mcp-setup.md`
 - **changed** `website/guide/mcp-tools.md`
 - **changed** `website/guide/media-support.md`
+- **changed** `website/guide/popups.md`
+- **changed** `website/guide/privacy.md`
 - **changed** `website/guide/settings.md`
 - **changed** `website/guide/shortcuts.md`
 - **changed** `website/guide/svg.md`
 - **changed** `website/guide/tab-navigation.md`
 - **changed** `website/guide/terminal.md`
+- **changed** `website/guide/troubleshooting.md`
+- **changed** `website/guide/workflow-genies.md`
 - **changed** `website/guide/workflow-viewer.md`
+- **changed** `website/guide/workflows.md`
 - **changed** `website/guide/workspace-management.md`
 - **added** `website/guide/workspace-rail.md`
 - **changed** `website/it/download.md`
@@ -8928,6 +10009,7 @@
 - **added** `website/it/guide/knowledge-base.md`
 - **changed** `website/it/guide/mcp-tools.md`
 - **changed** `website/it/guide/settings.md`
+- **changed** `website/it/guide/workflow-genies.md`
 - **added** `website/it/guide/workflows.md`
 - **added** `website/it/guide/workspace-rail.md`
 - **changed** `website/ja/download.md`
@@ -8937,6 +10019,7 @@
 - **added** `website/ja/guide/knowledge-base.md`
 - **changed** `website/ja/guide/mcp-tools.md`
 - **changed** `website/ja/guide/settings.md`
+- **changed** `website/ja/guide/workflow-genies.md`
 - **added** `website/ja/guide/workflows.md`
 - **added** `website/ja/guide/workspace-rail.md`
 - **changed** `website/ko/download.md`
@@ -8946,6 +10029,7 @@
 - **added** `website/ko/guide/knowledge-base.md`
 - **changed** `website/ko/guide/mcp-tools.md`
 - **changed** `website/ko/guide/settings.md`
+- **changed** `website/ko/guide/workflow-genies.md`
 - **added** `website/ko/guide/workflows.md`
 - **added** `website/ko/guide/workspace-rail.md`
 - **changed** `website/package.json`
@@ -8957,6 +10041,7 @@
 - **added** `website/pt-BR/guide/knowledge-base.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
 - **changed** `website/pt-BR/guide/settings.md`
+- **changed** `website/pt-BR/guide/workflow-genies.md`
 - **added** `website/pt-BR/guide/workflows.md`
 - **added** `website/pt-BR/guide/workspace-rail.md`
 - **changed** `website/public/favicon.ico`
@@ -8969,6 +10054,7 @@
 - **added** `website/zh-CN/guide/knowledge-base.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
 - **changed** `website/zh-CN/guide/settings.md`
+- **changed** `website/zh-CN/guide/workflow-genies.md`
 - **added** `website/zh-CN/guide/workflows.md`
 - **added** `website/zh-CN/guide/workspace-rail.md`
 - **changed** `website/zh-TW/download.md`
@@ -8978,5 +10064,6 @@
 - **added** `website/zh-TW/guide/knowledge-base.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
 - **changed** `website/zh-TW/guide/settings.md`
+- **changed** `website/zh-TW/guide/workflow-genies.md`
 - **added** `website/zh-TW/guide/workflows.md`
 - **added** `website/zh-TW/guide/workspace-rail.md`
