@@ -839,21 +839,26 @@
 /* ==========================================================================
    11. Responsive Breakpoints
    ========================================================================== */
-/* Desktop overview fills available height; details are paged in a modal. */
-.review-heatmap-body { gap: clamp(10px, 2vh, 22px); overflow: visible; }
+/* Keep the overview content together; short windows can scroll to insights. */
+.review-heatmap-body { gap: 12px; overflow-y: auto; }
 .review-heatmap-unit { color: var(--app-muted); font-size: 12px; font-weight: 600; }
 .review-heatmap-5col { box-shadow: none; border-radius: 10px; }
 .review-heatmap-5col__item { padding: clamp(12px, 2vh, 22px) 8px; }
 .review-heatmap-5col__val { font-size: clamp(17px, 1.8vw, 26px); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.review-heatmap-section { flex: 1 1 0; min-height: 110px; gap: 12px; }
-.review-heatmap-canvas-container { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.review-heatmap-svg { max-height: calc(100% - 24px); min-height: 0; flex-shrink: 1; }
+.review-heatmap-section { flex: 0 0 auto; min-height: 0; gap: 6px; }
+.review-heatmap-canvas-container { flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 0; }
+.review-heatmap-svg { min-height: 0; flex-shrink: 0; }
 .review-heatmap-months { flex-shrink: 0; }
-.review-insights-section { margin: 0; padding-bottom: 8px; }
-.review-insights-grid { column-gap: 32px; }
-.review-insights-col { gap: 0; }
-.review-insights-card { border: 0; border-bottom: 1px solid var(--app-line); border-radius: 0; box-shadow: none; background: transparent; padding: 12px 0; min-width: 0; font-size: 12px; text-align: left; }
-.review-insights-card__value { font-size: 12px; font-weight: 500; min-width: 0; }
+.review-insights-section { flex: 0 0 auto; margin: 0; padding-bottom: 24px; gap: 16px; }
+.review-insights-header { flex-shrink: 0; }
+.review-insights-grid { gap: 24px; min-height: 0; width: min(100%, 684px); margin: 8px auto 0; }
+.review-insights-col { display: grid; grid-template-rows: repeat(2, minmax(54px, auto)); gap: 20px; min-width: 0; }
+.review-insights-col > .review-insights-card { box-sizing: border-box; width: 100%; }
+.review-insights-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; border: 1px solid var(--app-line); border-radius: 4px; box-shadow: none; background: var(--review-elevated, var(--app-surface)); padding: 6px 16px; min-width: 0; font-size: 13px; text-align: left; }
+.review-insights-card__value { font-size: 13px; line-height: 1.4; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.review-insights-card__trigger { padding-right: 48px; }
+.review-insights-card__trigger > svg { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); }
+.review-insights-card__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
 .review-insights-popover { top: auto; bottom: calc(100% + 10px); }
 .review-heatmap-empty { flex-direction: row; flex-shrink: 0; gap: 12px; padding: 8px 12px; margin: 0; box-shadow: none; }
 .review-heatmap-empty svg { width: 20px; height: 20px; margin: 0; }
@@ -871,9 +876,10 @@
 @media (max-height: 740px) {
   .review-heatmap-body { gap: 10px; }
   .review-heatmap-5col__item { padding: 10px 8px; }
-  .review-insights-card { padding: 8px 0; }
+  .review-insights-card { padding: 6px 16px; }
+  .review-insights-card__trigger { padding-right: 48px; }
   .review-heatmap-section { gap: 6px; }
 }
 
 .output-review-page__container:has(.review-heatmap-view) { padding-left: 64px !important; }
-.review-insights-card__trigger .review-insights-card__label { font-size: 12px; }
+.review-insights-card__trigger .review-insights-card__label { font-size: 13px; }

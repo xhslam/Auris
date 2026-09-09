@@ -1188,3 +1188,27 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
 用户明确要求合并 main、提交 GitHub 并刷新本机 App。确认工作副本已位于 main，fetch 后与 origin/main 无分叉，因此直接在 main 提交本轮热力图与规范改动。`auris/package.json`、`package-lock.json` 补丁版本升为 1.0.5。
 
 沿用本轮已通过的 20 项回归和浏览器尺寸/主题验证；重新完成原生灵动岛编译、Next 生产构建、desktop:assemble 与打包隐私审计，`electron-builder --mac --dir --publish never` 生成 arm64 App。应用使用本地 ad-hoc 签名并通过严格核验，以 staging 目录安装至 `/Applications/Auris.app`；原版完整保留于 `/Applications/Auris.app.backup-20260909-193605`。已启动 1.0.5 并核验主进程、GPU/网络 Helper 与灵动岛运行；用户数据目录未改动。本次推送源码 main，不创建发布标签或 GitHub Release。
+
+## Engineering trajectory: 热力图与学习洞察纵向间距收紧（2026-09-10）
+
+用户要求热力图紧跟标题、学习洞察同步上移。确认 `review-heatmap.css` 末尾覆盖规则让热力图区 flex 撑满剩余高度，并让画布垂直居中，造成上下大片空白。将热力图区和画布改为内容高度、顶部排列，标题到画布间距为 6px；正文模块间距为 12px（矮窗口 10px），短窗口允许正文滚动以避免洞察被裁切。仅修改样式，不改统计数据与交互。
+
+验证：使用实际样式与最小 DOM 的 Chromium 布局检查，在 1440×900、1440×600 下标题到网格均为 6px，月份到洞察分别为 12px、10px；复盘组件与模型既有测试 20 项通过，git diff --check 通过。未执行完整 Electron 实机巡检或重新打包安装，未提交或推送。
+
+### 学习洞察四个等大矩形信息框（2026-09-10）
+
+根据用户新增要求，将学习洞察的四条分隔线信息改为两行两列等大矩形框；洞察区域吸收正文剩余高度，网格等分空间，统一 12px 间隔、细边框、4px 圆角和主题背景。标题与正文分行左对齐，复习明细保留整框点击和键盘焦点。改动仅涉及 `auris/src/components/review/review-heatmap.css`。
+
+实际开发页面 Chromium 检查：1440×900 下四框均为 665×149.4375px，无需滚动；1440×600 下四框均为 665×96px，正文可滚动；点击复习明细成功打开对话框。复盘组件与模型测试 20 项通过。截图位于 `/tmp/auris-preview/insight-boxes-900.png`；预览未加载桌面端用户数据。未打包安装、提交或推送。
+
+用户随后明确不要铺满剩余空间：取消洞察区域 flex 增长，四框改为内容高度（最小 108px），列间距 24px、行间距 20px、标题间距 16px、底部留白 24px。实际页面截图 `/tmp/auris-preview/insight-boxes-spacious.png`；四框等大，保留页面底部空白。此调整取代上一段的铺满策略。
+
+用户要求四框减小一半：保留两列宽度，将最小行高从 108px 减至 54px，内边距收至 6px 16px、标题正文间距 3px，正文 13px；矮窗口同步。Chromium 实页核验四框高度及内容溢出，截图 `/tmp/auris-preview/insight-boxes-half.png`。git diff --check 通过。
+
+### 洞察卡片横向长度减半（2026-09-10）
+
+按用户“长度减小一半，宽度要原来的”解释为横向长度减半、保留当前高度。读取时现有文件已采用 54px 最小行高及紧凑内边距，保留这些变更，仅为列内卡片设置 border-box 与 50% 宽度。git diff --check 通过；浏览器截图因本地 3017 预览服务已停止（ERR_CONNECTION_REFUSED）未完成，未声称实际渲染尺寸。未打包安装。
+
+### 洞察四框收拢居中（2026-09-10）
+
+按用户草图，将两个相隔过远的列收拢为居中的 684px 最大宽度网格，列间距 24px、行间距 20px，卡片填满各自网格列而非半宽。保留卡片当前尺寸和整体四周留白。只改 `auris/src/components/review/review-heatmap.css`；开发页面 Chromium 在 1440×900 下确认四框均为 330×54.1875px、两列间距 24px。截图 `/tmp/auris-preview/insight-boxes-centered.png`，未加载用户本地数据。未打包安装。
