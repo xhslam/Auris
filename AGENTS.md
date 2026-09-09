@@ -1212,3 +1212,9 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
 ### 洞察四框收拢居中（2026-09-10）
 
 按用户草图，将两个相隔过远的列收拢为居中的 684px 最大宽度网格，列间距 24px、行间距 20px，卡片填满各自网格列而非半宽。保留卡片当前尺寸和整体四周留白。只改 `auris/src/components/review/review-heatmap.css`；开发页面 Chromium 在 1440×900 下确认四框均为 330×54.1875px、两列间距 24px。截图 `/tmp/auris-preview/insight-boxes-centered.png`，未加载用户本地数据。未打包安装。
+
+### Main、GitHub 与本地应用更新完成（2026-09-10）
+
+用户明确授权合并、推送及更新应用。起始已在 main 且与 origin/main 一致，提交 `6002507` 保存本轮热力图紧凑间距与洞察四框居中布局并推送成功。复盘模型/组件 20 项测试通过；原生辅助进程构建、Next 生产构建、desktop:assemble 及隐私审计通过。使用 electron-builder --mac --dir --publish never 生成 arm64 应用，完成本地 ad-hoc 签名与严格签名核验。
+
+旧应用正常退出后备份至 `/Applications/Auris.app.backup-20260910-012107`，新版安装至 `/Applications/Auris.app` 并成功启动（主进程 PID 21134）；安装包编译 CSS 确认包含 684px 居中洞察网格。保留 1.0.5 版本号，未发布 GitHub Release。用户数据目录未改动。
