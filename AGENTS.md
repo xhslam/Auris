@@ -1165,3 +1165,26 @@ Auris 中的 Nia companion 系统此前在上述两个维度均存在相同痛�
 3. `git diff --check`：通过，无多余空白字符或格式冲突；
 4. `npm run build`：Next.js 生产构建成功（`/review` 等 23 个页面生成无误）；
 5. 未提交或推送 Git 改动。
+
+
+## App 交互原则（用户明确要求，2026-09-09）
+
+- App 界面不依赖上下滚动完成操作。新页面和改版应优先一屏自适应布局，更多内容使用分页或按需面板；隐藏滚动条不等于满足要求。
+- Review 热力图以「复习的知识点个数」为标准，按每日、每周、累计周期对知识点 ID 去重；不使用词数替代知识点，也不将估算时长显示为真实学习时长。
+
+## Engineering trajectory: Review 热力图一屏布局与知识点统计（2026-09-09）
+
+按用户参考图保留五联指标、全年网格与双列洞察，落实 App 不依赖上下滚动的原则。检查确认旧实现通过隐藏滚动条保留纵向滚动，并把复习事件次数显示为词数、展示按阶段估算的分钟数。此次仅调整 Review 热力图、模型与定向测试。
+
+- `auris/src/components/review/review-heatmap.tsx`：统一知识点单位，移除估算时长入口，洞察改为项目掌握、待巩固与复习节奏；日期/周/累计明细在原生 dialog 按每页 4 个知识点展示，支持键盘与 Esc。
+- `auris/src/components/review/review-heatmap.css`：主界面按可用高度布局，保留六主题色阶和五列指标；压缩洞察为分隔线行，修正侧轨遮挡，明细使用分页而非滚动。
+- `auris/src/features/output-review/output-review-model.ts`：每日、每周、累计均按知识点 ID 去重，日均为每日去重数之和除以活跃天数；排除截止日期之后的完成记录，保留原始事件供追溯。
+- 定向单元/组件回归 20 项通过、定向 ESLint 与 diff 检查通过。独立浏览器测试数据验证 1160×640、1280×720、1440×900 三档窗口与六主题无纵向溢出/主要区域裁切，13 个知识点的分页边界、Esc 和键盘激活通过。浏览器复测曾遇一次临时网络挂起，重试通过。
+- 开发预览验证完成，`npm run build` 生产构建通过；不改真实复习数据，未执行 Git 提交、推送或替换已安装 App。本次一屏改造限于热力图，其他既有页面的滚动行为不在本轮范围。
+
+
+## Engineering trajectory: 热力图改版合入 main 与本机更新 1.0.5（2026-09-09）
+
+用户明确要求合并 main、提交 GitHub 并刷新本机 App。确认工作副本已位于 main，fetch 后与 origin/main 无分叉，因此直接在 main 提交本轮热力图与规范改动。`auris/package.json`、`package-lock.json` 补丁版本升为 1.0.5。
+
+沿用本轮已通过的 20 项回归和浏览器尺寸/主题验证；重新完成原生灵动岛编译、Next 生产构建、desktop:assemble 与打包隐私审计，`electron-builder --mac --dir --publish never` 生成 arm64 App。应用使用本地 ad-hoc 签名并通过严格核验，以 staging 目录安装至 `/Applications/Auris.app`；原版完整保留于 `/Applications/Auris.app.backup-20260909-193605`。已启动 1.0.5 并核验主进程、GPU/网络 Helper 与灵动岛运行；用户数据目录未改动。本次推送源码 main，不创建发布标签或 GitHub Release。

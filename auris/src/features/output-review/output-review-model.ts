@@ -906,8 +906,8 @@ export function buildReviewInsights(
   const topProject = topProjectId ? state.projects.find((p) => p.id === topProjectId) : undefined;
   const leverageHasSufficient = topProjectMasteredCount >= 3;
   const leverageSummary = leverageHasSufficient
-    ? `已掌握 ${topProjectMasteredCount} 个词 · 核心项目「${topProject?.name ?? "默认项目"}」`
-    : "还没有词根攒够 3 个认识的词";
+    ? `已掌握 ${topProjectMasteredCount} 个知识点 · 核心项目「${topProject?.name ?? "默认项目"}」`
+    : "还没有项目掌握满 3 个知识点";
 
   // 2. Stubborn (顽固词)
   const stubbornPoints: Array<{ id: string; title: string; delayDays: number }> = [];
@@ -934,8 +934,8 @@ export function buildReviewInsights(
 
   const hasStubborn = stubbornPoints.length > 0;
   const stubbornSummary = hasStubborn
-    ? `${stubbornPoints.length} 个词发生过 2 次以上延期复习`
-    : "暂无顽固词";
+    ? `${stubbornPoints.length} 个知识点曾延期至少 2 天或重复开启复习`
+    : "暂无待巩固知识点";
 
   // 3. Duration & rhythm change (时长变化)
   const datesWithReviews: string[] = [];
@@ -1060,14 +1060,14 @@ export function buildReviewInsights(
 
   return {
     leverage: {
-      title: "词根杠杆",
+      title: "项目掌握",
       hasSufficientData: leverageHasSufficient,
       summary: leverageSummary,
       topProjectName: topProject?.name,
       masteredCount: topProjectMasteredCount,
     },
     stubborn: {
-      title: "顽固词",
+      title: "待巩固",
       hasStubbornPoints: hasStubborn,
       summary: stubbornSummary,
       count: stubbornPoints.length,
@@ -1100,7 +1100,7 @@ export function buildReviewHeatmapModel(
   endDateKey = toLocalDateKey(new Date()),
   daySpan = 365,
 ): ReviewHeatmapModel {
-  const completedEvents = getCompletedReviewEvents(state);
+  const completedEvents = getCompletedReviewEvents(state).filter((item) => item.completionDate <= endDateKey);
   const eventsByDate = new Map<string, CompletedReviewEventItem[]>();
 
   for (const item of completedEvents) {
@@ -1114,6 +1114,8 @@ export function buildReviewHeatmapModel(
   const firstWeekStart = startEpoch - mondayBasedWeekday(startEpoch);
 
   let cumulativeCount = 0;
+  let dailyCountSum = 0;
+  const cumulativePointIds = new Set<string>();
   let cumulativeDurationMinutes = 0;
   let peakDailyReviews = 0;
   let peakDailyMinutes = 0;
@@ -1134,7 +1136,7 @@ export function buildReviewHeatmapModel(
     const weekday = mondayBasedWeekday(ep);
     const weekIndex = Math.floor((ep - firstWeekStart) / DAYS_PER_WEEK);
     const dayEvents = eventsByDate.get(date) ?? [];
-    const count = dayEvents.length;
+    const count = new Set(dayEvents.map((item) => item.point.id)).size;
     const durationMinutes = dayEvents.reduce(
       (sum, item) => sum + getEventDurationMinutes(item.event),
       0,
@@ -1150,7 +1152,9 @@ export function buildReviewHeatmapModel(
       }
     }
 
-    cumulativeCount += count;
+    dailyCountSum += count;
+    dayEvents.forEach((item) => cumulativePointIds.add(item.point.id));
+    cumulativeCount = cumulativePointIds.size;
     cumulativeDurationMinutes += durationMinutes;
     rawCells.push({
       date,
@@ -1177,7 +1181,7 @@ export function buildReviewHeatmapModel(
     const weekStart = firstWeekStart + index * DAYS_PER_WEEK;
     const rangeStart = weekCells[0]?.date ?? dateKeyFromEpochDay(weekStart);
     const rangeEnd = weekCells.at(-1)?.date ?? dateKeyFromEpochDay(weekStart + DAYS_PER_WEEK - 1);
-    const totalCount = weekCells.reduce((sum, cell) => sum + cell.count, 0);
+    const totalCount = new Set(weekCells.flatMap((cell) => (eventsByDate.get(cell.date) ?? []).map((item) => item.point.id))).size;
     const totalDuration = weekCells.reduce((sum, cell) => sum + cell.durationMinutes, 0);
 
     if (totalCount > peakWeeklyReviews) {
@@ -1250,7 +1254,7 @@ export function buildReviewHeatmapModel(
   const currentStreak = calculateReviewStreak(eventsByDate, endDateKey);
   const longestStreak = calculateLongestStreak(eventsByDate, currentStreak);
   const averageDailyReviews =
-    studiedDayCount > 0 ? Math.round(totalReviews / studiedDayCount) : 0;
+    studiedDayCount > 0 ? Math.round(dailyCountSum / studiedDayCount) : 0;
   const averageDailyMinutes =
     studiedDayCount > 0 ? Math.round(totalDurationMinutes / studiedDayCount) : 0;
   const insights = buildReviewInsights(state, completedEvents, endDateKey);

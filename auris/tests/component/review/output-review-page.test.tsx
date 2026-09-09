@@ -186,46 +186,36 @@ describe("output review page", () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
 
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
+
     // Click heatmap tab
     await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
     expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
 
     // Verify heading aligned with other pages, and verify user profile bar is NOT rendered
     expect(screen.getByRole("heading", { name: "复盘热力图", level: 2 })).toBeInTheDocument();
-    expect(screen.getByText("记录过去 365 天的复盘轨迹与输出频次。")).toBeInTheDocument();
+    expect(screen.getByText("过去 365 天 · 按知识点统计你的复习足迹")).toBeInTheDocument();
     expect(screen.queryByText("落花流水")).not.toBeInTheDocument();
     expect(screen.queryByText("@gan798798@qq.com")).not.toBeInTheDocument();
 
-    // Verify dimension switcher: 学习量 / 学习时长
-    const countDimensionTab = screen.getByRole("tab", { name: "学习量" });
-    const durationDimensionTab = screen.getByRole("tab", { name: "学习时长" });
-    expect(countDimensionTab).toHaveAttribute("aria-selected", "true");
-
+    expect(screen.queryByRole("tab", { name: "学习时长" })).not.toBeInTheDocument();
     // Verify 5 metric cards matching IMG_6320
-    expect(screen.getByText("累计已学")).toBeInTheDocument();
+    expect(screen.getByText("累计复习")).toBeInTheDocument();
     expect(screen.getByText("平均每日")).toBeInTheDocument();
     expect(screen.getByText("单日最多")).toBeInTheDocument();
     expect(screen.getByText("当前连续")).toBeInTheDocument();
     expect(screen.getByText("最长连续")).toBeInTheDocument();
-    expect(screen.getAllByText("1 个词").length).toBeGreaterThanOrEqual(1);
-
-    // Switch to 学习时长 dimension
-    await user.click(durationDimensionTab);
-    expect(durationDimensionTab).toHaveAttribute("aria-selected", "true");
-    expect(screen.getAllByText("5 分钟").length).toBeGreaterThanOrEqual(1);
-
-    // Switch back to 学习量 dimension
-    await user.click(countDimensionTab);
-    expect(countDimensionTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getAllByText("1 个知识点").length).toBeGreaterThanOrEqual(1);
 
     // Verify Learning Insights section
     expect(screen.getByText("学习洞察")).toBeInTheDocument();
-    expect(screen.getByText("词根杠杆")).toBeInTheDocument();
-    expect(screen.getByText("顽固词")).toBeInTheDocument();
-    expect(screen.getByText("时长变化")).toBeInTheDocument();
-    expect(screen.getByText("学习时段")).toBeInTheDocument();
-    expect(screen.getByText("还没有词根攒够 3 个认识的词")).toBeInTheDocument();
-    expect(screen.getByText("暂无顽固词")).toBeInTheDocument();
+    expect(screen.getByText("项目掌握")).toBeInTheDocument();
+    expect(screen.getByText("待巩固")).toBeInTheDocument();
+    expect(screen.getByText("复习节奏")).toBeInTheDocument();
+    expect(screen.getByText("复习明细")).toBeInTheDocument();
+    expect(screen.getByText("还没有项目掌握满 3 个知识点")).toBeInTheDocument();
+    expect(screen.getByText("暂无待巩固知识点")).toBeInTheDocument();
 
     // Verify heatmap time tabs
     const dayTab = screen.getByRole("tab", { name: "每日" });
@@ -244,6 +234,8 @@ describe("output review page", () => {
     // Switch back to day mode
     await user.click(dayTab);
     expect(dayTab).toHaveAttribute("aria-selected", "true");
+
+    await user.click(screen.getByRole("button", { name: /复习明细.*选择日期/ }));
 
     // Verify drilldown list shows the completed review
     expect(screen.getByText("大数定律与中心极限定理")).toBeInTheDocument();

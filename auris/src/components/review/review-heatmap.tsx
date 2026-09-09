@@ -11,7 +11,6 @@ import {
 } from "react";
 import {
   CalendarDaysIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   HistoryIcon,
   InfoIcon,
@@ -21,7 +20,6 @@ import {
   buildReviewHeatmapModel,
   formatChineseDateOnly,
   reviewActivityLevel,
-  type HeatmapMetricDimension,
   type OutputReviewState,
   type ReviewHeatmapMode,
 } from "@/features/output-review/output-review-model";
@@ -65,11 +63,6 @@ const HEATMAP_MODES: Array<{ id: ReviewHeatmapMode; label: string; unit: string 
   { id: "cumulative", label: "累计", unit: "累计" },
 ];
 
-const DIMENSION_TABS: Array<{ id: HeatmapMetricDimension; label: string }> = [
-  { id: "count", label: "学习量" },
-  { id: "duration", label: "学习时长" },
-];
-
 export function ReviewHeatmap({
   state,
   today,
@@ -81,15 +74,16 @@ export function ReviewHeatmap({
   onOpen: (id: string) => void;
   onGoToToday?: () => void;
 }) {
-  const [metricDimension, setMetricDimension] = useState<HeatmapMetricDimension>("count");
+  const [detailPage, setDetailPage] = useState(0);
+  const detailRef = useRef<HTMLDialogElement>(null);
+  const openDetails = () => { setDetailPage(0); detailRef.current?.showModal(); };
   const [mode, setMode] = useState<ReviewHeatmapMode>("day");
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [activeHoverDate, setActiveHoverDate] = useState<string | null>(null);
 
   // Insights Accordions & Tooltip
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isDurationTrendOpen, setIsDurationTrendOpen] = useState(false);
-  const [isTimeDistributionOpen, setIsTimeDistributionOpen] = useState(false);
+
 
   const model = useMemo(() => buildReviewHeatmapModel(state, today), [state, today]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -120,30 +114,10 @@ export function ReviewHeatmap({
   const activeCell = activeHoverDate ? cellByDate.get(activeHoverDate) : null;
   const activeWeek = activeCell ? weekByIndex.get(activeCell.weekIndex) : null;
 
-  const peakDisplayValue = useMemo(() => {
-    if (metricDimension === "count") {
-      switch (mode) {
-        case "day":
-          return model.peakDailyReviews;
-        case "week":
-          return model.peakWeeklyReviews;
-        case "cumulative":
-          return model.totalReviews;
-      }
-    } else {
-      switch (mode) {
-        case "day":
-          return model.peakDailyMinutes;
-        case "week":
-          return model.peakWeeklyMinutes;
-        case "cumulative":
-          return model.totalDurationMinutes;
-      }
-    }
-  }, [metricDimension, mode, model]);
+  const peakDisplayValue = mode === "day" ? model.peakDailyReviews : mode === "week" ? model.peakWeeklyReviews : model.totalReviews;
 
   const activeModeItem = HEATMAP_MODES.find((m) => m.id === mode) ?? HEATMAP_MODES[0];
-  const unitLabel = metricDimension === "count" ? "词" : "分钟";
+  const unitLabel = "个知识点";
 
   const handleGridKeyDown = useCallback(
     (event: KeyboardEvent<SVGRectElement>, currentDate: string) => {
@@ -160,6 +134,7 @@ export function ReviewHeatmap({
       else if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         setSelectedDate(currentDate);
+        openDetails();
         return;
       }
 
@@ -189,41 +164,34 @@ export function ReviewHeatmap({
       if (selectedWeekIndex === null) return [];
       return model.eventsByWeek.get(selectedWeekIndex) ?? [];
     }
+    if (mode === "cumulative") {
+      return model.cells.filter((cell) => cell.date <= selectedDate).flatMap((cell) => model.eventsByDate.get(cell.date) ?? []);
+    }
     return model.eventsByDate.get(selectedDate) ?? [];
-  }, [mode, model.eventsByDate, model.eventsByWeek, selectedDate, selectedWeekIndex]);
+  }, [mode, model.cells, model.eventsByDate, model.eventsByWeek, selectedDate, selectedWeekIndex]);
+
+  const selectedPoints = useMemo(() => {
+    const seen = new Set<string>();
+    return [...selectedEvents].sort((a, b) => (b.event.completedAt ?? b.completionDate).localeCompare(a.event.completedAt ?? a.completionDate)).filter((item) => {
+      if (seen.has(item.point.id)) return false;
+      seen.add(item.point.id);
+      return true;
+    });
+  }, [selectedEvents]);
+  const detailPageCount = Math.max(1, Math.ceil(selectedPoints.length / 4));
 
   const tooltipInfo = useMemo(() => {
     if (!activeCell) return null;
     const week = weekByIndex.get(activeCell.weekIndex);
 
-    let text = "";
-    if (metricDimension === "count") {
-      if (mode === "day") {
-        text = `${formatChineseDateOnly(activeCell.date)}：${activeCell.count} 个词 (${activeCell.durationMinutes} 分钟)`;
-      } else if (mode === "week") {
-        text = week
-          ? `${formatChineseDateOnly(week.rangeStart)}—${formatChineseDateOnly(week.rangeEnd)}：${week.totalCount} 个词 (${week.totalDurationMinutes} 分钟)`
-          : `${formatChineseDateOnly(activeCell.date)}：${activeCell.count} 个词`;
-      } else {
-        text = `近 365 天累计至 ${formatChineseDateOnly(activeCell.date)}：${activeCell.cumulativeCount} 个词 (${activeCell.cumulativeDurationMinutes} 分钟)`;
-      }
-    } else {
-      if (mode === "day") {
-        text = `${formatChineseDateOnly(activeCell.date)}：${activeCell.durationMinutes} 分钟 (${activeCell.count} 个词)`;
-      } else if (mode === "week") {
-        text = week
-          ? `${formatChineseDateOnly(week.rangeStart)}—${formatChineseDateOnly(week.rangeEnd)}：${week.totalDurationMinutes} 分钟 (${week.totalCount} 个词)`
-          : `${formatChineseDateOnly(activeCell.date)}：${activeCell.durationMinutes} 分钟`;
-      } else {
-        text = `近 365 天累计至 ${formatChineseDateOnly(activeCell.date)}：${activeCell.cumulativeDurationMinutes} 分钟 (${activeCell.cumulativeCount} 个词)`;
-      }
-    }
+    const text = mode === "week" && week
+      ? `${formatChineseDateOnly(week.rangeStart)}—${formatChineseDateOnly(week.rangeEnd)}：${week.totalCount} 个知识点`
+      : mode === "cumulative"
+        ? `累计至 ${formatChineseDateOnly(activeCell.date)}：${activeCell.cumulativeCount} 个知识点`
+        : `${formatChineseDateOnly(activeCell.date)}：${activeCell.count} 个知识点`;
 
-    const x = activeCell.weekIndex * (blockSize + blockMargin) + blockSize / 2;
-    const y = activeCell.weekday * (blockSize + blockMargin);
-
-    return { text, x, y };
-  }, [activeCell, blockMargin, blockSize, metricDimension, mode, weekByIndex]);
+    return { text };
+  }, [activeCell, mode, weekByIndex]);
 
   const isEmpty = model.totalReviews === 0;
 
@@ -233,45 +201,27 @@ export function ReviewHeatmap({
       <div className="output-review-view__heading review-heatmap-view__heading">
         <div className="review-heatmap-view__title-group">
           <h2>复盘热力图</h2>
-          <p>记录过去 365 天的复盘轨迹与输出频次。</p>
+          <p>过去 365 天 · 按知识点统计你的复习足迹</p>
         </div>
 
-        {/* Top-Right Dimension Switcher: [ 学习量 | 学习时长 ] */}
-        <div aria-label="数据指标维度" className="review-heatmap-dimension-tabs" role="tablist">
-          {DIMENSION_TABS.map((tab) => (
-            <button
-              aria-selected={metricDimension === tab.id}
-              data-active={metricDimension === tab.id}
-              key={tab.id}
-              onClick={() => setMetricDimension(tab.id)}
-              role="tab"
-              type="button"
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <span className="review-heatmap-unit">统计单位 · 知识点</span>
       </div>
 
-      {/* 2. Scrollable Body */}
-      <div className="review-heatmap-scroll">
+      {/* 2. Single-screen Body */}
+      <div className="review-heatmap-body">
         {/* 5-Column Metric Bar */}
         <div aria-label="核心复盘指标" className="review-heatmap-5col" role="region">
           <div className="review-heatmap-5col__item">
             <strong className="review-heatmap-5col__val">
-              {metricDimension === "count"
-                ? `${model.totalReviews} 个词`
-                : `${model.totalDurationMinutes} 分钟`}
+              {`${model.totalReviews} 个知识点`}
             </strong>
-            <span className="review-heatmap-5col__label">累计已学</span>
+            <span className="review-heatmap-5col__label">累计复习</span>
             <span className="sr-only">累计复盘 {model.totalReviews} 近 365 天完成</span>
           </div>
 
           <div className="review-heatmap-5col__item">
             <strong className="review-heatmap-5col__val">
-              {metricDimension === "count"
-                ? `${model.averageDailyReviews} 个词`
-                : `${model.averageDailyMinutes} 分钟`}
+              {`${model.averageDailyReviews} 个知识点`}
             </strong>
             <span className="review-heatmap-5col__label">平均每日</span>
             <span className="sr-only">日均复盘</span>
@@ -279,9 +229,7 @@ export function ReviewHeatmap({
 
           <div className="review-heatmap-5col__item">
             <strong className="review-heatmap-5col__val">
-              {metricDimension === "count"
-                ? `${model.peakDailyReviews} 个词`
-                : `${model.peakDailyMinutes} 分钟`}
+              {`${model.peakDailyReviews} 个知识点`}
             </strong>
             <span className="review-heatmap-5col__label">单日最多</span>
             <span className="sr-only">单日最高</span>
@@ -307,7 +255,7 @@ export function ReviewHeatmap({
         {/* 3. Learning Heatmap Section */}
         <div className="review-heatmap-section">
           <div className="review-heatmap-section__header">
-            <h3 className="review-heatmap-section__title">学习热力图</h3>
+            <h3 className="review-heatmap-section__title">复习热力图</h3>
             <div className="review-heatmap-view__controls">
               {!isEmpty && (
                 <div className="review-heatmap-legend">
@@ -352,15 +300,15 @@ export function ReviewHeatmap({
           {/* SVG Heatmap Container */}
           <div className="review-heatmap-canvas-container" ref={containerRef}>
             <p className="sr-only" id={summaryId}>
-              过去 365 天，共 {model.studiedDayCount} 天有复盘记录，累计完成 {model.totalReviews} 次复盘，单日最高 {model.peakDailyReviews} 次
+              过去 365 天，共 {model.studiedDayCount} 天有复盘记录，累计复习 {model.totalReviews} 个知识点，单日最高 {model.peakDailyReviews} 个知识点
             </p>
             {tooltipInfo && (
               <div
                 aria-hidden="true"
                 className="review-heatmap-tooltip"
                 style={{
-                  left: `${tooltipInfo.x}px`,
-                  top: `${tooltipInfo.y}px`,
+                  left: "50%",
+                  top: "0px",
                 }}
               >
                 {tooltipInfo.text}
@@ -370,7 +318,9 @@ export function ReviewHeatmap({
               aria-describedby={summaryId}
               aria-label="复盘热力图网格，过去 365 天"
               className="review-heatmap-svg"
-              height={7 * blockSize + 6 * blockMargin}
+              viewBox={`-2 -2 ${weekCount * (blockSize + blockMargin) - blockMargin + 4} ${7 * blockSize + 6 * blockMargin + 4}`}
+              height={7 * blockSize + 6 * blockMargin + 4}
+              preserveAspectRatio="none"
               role="grid"
               width="100%"
             >
@@ -384,15 +334,9 @@ export function ReviewHeatmap({
                       .map((cell) => {
                         const y = cell.weekday * (blockSize + blockMargin);
                         let level = 0;
-                        if (metricDimension === "count") {
-                          if (mode === "day") level = cell.level;
-                          else if (mode === "week") level = week.level;
-                          else level = reviewActivityLevel(cell.cumulativeCount, model.totalReviews);
-                        } else {
-                          if (mode === "day") level = cell.durationLevel;
-                          else if (mode === "week") level = week.durationLevel;
-                          else level = reviewActivityLevel(cell.cumulativeDurationMinutes, model.totalDurationMinutes);
-                        }
+                        if (mode === "day") level = cell.level;
+                        else if (mode === "week") level = week.level;
+                        else level = reviewActivityLevel(cell.cumulativeCount, model.totalReviews);
 
                         const fill = `var(--heatmap-level-${level})`;
                         const isCellActive = activeHoverDate === cell.date || selectedDate === cell.date;
@@ -400,6 +344,7 @@ export function ReviewHeatmap({
 
                         return (
                           <rect
+                            aria-label={`${cell.date}，${cell.count} 个知识点`}
                             className="review-heatmap-cell"
                             data-active={isCellActive ? "true" : undefined}
                             data-date={cell.date}
@@ -412,6 +357,7 @@ export function ReviewHeatmap({
                             onBlur={() => setActiveHoverDate(null)}
                             onClick={() => {
                               setSelectedDate(cell.date);
+                              openDetails();
                               setActiveHoverDate(cell.date);
                             }}
                             onFocus={() => setActiveHoverDate(cell.date)}
@@ -472,14 +418,12 @@ export function ReviewHeatmap({
                 <div className="review-insights-popover__content">
                   <h4>📊 统计口径说明</h4>
                   <ul>
-                    <li><strong>累计已学</strong>：过去 365 天内完成复盘的词汇总数（或专注学习总时长）。</li>
-                    <li><strong>平均每日</strong>：有学习打卡记录的活跃天数内的日均复盘量。</li>
-                    <li><strong>单日最多</strong>：过去 365 天内单日完成复盘的最高峰值。</li>
-                    <li><strong>当前连续 / 最长连续</strong>：当前无间断连击天数与历史最高打卡连击天数。</li>
-                    <li><strong>词根杠杆</strong>：已掌握 3 个以上词汇的核心产出词根或项目。</li>
-                    <li><strong>顽固词</strong>：发生过 2 次以上延期复习或重新循环的重点突破词汇。</li>
-                    <li><strong>时长变化</strong>：对比最近两次复盘的用时差值与学习节奏走势。</li>
-                    <li><strong>学习时段</strong>：根据实际完成时间统计的高效黄金复盘时间段。</li>
+                    <li><strong>累计复习</strong>：过去 365 天完成复习的知识点去重个数。</li>
+                    <li><strong>每日 / 每周 / 累计</strong>：按对应周期内的知识点 ID 去重；重复复习不会增加该周期的个数。</li>
+                    <li><strong>平均每日</strong>：每日去重个数之和 ÷ 有复习记录的天数。</li>
+                    <li><strong>当前连续 / 最长连续</strong>：当前连续复习天数与截至今天的历史最长连续天数。</li>
+                    <li><strong>项目掌握</strong>：完成 Day 7 或标记掌握的知识点。</li>
+                    <li><strong>待巩固</strong>：曾延期至少 2 天或开启过多轮复习的知识点。</li>
                   </ul>
                 </div>
               </div>
@@ -487,101 +431,26 @@ export function ReviewHeatmap({
           </div>
 
           <div className="review-insights-grid">
-            {/* Left Column: 词根杠杆 & 顽固词 */}
             <div className="review-insights-col">
               <div className="review-insights-card">
-                <span className="review-insights-card__label">词根杠杆</span>
-                <span className="review-insights-card__value">
-                  {model.insights.leverage.summary}
-                </span>
+                <span className="review-insights-card__label">项目掌握</span>
+                <span className="review-insights-card__value">{model.insights.leverage.summary}</span>
               </div>
               <div className="review-insights-card">
-                <span className="review-insights-card__label">顽固词</span>
-                <span className="review-insights-card__value">
-                  {model.insights.stubborn.summary}
-                </span>
+                <span className="review-insights-card__label">待巩固</span>
+                <span className="review-insights-card__value">{model.insights.stubborn.summary}</span>
               </div>
             </div>
-
-            {/* Right Column: 时长变化 & 学习时段 */}
             <div className="review-insights-col">
-              <div className="review-insights-card review-insights-card--interactive">
-                <button
-                  aria-expanded={isDurationTrendOpen}
-                  className="review-insights-card__trigger"
-                  onClick={() => setIsDurationTrendOpen((prev) => !prev)}
-                  type="button"
-                >
-                  <ChevronDownIcon
-                    className={`review-insights-card__chevron ${isDurationTrendOpen ? "is-expanded" : ""}`}
-                    size={14}
-                  />
-                  <span className="review-insights-card__label">时长变化</span>
-                  <span className="review-insights-card__value">
-                    {model.insights.durationTrend.summary}
-                  </span>
-                </button>
-                {isDurationTrendOpen && (
-                  <div className="review-insights-card__drawer">
-                    <div className="review-insights-drawer-row">
-                      <span>最近复盘</span>
-                      <strong>
-                        {model.insights.durationTrend.latestReviews} 词 · {model.insights.durationTrend.latestMinutes} 分钟
-                      </strong>
-                    </div>
-                    <div className="review-insights-drawer-row">
-                      <span>上次复盘</span>
-                      <strong>
-                        {model.insights.durationTrend.previousReviews} 词 · {model.insights.durationTrend.previousMinutes} 分钟
-                      </strong>
-                    </div>
-                    <div className="review-insights-drawer-row">
-                      <span>本周 vs 上周</span>
-                      <strong>
-                        本周 {model.insights.durationTrend.thisWeekMinutes} 分钟 / 上周 {model.insights.durationTrend.lastWeekMinutes} 分钟
-                      </strong>
-                    </div>
-                  </div>
-                )}
+              <div className="review-insights-card">
+                <span className="review-insights-card__label">复习节奏</span>
+                <span className="review-insights-card__value">过去一年有 {model.studiedDayCount} 天完成复习</span>
               </div>
-
-              <div className="review-insights-card review-insights-card--interactive">
-                <button
-                  aria-expanded={isTimeDistributionOpen}
-                  className="review-insights-card__trigger"
-                  onClick={() => setIsTimeDistributionOpen((prev) => !prev)}
-                  type="button"
-                >
-                  <ChevronDownIcon
-                    className={`review-insights-card__chevron ${isTimeDistributionOpen ? "is-expanded" : ""}`}
-                    size={14}
-                  />
-                  <span className="review-insights-card__label">学习时段</span>
-                  <span className="review-insights-card__value">
-                    {model.insights.timeDistribution.summary}
-                  </span>
-                </button>
-                {isTimeDistributionOpen && (
-                  <div className="review-insights-card__drawer">
-                    <div className="review-insights-slots">
-                      {model.insights.timeDistribution.slots.map((slot) => (
-                        <div className="review-insights-slot-item" key={slot.label}>
-                          <div className="review-insights-slot-item__header">
-                            <span>{slot.label}</span>
-                            <strong>{slot.count} 次 ({slot.percentage}%)</strong>
-                          </div>
-                          <div className="review-insights-slot-bar">
-                            <div
-                              className="review-insights-slot-bar__fill"
-                              style={{ width: `${slot.percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <button className="review-insights-card review-insights-card__trigger" onClick={openDetails} type="button">
+                <span className="review-insights-card__label">复习明细</span>
+                <span className="review-insights-card__value">选择日期，查看复习的知识点</span>
+                <ChevronRightIcon size={14} />
+              </button>
             </div>
           </div>
         </div>
@@ -598,26 +467,29 @@ export function ReviewHeatmap({
               </button>
             )}
           </div>
-        ) : (
+        ) : null}
+      </div>
+      <dialog ref={detailRef} aria-label="复习知识点明细" className="review-heatmap-dialog">
           <div className="review-heatmap-detail">
             <div className="review-heatmap-detail__header">
               <h3>
                 {mode === "week" && selectedWeek
                   ? `${formatChineseDateOnly(selectedWeek.rangeStart)} — ${formatChineseDateOnly(selectedWeek.rangeEnd)} 本周复盘明细`
-                  : `${formatChineseDateOnly(selectedDate)} 复盘明细`}
+                  : mode === "cumulative" ? `近 365 天截至 ${formatChineseDateOnly(selectedDate)} 累计明细` : `${formatChineseDateOnly(selectedDate)} 复盘明细`}
               </h3>
               <span className="review-heatmap-detail__badge">
-                {selectedEvents.length} 个词
+                {selectedPoints.length} 个知识点
               </span>
             </div>
 
+            <button className="review-heatmap-dialog__close" onClick={() => detailRef.current?.close()} type="button">关闭明细</button>
             {selectedEvents.length > 0 ? (
               <div className="review-heatmap-detail__list">
-                {selectedEvents.map((item) => (
+                {selectedPoints.slice(detailPage * 4, detailPage * 4 + 4).map((item) => (
                   <button
                     className="review-heatmap-detail-item"
                     key={item.event.id}
-                    onClick={() => onOpen(item.point.id)}
+                    onClick={() => { detailRef.current?.close(); onOpen(item.point.id); }}
                     type="button"
                   >
                     <div className="review-heatmap-detail-item__meta">
@@ -660,12 +532,16 @@ export function ReviewHeatmap({
                 <p>该日期没有复盘记录。点击上方热力图中有颜色的方块即可查看明细。</p>
               </div>
             )}
+            <nav aria-label="复习明细分页" className="review-heatmap-pagination">
+              <button disabled={detailPage === 0} onClick={() => setDetailPage((page) => page - 1)} type="button">上一页</button>
+              <span>{detailPage + 1} / {detailPageCount}</span>
+              <button disabled={(detailPage + 1) * 4 >= selectedPoints.length} onClick={() => setDetailPage((page) => page + 1)} type="button">下一页</button>
+            </nav>
           </div>
-        )}
-      </div>
+      </dialog>
 
       <p aria-live="polite" className="sr-only">
-        已切换为{metricDimension === "count" ? "学习量" : "学习时长"}统计，{activeModeItem.label}视图
+        按知识点个数统计，{activeModeItem.label}视图
       </p>
     </section>
   );

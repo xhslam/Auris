@@ -153,7 +153,7 @@ describe("output review scheduling", () => {
 
       const model = buildReviewHeatmapModel(state, "2026-09-09", 365);
       expect(model.cells).toHaveLength(365);
-      expect(model.totalReviews).toBe(2);
+      expect(model.totalReviews).toBe(1);
       expect(model.studiedDayCount).toBe(2);
       expect(model.peakDailyReviews).toBe(1);
       expect(model.streak).toBe(2); // Completed yesterday (Sep 8) and Sep 7
@@ -175,10 +175,29 @@ describe("output review scheduling", () => {
       expect(model.currentStreak).toBe(2);
 
       // Insights assertions
-      expect(model.insights.leverage.summary).toBe("还没有词根攒够 3 个认识的词");
-      expect(model.insights.stubborn.summary).toBe("1 个词发生过 2 次以上延期复习");
+      expect(model.insights.leverage.summary).toBe("还没有项目掌握满 3 个知识点");
+      expect(model.insights.stubborn.summary).toBe("1 个知识点曾延期至少 2 天或重复开启复习");
       expect(model.insights.durationTrend.summary).toContain("比上一次");
       expect(model.insights.timeDistribution.summary).toBe("常在上午学 · 清晨回忆率最高");
+    });
+
+    it("deduplicates knowledge points per day, week and year while retaining repeat events", () => {
+      let state = fixture("2026-09-01");
+      const pointId = state.knowledgePoints[0]!.id;
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 7, 10));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 7, 14));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 8, 14));
+      state = completeCurrentReview(state, pointId, new Date(2026, 8, 14, 14));
+      const model = buildReviewHeatmapModel(state, "2026-09-14");
+      expect(model.eventsByDate.get("2026-09-07")).toHaveLength(2);
+      expect(model.cells.find((cell) => cell.date === "2026-09-07")?.count).toBe(1);
+      expect(model.weeks.filter((week) => week.totalCount > 0).map((week) => week.totalCount)).toEqual([1, 1]);
+      expect(model.cells.at(-1)?.cumulativeCount).toBe(1);
+      expect(model.totalReviews).toBe(1);
+      expect(model.averageDailyReviews).toBe(1);
+      const before = buildReviewHeatmapModel(state, "2026-09-06");
+      expect(before.totalReviews).toBe(0);
+      expect(before.longestStreak).toBe(0);
     });
 
     it("calculates longest streak even if current streak is broken", () => {
@@ -208,8 +227,8 @@ describe("output review scheduling", () => {
       expect(model.currentStreak).toBe(0);
       expect(model.longestStreak).toBe(0);
       expect(model.streak).toBe(0);
-      expect(model.insights.leverage.summary).toBe("还没有词根攒够 3 个认识的词");
-      expect(model.insights.stubborn.summary).toBe("暂无顽固词");
+      expect(model.insights.leverage.summary).toBe("还没有项目掌握满 3 个知识点");
+      expect(model.insights.stubborn.summary).toBe("暂无待巩固知识点");
       expect(model.insights.durationTrend.summary).toBe("暂无对比数据");
       expect(model.insights.timeDistribution.summary).toBe("暂无时段数据 · 开启第一次复盘后记录");
       expect(model.cells.every((c) => c.count === 0 && c.level === 0)).toBe(true);

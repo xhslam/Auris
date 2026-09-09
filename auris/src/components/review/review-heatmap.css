@@ -144,18 +144,18 @@
 /* ==========================================================================
    4. Scrollable Body
    ========================================================================== */
-.review-heatmap-scroll {
+.review-heatmap-body {
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
-  overflow-y: auto;
+  overflow: clip;
   gap: 16px;
   padding-right: 2px;
   scrollbar-width: none;
 }
 
-.review-heatmap-scroll::-webkit-scrollbar {
+.review-heatmap-body::-webkit-scrollbar {
   display: none;
 }
 
@@ -671,7 +671,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow-y: auto;
+  overflow: clip;
   max-height: 260px;
   scrollbar-width: none;
 }
@@ -839,15 +839,41 @@
 /* ==========================================================================
    11. Responsive Breakpoints
    ========================================================================== */
-@media (max-width: 900px) {
-  .review-heatmap-5col {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .review-insights-grid {
-    grid-template-columns: 1fr;
-  }
-  .review-heatmap-section__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* Desktop overview fills available height; details are paged in a modal. */
+.review-heatmap-body { gap: clamp(10px, 2vh, 22px); overflow: visible; }
+.review-heatmap-unit { color: var(--app-muted); font-size: 12px; font-weight: 600; }
+.review-heatmap-5col { box-shadow: none; border-radius: 10px; }
+.review-heatmap-5col__item { padding: clamp(12px, 2vh, 22px) 8px; }
+.review-heatmap-5col__val { font-size: clamp(17px, 1.8vw, 26px); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.review-heatmap-section { flex: 1 1 0; min-height: 110px; gap: 12px; }
+.review-heatmap-canvas-container { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.review-heatmap-svg { max-height: calc(100% - 24px); min-height: 0; flex-shrink: 1; }
+.review-heatmap-months { flex-shrink: 0; }
+.review-insights-section { margin: 0; padding-bottom: 8px; }
+.review-insights-grid { column-gap: 32px; }
+.review-insights-col { gap: 0; }
+.review-insights-card { border: 0; border-bottom: 1px solid var(--app-line); border-radius: 0; box-shadow: none; background: transparent; padding: 12px 0; min-width: 0; font-size: 12px; text-align: left; }
+.review-insights-card__value { font-size: 12px; font-weight: 500; min-width: 0; }
+.review-insights-popover { top: auto; bottom: calc(100% + 10px); }
+.review-heatmap-empty { flex-direction: row; flex-shrink: 0; gap: 12px; padding: 8px 12px; margin: 0; box-shadow: none; }
+.review-heatmap-empty svg { width: 20px; height: 20px; margin: 0; }
+.review-heatmap-empty h3 { font-size: 12px; margin: 0; white-space: nowrap; }
+.review-heatmap-empty p { display: none; }
+.review-heatmap-empty button { min-height: 30px; font-size: 12px; }
+.review-heatmap-dialog { width: min(720px, 90vw); max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--app-line); border-radius: 14px; background: var(--review-elevated); color: var(--app-text); overflow: clip; }
+.review-heatmap-dialog::backdrop { background: rgb(0 0 0 / 35%); backdrop-filter: blur(4px); }
+.review-heatmap-dialog .review-heatmap-detail { border: 0; margin: 0; box-shadow: none; min-height: 0; }
+.review-heatmap-detail__list { max-height: none; overflow: clip; }
+.review-heatmap-dialog__close { align-self: flex-end; }
+.review-heatmap-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 16px; font-size: 12px; }
+.review-heatmap-pagination button, .review-heatmap-dialog__close { border: 1px solid var(--app-line); background: var(--app-fill); color: var(--app-text); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.review-heatmap-pagination button:disabled { opacity: .4; cursor: default; }
+@media (max-height: 740px) {
+  .review-heatmap-body { gap: 10px; }
+  .review-heatmap-5col__item { padding: 10px 8px; }
+  .review-insights-card { padding: 8px 0; }
+  .review-heatmap-section { gap: 6px; }
 }
+
+.output-review-page__container:has(.review-heatmap-view) { padding-left: 64px !important; }
+.review-insights-card__trigger .review-insights-card__label { font-size: 12px; }
