@@ -1,0 +1,3414 @@
+/* =============================================================================
+ * Auris Redesign — "Lamplight" 暗夜金调主题
+ * 一次性换肤层：统一设计令牌 + 结构覆盖。最后加载，胜过 globals.css / auris-theme.css。
+ * 来源：UI重新设计/ 下的 6 张设计稿（Home / Note / Reading / Rehearsal / Flash / Daily Review）。
+ * 设计语言：背景 #0B0B0C，金色 accent #C7A86A，Newsreader/思源宋体标题，76px 图标侧栏，仿 macOS 标题栏。
+ * ========================================================================== */
+
+/* ---------- 1. 设计令牌（覆盖两套旧令牌） ---------- */
+:root {
+  /* 字体栈 */
+  --auris-font-serif: "Newsreader", "Noto Serif SC", Georgia, serif;
+  --auris-font-sans:
+    "Hanken Grotesk", "Noto Sans SC", system-ui, -apple-system, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  --auris-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* 金色 accent + alpha 阶梯 */
+  --accent: #c7a86a;
+  --accent-strong: #d8bc7e;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-40: color-mix(in srgb, var(--accent) 40%, transparent);
+  --accent-28: color-mix(in srgb, var(--accent) 28%, transparent);
+  --accent-16: color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-10: color-mix(in srgb, var(--accent) 10%, transparent);
+
+  /* 暗色中性系统（legacy 令牌） */
+  --bg: #0b0b0c;
+  --bg-elevated: #0c0c0e;
+  --panel: #0c0c0e;
+  --panel-soft: rgba(255, 255, 255, 0.03);
+  --line: rgba(255, 255, 255, 0.07);
+  --text: #ece8df;
+  --muted: #8c887e;
+  --muted-strong: #c9c4b8;
+  --shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+
+  /* auris-* 令牌（home/flash/review/卡片 等使用） */
+  --auris-primary: #c7a86a;
+  --auris-primary-strong: #d8bc7e;
+  --auris-primary-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --auris-on-soft: #c7a86a;
+  --auris-gradient: linear-gradient(135deg, #d8bc7e, #b8945a);
+
+  --auris-heat-0: rgba(255, 255, 255, 0.05);
+  --auris-heat-1: color-mix(in srgb, var(--accent) 22%, transparent);
+  --auris-heat-2: color-mix(in srgb, var(--accent) 42%, transparent);
+  --auris-heat-3: color-mix(in srgb, var(--accent) 66%, transparent);
+  --auris-heat-4: #c7a86a;
+
+  --auris-bg: #0b0b0c;
+  --auris-surface: #0c0c0e;
+  --auris-surface-soft: rgba(255, 255, 255, 0.03);
+  --auris-line: rgba(255, 255, 255, 0.07);
+  --auris-line-strong: rgba(255, 255, 255, 0.1);
+  --auris-text: #f2efe7;
+  --auris-text-secondary: #c9c4b8;
+  --auris-text-muted: #8c887e;
+
+  --auris-radius-card: 14px;
+  --auris-radius-md: 10px;
+  --auris-radius-pill: 999px;
+  --auris-shadow-card: none;
+  --auris-shadow-float: 0 10px 28px color-mix(in srgb, var(--accent) 18%, transparent);
+
+  --auris-sidebar-rail: 30px;
+  --auris-sidebar-wide: 240px;
+
+  /* ── Sidebar capsule-rail geometry (reference contract) ───────────────── */
+  --sidebar-rail-width: 30px;
+  --sidebar-rail-left: 8px;
+  --sidebar-rail-top: 8px;
+  --sidebar-rail-radius: 15px;
+  --sidebar-item-size: 28px;
+  --sidebar-item-radius: 5px;
+  --sidebar-item-gap: 4px;
+  --sidebar-glyph-size: 14px;
+  --sidebar-indicator-width: 2px;
+  --sidebar-indicator-height: 20px;
+  --sidebar-shell-gap: 14px;
+  --sidebar-shell-collapsed-column: 52px;
+  --sidebar-shell-expanded-column: 262px;
+
+  /* ── Sidebar per-theme semantic variables (Night defaults) ────────────── */
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+
+  /* 训练/演练页（workspace）"静谧绿" → 暗色金调 */
+  --workspace-calm-green: #0b0b0c;
+  --workspace-calm-green-strong: #0c0c0e;
+  --workspace-calm-ink: #ece8df;
+  --workspace-calm-muted: #8c887e;
+}
+
+/* ---------- 2. 全局底色 / 字体 / 滚动条 ---------- */
+body {
+  font-family: var(--auris-font-sans) !important;
+  color: var(--text);
+  background: #0b0b0c !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  scrollbar-color: rgba(255, 255, 255, 0.13) transparent;
+}
+
+body::-webkit-scrollbar,
+.workspace-shell__article-scroll::-webkit-scrollbar,
+.workspace-shell__column::-webkit-scrollbar,
+.workspace-shell__reader::-webkit-scrollbar,
+.recent-panel__list::-webkit-scrollbar,
+.sidebar-explorer__scroll::-webkit-scrollbar,
+.desktop-app-frame__viewport::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+body::-webkit-scrollbar-track,
+.workspace-shell__article-scroll::-webkit-scrollbar-track,
+.workspace-shell__column::-webkit-scrollbar-track,
+.desktop-app-frame__viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb,
+.workspace-shell__article-scroll::-webkit-scrollbar-thumb,
+.workspace-shell__column::-webkit-scrollbar-thumb,
+.workspace-shell__reader::-webkit-scrollbar-thumb,
+.recent-panel__list::-webkit-scrollbar-thumb,
+.sidebar-explorer__scroll::-webkit-scrollbar-thumb,
+.desktop-app-frame__viewport::-webkit-scrollbar-thumb {
+  border: 3px solid #0b0b0c;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.07) padding-box;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+.desktop-app-frame__viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.13) padding-box;
+}
+
+::selection {
+  background: var(--accent-28);
+  color: #fff;
+}
+
+/* ---------- 3. 应用壳 ---------- */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0b0b0c;
+  overflow: hidden;
+}
+
+.app-shell__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+/* ---------- 4. Shell 布局：标题栏下方 76px 轨道 + 主区 ---------- */
+.shared-auth-background-frame {
+  height: 100%;
+  min-height: 0;
+  background: #0b0b0c !important;
+}
+
+.shared-auth-background-frame::before,
+.shared-auth-background-frame::after,
+.shared-auth-background-frame__book-silhouette {
+  display: none !important;
+}
+
+.shared-auth-background-frame__content {
+  height: 100%;
+  min-height: 0;
+  padding: 0 !important;
+}
+
+.desktop-app-shell {
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  display: flex !important;
+  align-items: stretch;
+  background: var(--app-bg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* The desktop rail is a real shell column, not a layer over page content.
+   8px left inset + 30px rail + 14px content gap = 52px collapsed column. */
+.desktop-app-shell[data-desktop-runtime="true"] {
+  display: grid !important;
+  grid-template-columns: var(--sidebar-shell-collapsed-column, 52px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  transition: grid-template-columns 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"] {
+  grid-template-columns: var(--sidebar-shell-expanded-column, 262px) minmax(0, 1fr);
+}
+
+.desktop-app-shell__reveal-zone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 40;
+}
+
+/* 主区 */
+.desktop-app-frame {
+  flex: 1 1 auto !important;
+  min-width: 0;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+.desktop-app-frame__viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.desktop-app-frame__layout {
+  min-height: 100%;
+}
+
+.desktop-app-frame__main {
+  min-height: 100%;
+}
+
+/* 隐藏旧的顶部工作区头条（设计稿无此条） */
+.desktop-app-frame__workspace-header,
+.desktop-app-frame__topbar {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5. Sidebar — 30px floating capsule rail (reference-compact design)
+   Authority: this block is the single source of truth for sidebar geometry
+   and colour in the Auris Electron desktop shell.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 5a. Base (non-desktop fallback) ───────────────────────────────────── */
+
+.desktop-app-sidebar {
+  position: fixed;
+  left: var(--sidebar-rail-left, 8px);
+  top: var(--sidebar-rail-top, 8px);
+  width: var(--sidebar-rail-width, 30px);
+  height: calc(100vh - 16px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sidebar-rail-radius, 15px);
+  overflow: hidden;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--sidebar-rail-bg, #2B2E33);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition:
+    width 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── 5a-i. Brand area ─────────────────────────────────────────────────── */
+
+.desktop-app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0;
+}
+
+.desktop-app-sidebar__brand-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Collapsed expand toggle: transparent by default, visible on rail hover / focus */
+.desktop-app-sidebar__brand-swap {
+  position: relative;
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  padding: 0;
+  border: none;
+  border-radius: var(--sidebar-item-radius, 5px);
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease;
+}
+
+.desktop-app-sidebar:hover .desktop-app-sidebar__brand-swap,
+.desktop-app-sidebar__brand-swap:focus-visible {
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+}
+
+.desktop-app-sidebar__brand-swap:hover,
+.desktop-app-sidebar__brand-swap:focus-visible {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+}
+
+.desktop-app-sidebar__brand-swap-face {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+.desktop-app-sidebar__brand-swap-face--logo {
+  display: none;
+}
+
+.desktop-app-sidebar__brand-swap-face--toggle {
+  opacity: 1;
+}
+
+/* Expanded state brand: Auris title + collapse button */
+.desktop-app-sidebar__brand-main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.desktop-app-sidebar__brand-copy {
+  display: none;
+}
+
+.desktop-app-sidebar__toggle {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--sidebar-item-radius, 5px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.desktop-app-sidebar__toggle:hover,
+.desktop-app-sidebar__toggle:focus-visible {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+}
+
+.desktop-app-sidebar__toggle-glyph {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── 5a-ii. Navigation layout ─────────────────────────────────────────── */
+
+.desktop-app-sidebar__sections {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.desktop-app-sidebar__sections::-webkit-scrollbar {
+  display: none;
+}
+
+.desktop-app-sidebar__group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desktop-app-sidebar__group[data-group="tools"] {
+  margin-top: auto;
+  padding-bottom: 8px;
+}
+
+.desktop-app-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sidebar-item-gap, 4px);
+  width: 100%;
+}
+
+/* ── 5a-iii. Nav link items ───────────────────────────────────────────── */
+
+.desktop-app-sidebar__link {
+  position: relative;
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  min-height: var(--sidebar-item-size, 28px);
+  padding: 0;
+  border: none;
+  border-radius: var(--sidebar-item-radius, 5px);
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  text-decoration: none;
+  cursor: pointer;
+  overflow: visible;
+  transform: none;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+/* Hover */
+.desktop-app-sidebar__link:hover {
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  transform: none;
+}
+
+/* Active */
+.desktop-app-sidebar__link[data-active="true"] {
+  background: var(--sidebar-item-active-bg, #333D4B);
+  color: var(--sidebar-active-icon, #6BA4F8);
+  box-shadow: none;
+  border: none;
+  transform: none;
+}
+
+/* Active indicator bar (coral 2×20px, left edge) */
+.desktop-app-sidebar__link[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: var(--sidebar-indicator-width, 2px);
+  height: var(--sidebar-indicator-height, 20px);
+  border-radius: 0 1px 1px 0;
+  background: var(--sidebar-active-indicator, #E55E51);
+}
+
+/* Focus-visible */
+.desktop-app-sidebar__link:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  outline: none;
+}
+
+/* ── 5a-iv. Icon mark and glyph ──────────────────────────────────────── */
+
+.desktop-app-sidebar__link-leading {
+  display: contents;
+}
+
+.desktop-app-sidebar__link-mark {
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: inherit;
+}
+
+.desktop-app-sidebar__link[data-active="true"] .desktop-app-sidebar__link-mark {
+  background: none;
+  box-shadow: none;
+  color: inherit;
+}
+
+.desktop-app-sidebar__glyph {
+  width: var(--sidebar-glyph-size, 14px);
+  height: var(--sidebar-glyph-size, 14px);
+  stroke-width: 1.8;
+  color: currentColor;
+}
+
+.desktop-app-sidebar__link[data-active="true"] .desktop-app-sidebar__glyph {
+  stroke: var(--sidebar-active-icon, #6BA4F8);
+  color: var(--sidebar-active-icon, #6BA4F8);
+}
+
+/* Hidden in collapsed mode: text labels, old decorative layers */
+.desktop-app-sidebar__link-text,
+.desktop-app-sidebar__link-label,
+.desktop-app-sidebar__link-description,
+.desktop-app-sidebar__link-ripple,
+.desktop-app-sidebar__link-impact,
+.desktop-app-sidebar__link-particle-field {
+  display: none;
+}
+
+.desktop-app-sidebar__avatar-mark {
+  width: 14px;
+  height: 14px;
+  color: var(--sidebar-active-icon, #6BA4F8);
+}
+
+/* ── 5b. Desktop-runtime: capsule rail (authority) ─────────────────────── */
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 30px;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  padding: 0;
+  margin: 8px 0 8px 8px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--sidebar-rail-bg, #2B2E33);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+  overflow: hidden;
+  z-index: 90;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: stretch;
+  justify-self: start;
+  flex: 0 0 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+/* Always visible persistent rail */
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar:not([data-visible="true"]) {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.desktop-app-shell[data-sidebar-visible="true"] .desktop-app-sidebar,
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar[data-visible="true"] {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Desktop nav items */
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link:hover {
+  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
+  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
+  transform: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link[data-active="true"] {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-active-bg, #333D4B);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link-mark {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link:hover
+  .desktop-app-sidebar__link-mark {
+  background: transparent;
+  box-shadow: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-sidebar__link[data-active="true"]
+  .desktop-app-sidebar__link-mark {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--sidebar-active-icon, #6BA4F8);
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__glyph {
+  stroke: currentColor;
+  color: inherit;
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-sidebar__link[data-active="true"]
+  .desktop-app-sidebar__glyph {
+  stroke: var(--sidebar-active-icon, #6BA4F8);
+  color: var(--sidebar-active-icon, #6BA4F8);
+}
+
+/* Desktop avatar */
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__avatar-mark {
+  width: 14px;
+  height: 14px;
+}
+
+/* Desktop layout: frame gets padding-left to clear the floating capsule */
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  max-width: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 0;
+  transition: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__viewport,
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__layout,
+.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame__main {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Home workspace: full-height chain */
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame__viewport,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame__layout,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame__main {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="notes"]
+  .desktop-app-frame,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="workspace"]
+  .desktop-app-frame,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="assessment"]
+  .desktop-app-frame {
+  padding-left: 0;
+}
+
+/* ── 5b-ii. Collapsed brand area (desktop) ─────────────────────────────── */
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="false"]
+  .desktop-app-sidebar__brand {
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="false"]
+  .desktop-app-sidebar__brand-copy {
+  display: none;
+}
+
+/* ── 5b-iii. Expanded state: 240px floating overlay ────────────────────── */
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar {
+  width: var(--auris-sidebar-wide, 240px);
+  border-radius: 16px;
+  align-items: stretch;
+  padding: 10px 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__brand {
+  justify-content: space-between;
+  padding: 0 2px 8px;
+  margin-bottom: 2px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__brand-main {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__brand-copy {
+  display: grid;
+  opacity: 1;
+  width: auto;
+  transform: translateX(0);
+  transition:
+    opacity 220ms ease 80ms,
+    transform 220ms ease 80ms;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__brand-copy
+  strong {
+  color: var(--app-text, var(--text));
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__sections,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__group,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__nav {
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link {
+  width: 100%;
+  height: auto;
+  min-height: 34px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  border-radius: 8px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link-leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link-mark {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  place-items: center;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__glyph {
+  width: 16px;
+  height: 16px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link-text {
+  display: inline;
+  flex: 0 1 auto;
+  margin: 0;
+  opacity: 1;
+  color: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: none;
+  transition: opacity 220ms ease 80ms;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link[data-active="true"] {
+  color: var(--sidebar-active-icon, #6BA4F8);
+  background: var(--sidebar-item-active-bg, #333D4B);
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link:hover {
+  transform: translateX(2px);
+}
+
+/* Expanded state owns a wider shell column, so it reflows rather than covers content. */
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar,
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar[data-visible="true"] {
+  width: var(--auris-sidebar-wide, 240px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
+  .desktop-app-frame {
+  padding-left: 0;
+}
+
+/* ── 5b-iv. Reduced motion ─────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-app-sidebar,
+  .desktop-app-sidebar__brand-swap,
+  .desktop-app-sidebar__brand-swap-face,
+  .desktop-app-sidebar__toggle,
+  .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ── 5b-v. Short viewport: scroll secondary entries, keep 7 primaries ─── */
+
+@media (max-height: 719px) {
+  .desktop-app-sidebar__sections {
+    overflow-y: auto;
+    padding-top: 2px;
+  }
+}
+
+/* ── 5b-vi. Six-theme sidebar colours (geometry unchanged) ─────────────── */
+
+/* Night: exact PRD spec values (already in :root defaults) */
+.desktop-app-shell[data-app-theme="night"] {
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+}
+
+/* White */
+.desktop-app-shell[data-app-theme="white"] {
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+}
+
+/* Paper */
+.desktop-app-shell[data-app-theme="paper"] {
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+}
+
+/* Mint */
+.desktop-app-shell[data-app-theme="mint"] {
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+}
+
+/* Tan (sepia) */
+.desktop-app-shell[data-app-theme="sepia"] {
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+}
+
+/* Solarized */
+.desktop-app-shell[data-app-theme="solarized"] {
+  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-item-hover-bg: var(--app-fill);
+  --sidebar-item-active-bg: var(--accent-10);
+  --sidebar-icon: var(--app-muted);
+  --sidebar-active-icon: var(--accent);
+  --sidebar-active-indicator: var(--accent);
+}
+
+/* ---------- 5c. 阅读页展开侧栏：阅读精选手风琴（靠左紧贴 + 右侧箭头） ---------- */
+.desktop-reading-nav {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 0;
+  margin: 2px 0 0;
+  border-top: none;
+  border-bottom: none;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar[data-reading-nav="true"]
+  .desktop-reading-nav {
+  display: flex;
+}
+
+.desktop-reading-nav__block,
+.desktop-reading-nav__shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.desktop-reading-nav__row {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 6px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: transparent;
+  color: var(--app-muted, var(--muted));
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.desktop-reading-nav__row:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.desktop-reading-nav__row[data-active="true"] {
+  color: var(--accent);
+  background: var(--accent-10);
+}
+
+.desktop-reading-nav__leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.desktop-reading-nav__trailing {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: inherit;
+  opacity: 0.72;
+}
+
+.desktop-reading-nav__mark {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: grid;
+  place-items: center;
+}
+
+.desktop-reading-nav__glyph {
+  width: 15px;
+  height: 15px;
+}
+
+.desktop-reading-nav__label {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.desktop-reading-nav__chevron-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.desktop-reading-nav__children {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+}
+
+.desktop-reading-nav__children::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--app-border, rgba(0, 0, 0, 0.12));
+}
+
+.desktop-reading-nav__row--child {
+  min-height: 34px;
+  padding: 7px 6px 7px 22px;
+}
+
+/* ---------- 6. 通用排版：标题用衬线 ---------- */
+.auris-page__title,
+.auris-section__title,
+.auris-home__resume-title,
+.auris-home__tile-title {
+  font-family: var(--auris-font-serif);
+}
+
+/* =============================================================================
+ * 7. 首页 Home
+ * ========================================================================== */
+.auris-page.auris-home {
+  background: transparent;
+  padding: 0;
+  min-height: 100%;
+}
+
+.auris-home__container {
+  max-width: 1180px;
+  margin: 0;
+  padding: 56px 64px 120px 28px;
+}
+
+.auris-home__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.auris-home__intro {
+  min-width: 0;
+}
+
+.auris-home__date {
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  font-weight: 500;
+  font-family: var(--auris-font-mono);
+}
+
+.auris-home .auris-page__title {
+  margin: 16px 0 0;
+  font-weight: 500;
+  font-size: 42px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.auris-home .auris-page__subtitle {
+  margin: 18px 0 0;
+  max-width: 560px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--app-muted);
+}
+
+.auris-home__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--app-muted);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease;
+  flex: 0 0 auto;
+}
+
+.auris-home__search:hover {
+  border-color: var(--accent-28);
+  color: var(--app-text-soft);
+}
+
+.auris-home__kbd {
+  margin-left: 8px;
+  font-family: var(--auris-font-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #56524b;
+}
+
+/* 继续阅读卡 */
+.auris-home__resume {
+  margin-top: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.026),
+    rgba(255, 255, 255, 0.008)
+  );
+  padding: 34px 38px;
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  box-shadow: none;
+}
+
+.auris-home__resume-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.auris-home__eyebrow {
+  display: block;
+  font-family: var(--auris-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.auris-home__resume-title {
+  margin: 13px 0 0;
+  font-weight: 500;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.auris-home__resume-meta {
+  margin: 11px 0 0;
+  font-size: 13px;
+  color: var(--app-muted);
+  font-family: var(--auris-font-mono);
+}
+
+.auris-home__progress {
+  margin-top: 24px;
+  height: 3px;
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.auris-home__progress > span {
+  display: block;
+  width: 62%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.auris-home__resume-btn {
+  margin-top: 28px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auris-home__cover {
+  flex: 0 0 auto;
+  width: 148px;
+  height: 198px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.045) 0 9px,
+    rgba(255, 255, 255, 0.012) 9px 18px
+  );
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.auris-home__cover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent-40);
+}
+
+.auris-home__cover span {
+  font-family: var(--auris-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #56524b;
+}
+
+/* 区块标题 */
+.auris-home__section {
+  margin-top: 56px;
+}
+
+.auris-home__section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.auris-home__section-label {
+  display: inline-flex;
+  gap: 11px;
+  align-items: center;
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  color: var(--app-text-soft);
+  font-weight: 500;
+}
+
+.auris-home__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.auris-home__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--app-muted);
+  font-size: 12.5px;
+  transition: color 0.18s ease;
+}
+
+.auris-home__more:hover {
+  color: var(--accent);
+}
+
+/* 最近笔记网格 */
+.auris-home .auris-note-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auris-home__hint {
+  font-size: 14px;
+  color: var(--app-muted);
+}
+
+/* 笔记卡片（NoteCard 复用 .auris-card） */
+.auris-home .auris-note-grid .auris-card {
+  min-height: 138px;
+  padding: 22px 22px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.01);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.auris-home .auris-note-grid .auris-card:hover {
+  border-color: var(--accent-28);
+  background: rgba(255, 255, 255, 0.035);
+  transform: translateY(-2px);
+}
+
+.auris-note-card__time {
+  font-family: var(--auris-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--app-muted);
+  margin: 0;
+}
+
+.auris-note-card__title {
+  margin: 14px 0 0;
+  font-family: var(--auris-font-serif);
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--app-text);
+  letter-spacing: -0.005em;
+}
+
+/* 闪念 + 回顾 双卡 */
+.auris-home__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 44px;
+}
+
+.auris-home__flash-tile,
+.auris-home__review-tile {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.012);
+  display: flex;
+  flex-direction: column;
+  min-height: 158px;
+  box-shadow: none;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.auris-home__tile-title {
+  margin: 0;
+  font-family: var(--auris-font-serif);
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--app-text);
+}
+
+.auris-home__tile-desc {
+  margin: 7px 0 0;
+  font-size: 13px;
+  color: var(--app-muted);
+  line-height: 1.6;
+}
+
+.auris-home__flash-input {
+  margin-top: auto;
+  padding-top: 22px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.auris-home__flash-input input {
+  flex: 1;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 11px;
+  padding: 0 15px;
+  color: var(--app-text);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.18s ease;
+}
+
+.auris-home__flash-input input:hover {
+  border-color: var(--accent-28);
+}
+
+.auris-home__flash-input button {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: filter 0.18s ease;
+}
+
+.auris-home__flash-input button:hover {
+  filter: brightness(1.07);
+}
+
+.auris-home__review-tile:hover {
+  border-color: var(--accent-28);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.auris-home__review-cta {
+  align-self: flex-start;
+  margin-top: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  transition: gap 0.18s ease;
+}
+
+.auris-home__review-tile:hover .auris-home__review-cta {
+  gap: 12px;
+}
+
+.auris-home__review-stack {
+  position: absolute;
+  top: 26px;
+  right: 30px;
+  width: 58px;
+  height: 42px;
+}
+
+.auris-home__review-stack span {
+  position: absolute;
+  width: 50px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #121214;
+}
+
+.auris-home__review-stack span:nth-child(1) {
+  top: 8px;
+  right: 10px;
+}
+.auris-home__review-stack span:nth-child(2) {
+  top: 4px;
+  right: 5px;
+  background: #141416;
+}
+.auris-home__review-stack span:nth-child(3) {
+  top: 0;
+  right: 0;
+  border-color: var(--accent-28);
+  background: #16140f;
+}
+
+/* AI 按钮（胶囊带图标） */
+.auris-home__ai {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auris-home__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: var(--app-text-soft);
+  font-size: 14px;
+}
+
+.auris-home__chip:hover {
+  border-color: var(--accent-28);
+  color: var(--app-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.auris-home__chip svg {
+  color: var(--accent);
+}
+
+/* GitHub profile style home */
+.auris-home__profile-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.auris-home__profile {
+  position: fixed;
+  top: 56px;
+  left: calc(var(--auris-sidebar-rail) + 28px);
+  width: 280px;
+  min-width: 0;
+  max-height: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+.auris-home__profile::-webkit-scrollbar {
+  display: none;
+}
+
+.auris-home__avatar {
+  width: min(100%, 224px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(
+      circle at 35% 28%,
+      rgba(216, 188, 126, 0.46),
+      transparent 36%
+    ),
+    linear-gradient(145deg, #252018 0%, #101112 58%, #080809 100%);
+  display: grid;
+  place-items: center;
+  color: #f3e8c8;
+  font-family: var(--auris-font-serif);
+  font-size: 86px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.auris-home__profile-name {
+  margin: 24px 0 0;
+  font-family: var(--auris-font-serif);
+  font-size: 31px;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.auris-home__profile-handle {
+  margin: 6px 0 0;
+  font-size: 17px;
+  color: var(--app-muted);
+}
+
+.auris-home__profile-bio {
+  margin: 18px 0 0;
+  max-width: 260px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--app-text-soft);
+}
+
+.auris-home__profile-action {
+  width: min(100%, 260px);
+  margin-top: 20px;
+  padding: 11px 18px;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auris-home__profile-stats {
+  width: min(100%, 260px);
+  margin: 22px 0 0;
+  display: grid;
+  gap: 13px;
+  padding: 18px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.auris-home__profile-stats div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.auris-home__profile-stats dt {
+  color: var(--app-muted);
+  font-size: 13px;
+}
+
+.auris-home__profile-stats dd {
+  margin: 0;
+  color: var(--app-text);
+  font-family: var(--auris-font-mono);
+  font-size: 13px;
+}
+
+.auris-home__profile-links {
+  width: min(100%, 260px);
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.auris-home__profile-links button {
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--app-text-soft);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.auris-home__profile-links button:hover,
+.auris-home__profile-links button:focus-visible {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--app-ink);
+  outline: none;
+}
+
+.auris-home__profile-links svg {
+  color: var(--accent);
+}
+
+.auris-home__activity {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.auris-home__activity .auris-home__header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 28px;
+}
+
+.auris-home__activity .auris-page__title {
+  margin-top: 10px;
+  font-size: 34px;
+}
+
+.auris-home__activity .auris-page__subtitle {
+  max-width: 690px;
+}
+
+.auris-home__pinned-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auris-home__repo-card {
+  min-height: 132px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.auris-home__repo-card:hover,
+.auris-home__repo-card:focus-visible {
+  border-color: var(--accent-28);
+  background: rgba(255, 255, 255, 0.035);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.auris-home__repo-kicker {
+  font-family: var(--auris-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.auris-home__repo-card strong {
+  color: var(--app-ink);
+  font-family: var(--auris-font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.28;
+  word-break: break-word;
+}
+
+.auris-home__repo-card > span:last-child {
+  margin-top: auto;
+  color: var(--app-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.auris-home__contribution-summary {
+  color: var(--app-muted);
+  font-family: var(--auris-font-mono);
+  font-size: 12px;
+}
+
+.auris-home__heatmap-card {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+  padding: 22px 22px 18px;
+}
+
+.auris-home__heatmap-months {
+  min-width: 650px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--app-muted);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.auris-home__heatmap-grid {
+  min-width: 650px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 13px);
+  grid-auto-columns: 13px;
+  gap: 4px;
+}
+
+.auris-home__heatmap-day {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: var(--auris-heat-0);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.auris-home__heatmap-day[data-tone="low"],
+.auris-home__heatmap-legend i[data-tone="low"] {
+  background: var(--auris-heat-1);
+}
+
+.auris-home__heatmap-day[data-tone="medium"],
+.auris-home__heatmap-legend i[data-tone="medium"] {
+  background: var(--auris-heat-2);
+}
+
+.auris-home__heatmap-day[data-tone="high"],
+.auris-home__heatmap-legend i[data-tone="high"] {
+  background: var(--auris-heat-3);
+}
+
+.auris-home__heatmap-day[data-tone="peak"],
+.auris-home__heatmap-legend i[data-tone="peak"] {
+  background: var(--auris-heat-4);
+}
+
+.auris-home__heatmap-legend {
+  min-width: 650px;
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.auris-home__heatmap-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--auris-heat-0);
+}
+
+.auris-home__ai-context {
+  color: var(--app-muted);
+  font-size: 12.5px;
+}
+
+@media (max-width: 1040px) {
+  .auris-home__container {
+    padding: 44px 34px 96px 24px;
+  }
+
+  .auris-home__profile-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .auris-home__profile {
+    top: 44px;
+    left: calc(var(--auris-sidebar-rail) + 24px);
+    width: 220px;
+  }
+}
+
+@media (max-width: 820px) {
+  .auris-home__profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auris-home__profile {
+    position: static;
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    column-gap: 18px;
+    align-items: center;
+  }
+
+  .auris-home__activity {
+    grid-column: 1;
+  }
+
+  .auris-home__avatar {
+    width: 96px;
+    font-size: 38px;
+    grid-row: span 3;
+  }
+
+  .auris-home__profile-bio,
+  .auris-home__profile-action,
+  .auris-home__profile-stats,
+  .auris-home__profile-links {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+  }
+
+  .auris-home__pinned-grid,
+  .auris-home .auris-note-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================================================
+ * 8. 通用按钮 / 卡片（暗色金调）
+ * ========================================================================== */
+.auris-btn--primary {
+  background: var(--accent);
+  color: var(--accent-ink, #1a1408);
+  border: none;
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+.auris-btn--primary:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px var(--accent-16);
+}
+
+.auris-btn {
+  border-radius: 999px;
+}
+
+/* =============================================================================
+ * 9. Flash 闪念页
+ * ========================================================================== */
+.auris-page.auris-flash {
+  background: transparent;
+  padding: 0;
+}
+
+.auris-flash__container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 54px 64px 110px;
+}
+
+.auris-flash__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.auris-flash__eyebrow {
+  font-family: var(--auris-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.auris-flash .auris-page__title {
+  margin: 14px 0 0;
+  font-family: var(--auris-font-serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.auris-flash .auris-page__subtitle {
+  margin: 14px 0 0;
+  max-width: 520px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--app-text-soft);
+}
+
+.auris-flash__count {
+  font-family: var(--auris-font-mono);
+  font-size: 12.5px;
+  color: var(--app-muted);
+  flex: 0 0 auto;
+  padding-top: 6px;
+}
+
+.auris-flash__composer {
+  margin-top: 34px;
+  border: 1px solid var(--app-line);
+  border-radius: 16px;
+  background: var(--app-fill);
+  padding: 22px 24px 18px;
+}
+
+.auris-flash__composer textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  background: transparent;
+  border: none;
+  color: var(--app-text);
+  font-size: 16px;
+  line-height: 1.7;
+  font-family: var(--auris-font-sans);
+  display: block;
+  outline: none;
+}
+
+.auris-flash__composer-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-line-soft);
+}
+
+.auris-flash__hint {
+  font-family: var(--auris-font-mono);
+  font-size: 12px;
+  color: var(--app-muted);
+}
+
+.auris-flash__save {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auris-flash__save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 闪念卡片网格 */
+.auris-flash__grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auris-flash__card {
+  display: flex;
+  flex-direction: column;
+  min-height: 118px;
+  padding: 20px 20px 15px;
+  border: 1px solid var(--app-line);
+  border-radius: 14px;
+  background: var(--app-fill);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.auris-flash__card:hover {
+  border-color: var(--accent-28);
+  background: var(--app-fill-strong);
+}
+
+.auris-flash__card-time {
+  font-family: var(--auris-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--app-muted);
+}
+
+.auris-flash__card-body {
+  margin-top: 11px;
+  font-family: var(--auris-font-serif);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--app-text);
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.auris-flash__card-foot {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auris-flash__convert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--app-muted);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.auris-flash__convert:hover {
+  color: var(--accent);
+}
+
+.auris-flash__delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--app-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.auris-flash__delete:hover {
+  color: #c9928a;
+  background: var(--app-fill);
+}
+
+/* 空状态 */
+.auris-flash__empty {
+  margin-top: 28px;
+  min-height: 340px;
+  border: 1px solid var(--app-line);
+  border-radius: 20px;
+  background: var(--app-fill);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auris-flash__empty-glow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 480px;
+  height: 300px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--accent-10),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.auris-flash__empty-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 1px solid var(--accent-28);
+  background: var(--accent-10);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  position: relative;
+}
+
+.auris-flash__empty-title {
+  margin: 26px 0 0;
+  font-family: var(--auris-font-serif);
+  font-weight: 500;
+  font-size: 24px;
+  color: var(--app-ink);
+  position: relative;
+}
+
+.auris-flash__empty-desc {
+  margin: 14px 0 0;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: var(--app-text-soft);
+  max-width: 440px;
+  position: relative;
+}
+
+/* =============================================================================
+ * 10. Review 每日回顾页
+ * ========================================================================== */
+.auris-page.auris-review {
+  background: transparent;
+  padding: 0;
+}
+
+.auris-review__container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 54px 64px 64px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.auris-review__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.auris-review__eyebrow {
+  font-family: var(--auris-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.auris-review .auris-page__title {
+  margin: 14px 0 0;
+  font-family: var(--auris-font-serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.auris-review .auris-page__subtitle {
+  margin: 14px 0 0;
+  max-width: 520px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--app-text-soft);
+}
+
+.auris-review__stats {
+  display: flex;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.auris-review__stat {
+  padding: 14px 20px;
+  border: 1px solid var(--app-line);
+  border-radius: 13px;
+  background: var(--app-fill);
+  min-width: 104px;
+}
+
+.auris-review__stat-num {
+  font-family: var(--auris-font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--app-ink);
+  line-height: 1;
+}
+
+.auris-review__stat-num--accent {
+  color: var(--accent);
+}
+
+.auris-review__stat-label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--app-muted);
+  letter-spacing: 0.02em;
+}
+
+.auris-review__divider {
+  height: 1px;
+  background: var(--app-line-soft);
+  margin: 34px 0 24px;
+}
+
+.auris-review__empty {
+  flex: 1;
+  min-height: 380px;
+  border: 1px solid var(--app-line);
+  border-radius: 20px;
+  background: var(--app-fill);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auris-review__glow {
+  position: absolute;
+  top: -110px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 340px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--accent-10),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.auris-review__rings {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.auris-review__rings span {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.auris-review__rings span:nth-child(1) {
+  width: 124px;
+  height: 124px;
+  border: 1px solid var(--app-line-soft);
+}
+.auris-review__rings span:nth-child(2) {
+  width: 90px;
+  height: 90px;
+  border: 1px solid var(--app-line);
+}
+.auris-review__rings span:nth-child(3) {
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--accent-28);
+}
+
+.auris-review__empty-title {
+  margin: 34px 0 0;
+  font-family: var(--auris-font-serif);
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: -0.005em;
+  color: var(--app-ink);
+  position: relative;
+}
+
+.auris-review__empty-desc {
+  margin: 16px 0 0;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: var(--app-text-soft);
+  max-width: 440px;
+  position: relative;
+}
+
+.auris-review__cta {
+  margin-top: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  padding: 11px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    gap 0.18s ease;
+  position: relative;
+}
+
+.auris-review__cta:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  gap: 12px;
+}
+
+/* =============================================================================
+ * 12. Workspace 训练/演练页（对应设计稿 Rehearsal）— 暗色金调
+ *    用与 globals 相同的 runtime 前缀，保证压过浅色"静谧绿"规则。
+ * ========================================================================== */
+.desktop-app-shell .workspace-shell__topbar-title p,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__topbar-title
+  p {
+  color: var(--accent) !important;
+  font-family: var(--auris-font-mono) !important;
+  letter-spacing: 0.22em !important;
+}
+
+.desktop-app-shell .workspace-shell__topbar-title h1,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__topbar-title
+  h1 {
+  font-family: var(--auris-font-serif) !important;
+  font-weight: 500 !important;
+}
+
+.desktop-app-shell .workspace-shell__topbar-button,
+.desktop-app-shell .workspace-shell__icon-button,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__topbar-button,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__icon-button {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  color: var(--app-text-soft) !important;
+  font-weight: 500 !important;
+}
+
+.desktop-app-shell .workspace-shell__topbar-button:hover,
+.desktop-app-shell .workspace-shell__icon-button:hover {
+  border-color: var(--accent-28) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--app-text) !important;
+}
+
+.desktop-app-shell .workspace-shell__topbar-button--primary,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__topbar-button--primary {
+  border: 1px solid var(--accent-28) !important;
+  background: var(--accent-10) !important;
+  color: var(--app-ink) !important;
+}
+
+.desktop-app-shell .workspace-shell__topbar-button span,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__topbar-button
+  span {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--app-muted) !important;
+}
+
+.desktop-app-shell .workspace-shell__topbar-button--primary span {
+  background: var(--accent-16) !important;
+  color: var(--accent) !important;
+}
+
+.desktop-app-shell .workspace-shell__stage .reader-stage__surface,
+.desktop-app-shell .workspace-shell__stage .reader-stage__sentences,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__stage
+  .reader-stage__surface,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell__stage
+  .reader-stage__sentences {
+  background: rgba(255, 255, 255, 0.022) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* 底部播放控制条 */
+.desktop-app-shell .workspace-shell .playback-dock__island,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__island {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(16, 16, 18, 0.94) !important;
+  color: var(--app-text) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45) !important;
+}
+
+.desktop-app-shell .workspace-shell .playback-dock__button,
+.desktop-app-shell .workspace-shell .playback-dock__toggle,
+.desktop-app-shell .workspace-shell .playback-dock__speed-chip,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__button,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__toggle,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__speed-chip {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--app-text-soft) !important;
+}
+
+.desktop-app-shell .workspace-shell .playback-dock__button--primary,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__button--primary {
+  background: var(--accent) !important;
+  color: var(--accent-ink) !important;
+  border-color: transparent !important;
+}
+
+.desktop-app-shell .workspace-shell .playback-dock__progress,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__progress {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.desktop-app-shell .workspace-shell .playback-dock__progress span,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .workspace-shell
+  .playback-dock__progress
+  span {
+  background: var(--accent) !important;
+}
+
+/* 训练页里 reader-stage 的小标题（口头演练 等）用金色 */
+.desktop-app-shell .workspace-shell__stage .reader-stage__eyebrow,
+.desktop-app-shell
+  .workspace-shell__stage
+  .reader-stage__header
+  span:first-child {
+  color: var(--accent) !important;
+}
+
+/* =============================================================================
+ * 13. Notes 笔记/文章视图（对应设计稿 Note）— 令牌翻转为暗色金调
+ * ========================================================================== */
+/* 笔记配色一律由「设置 → 外观」主题驱动（globals.css 的 [data-notes-theme] 令牌）。
+   这里原先用包含 data-desktop-runtime="true" 的高特异性选择器写死了一整套暗色
+   --notes-* token，在桌面 App 里会盖过主题令牌 (0,4,0 > 0,3,0)，导致桌面下笔记
+   永远是黑底（web 因无该属性而正常）——已移除，改为完全跟随主题。 */
+
+/* 文章正文标题用衬线，贴近设计稿 */
+.notes-v2 .notes-v2__doc-title,
+.notes-v2 .notes-v2__title,
+.desktop-app-frame .notes-v2 h1.notes-v2__doc-title {
+  font-family: var(--auris-font-serif);
+}
+
+/* 面包屑高亮当前项用金色 */
+.notes-v2 .notes-v2__breadcrumb-current,
+.notes-v2 .notes-v2__crumb--active {
+  color: var(--accent) !important;
+}
+
+/* "渲染/源码" 等活动态用金色 */
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon[data-active="true"] {
+  color: var(--accent) !important;
+}
+
+/* --- 极简阅读模式（notes-v2--minimal）：跟随全局主题 --- */
+.desktop-app-frame .notes-v2--minimal,
+.desktop-app-shell[data-desktop-runtime="true"]
+  .desktop-app-frame
+  .notes-v2--minimal {
+  /* 不再写死 --notes-* 暗色（那会用 data-desktop-runtime 的高特异性盖过主题令牌，
+     桌面下专注模式永远黑底）。只保留结构性的透明 pane，颜色全部由主题令牌提供。 */
+  --notes-pane: transparent;
+  background: var(--notes-bg) !important;
+  color: var(--notes-text) !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__minimal-workspace,
+.desktop-app-frame .notes-v2--minimal .notes-v2__minimal-canvas,
+.desktop-app-frame .notes-v2--minimal .notes-v2__center-stack,
+.desktop-app-frame .notes-v2--minimal .notes-v2__reading-pane,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane {
+  background: transparent !important;
+}
+
+/* 标题：浅色 -> 米白，正文标题用衬线贴近设计稿 */
+.desktop-app-frame .notes-v2--minimal .notes-v2__title-input {
+  color: var(--notes-ink) !important;
+  font-family: var(--auris-font-serif) !important;
+  font-weight: 600 !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__document-path,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-heading {
+  color: var(--notes-muted) !important;
+}
+
+/* 底部角标按钮：浅色覆盖 -> 暗色 */
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster,
+.desktop-app-frame .notes-v2__corner-stat {
+  color: var(--notes-muted) !important;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon:hover,
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon:focus-visible,
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon[data-active="true"],
+.desktop-app-frame .notes-v2 .notes-v2__active-note-pill {
+  background: var(--notes-accent) !important;
+  color: var(--notes-text) !important;
+}
+
+/* 面包屑顶栏：当前项金色，其余柔和 */
+.desktop-app-frame .notes-v2--minimal .notes-v2__document-path strong,
+.desktop-app-frame .notes-v2--minimal .notes-v2__document-path b {
+  color: var(--accent) !important;
+}
+
+/* --- 13-top. 顶部控件：文件路径 / 模式徽章 / 前进后退按钮，暗底高对比 --- */
+.desktop-app-frame .notes-v2--minimal .notes-v2__document-path {
+  color: var(--notes-text) !important;
+  font-size: 12.5px !important;
+  font-family: var(--auris-font-mono) !important;
+  letter-spacing: 0.02em !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-mode-badge {
+  border: 1px solid var(--accent-28) !important;
+  background: var(--accent-10) !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+.desktop-app-frame .notes-v2__history-nav {
+  z-index: 48 !important;
+}
+
+/* 去掉浅色容器底板（原 globals.css minimal 模式留下的白色 32% 背景面板），
+   让两个按钮直接贴在深色背景上，跟面包屑一样是"无壳"的低调控件。
+   同时从左上角移到右上角，横排（原来是竖排堆叠在左上）。 */
+.desktop-app-frame .notes-v2--minimal .notes-v2__history-nav {
+  top: 0 !important;
+  left: auto !important;
+  right: 16px !important;
+  height: 40px !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.desktop-app-frame .notes-v2__history-button {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--notes-muted) !important;
+  box-shadow: none !important;
+}
+
+.desktop-app-frame .notes-v2__history-button:hover,
+.desktop-app-frame .notes-v2__history-button:focus-visible {
+  background: var(--accent-10) !important;
+  color: var(--accent) !important;
+}
+
+.desktop-app-frame .notes-v2__history-button:disabled {
+  opacity: 0.5 !important;
+  background: transparent !important;
+  color: var(--notes-muted) !important;
+  cursor: default !important;
+}
+
+/* 顶部居中面包屑路径：原深灰 → 暗底高对比，当前文件名金色 */
+.desktop-app-frame .notes-v2--minimal .notes-v2__breadcrumb-list {
+  color: var(--notes-muted) !important;
+}
+
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__breadcrumb-item[data-current="true"] {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__breadcrumb-sep {
+  color: var(--notes-muted) !important;
+}
+
+/* --- 13a. 锁死外层视口高度：只让正文内部滚动，顶部面包屑/底部功能条真正固定，
+       避免上下滑动时整块跟着滚动错位。终端面板在 minimal-workspace 内部，不受影响。 --- */
+.desktop-app-frame:has(.notes-v2--minimal) .desktop-app-frame__viewport,
+.desktop-app-frame:has(.notes-v2--minimal) .desktop-app-frame__main {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Notes keeps scroll interaction but does not expose the desktop shell rail. */
+html:has(.notes-v2--minimal),
+body:has(.notes-v2--minimal),
+.desktop-app-shell:has(.notes-v2--minimal) .desktop-app-frame__viewport,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-scroller {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html:has(.notes-v2--minimal)::-webkit-scrollbar,
+body:has(.notes-v2--minimal)::-webkit-scrollbar,
+.desktop-app-shell:has(.notes-v2--minimal)
+  .desktop-app-frame__viewport::-webkit-scrollbar,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane::-webkit-scrollbar,
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-host--wysiwyg::-webkit-scrollbar,
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-host
+  .cm-scroller::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* --- 13b. 右下/左下角功能区：固定可见的暗色胶囊条 --- */
+.desktop-app-frame .notes-v2__corner-cluster {
+  bottom: 20px !important;
+  z-index: 46 !important;
+  height: 34px !important;
+  padding: 0 6px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--notes-line-strong) !important;
+  background: var(--notes-surface) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2) !important;
+  color: var(--notes-text) !important;
+}
+
+/* 文件名胶囊 / 图标按钮纵向填满底栏：高度 == 底栏内高，不再上下各留空隙；
+   左右仍由底栏的 6px 内边距形成"嵌套"留白。字数统计文字保持垂直居中、不拉伸。 */
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill,
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: stretch !important;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-stat {
+  align-self: center !important;
+}
+
+/* 右侧功能条让开右下角 AI dock 悬浮按钮，避免重叠 */
+.desktop-app-frame .notes-v2__corner-cluster--right {
+  right: 76px !important;
+}
+
+/* 终端展开时，右侧胶囊随终端宽度让位，落在「笔记列」右下角而非整窗右下角，
+   与笔记区一体（终端在右侧分屏，胶囊不再压在终端上） */
+.desktop-app-frame
+  .notes-v2--minimal[data-terminal-open="true"]
+  .notes-v2__corner-cluster--right {
+  right: calc(var(--notes-terminal-width, 520px) + 20px) !important;
+}
+
+.desktop-app-frame .notes-v2__corner-cluster--left {
+  left: 20px !important;
+}
+
+.desktop-app-frame .notes-v2__corner-stat {
+  color: var(--notes-muted) !important;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon {
+  color: var(--notes-text) !important;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon:hover,
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon:focus-visible,
+.desktop-app-frame .notes-v2 .notes-v2__corner-icon[data-active="true"],
+.desktop-app-frame .notes-v2 .notes-v2__active-note-pill:hover,
+.desktop-app-frame .notes-v2 .notes-v2__active-note-pill:focus-visible {
+  background: var(--accent-10) !important;
+  color: var(--accent) !important;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__active-note-pill {
+  background: var(--notes-accent) !important;
+  color: var(--notes-text) !important;
+}
+
+/* --- 13c. 角落弹层（反链 / 库 / 更多 / 终端）整体改暗 + 高对比 --- */
+.desktop-app-frame .notes-v2__corner-popover {
+  bottom: 85px !important;
+  border: 1px solid var(--notes-line-strong) !important;
+  background: var(--notes-surface) !important;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.3) !important;
+  color: var(--notes-text) !important;
+}
+
+.desktop-app-frame .notes-v2__corner-popover * {
+  border-color: var(--notes-line);
+}
+
+.desktop-app-frame .notes-v2__popover-header,
+.desktop-app-frame .notes-v2__popover-title,
+.desktop-app-frame .notes-v2__popover-header p {
+  color: var(--accent) !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__panel,
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__panel {
+  background: var(--notes-accent) !important;
+  color: var(--notes-text) !important;
+}
+
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__panel-list button,
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__tree-directory,
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__tree-file,
+.desktop-app-frame .notes-v2__overflow-menu button {
+  color: var(--notes-text) !important;
+  background: transparent !important;
+}
+
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__panel-list button:hover,
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__tree-directory:hover,
+.desktop-app-frame .notes-v2__corner-popover .notes-v2__tree-file:hover,
+.desktop-app-frame .notes-v2__overflow-menu button:hover,
+.desktop-app-frame .notes-v2__overflow-menu button:focus-visible {
+  background: var(--notes-accent) !important;
+  color: var(--notes-ink) !important;
+}
+
+.desktop-app-frame .notes-v2__overflow-menu .notes-v2__overflow-danger {
+  color: #e0796f !important;
+}
+
+.desktop-app-frame .notes-v2__overflow-menu button:disabled {
+  opacity: 0.4 !important;
+}
+
+.desktop-app-frame .notes-v2__overflow-status,
+.desktop-app-frame .notes-v2__corner-popover p {
+  color: var(--notes-muted) !important;
+}
+
+/* 弹层内输入框/搜索框：跟随主题 */
+.desktop-app-frame .notes-v2__corner-popover input,
+.desktop-app-frame .notes-v2__corner-popover textarea {
+  background: var(--notes-accent) !important;
+  border: 1px solid var(--notes-line-strong) !important;
+  color: var(--notes-text) !important;
+}
+
+.desktop-app-frame .notes-v2__corner-popover input::placeholder,
+.desktop-app-frame .notes-v2__corner-popover textarea::placeholder {
+  color: var(--notes-muted) !important;
+}
+
+/* =============================================================================
+ * 14. Reading 阅读页（对应设计稿 Reading）— 暗色金调 + 无衬线双语对照
+ * 字体与全局 var(--auris-font-sans) 对齐，保持与其他区域一致。
+ * ========================================================================== */
+.reading-minimal,
+.reading-minimal[data-theme="light"] {
+  background: var(--app-bg) !important;
+  --reading-background: var(--app-bg);
+  --reading-foreground: var(--app-ink, #233229);
+  --reading-muted: var(--app-muted, #51655a);
+  --reading-border: var(--app-line, rgba(73, 96, 82, 0.2));
+  --reading-panel: var(--app-surface, #f4f7f1);
+  --reading-panel-foreground: var(--app-text, #233229);
+  --reading-accent: var(--accent, #365d3f);
+  --reading-accent-soft: var(--app-fill-strong, rgba(54, 93, 63, 0.12));
+  --reading-accent-line: var(--accent, #365d3f);
+  --reading-toolbar: color-mix(in srgb, var(--app-bg) 92%, transparent);
+  --reading-shadow: 0 20px 70px rgba(0, 0, 0, 0.14);
+}
+
+/* 标题：无衬线中等，与全局字体对齐 */
+.reading-minimal .reading-minimal__heading h1 {
+  font-family: var(--auris-font-sans);
+  font-weight: 500;
+  font-size: calc(clamp(38px, 5vw, 54px) * var(--reading-font-scale, 1));
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  text-transform: none;
+  color: var(--reading-foreground);
+}
+
+.reading-minimal .reading-minimal__meta {
+  font-weight: 500;
+  font-family: var(--auris-font-sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* kicker（如「晨间精读」）随阅读主题使用高对比强调色 */
+.reading-minimal .reading-minimal__meta span:first-child {
+  color: var(--reading-accent);
+  letter-spacing: 0.18em;
+}
+
+/* 双语正文用无衬线，与全局字体对齐 */
+.reading-minimal .reading-minimal__english {
+  font-family: var(--auris-font-sans);
+  line-height: 1.85;
+}
+
+.reading-minimal .reading-minimal__translation {
+  font-family: var(--auris-font-sans);
+  line-height: 2;
+}
+
+/* 高亮词：金色下划线 + 金色软底 */
+.reading-minimal .reading-minimal-word {
+  border-bottom-color: var(--reading-accent);
+}
+
+.reading-minimal .reading-minimal-word:hover,
+.reading-minimal .reading-minimal-word[data-active="true"] {
+  background: var(--reading-accent-soft);
+  color: var(--reading-foreground);
+}
+
+/* 菱形/spark 标记使用阅读主题强调色 */
+.reading-minimal .reading-minimal__spark {
+  color: var(--reading-accent);
+}
+
+/* 顶部工具栏激活态使用阅读主题强调色 */
+.reading-minimal .reading-minimal__icon-button[data-active="true"],
+.reading-minimal .reading-minimal__text-size-button[data-active="true"] {
+  color: var(--reading-accent);
+  background: var(--reading-accent-soft);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   笔记底部：只保留底部控制项，不再生成额外的贯穿状态栏背景。
+   编辑器滚动内容预留底部空间，避免最后一行落到按钮下面。
+   ───────────────────────────────────────────────────────────────────────── */
+
+.desktop-app-frame .notes-v2--minimal::after {
+  content: none;
+}
+
+.desktop-app-frame
+  .notes-v2--minimal[data-terminal-open="true"]
+  .notes-v2__minimal-canvas {
+  box-sizing: border-box;
+  padding-left: 24px !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane {
+  padding-bottom: 24px !important;
+}
+
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-pane[data-mode="reading"] {
+  padding-bottom: 24px !important;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-scroller,
+.desktop-app-frame
+  .notes-v2--minimal
+  .notes-v2__editor-host--wysiwyg
+  .ProseMirror,
+.desktop-app-frame .notes-v2--minimal .notes-v2__reading-pane {
+  padding-bottom: 24px !important;
+}
+
+.desktop-app-frame .notes-v2__corner-cluster {
+  bottom: 6px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  align-items: center !important;
+}
+
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill,
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 5px !important;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-stat,
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill,
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
+  font-size: 11px !important;
+  line-height: 1 !important;
+}
+
+/* 左簇让开桌面侧栏；右簇让开右下角 AI dock 圆钮。 */
+.desktop-app-shell[data-desktop-runtime="true"]
+  .notes-v2__corner-cluster--left {
+  left: calc(var(--sidebar-rail-left, 8px) + var(--sidebar-rail-width, 30px) + 16px) !important;
+}
+
+.desktop-app-frame .notes-v2__corner-cluster--right {
+  right: 72px !important;
+}
+.desktop-app-frame
+  .notes-v2--minimal[data-terminal-open="true"]
+  .notes-v2__corner-cluster--right {
+  right: calc(var(--notes-terminal-width, 520px) + 16px) !important;
+}
+
+.desktop-app-frame
+  .notes-v2
+  .notes-v2__corner-cluster
+  .notes-v2__active-note-pill {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Notes entry surface: keep the shell rail visually deeper than the themed
+ * content canvas while sharing the same reading-theme tokens as the workbench. */
+.desktop-app-frame .notes-v2--welcome {
+  --notes-welcome-control: color-mix(
+    in srgb,
+    var(--notes-ink) 3%,
+    var(--notes-bg)
+  );
+  --notes-welcome-control-primary: color-mix(
+    in srgb,
+    var(--notes-ink) 5%,
+    var(--notes-bg)
+  );
+  --notes-welcome-control-hover: color-mix(
+    in srgb,
+    var(--notes-ink) 7%,
+    var(--notes-bg)
+  );
+  --notes-welcome-icon: color-mix(
+    in srgb,
+    var(--notes-ink) 6%,
+    var(--notes-bg)
+  );
+  --notes-welcome-focus: color-mix(in srgb, var(--notes-ink) 42%, transparent);
+  display: block !important;
+  min-height: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--notes-bg) !important;
+  color: var(--notes-text);
+}
+
+.desktop-app-frame .notes-v2-page[data-entry-view="welcome"] {
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  background: var(--app-bg);
+}
+
+.notes-welcome__inner {
+  box-sizing: border-box;
+  width: min(960px, calc(100% - 48px));
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 72px 0 64px;
+}
+
+.notes-welcome__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 38px;
+}
+
+.notes-welcome__mark {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--notes-line-strong);
+  border-radius: 8px;
+  background: var(--notes-welcome-control);
+  color: var(--notes-ink);
+  font-family: var(--auris-font-serif);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.notes-welcome__eyebrow {
+  margin: 1px 0 7px;
+  color: var(--notes-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.notes-welcome__header h1 {
+  margin: 0;
+  color: var(--notes-ink);
+  font-family: var(--auris-font-serif);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.16;
+}
+
+.notes-welcome__subtitle {
+  margin: 10px 0 0;
+  color: var(--notes-muted);
+  font-size: 14px;
+}
+
+.notes-welcome__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 78px;
+  padding: 14px 15px;
+  border: 1px solid var(--notes-line);
+  border-radius: 8px;
+  background: var(--notes-welcome-control);
+  color: var(--notes-text);
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__action:hover,
+.desktop-app-frame .notes-v2--welcome .notes-welcome__action:focus-visible {
+  border-color: var(--notes-line-strong);
+  background: var(--notes-welcome-control-hover);
+  transform: translateY(-1px);
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__action:focus-visible,
+.desktop-app-frame
+  .notes-v2--welcome
+  .notes-welcome__recent-item:focus-visible {
+  outline: 2px solid var(--notes-welcome-focus);
+  outline-offset: 2px;
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__action--primary {
+  border-color: var(--notes-line-strong);
+  background: var(--notes-welcome-control-primary);
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__action svg {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 7px;
+  background: var(--notes-welcome-icon);
+  color: var(--notes-text);
+}
+
+.notes-welcome__action span,
+.notes-welcome__recent-item span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.notes-welcome__action strong,
+.notes-welcome__recent-item strong {
+  color: var(--notes-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notes-welcome__action small,
+.notes-welcome__recent-item small {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--notes-text) 72%, var(--notes-muted));
+  font-size: 12px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes-welcome__recent {
+  margin-top: 54px;
+}
+
+.notes-welcome__section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--notes-muted);
+  font-size: 12px;
+}
+
+.notes-welcome__section-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--notes-text);
+  font-weight: 650;
+}
+
+.notes-welcome__recent-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--notes-muted);
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+  transform: none;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.desktop-app-frame .notes-v2--welcome .notes-welcome__recent-item:hover,
+.desktop-app-frame
+  .notes-v2--welcome
+  .notes-welcome__recent-item:focus-visible {
+  border-color: var(--notes-line);
+  background: var(--notes-welcome-control);
+  transform: none;
+}
+
+.notes-welcome__empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 74px;
+  padding: 0 8px;
+  border-top: 1px solid var(--notes-line);
+  border-bottom: 1px solid var(--notes-line);
+  color: var(--notes-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .notes-welcome__inner {
+    width: min(100% - 32px, 560px);
+    padding: 48px 0;
+  }
+
+  .notes-welcome__header h1 {
+    font-size: 32px;
+  }
+
+  .notes-welcome__actions,
+  .notes-welcome__recent-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Notes vaults live under the Notes navigation item instead of consuming a
+   separate editor-side column. The compact rail mirrors VMark: each configured
+   vault keeps one stable, name-derived glyph and the add control remains a square. */
+.desktop-notes-vault-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 1px 0 4px;
+}
+
+.desktop-notes-vault-nav__roots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.desktop-notes-vault-nav__add,
+.desktop-notes-vault-nav__root {
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  color: var(--app-muted, var(--muted));
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.desktop-notes-vault-nav__root,
+.desktop-notes-vault-nav__add {
+  display: grid;
+  width: var(--sidebar-item-size, 28px);
+  height: var(--sidebar-item-size, 28px);
+  min-height: var(--sidebar-item-size, 28px);
+  place-items: center;
+  margin: 0;
+  border-radius: var(--sidebar-item-radius, 5px);
+}
+
+.desktop-notes-vault-nav__root {
+  color: var(--app-text, var(--text));
+}
+
+.desktop-notes-vault-nav__root-mark {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.desktop-notes-vault-nav__root[data-active="true"] {
+  color: var(--accent);
+  border-color: var(--accent-16);
+  background: var(--accent-10);
+}
+
+.desktop-notes-vault-nav__root[data-unavailable="true"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.desktop-notes-vault-nav__root:hover:not(:disabled),
+.desktop-notes-vault-nav__root:focus-visible:not(:disabled),
+.desktop-notes-vault-nav__add:hover,
+.desktop-notes-vault-nav__add:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-10);
+  outline: none;
+}
+
+.desktop-notes-vault-nav__add {
+  border-color: var(--app-line, var(--border));
+  color: var(--app-text, var(--text));
+  font-size: 18px;
+  line-height: 1;
+}
+
+.desktop-notes-vault-nav__error {
+  width: 32px;
+  margin: 0;
+  color: var(--danger, #c45b5b);
+  font-size: 10px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav {
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px 0 6px 26px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__roots {
+  align-items: stretch;
+  gap: 2px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__add {
+  display: flex;
+  width: 100%;
+  min-height: 28px;
+  height: auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root-mark {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  font-size: 11px;
+}
+
+.desktop-notes-vault-nav__root-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root:hover:not(:disabled),
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__root:focus-visible:not(:disabled),
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__add:hover,
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-notes-vault-nav__add:focus-visible {
+  color: var(--accent);
+  background: var(--accent-10);
+  outline: none;
+}
+/* Sidebar geometry baseline: expanded navigation must retain the collapsed
+   rail's vertical anchor (36px brand content + 8px padding + 12px measured gap) and 36px / 4px rhythm. */
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__brand {
+  min-height: 36px;
+  margin-bottom: 12px;
+}
+
+.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
+  .desktop-app-sidebar__link {
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 8px !important;
+}

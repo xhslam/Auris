@@ -1,0 +1,35 @@
+/* Compatibility names resolve at the theme boundary, never at :root.
+   Keep layout and user-authored document colours out of this adapter. */
+:root[data-app-theme],
+.browser-window-root[data-app-theme],
+.desktop-app-shell[data-app-theme] {
+  --app-line-strong: color-mix(in srgb, var(--app-ink) 32%, transparent);
+  --accent-soft: var(--accent-10);
+  --bg: var(--app-bg);
+  --bg-elevated: var(--app-surface);
+  --panel: var(--app-surface);
+  --panel-soft: var(--app-fill);
+  --line: var(--app-line);
+  --text: var(--app-text);
+  --muted: var(--app-muted);
+  --muted-strong: var(--app-text-soft);
+  --auris-primary: var(--accent);
+  --auris-primary-strong: var(--accent-strong);
+  --auris-primary-soft: var(--accent-10);
+  --auris-on-soft: var(--accent);
+  --auris-gradient: linear-gradient(var(--accent), var(--accent));
+  --auris-bg: var(--app-bg);
+  --auris-surface: var(--app-surface);
+  --auris-surface-soft: var(--app-fill);
+  --auris-line: var(--app-line);
+  --auris-line-strong: var(--app-line-strong);
+  --auris-text: var(--app-ink);
+  --auris-text-secondary: var(--app-text);
+  --auris-text-muted: var(--app-muted);
+  --auris-heat-0: var(--app-fill);
+  --auris-heat-1: var(--accent-10);
+  --auris-heat-2: var(--accent-28);
+  --auris-heat-3: var(--accent-40);
+  --auris-heat-4: var(--accent);
+  --auris-shadow-float: 0 10px 28px rgb(0 0 0 / 18%);
+}
