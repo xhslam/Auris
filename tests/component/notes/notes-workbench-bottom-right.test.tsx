@@ -19,7 +19,6 @@ describe("NotesWorkbenchBottomRight", () => {
     render(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
-        backlinks={[]}
         documents={[activeDocument]}
         editorMode="wysiwyg"
         isTerminalSplitOpen={false}
@@ -48,7 +47,6 @@ describe("NotesWorkbenchBottomRight", () => {
     render(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
-        backlinks={[]}
         documentSaveState="saving"
         documents={[activeDocument]}
         editorMode="source"
@@ -72,7 +70,6 @@ describe("NotesWorkbenchBottomRight", () => {
     const { rerender } = render(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
-        backlinks={[]}
         documentSaveState="saved"
         documents={[activeDocument]}
         editorMode="wysiwyg"
@@ -99,7 +96,6 @@ describe("NotesWorkbenchBottomRight", () => {
     rerender(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
-        backlinks={[]}
         documentSaveState="saved"
         documents={[activeDocument]}
         editorMode="wysiwyg"
@@ -132,7 +128,6 @@ describe("NotesWorkbenchBottomRight", () => {
     render(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
-        backlinks={[]}
         documents={[activeDocument]}
         editorMode="wysiwyg"
         isTerminalSplitOpen={false}
@@ -154,29 +149,16 @@ describe("NotesWorkbenchBottomRight", () => {
     expect(onResolveLearningDependencyReview).toHaveBeenCalledTimes(1);
   });
 
-  it("lists saved history and restores the selected version", async () => {
-    const user = userEvent.setup();
-    const onRestoreHistoryVersion = vi.fn();
-    const version = {
-      id: "version-1",
-      path: "daily.md",
-      rawSource: "# Daily\n\nEarlier",
-      savedAt: "2026-07-29T06:00:00.000Z",
-      vaultRoot: "/vault",
-    };
-
+  it("does not render history, backlinks, or tags buttons in the bottom right bar", () => {
     render(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
-        backlinks={[]}
         documents={[activeDocument]}
         editorMode="source"
-        historyVersions={[version]}
         isTerminalSplitOpen={false}
         learningQuery=""
         learningSnippets={[]}
         onOpenPath={vi.fn()}
-        onRestoreHistoryVersion={onRestoreHistoryVersion}
         onTerminalSplitToggle={vi.fn()}
         recentDocuments={[]}
         searchQuery=""
@@ -184,9 +166,14 @@ describe("NotesWorkbenchBottomRight", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "历史版本" }));
-    await user.click(screen.getByRole("button", { name: /恢复/ }));
-
-    expect(onRestoreHistoryVersion).toHaveBeenCalledWith(version);
+    expect(
+      screen.queryByRole("button", { name: "历史版本" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "打开反链面板" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "标签" }),
+    ).not.toBeInTheDocument();
   });
 });

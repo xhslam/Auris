@@ -1192,11 +1192,6 @@ describe("NotesWorkbench", () => {
     expect(cluster).not.toBeNull();
     expect(
       within(cluster as HTMLElement).getByRole("button", {
-        name: NOTES_UI_COPY.rightRail.backlinks.open,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(cluster as HTMLElement).getByRole("button", {
         name: NOTES_UI_COPY.rightRail.terminal.open,
       }),
     ).toBeInTheDocument();
@@ -1206,7 +1201,22 @@ describe("NotesWorkbench", () => {
       }),
     ).toBeInTheDocument();
 
-    // The learning (✣) and properties (□) buttons have been removed.
+    // The backlinks (↶), history (◷), tags (#), learning (✣), and properties (□) buttons have been removed.
+    expect(
+      within(cluster as HTMLElement).queryByRole("button", {
+        name: NOTES_UI_COPY.rightRail.backlinks.open,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(cluster as HTMLElement).queryByRole("button", {
+        name: "历史版本",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(cluster as HTMLElement).queryByRole("button", {
+        name: "标签",
+      }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", {
         name: NOTES_UI_COPY.rightRail.learning.open,

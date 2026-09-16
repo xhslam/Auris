@@ -1,13 +1,11 @@
 "use client";
 
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
-import { NotesBacklinksPanel } from "@/components/notes-v2/notes-backlinks-panel";
 import { NotesGraphPanel } from "@/components/notes-v2/notes-graph-panel";
 import { NotesOutlinePanel } from "@/components/notes-v2/notes-outline-panel";
 import {
   NotesLibraryNavigatorPanel,
 } from "@/components/notes-v2/notes-library-navigator-panel";
-import { NotesTagEditor } from "@/components/notes-v2/notes-tag-editor";
 import { NotesWorkbenchPopover } from "@/components/notes-v2/notes-workbench-popover";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
@@ -18,7 +16,6 @@ import type {
 } from "@/features/notes/editor/editor-types";
 import { getNotesTextMetrics } from "@/features/notes/editor/notes-text-metrics";
 import type { LearningSnippet } from "@/features/notes/integrations/learning-snippets";
-import type { NotesHistoryVersion } from "@/features/notes/persistence/notes-recovery-store";
 import type { NotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
 import {
   DEFAULT_NOTES_VIEW_PREFERENCES,
@@ -26,18 +23,14 @@ import {
 } from "@/features/notes/editor/notes-view-preferences";
 
 type RightPopover =
-  | "backlinks"
   | "dependency-review"
   | "graph"
-  | "history"
   | "library"
   | "outline"
-  | "overflow"
-  | "tags";
+  | "overflow";
 
 type NotesWorkbenchBottomRightProps = {
   activeDocument: NoteDocument | null;
-  backlinks: NoteDocument[];
   documentSaveState?: NotesDocumentSaveState;
   documents: NoteDocument[];
   graphDocuments?: NoteDocument[];
@@ -49,7 +42,6 @@ type NotesWorkbenchBottomRightProps = {
   learningQuery: string;
   learningSnippets: LearningSnippet[];
   noteOpenStrategy?: NoteOpenStrategy | null;
-  historyVersions?: NotesHistoryVersion[];
   onDeleteActiveNote?: () => void;
   onResolveLearningDependencyReview?: () => void;
   onEditorModeChange?: (mode: NotesEditorMode) => void;
@@ -59,7 +51,6 @@ type NotesWorkbenchBottomRightProps = {
   onFormatCjk?: () => void;
   onInsertSnippet?: (snippet: string) => void;
   onEnsureGraphDocuments?: () => Promise<void>;
-  onRestoreHistoryVersion?: (version: NotesHistoryVersion) => void;
   onLearningQueryChange?: (value: string) => void;
   onOpenSourcePeek?: () => void;
   onJumpToHeading?: (line: number) => void;
@@ -70,7 +61,6 @@ type NotesWorkbenchBottomRightProps = {
   onRenameActiveNote?: () => void;
   onSearchQueryChange?: (value: string) => void;
   onTerminalSplitToggle: () => void;
-  onUpdateTags?: (tags: string[]) => void;
   recentDocuments: NoteDocument[];
   searchQuery: string;
   searchResults: NoteDocument[];
@@ -81,7 +71,6 @@ type NotesWorkbenchBottomRightProps = {
 
 export function NotesWorkbenchBottomRight({
   activeDocument,
-  backlinks,
   documentSaveState = "saved",
   documents,
   graphDocuments = documents,
@@ -89,7 +78,6 @@ export function NotesWorkbenchBottomRight({
   indexRebuildMessage = null,
   isRebuildingIndex = false,
   isTerminalSplitOpen,
-  historyVersions = [],
   learningDependencyNeedsReview = false,
   onDeleteActiveNote,
   onEditorModeChange,
@@ -99,7 +87,6 @@ export function NotesWorkbenchBottomRight({
   onExportVault,
   onFormatCjk,
   onEnsureGraphDocuments,
-  onRestoreHistoryVersion,
   onOpenSourcePeek,
   onJumpToHeading,
   onOpenPath,
@@ -109,7 +96,6 @@ export function NotesWorkbenchBottomRight({
   onRenameActiveNote,
   onSearchQueryChange,
   onTerminalSplitToggle,
-  onUpdateTags,
   recentDocuments,
   searchQuery,
   searchResults,
@@ -178,26 +164,6 @@ export function NotesWorkbenchBottomRight({
       ) : null}
 
       <button
-        aria-expanded={openPopover === "history"}
-        aria-label="历史版本"
-        className="notes-v2__corner-icon"
-        onClick={() => togglePopover("history")}
-        title="历史版本"
-        type="button"
-      >
-        <span aria-hidden="true">◷</span>
-      </button>
-      <button
-        aria-expanded={openPopover === "backlinks"}
-        aria-label={NOTES_UI_COPY.rightRail.backlinks.open}
-        className="notes-v2__corner-icon"
-        onClick={() => togglePopover("backlinks")}
-        title={NOTES_UI_COPY.rightRail.backlinks.open}
-        type="button"
-      >
-        <span aria-hidden="true">↶</span>
-      </button>
-      <button
         aria-expanded={openPopover === "graph"}
         aria-label={NOTES_UI_COPY.rightRail.graph.open}
         className="notes-v2__corner-icon"
@@ -207,17 +173,6 @@ export function NotesWorkbenchBottomRight({
         type="button"
       >
         <span aria-hidden="true">⁂</span>
-      </button>
-      <button
-        aria-expanded={openPopover === "tags"}
-        aria-label="标签"
-        className="notes-v2__corner-icon"
-        disabled={!activeDocument}
-        onClick={() => togglePopover("tags")}
-        title="标签（仅用于检索）"
-        type="button"
-      >
-        <span aria-hidden="true">#</span>
       </button>
       <button
         aria-expanded={openPopover === "outline"}
@@ -292,35 +247,6 @@ export function NotesWorkbenchBottomRight({
         <span aria-hidden="true">…</span>
       </button>
 
-      <NotesWorkbenchPopover
-        anchor="bottom-right"
-        labelledBy="notes-v2-history-popover-title"
-        onClose={closePopover}
-        open={openPopover === "history"}
-        size="sm"
-      >
-        <p className="notes-v2__popover-title" id="notes-v2-history-popover-title">
-          历史版本
-        </p>
-        <div className="notes-v2__overflow-menu">
-          {historyVersions.length === 0 ? (
-            <p className="notes-v2__empty-copy">保存后会在这里生成版本。</p>
-          ) : (
-            historyVersions.map((version) => (
-              <button
-                key={version.id}
-                onClick={() => {
-                  onRestoreHistoryVersion?.(version);
-                  closePopover();
-                }}
-                type="button"
-              >
-                恢复 {new Date(version.savedAt).toLocaleString()}
-              </button>
-            ))
-          )}
-        </div>
-      </NotesWorkbenchPopover>
 
       <NotesWorkbenchPopover
         anchor="bottom-right"
@@ -367,23 +293,6 @@ export function NotesWorkbenchBottomRight({
           }}
         />
       </NotesWorkbenchPopover>
-      <NotesWorkbenchPopover
-        anchor="bottom-right"
-        labelledBy="notes-v2-backlinks-popover-title"
-        onClose={closePopover}
-        open={openPopover === "backlinks"}
-        size="md"
-      >
-        <p className="notes-v2__popover-title" id="notes-v2-backlinks-popover-title">
-          {NOTES_UI_COPY.rightDock.backlinks.label}
-        </p>
-        <NotesBacklinksPanel
-          activeDocument={activeDocument}
-          backlinks={backlinks}
-          documents={documents}
-          onOpenPath={onOpenPath}
-        />
-      </NotesWorkbenchPopover>
 
       <NotesWorkbenchPopover
         anchor="bottom-right"
@@ -410,22 +319,6 @@ export function NotesWorkbenchBottomRight({
         ) : null}
       </NotesWorkbenchPopover>
 
-      <NotesWorkbenchPopover
-        anchor="bottom-right"
-        labelledBy="notes-v2-tags-popover-title"
-        onClose={closePopover}
-        open={openPopover === "tags"}
-        size="sm"
-      >
-        <p className="notes-v2__popover-title" id="notes-v2-tags-popover-title">
-          标签
-        </p>
-        <NotesTagEditor
-          disabled={!activeDocument}
-          onChange={(tags) => onUpdateTags?.(tags)}
-          tags={activeDocument?.parsed.tags ?? []}
-        />
-      </NotesWorkbenchPopover>
 
       <NotesWorkbenchPopover
         anchor="bottom-right"
@@ -462,10 +355,6 @@ export function NotesWorkbenchBottomRight({
           <div className="notes-v2__overflow-stat-row">
             <dt>状态</dt>
             <dd data-save-state={documentSaveState}>{saveStateLabel}</dd>
-          </div>
-          <div className="notes-v2__overflow-stat-row">
-            <dt>反向链接</dt>
-            <dd>{backlinks.length} 条</dd>
           </div>
           {selectionState ? (
             <div className="notes-v2__overflow-stat-row">

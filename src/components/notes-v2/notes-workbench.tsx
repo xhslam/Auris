@@ -68,10 +68,6 @@ import type { NotesDirectoryInfo } from "@/features/notes/note-types";
 import type { VaultEntry } from "@/features/notes/vault/vault-types";
 import type { VaultWriteConflict } from "@/features/notes/vault/vault-write-conflict";
 import type { NotesMcpPendingEdit } from "@/features/notes/workbench/notes-mcp-edit-review";
-import {
-  listNotesHistoryVersions,
-  type NotesHistoryVersion,
-} from "@/features/notes/persistence/notes-recovery-store";
 import { getLastUsedOpenTab } from "@/features/notes/workspace/workspace-store";
 import { useWorkspaceInstancesStore } from "@/features/notes/workspace/workspace-instances-store";
 import type {
@@ -193,7 +189,6 @@ function getRecentDocuments(documents: NoteDocument[], recentFiles: string[]) {
 
 export function NotesWorkbench({
   activePath,
-  backlinks = [],
   commandPaletteItems = [],
   desktopCommands = [],
   desktopTerminal = null,
@@ -246,7 +241,6 @@ export function NotesWorkbench({
   onSaveActiveDocument,
   onSaveAllDocuments,
   onSearchQueryChange,
-  onUpdateTags,
   onCopyWriteConflictDiff,
   onExportActiveDocumentHtml,
   onExportActiveDocumentPdf,
@@ -434,32 +428,8 @@ export function NotesWorkbench({
     dirtyPaths,
     writeConflictPath: writeConflict?.path ?? null,
   });
-  const activeDocumentPath = activeDocument?.path ?? null;
   const activeLearningDependencyNeedsReview =
     readLearningDependencySnapshot(activeDocument?.frontmatter)?.status === "needs-review";
-  const [historyVersions, setHistoryVersions] = useState<NotesHistoryVersion[]>(
-    [],
-  );
-  useEffect(() => {
-    let cancelled = false;
-    if (!activeDocumentPath) {
-      setHistoryVersions([]);
-      return;
-    }
-    void listNotesHistoryVersions(
-      activeDocumentPath,
-      directoryInfo?.vaultPath ?? null,
-    )
-      .then((versions) => {
-        if (!cancelled) setHistoryVersions(versions);
-      })
-      .catch(() => {
-        if (!cancelled) setHistoryVersions([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeDocumentPath, activeDocumentSaveState, directoryInfo?.vaultPath]);
 
   const handleResolveLearningDependencyReview = useCallback(() => {
     if (!activeDocument) {
@@ -488,22 +458,6 @@ export function NotesWorkbench({
     (onDocumentChange as (nextSource: string) => void)(nextSource);
   }, [activeDocument, documents, onDocumentChange]);
 
-  const handleRestoreHistoryVersion = useCallback(
-    (version: NotesHistoryVersion) => {
-      if (!activeDocument || version.path !== activeDocument.path) {
-        return;
-      }
-      if (onDocumentChange.length >= 2) {
-        (onDocumentChange as (path: string, nextSource: string) => void)(
-          activeDocument.path,
-          version.rawSource,
-        );
-        return;
-      }
-      (onDocumentChange as (nextSource: string) => void)(version.rawSource);
-    },
-    [activeDocument, onDocumentChange],
-  );
   // 打开选择器的那一刻就把内容定格。不在渲染期重新取：用户在选择器里打字时
   // 编辑器已经失焦，选区可能已经塌陷，再取一次会拿到空串——动作就套用到了空内容上。
   const handleOpenNiaPicker = useCallback(() => {
@@ -991,7 +945,6 @@ export function NotesWorkbench({
 
         <NotesWorkbenchBottomRight
           activeDocument={activeDocument}
-          backlinks={backlinks}
           documentSaveState={activeDocumentSaveState}
           documents={documents}
           graphDocuments={graphDocuments}
@@ -999,7 +952,6 @@ export function NotesWorkbench({
           indexRebuildMessage={indexRebuildMessage}
           isRebuildingIndex={isRebuildingIndex}
           isTerminalSplitOpen={isTerminalSplitOpen}
-          historyVersions={historyVersions}
           learningDependencyNeedsReview={activeLearningDependencyNeedsReview}
           learningQuery={learningQuery}
           learningSnippets={learningSnippets}
@@ -1013,7 +965,6 @@ export function NotesWorkbench({
           onInsertSnippet={onInsertSnippet}
           onResolveLearningDependencyReview={handleResolveLearningDependencyReview}
           onEnsureGraphDocuments={onEnsureGraphDocuments}
-          onRestoreHistoryVersion={handleRestoreHistoryVersion}
           onLearningQueryChange={onLearningQueryChange}
           onOpenSourcePeek={handleOpenSourcePeek}
           onJumpToHeading={(line) => editorBridgeRef.current?.revealLine(line)}
@@ -1023,7 +974,6 @@ export function NotesWorkbench({
           onRestoreLastDeleted={onRestoreLastDeleted}
           onRenameActiveNote={onRenameActiveNote}
           onSearchQueryChange={onSearchQueryChange}
-          onUpdateTags={onUpdateTags}
           onTerminalSplitToggle={() => {
             setOpenLeftPopover(null);
             setIsBrowserPaneOpen(false);
