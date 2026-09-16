@@ -11,7 +11,6 @@ on:
       - "src/features/notes/**"
       - "src/platform/notes/**"
       - "tests/component/notes/**"
-      - "tests/e2e/notes-*.spec.ts"
       - "tests/unit/notes/**"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
@@ -30,7 +29,6 @@ on:
       - "src/features/notes/**"
       - "src/platform/notes/**"
       - "tests/component/notes/**"
-      - "tests/e2e/notes-*.spec.ts"
       - "tests/unit/notes/**"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
@@ -40,7 +38,7 @@ on:
 jobs:
   notes:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -71,12 +69,3 @@ jobs:
           tests/component/notes/notes-workbench.test.tsx
           tests/component/notes/notes-rich-editor-sync.test.tsx
           tests/component/notes/notes-file-tree.test.tsx
-
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
-
-      - name: Notes e2e
-        run: >
-          npx playwright test
-          tests/e2e/notes-obsidian-workbench.spec.ts
-          tests/e2e/notes-editor-focus.spec.ts

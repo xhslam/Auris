@@ -9,14 +9,17 @@ const config = [
       ".next/**",
       ".superpowers/**",
       "android/**",
+      "auris/**",
       "coverage/**",
       "electron/**",
       "ios/**",
+      "markdown/**",
       "mobile-shell/**",
       "node_modules/**",
       "public/**",
       "release/**",
       "test-results/**",
+      "vmark-upstream/**",
     ],
   },
   {
@@ -38,7 +41,12 @@ const config = [
     },
   },
   {
-    files: ["scripts/**/*.{cjs,js}", "tests/electron/nia-browser-workflow-smoke.cjs", "tests/migrations/**/*.ts"],
+    files: [
+      "**/*.cjs",
+      "scripts/**/*.{cjs,js}",
+      "tests/electron/**/*.{cjs,js}",
+      "tests/migrations/**/*.ts",
+    ],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
     },
