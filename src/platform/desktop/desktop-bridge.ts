@@ -54,6 +54,7 @@ export type DesktopNotesMcpServerInfo = {
     enabled: boolean;
     startOnLaunch: boolean;
   };
+  ccSwitchLink?: string | null;
 };
 
 export type DesktopMcpClientStatus =
@@ -65,10 +66,12 @@ export type DesktopMcpClientStatus =
 export type DesktopMcpClient = {
   configPath: string;
   detail: string;
-  format: "json" | "toml";
+  format: "json" | "toml" | "opencode";
   id: string;
   label: string;
   status: DesktopMcpClientStatus;
+  current?: boolean;
+  legacy?: boolean;
 };
 
 export type DesktopBrowserStandingGrant = Readonly<{
@@ -674,6 +677,7 @@ export type DesktopBridge = {
       path: string | null;
       version: string | null;
     }>;
+    openExternal?: (url: string) => Promise<boolean>;
     openUpgrade: () => Promise<{
       didOpen: boolean;
       targetUrl: string | null;

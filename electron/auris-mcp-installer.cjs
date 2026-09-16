@@ -35,6 +35,15 @@ function getClientDefinitions({ home = os.homedir(), env = process.env, platform
     }
   })();
 
+  const opencodePath = (() => {
+    switch (platform) {
+      case "win32":
+        return path.join(env.APPDATA || path.join(home, "AppData", "Roaming"), "opencode", "opencode.json");
+      default:
+        return path.join(env.XDG_CONFIG_HOME || path.join(home, ".config"), "opencode", "opencode.json");
+    }
+  })();
+
   return [
     {
       configPath: claudeDesktopPath,
@@ -55,6 +64,37 @@ function getClientDefinitions({ home = os.homedir(), env = process.env, platform
       format: "toml",
       id: "codex-cli",
       label: "Codex CLI",
+    },
+    // Antigravity CLI (agy) 是 Google 对 Gemini CLI 的后继方案。
+    // 它沿用 .gemini 目录，但在自身配置文件中使用标准 mcpServers 结构。
+    {
+      configPath: path.join(home, ".gemini", "config", "mcp_config.json"),
+      format: "json",
+      id: "antigravity",
+      jsonRoot: "mcpServers",
+      label: "Antigravity CLI",
+    },
+    {
+      configPath: path.join(home, ".grok", "config.toml"),
+      format: "toml",
+      id: "grok",
+      label: "Grok CLI",
+    },
+    {
+      configPath: opencodePath,
+      format: "opencode",
+      id: "opencode",
+      jsonRoot: "mcp",
+      label: "opencode",
+    },
+    // Gemini CLI 已停止维护（被 Antigravity 取代）。保留仅用于已有配置的卸载。
+    {
+      configPath: path.join(home, ".gemini", "settings.json"),
+      format: "json",
+      id: "gemini",
+      jsonRoot: "mcpServers",
+      label: "Gemini CLI",
+      legacy: true,
     },
   ];
 }
@@ -105,10 +145,54 @@ function buildServerEntry(
   };
 }
 
+function buildOpencodeServerEntry(
+  { clientId, clientToken, execPath, serverScriptPath },
+  existingEntry,
+) {
+  const existing =
+    existingEntry && typeof existingEntry === "object" && !Array.isArray(existingEntry)
+      ? existingEntry
+      : {};
+  const existingCmd = Array.isArray(existing.command) ? existing.command : [];
+  const userArgs = existingCmd.slice(1).filter((arg) => !isOwnedScriptArgument(arg));
+  const existingEnv =
+    existing.environment && typeof existing.environment === "object" && !Array.isArray(existing.environment)
+      ? existing.environment
+      : {};
+  return {
+    ...existing,
+    type: "local",
+    command: [execPath, serverScriptPath, ...userArgs],
+    enabled: existing.enabled ?? true,
+    environment: {
+      ...existingEnv,
+      ...RUN_AS_NODE_ENV,
+      [CLIENT_ID_ENV]: clientId,
+      [CLIENT_TOKEN_ENV]: clientToken,
+    },
+  };
+}
+
 // 判断已有配置是否就是"当前这套 Auris"——execPath 或脚本路径变了（升级/换机/重装）就算 outdated，需要修复。
-function isEntryCurrent(entry, { execPath, serverScriptPath }) {
+function isEntryCurrent(entry, { execPath, serverScriptPath }, format = "json") {
   if (!entry || typeof entry !== "object") {
     return false;
+  }
+
+  if (format === "opencode") {
+    const cmd = Array.isArray(entry.command) ? entry.command : [];
+    const envObj =
+      entry.environment && typeof entry.environment === "object" && !Array.isArray(entry.environment)
+        ? entry.environment
+        : {};
+    return (
+      cmd[0] === execPath &&
+      cmd.includes(serverScriptPath) &&
+      typeof envObj[CLIENT_ID_ENV] === "string" &&
+      envObj[CLIENT_ID_ENV].length > 0 &&
+      typeof envObj[CLIENT_TOKEN_ENV] === "string" &&
+      envObj[CLIENT_TOKEN_ENV].length >= 32
+    );
   }
 
   const args = Array.isArray(entry.args) ? entry.args : [];
@@ -184,14 +268,15 @@ function detectJsonStatus(definition, content, target) {
     return { detail: "配置文件无法解析（非合法 JSON），请先手动检查", status: "unreadable" };
   }
 
-  const servers = parsed.value[definition.jsonRoot];
+  const rootKey = definition.format === "opencode" ? "mcp" : definition.jsonRoot;
+  const servers = parsed.value[rootKey];
   const entry = servers && typeof servers === "object" ? servers[SERVER_KEY] : undefined;
 
   if (!entry) {
     return { detail: "尚未配置", status: "not-installed" };
   }
 
-  if (isEntryCurrent(entry, target)) {
+  if (isEntryCurrent(entry, target, definition.format)) {
     return { detail: "已接入，指向当前 Auris", status: "connected" };
   }
 
@@ -219,6 +304,33 @@ async function applyJsonChange(definition, mutate, options) {
       config[definition.jsonRoot] = servers;
     } else if (definition.jsonRoot in config) {
       delete config[definition.jsonRoot];
+    }
+
+    return `${JSON.stringify(config, null, 2)}\n`;
+  }, options);
+}
+
+async function applyOpencodeChange(definition, mutate, options) {
+  return updateConfigFile(definition.configPath, (content) => {
+    const parsed = parseJsonConfig(content);
+    if (!parsed.ok) {
+      throw new Error(`${definition.label} 的配置文件不是合法 JSON，已中止以避免破坏现有内容。`);
+    }
+
+    const config = parsed.value;
+    const servers =
+      config.mcp &&
+      typeof config.mcp === "object" &&
+      !Array.isArray(config.mcp)
+        ? config.mcp
+        : {};
+
+    mutate(servers);
+
+    if (Object.keys(servers).length > 0) {
+      config.mcp = servers;
+    } else if ("mcp" in config) {
+      delete config.mcp;
     }
 
     return `${JSON.stringify(config, null, 2)}\n`;
@@ -303,7 +415,8 @@ function getInstalledEntry(definition, content) {
   }
   const parsed = parseJsonConfig(content);
   if (!parsed.ok) return null;
-  const servers = parsed.value[definition.jsonRoot];
+  const rootKey = definition.format === "opencode" ? "mcp" : definition.jsonRoot;
+  const servers = parsed.value[rootKey];
   return servers && typeof servers === "object"
     ? servers[SERVER_KEY]
     : null;
@@ -397,7 +510,7 @@ async function listMcpClients(options) {
   const definitions = getClientDefinitions(options);
   const credentialStore = getCredentialStore(options);
 
-  return Promise.all(
+  const results = await Promise.all(
     definitions.map(async (definition) => {
       let result;
       try {
@@ -408,9 +521,10 @@ async function listMcpClients(options) {
             : detectJsonStatus(definition, content, target);
         if (result.status === "connected") {
           const entry = getInstalledEntry(definition, content);
+          const envObj = definition.format === "opencode" ? entry?.environment : entry?.env;
           const principal = await credentialStore.verify(
-            entry?.env?.[CLIENT_ID_ENV],
-            entry?.env?.[CLIENT_TOKEN_ENV],
+            envObj?.[CLIENT_ID_ENV],
+            envObj?.[CLIENT_TOKEN_ENV],
           );
           if (!principal || principal.id !== definition.id) {
             result = {
@@ -429,18 +543,25 @@ async function listMcpClients(options) {
         format: definition.format,
         id: definition.id,
         label: definition.label,
+        legacy: definition.legacy === true,
         status: result.status,
       };
     }),
   );
+
+  return results.filter((client) => !client.legacy || client.status === "connected" || client.status === "outdated");
 }
 
 async function installMcpClient(clientId, options) {
   const definition = findClientDefinition(clientId, options);
+  if (definition.legacy) {
+    throw new Error(`${definition.label} 已停止维护，无法安装。请使用 Antigravity CLI。`);
+  }
   const existingEntry = await readInstalledEntry(definition, options);
+  const existingEnv = definition.format === "opencode" ? existingEntry?.environment : existingEntry?.env;
   const existingToken =
-    existingEntry?.env?.[CLIENT_ID_ENV] === clientId
-      ? existingEntry.env[CLIENT_TOKEN_ENV]
+    existingEnv?.[CLIENT_ID_ENV] === clientId
+      ? existingEnv[CLIENT_TOKEN_ENV]
       : null;
   const credential = await getCredentialStore(options).issue(
     clientId,
@@ -460,6 +581,17 @@ async function installMcpClient(clientId, options) {
           (existingEntry) => buildServerEntry(target, existingEntry),
           options,
         )
+      : definition.format === "opencode"
+      ? await applyOpencodeChange(
+          definition,
+          (servers) => {
+            servers[SERVER_KEY] = buildOpencodeServerEntry(
+              target,
+              servers[SERVER_KEY],
+            );
+          },
+          options,
+        )
       : await applyJsonChange(definition, (servers) => {
           servers[SERVER_KEY] = buildServerEntry(
             target,
@@ -476,6 +608,10 @@ async function removeMcpClient(clientId, options) {
   const backupPath =
     definition.format === "toml"
       ? await applyTomlChange(definition, () => null, options)
+      : definition.format === "opencode"
+      ? await applyOpencodeChange(definition, (servers) => {
+          delete servers[SERVER_KEY];
+        }, options)
       : await applyJsonChange(definition, (servers) => {
           delete servers[SERVER_KEY];
         }, options);

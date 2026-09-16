@@ -459,6 +459,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
   },
   system: {
     detectBinary: (name) => invoke("shadowing:system:detect-binary", name),
+    openExternal: (url) => invoke("shadowing:system:open-external", url),
     openUpgrade: () => invoke("shadowing:system:open-upgrade"),
     pickFile: (options) => invoke("shadowing:system:pick-file", options),
   },

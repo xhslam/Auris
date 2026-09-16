@@ -51,6 +51,7 @@ const {
   listMcpClients,
   removeMcpClient,
 } = require("./auris-mcp-installer.cjs");
+const { buildCcSwitchImportLink } = require("./ccswitch-link.cjs");
 const {
   createMcpClientCredentialStore,
 } = require("./mcp/client-credential-store.cjs");
@@ -2334,9 +2335,14 @@ async function getNotesMcpServerInfo() {
     await getNotesMcpBridge().start();
   }
 
+  const installerOptions = getMcpInstallerOptions();
   return {
     ...getNotesMcpBridge().getServerInfo(),
     policy: desktopConfig.mcp,
+    ccSwitchLink: buildCcSwitchImportLink(
+      installerOptions.execPath,
+      [installerOptions.serverScriptPath],
+    ),
   };
 }
 
@@ -4353,6 +4359,15 @@ function registerDesktopHandlers() {
 
   ipcMain.handle("shadowing:nia-standalone:open", async (event, launch) => openNiaStandaloneWindow(event, launch));
   ipcMain.handle("shadowing:system:open-upgrade", async () => openUpgradeEntry());
+  ipcMain.handle("shadowing:system:open-external", async (_event, url) => {
+    if (typeof url !== "string") return false;
+    try {
+      await shell.openExternal(url);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 
   ipcMain.handle("shadowing:system:detect-binary", async (_event, name) =>
     detectSystemBinary(name),
@@ -4482,6 +4497,8 @@ const DETECTABLE_BINARIES = new Set([
   "claude",
   "codex",
   "gemini",
+  "antigravity",
+  "agy",
   "ollama",
 ]);
 
@@ -4526,7 +4543,21 @@ function runCommandCapture(command, args) {
 }
 
 async function detectSystemBinary(name) {
-  if (typeof name !== "string" || !DETECTABLE_BINARIES.has(name)) {
+  if (typeof name !== "string") {
+    return { installed: false, version: null, path: null };
+  }
+
+  if (name === "antigravity") {
+    const primary = await detectSingleSystemBinary("antigravity");
+    if (primary.installed) return primary;
+    return detectSingleSystemBinary("agy");
+  }
+
+  return detectSingleSystemBinary(name);
+}
+
+async function detectSingleSystemBinary(name) {
+  if (!DETECTABLE_BINARIES.has(name)) {
     return { installed: false, version: null, path: null };
   }
 

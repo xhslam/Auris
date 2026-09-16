@@ -37,3 +37,8 @@ next-env.d.ts
 *.apk
 build/native/desktop-island/
 release/
+
+# Backups & local upstreams
+*.backup-*
+auris/
+vmark-upstream/

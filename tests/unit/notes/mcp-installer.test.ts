@@ -76,7 +76,7 @@ function clientById(clients: InstallerClient[], id: string) {
 describe("auris mcp installer", () => {
   it("reports not-installed when no config files exist", async () => {
     const clients = await installer.listMcpClients(makeOptions(home));
-    expect(clients).toHaveLength(3);
+    expect(clients).toHaveLength(6);
     expect(clients.every((client) => client.status === "not-installed")).toBe(true);
   });
 
@@ -352,5 +352,117 @@ describe("auris mcp installer", () => {
     await expect(installer.installMcpClient("claude-desktop", makeOptions(home))).rejects.toThrow();
     // 原文件保持不变。
     expect(readFileSync(configPath, "utf8")).toBe("{ this is not valid json ");
+  });
+
+  it("installs into Antigravity CLI config and preserves existing mcpServers", async () => {
+    const configDir = join(home, ".gemini", "config");
+    mkdirSync(configDir, { recursive: true });
+    const configPath = join(configDir, "mcp_config.json");
+    writeFileSync(
+      configPath,
+      JSON.stringify({ mcpServers: { existing: { command: "custom" } } }, null, 2),
+    );
+
+    await installer.installMcpClient("antigravity", makeOptions(home));
+
+    const written = JSON.parse(readFileSync(configPath, "utf8"));
+    expect(written.mcpServers.existing).toEqual({ command: "custom" });
+    expect(written.mcpServers["auris-notes"].command).toBe(EXEC_PATH);
+    expect(written.mcpServers["auris-notes"].args).toContain(SCRIPT_PATH);
+    expect(written.mcpServers["auris-notes"].env.AURIS_MCP_CLIENT_ID).toBe("antigravity");
+
+    let clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "antigravity")?.status).toBe("connected");
+
+    await installer.removeMcpClient("antigravity", makeOptions(home));
+    const uninstalled = JSON.parse(readFileSync(configPath, "utf8"));
+    expect(uninstalled.mcpServers.existing).toEqual({ command: "custom" });
+    expect(uninstalled.mcpServers["auris-notes"]).toBeUndefined();
+
+    clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "antigravity")?.status).toBe("not-installed");
+  });
+
+  it("installs into Grok CLI TOML config and removes cleanly", async () => {
+    const configDir = join(home, ".grok");
+    mkdirSync(configDir, { recursive: true });
+    const configPath = join(configDir, "config.toml");
+    writeFileSync(configPath, '[mcp_servers.keepme]\ncommand = "keep"\n');
+
+    await installer.installMcpClient("grok", makeOptions(home));
+
+    let toml = readFileSync(configPath, "utf8");
+    expect(toml).toContain("[mcp_servers.keepme]");
+    expect(toml).toContain("[mcp_servers.auris-notes]");
+    expect(toml).toContain(SCRIPT_PATH);
+
+    let clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "grok")?.status).toBe("connected");
+
+    await installer.removeMcpClient("grok", makeOptions(home));
+    toml = readFileSync(configPath, "utf8");
+    expect(toml).toContain("[mcp_servers.keepme]");
+    expect(toml).not.toContain("auris-notes");
+
+    clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "grok")?.status).toBe("not-installed");
+  });
+
+  it("installs into opencode schema under mcp key with array command", async () => {
+    const configDir = join(home, ".config", "opencode");
+    mkdirSync(configDir, { recursive: true });
+    const configPath = join(configDir, "opencode.json");
+    writeFileSync(
+      configPath,
+      JSON.stringify({ mcp: { other: { command: ["node", "srv"] } } }, null, 2),
+    );
+
+    await installer.installMcpClient("opencode", makeOptions(home));
+
+    const written = JSON.parse(readFileSync(configPath, "utf8"));
+    expect(written.mcp.other).toEqual({ command: ["node", "srv"] });
+    expect(written.mcp["auris-notes"].type).toBe("local");
+    expect(written.mcp["auris-notes"].command).toEqual([EXEC_PATH, SCRIPT_PATH]);
+    expect(written.mcp["auris-notes"].enabled).toBe(true);
+    expect(written.mcp["auris-notes"].environment.AURIS_MCP_CLIENT_ID).toBe("opencode");
+
+    let clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "opencode")?.status).toBe("connected");
+
+    await installer.removeMcpClient("opencode", makeOptions(home));
+    const uninstalled = JSON.parse(readFileSync(configPath, "utf8"));
+    expect(uninstalled.mcp.other).toEqual({ command: ["node", "srv"] });
+    expect(uninstalled.mcp["auris-notes"]).toBeUndefined();
+
+    clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "opencode")?.status).toBe("not-installed");
+  });
+
+  it("handles legacy Gemini CLI config: offers removal if present, refuses install", async () => {
+    // 1. When absent, not listed in listMcpClients
+    let clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "gemini")).toBeUndefined();
+
+    // 2. Install is rejected because Gemini is legacy
+    await expect(installer.installMcpClient("gemini", makeOptions(home))).rejects.toThrow(/已停止维护/);
+
+    // 3. If an older install left an entry, it is listed and can be removed
+    const configDir = join(home, ".gemini");
+    mkdirSync(configDir, { recursive: true });
+    const configPath = join(configDir, "settings.json");
+    writeFileSync(
+      configPath,
+      JSON.stringify({ mcpServers: { "auris-notes": { command: "/old" } } }, null, 2),
+    );
+
+    clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "gemini")?.status).toBe("outdated");
+
+    await installer.removeMcpClient("gemini", makeOptions(home));
+    const uninstalled = JSON.parse(readFileSync(configPath, "utf8"));
+    expect(uninstalled.mcpServers?.["auris-notes"]).toBeUndefined();
+
+    clients = await installer.listMcpClients(makeOptions(home));
+    expect(clientById(clients, "gemini")).toBeUndefined();
   });
 });

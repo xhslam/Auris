@@ -383,6 +383,9 @@ const INITIAL_INSTALLERS: Installers = {
   claudeDesktop: false,
   claudeCode: true,
   codexCli: true,
+  antigravityCli: true,
+  grokCli: false,
+  opencode: false,
   geminiCli: false,
 };
 
@@ -501,6 +504,7 @@ type Row =
       disabled?: boolean;
     }
   | { kind: "installer"; key: string; name: string; filename: string }
+  | { kind: "ccswitch" }
   | { kind: "note"; text: string }
   | { kind: "subhead"; text: string }
   | { kind: "shortcutBar" }
@@ -572,16 +576,19 @@ const MCP_CLIENT_KEYWORDS: Record<string, (client: DesktopMcpClient) => boolean>
   claudeDesktop: (c) => /claude/i.test(c.id + c.label) && /desktop/i.test(c.id + c.label),
   claudeCode: (c) => /claude/i.test(c.id + c.label) && /code/i.test(c.id + c.label),
   codexCli: (c) => /codex/i.test(c.id + c.label),
+  antigravityCli: (c) => /antigravity/i.test(c.id + c.label),
+  grokCli: (c) => /grok/i.test(c.id + c.label),
+  opencode: (c) => /opencode/i.test(c.id + c.label),
   geminiCli: (c) => /gemini/i.test(c.id + c.label),
 };
 
 type CliEntry = { status: string; color: string; disabled: boolean };
-type CliStatus = Record<"claude" | "codex" | "gemini", CliEntry>;
+type CliStatus = Record<"claude" | "codex" | "antigravity", CliEntry>;
 
 const DEFAULT_CLI_STATUS: CliStatus = {
   claude: { status: "可用", color: "#7BB99A", disabled: false },
   codex: { status: "可用", color: "#7BB99A", disabled: false },
-  gemini: { status: "未找到", color: "#56524B", disabled: true },
+  antigravity: { status: "可用", color: "#7BB99A", disabled: false },
 };
 
 /* ------------------------------------------------------------------ */
@@ -608,6 +615,9 @@ export function AurisSettings({ accent }: { accent?: string }) {
   const [pandocStatus, setPandocStatus] = useState({ text: "未找到", color: "#65615A" });
   const [cliBusy, setCliBusy] = useState(false);
   const [cliStatus, setCliStatus] = useState<CliStatus>(DEFAULT_CLI_STATUS);
+  const [ccSwitchLink, setCcSwitchLink] = useState<string | null>(null);
+  const [ccSwitchCopied, setCcSwitchCopied] = useState(false);
+  const [copiedInstallerKey, setCopiedInstallerKey] = useState<string | null>(null);
 
   const importInputRef = useRef<HTMLInputElement>(null);
   const browseInputRef = useRef<HTMLInputElement>(null);
@@ -712,6 +722,9 @@ export function AurisSettings({ accent }: { accent?: string }) {
       .then((info) => {
         if (cancelled) return;
         setMcp((prev) => ({ ...prev, port: info.port, enabled: info.enabled }));
+        if (info.ccSwitchLink) {
+          setCcSwitchLink(info.ccSwitchLink);
+        }
         setToggles((prev) => ({
           ...prev,
           mcpEnabled: info.policy.enabled,
@@ -977,6 +990,44 @@ export function AurisSettings({ accent }: { accent?: string }) {
     [bridge, syncFromClients],
   );
 
+  const onCopyCcSwitch = useCallback(async () => {
+    if (!ccSwitchLink) return;
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(ccSwitchLink);
+        setCcSwitchCopied(true);
+        window.setTimeout(() => setCcSwitchCopied(false), 1500);
+      }
+    } catch {
+      // ignore
+    }
+  }, [ccSwitchLink]);
+
+  const onAddCcSwitch = useCallback(async () => {
+    if (!ccSwitchLink) return;
+    if (systemBridge?.openExternal) {
+      const opened = await systemBridge.openExternal(ccSwitchLink);
+      if (opened) return;
+    }
+    if (typeof window !== "undefined") {
+      window.open(ccSwitchLink, "_blank");
+    }
+  }, [ccSwitchLink, systemBridge]);
+
+  const onCopyInstallerPath = useCallback(async (key: string, filename: string) => {
+    const match = realClientsRef.current.find(MCP_CLIENT_KEYWORDS[key]);
+    const pathToCopy = match?.configPath || filename;
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pathToCopy);
+        setCopiedInstallerKey(key);
+        window.setTimeout(() => setCopiedInstallerKey((k) => (k === key ? null : k)), 1500);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const resetAll = useCallback(() => {
     if (typeof window !== "undefined" && !window.confirm("确定要将所有设置恢复为默认值吗？此操作无法撤销。")) {
       return;
@@ -1119,7 +1170,7 @@ export function AurisSettings({ accent }: { accent?: string }) {
       return;
     }
     const detect = systemBridge.detectBinary;
-    const ids: Array<keyof CliStatus> = ["claude", "codex", "gemini"];
+    const ids: Array<keyof CliStatus> = ["claude", "codex", "antigravity"];
     void Promise.all(ids.map((id) => detect(id).catch(() => ({ installed: false, version: null, path: null }))))
       .then((results) => {
         setCliStatus((prev) => {
@@ -1165,8 +1216,8 @@ export function AurisSettings({ accent }: { accent?: string }) {
 
   /* --- panel data --- */
   const panel = useMemo<Panel>(
-    () => buildPanel(activeCat, { pandocStatus, mcp, cliBusy, cliStatus, browserSecurity }),
-    [activeCat, pandocStatus, mcp, cliBusy, cliStatus, browserSecurity],
+    () => buildPanel(activeCat, { pandocStatus, mcp, cliBusy, cliStatus, browserSecurity, installers }),
+    [activeCat, pandocStatus, mcp, cliBusy, cliStatus, browserSecurity, installers],
   );
 
   /* --- 关于页版本号 ---
@@ -1268,6 +1319,9 @@ export function AurisSettings({ accent }: { accent?: string }) {
                   radios={radios}
                   installers={installers}
                   texts={texts}
+                  ccSwitchLink={ccSwitchLink}
+                  ccSwitchCopied={ccSwitchCopied}
+                  copiedInstallerKey={copiedInstallerKey}
                   onSetTheme={handleSetTheme}
                   onToggle={toggleKey}
                   onCycle={cycleSelect}
@@ -1280,6 +1334,9 @@ export function AurisSettings({ accent }: { accent?: string }) {
                   onImport={() => importInputRef.current?.click()}
                   onResetShortcuts={resetAll}
                   onBrowse={browse}
+                  onCopyCcSwitch={onCopyCcSwitch}
+                  onAddCcSwitch={onAddCcSwitch}
+                  onCopyInstallerPath={onCopyInstallerPath}
                 />
               ))}
             </section>
@@ -1312,6 +1369,9 @@ type RowHandlers = {
   radios: Radios;
   installers: Installers;
   texts: Texts;
+  ccSwitchLink: string | null;
+  ccSwitchCopied: boolean;
+  copiedInstallerKey: string | null;
   onSetTheme: (id: string) => void;
   onToggle: (key: string) => void;
   onCycle: (key: string, len: number) => void;
@@ -1324,6 +1384,9 @@ type RowHandlers = {
   onImport: () => void;
   onResetShortcuts: () => void;
   onBrowse: () => void;
+  onCopyCcSwitch: () => void;
+  onAddCcSwitch: () => void;
+  onCopyInstallerPath: (key: string, filename: string) => void;
 };
 
 function RenderRow(props: RowHandlers) {
@@ -1566,6 +1629,7 @@ function RenderRow(props: RowHandlers) {
 
     case "installer": {
       const installed = !!props.installers[row.key];
+      const isCopied = props.copiedInstallerKey === row.key;
       return (
         <div className="auris-settings__row auris-settings__row--split auris-settings__row--info">
           <div className="auris-settings__installer-left">
@@ -1578,14 +1642,29 @@ function RenderRow(props: RowHandlers) {
               <div className="auris-settings__installer-name">{row.name}</div>
               <div className="auris-settings__installer-file">
                 <span>{row.filename}</span>
-                <Icon name="copy" size={12} color="#4F4B44" style={{ cursor: "pointer" }} />
+                <button
+                  type="button"
+                  className="auris-settings__installer-copy-btn"
+                  title={isCopied ? "已复制" : "复制"}
+                  onClick={() => props.onCopyInstallerPath(row.key, row.filename)}
+                >
+                  <Icon
+                    name={isCopied ? "check" : "copy"}
+                    size={12}
+                    color={isCopied ? "#7BB99A" : "#4F4B44"}
+                  />
+                </button>
               </div>
             </div>
           </div>
           <div className="auris-settings__installer-actions">
             {installed ? (
               <>
-                <button type="button" className="auris-settings__btn-sm">
+                <button
+                  type="button"
+                  className="auris-settings__btn-sm"
+                  onClick={() => props.onInstall(row.key)}
+                >
                   更新
                 </button>
                 <button
@@ -1606,6 +1685,47 @@ function RenderRow(props: RowHandlers) {
                 安装
               </button>
             )}
+          </div>
+        </div>
+      );
+    }
+
+    case "ccswitch": {
+      const link = props.ccSwitchLink;
+      const isCopied = props.ccSwitchCopied;
+      return (
+        <div className="auris-settings__row auris-settings__row--split auris-settings__row--info auris-settings__ccswitch-row">
+          <div className="auris-settings__installer-left">
+            <div>
+              <div className="auris-settings__installer-name">CC-Switch</div>
+              <div className="auris-settings__installer-desc">
+                将 Auris 的 MCP 服务器交给 CC-Switch，由它同步到你在其中管理的 AI CLI。
+              </div>
+            </div>
+          </div>
+          <div className="auris-settings__installer-actions">
+            <button
+              type="button"
+              className="auris-settings__btn-icon"
+              title={isCopied ? "已复制" : "复制 CC-Switch 导入链接"}
+              onClick={props.onCopyCcSwitch}
+              disabled={!link}
+            >
+              <Icon
+                name={isCopied ? "check" : "copy"}
+                size={14}
+                color={isCopied ? "#7BB99A" : "var(--app-muted)"}
+              />
+            </button>
+            <button
+              type="button"
+              className="auris-settings__btn-sm auris-settings__btn-sm--primary"
+              style={{ background: accent }}
+              onClick={props.onAddCcSwitch}
+              disabled={!link}
+            >
+              添加到 CC-Switch
+            </button>
           </div>
         </div>
       );
@@ -1672,6 +1792,7 @@ function buildPanel(
     cliBusy: boolean;
     cliStatus: CliStatus;
     browserSecurity: DesktopBrowserSecuritySnapshot;
+    installers: Installers;
   },
 ): Panel {
   switch (id) {
@@ -1914,16 +2035,22 @@ function buildPanel(
               { kind: "installer", key: "claudeDesktop", name: "Claude Desktop", filename: "claude_desktop_config.json" },
               { kind: "installer", key: "claudeCode", name: "Claude Code", filename: ".claude.json" },
               { kind: "installer", key: "codexCli", name: "Codex CLI", filename: "config.toml" },
-              { kind: "installer", key: "geminiCli", name: "Gemini CLI", filename: "settings.json" },
+              { kind: "installer", key: "antigravityCli", name: "Antigravity CLI", filename: "mcp_config.json" },
+              { kind: "installer", key: "grokCli", name: "Grok CLI", filename: "config.toml" },
+              { kind: "installer", key: "opencode", name: "opencode", filename: "opencode.json" },
+              ...(ctx.installers.geminiCli
+                ? [{ kind: "installer" as const, key: "geminiCli", name: "Gemini CLI (已废弃)", filename: "settings.json" }]
+                : []),
+              { kind: "ccswitch" },
             ],
           },
           {
             title: "AI 提供商", rows: [{ kind: "note", text: "当前桌面端尚未提供全局 AI 提供商切换。模型选择由具体功能的连接与运行时能力决定，以下目录仅作只读展示。" },
-              { kind: "button", label: "检测 CLI 提供商", desc: "扫描已安装的 AI CLI（claude、codex、gemini、ollama）", btnText: ctx.cliBusy ? "检测中…" : "检测", variant: "default", align: "right", icon: "refresh-cw", action: "detectCli" },
+              { kind: "button", label: "检测 CLI 提供商", desc: "扫描已安装的 AI CLI（claude、codex、antigravity）", btnText: ctx.cliBusy ? "检测中…" : "检测", variant: "default", align: "right", icon: "refresh-cw", action: "detectCli" },
               { kind: "subhead", text: "CLI 提供商" },
               { kind: "radio", group: "ai", id: "claude", name: "Claude", status: ctx.cliStatus.claude.status, statusColor: ctx.cliStatus.claude.color, disabled: ctx.cliStatus.claude.disabled },
               { kind: "radio", group: "ai", id: "codex", name: "Codex", status: ctx.cliStatus.codex.status, statusColor: ctx.cliStatus.codex.color, disabled: ctx.cliStatus.codex.disabled },
-              { kind: "radio", group: "ai", id: "gemini", name: "Gemini", status: ctx.cliStatus.gemini.status, statusColor: ctx.cliStatus.gemini.color, disabled: ctx.cliStatus.gemini.disabled },
+              { kind: "radio", group: "ai", id: "antigravity", name: "Antigravity", status: ctx.cliStatus.antigravity.status, statusColor: ctx.cliStatus.antigravity.color, disabled: ctx.cliStatus.antigravity.disabled },
               { kind: "subhead", text: "REST API 提供商" },
               { kind: "radio", group: "ai", id: "anthropic", name: "Anthropic", disabled: true, status: "暂不可用", statusColor: "#65615A" },
               { kind: "radio", group: "ai", id: "openai", name: "OpenAI", disabled: true, status: "暂不可用", statusColor: "#65615A" },
@@ -2184,6 +2311,13 @@ const SETTINGS_CSS = `
 .auris-settings__btn-sm{height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--app-line);background:var(--app-fill);color:var(--app-text-soft);font-size:13px;cursor:pointer;font-family:inherit;}
 .auris-settings__btn-sm--primary{padding:0 15px;border:none;color:var(--accent-ink);font-weight:600;}
 .auris-settings__btn-sm--danger{border:1px solid rgba(217,138,126,0.4);background:transparent;color:#D98A7E;}
+.auris-settings__installer-copy-btn{border:none;background:transparent;padding:2px;cursor:pointer;display:inline-flex;align-items:center;color:var(--app-muted);border-radius:4px;transition:color .15s;}
+.auris-settings__installer-copy-btn:hover{color:var(--app-text);}
+.auris-settings__ccswitch-row{padding-top:14px;border-top:1px solid var(--app-line);margin-top:6px;}
+.auris-settings__installer-desc{margin-top:3px;font-size:12.5px;color:var(--app-muted);}
+.auris-settings__btn-icon{width:32px;height:32px;padding:0;display:inline-grid;place-items:center;border-radius:8px;border:1px solid var(--app-line);background:var(--app-fill);color:var(--app-text-soft);cursor:pointer;}
+.auris-settings__btn-icon:hover:not(:disabled){background:var(--app-surface-hover, rgba(255,255,255,0.06));}
+.auris-settings__btn-icon:disabled{opacity:0.4;cursor:default;}
 
 .auris-settings__subhead{padding:20px 2px 6px;font-size:12px;letter-spacing:0.1em;color:var(--app-muted);text-transform:uppercase;font-weight:500;}
 .auris-settings__note{padding:8px 2px 16px;font-size:13px;line-height:1.65;color:var(--app-muted);}
