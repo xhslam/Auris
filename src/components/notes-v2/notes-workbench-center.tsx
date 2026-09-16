@@ -26,6 +26,7 @@ type NotesWorkbenchCenterProps = {
     | ((path: string, nextSource: string) => void);
   onEditorActiveLineChange?: (line: number) => void;
   onEditorBridgeReady?: (bridge: NotesEditorBridge | null) => void;
+  onEditorModeChange?: (mode: NotesEditorMode) => void;
   onEditorSelectionStateChange?: (
     selection: NotesEditorSelectionState | null,
   ) => void;
@@ -49,6 +50,7 @@ export function NotesWorkbenchCenter({
   onDocumentChange,
   onEditorActiveLineChange,
   onEditorBridgeReady,
+  onEditorModeChange,
   onEditorSelectionStateChange,
   onEnsureWikiLinkNote,
   onOpenPath,
@@ -98,6 +100,7 @@ export function NotesWorkbenchCenter({
           editorMode={editorMode}
           onActiveLineChange={onEditorActiveLineChange}
           onBridgeReady={onEditorBridgeReady}
+          onEditorModeChange={onEditorModeChange}
           onEnsureWikiLinkNote={onEnsureWikiLinkNote}
           onOpenWikiLink={onOpenWikiLink}
           onDocumentChange={(nextSource) => {

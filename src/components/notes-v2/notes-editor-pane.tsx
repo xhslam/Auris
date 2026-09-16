@@ -70,6 +70,7 @@ type NotesEditorPaneProps = {
   onActiveLineChange?: (line: number) => void;
   onBridgeReady?: (bridge: NotesEditorBridge | null) => void;
   onDocumentChange: (nextSource: string) => void;
+  onEditorModeChange?: (mode: NotesEditorMode) => void;
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
   onOpenWikiLink?: (target: string) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
@@ -103,17 +104,34 @@ export function NotesEditorPane({
   onActiveLineChange,
   onBridgeReady,
   onDocumentChange,
+  onEditorModeChange,
   onEnsureWikiLinkNote,
   onOpenWikiLink,
   onSelectionStateChange,
   viewPreferences = DEFAULT_NOTES_VIEW_PREFERENCES,
 }: NotesEditorPaneProps) {
+  const [forcedSourcePath, setForcedSourcePath] = useState<string | null>(null);
+  const [unparseableWarning, setUnparseableWarning] = useState<string | null>(null);
+
   const format = getFormatDescriptor(document?.path ?? "");
   const isStructured = format.previewKind === "structured-tree";
-  const editorMode =
-    isStructured && requestedEditorMode === "wysiwyg"
+  const isForcedSource = Boolean(document?.path && forcedSourcePath === document.path);
+  const editorMode = isForcedSource
+    ? "source"
+    : isStructured && requestedEditorMode === "wysiwyg"
       ? "split"
       : requestedEditorMode;
+
+  const handleUnparseableDocument = useCallback(() => {
+    if (document?.path) {
+      setForcedSourcePath(document.path);
+      setUnparseableWarning(
+        "当前文档结构复杂或超出富文本限制，已自动切换至源码模式以保护文件内容完整性。",
+      );
+      onEditorModeChange?.("source");
+    }
+  }, [document, onEditorModeChange]);
+
   const hostRef = useRef<HTMLDivElement | null>(null);
   const splitPreviewRef = useRef<HTMLDivElement | null>(null);
   useNotesScrollMemory({
@@ -875,6 +893,33 @@ export function NotesEditorPane({
           </div>
         </div>
       ) : null}
+      {unparseableWarning && isForcedSource ? (
+        <div
+          className="notes-v2__banner notes-v2__banner--warning"
+          data-testid="notes-unparseable-refusal-banner"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>{unparseableWarning}</span>
+          <button
+            aria-label="关闭警告"
+            onClick={() => setUnparseableWarning(null)}
+            type="button"
+            style={{
+              marginLeft: 8,
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              opacity: 0.7,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      ) : null}
       {editorMode === "wysiwyg" ? (
         <NotesRichEditorPane
           document={document}
@@ -885,6 +930,7 @@ export function NotesEditorPane({
           onEnsureWikiLinkNote={onEnsureWikiLinkNote}
           onOpenWikiLink={onOpenWikiLink}
           onSelectionStateChange={onSelectionStateChange}
+          onUnparseableDocument={handleUnparseableDocument}
           focusMode={viewPreferences.focusMode}
           readOnly={viewPreferences.readOnly}
           typewriterMode={viewPreferences.typewriterMode}

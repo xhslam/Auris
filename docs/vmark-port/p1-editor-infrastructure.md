@@ -44,3 +44,25 @@
 2. Auris 分屏只允许一个写入源；右侧是只读预览。这比双可写 pane 更适合现有自动保存、冲突检测和 Markdown round-trip 边界。
 3. Hot Exit V2 与历史服务于单窗口 Notes 工作台；Auris 没有复制 VMark 的多窗口捕获协调器，但单窗口内的脏文档、冲突基线和 workspace UI 状态已形成完整恢复闭环。
 4. 编辑器内部的格式键仍由 CodeMirror / ProseMirror 原生 keymap 执行；设置页当前开放工作台级命令的自定义，尚未把每个编辑器原生命令提升为全局可重绑项。
+
+---
+
+## 2026-09-16 增量复核：VMark `v0.9.74`，commit `2fc00f4c21389eb5282abe91d9aee93093541c8e`
+
+本轮根据 VMark v0.9.74 的 40 个提交与核心 PR（#1407、#1410 ~ #1417）完成增量对齐：
+
+### 1. 吸收项与对齐落地
+
+- **Markdown 极限病态输入线性化（O(n) Fast Paths）**：
+  - 针对大量未闭合反括号 `]`、反引号和未闭合强调符导致的 O(n²) 回溯与 ReDoS 卡死，引入 `fast-paths`（`inertLabelEnd`、`inertCodeTextSequence`、`attentionWithoutFutileWalks`），在获得完全反证时提前消耗为普通数据，统一接入 `notes-markdown-dialect.ts`。
+- **富文本编辑器 Undo/Redo 历史完整性守卫（Undo Integrity）**：
+  - 引入 `notes-undo-integrity.ts`。在历史事务分发窗口期，拦截并拒绝任何插件通过 `appendTransaction`（如表格修正或普通格式化）对文档附加的修改，杜绝历史分支撕裂与连续 Undo 抛出 `RangeError: Position out of range`。
+- **不可解析/超限文档安全降级（Unparseable Document Refusal）**：
+  - 废除原先将不可解析或超限 Markdown 强行拆解为纯文本 `<p>` 段落的危险行为（该行为在自动保存时会洗掉 Markdown 格式造成数据损坏）；
+  - 遇到解析拒绝时，自动降级至源码模式（Source Mode）打开并向用户提示，同时冻结与丢弃来自被拒绝富文本编辑器的任何自动保存写回。
+
+### 2. 有意保留的差异
+
+- Auris 坚决不引入 Tiptap 庞大封装，继续保持原生 ProseMirror + CodeMirror 双 surface 架构。
+- 平台持久化与回收站管理依然由 Electron 主进程 IPC 承接，不引入 Tauri/Rust 逻辑。
+- 分屏编辑保持“左侧源码可写，右侧只读预览”原则不变。

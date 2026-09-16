@@ -523,6 +523,19 @@ export const NOTES_RICH_PARSER_LIMITS = {
   maxLines: 15_000,
 } as const;
 
+export class NotesMarkdownRefusalError extends Error {
+  readonly code: "EXCEEDS_LIMITS" | "PARSE_ERROR";
+  constructor(message: string, code: "EXCEEDS_LIMITS" | "PARSE_ERROR") {
+    super(message);
+    this.name = "NotesMarkdownRefusalError";
+    this.code = code;
+  }
+}
+
+export type ParseNotesRichMarkdownOptions = {
+  throwOnRefusal?: boolean;
+};
+
 /**
  * Creates a safe fallback ProseMirror document containing the raw text
  * structured as plain paragraphs, ensuring zero data loss and preventing editor crashes.
@@ -549,13 +562,22 @@ export function createSafeFallbackDoc(source: string): ProseMirrorNode {
   return notesRichEditorSchema.topNodeType.create(null, paragraphs);
 }
 
-export function parseNotesRichMarkdown(source: string): ProseMirrorNode {
+export function parseNotesRichMarkdown(
+  source: string,
+  options?: ParseNotesRichMarkdownOptions,
+): ProseMirrorNode {
   if (!source.trim()) {
     return notesRichEditorSchema.topNodeType.createAndFill()!;
   }
 
   // Refusal & guard: If source exceeds safe limits, avoid parser freeze / ReDoS
   if (source.length > NOTES_RICH_PARSER_LIMITS.maxCharacters) {
+    if (options?.throwOnRefusal) {
+      throw new NotesMarkdownRefusalError(
+        `Source length (${source.length}) exceeds safe limit (${NOTES_RICH_PARSER_LIMITS.maxCharacters}).`,
+        "EXCEEDS_LIMITS",
+      );
+    }
     console.warn(
       `[parseNotesRichMarkdown] Refusal: source length (${source.length}) exceeds safe limit (${NOTES_RICH_PARSER_LIMITS.maxCharacters}). Using safe fallback.`,
     );
@@ -569,6 +591,12 @@ export function parseNotesRichMarkdown(source: string): ProseMirrorNode {
     );
     return DOMParser.fromSchema(notesRichEditorSchema).parse(container);
   } catch (error) {
+    if (options?.throwOnRefusal) {
+      throw new NotesMarkdownRefusalError(
+        error instanceof Error ? error.message : String(error),
+        "PARSE_ERROR",
+      );
+    }
     console.warn(
       "[parseNotesRichMarkdown] Parser error caught, safely falling back to raw document:",
       error,

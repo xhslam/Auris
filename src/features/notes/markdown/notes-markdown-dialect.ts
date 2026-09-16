@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import type { Plugin } from "unified";
+import { remarkInlineFastPaths } from "./fast-paths/remark-inline-fast-paths";
 
 type MathDelimiterKind = "display" | "inline";
 
@@ -266,6 +267,7 @@ const remarkValidateNotesMath: Plugin = function () {
 export function createNotesMarkdownProcessor() {
   return unified()
     .use(remarkParse)
+    .use(remarkInlineFastPaths)
     .use(remarkFrontmatter, ["yaml"])
     .use(remarkGfm)
     .use(remarkMath)

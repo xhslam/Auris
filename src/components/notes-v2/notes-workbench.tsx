@@ -828,6 +828,7 @@ export function NotesWorkbench({
               onDocumentChange={onDocumentChange}
               onEditorActiveLineChange={onEditorActiveLineChange}
               onEditorBridgeReady={handleBridgeReady}
+              onEditorModeChange={onEditorModeChange}
               onEditorSelectionStateChange={setSelectionState}
               onEnsureWikiLinkNote={onEnsureWikiLinkNote}
               onOpenPath={onOpenPath}

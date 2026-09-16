@@ -41,6 +41,7 @@ import {
   parseNotesRichMarkdown,
   serializeNotesRichMarkdown,
 } from "@/features/notes/editor/notes-rich-markdown";
+import { createNotesUndoIntegrityPlugin } from "@/features/notes/editor/notes-undo-integrity";
 import { createNotesRichInputRules } from "@/features/notes/editor/notes-rich-input-rules";
 import { createNotesRichKeymap } from "@/features/notes/editor/notes-rich-keymap";
 import {
@@ -78,6 +79,7 @@ import {
   type NotesRichTableToolbarState,
 } from "@/features/notes/editor/editor-table-toolbar";
 import { tableEditing } from "prosemirror-tables";
+import type { Plugin } from "prosemirror-state";
 
 const NOTES_RICH_EDITOR_SYNC_META = "shadowing-notes-rich-editor-sync";
 const NOTES_TOC_REFRESH_EVENT = "auris-notes-toc-refresh";
@@ -97,6 +99,7 @@ type NotesRichEditorPaneProps = {
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
   onOpenWikiLink?: (target: string) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
+  onUnparseableDocument?: (error: unknown) => void;
   readOnly?: boolean;
   focusMode?: boolean;
   typewriterMode?: boolean;
@@ -346,14 +349,16 @@ function createNotesRichEditorState(
   rawSource: string,
   resolveWikiLinkExists: (token: string) => boolean,
   sourcePeekController: NotesSourcePeekController,
+  undoIntegrityPlugin?: Plugin,
 ) {
-  const initialDoc = parseNotesRichMarkdown(rawSource);
+  const initialDoc = parseNotesRichMarkdown(rawSource, { throwOnRefusal: true });
 
   return EditorState.create({
     doc: initialDoc,
     plugins: [
       createNotesRichInputRules(notesRichEditorSchema),
       history(),
+      ...(undoIntegrityPlugin ? [undoIntegrityPlugin] : []),
       // Formatting/list shortcuts first, then base editing keys; list-aware
       // Enter/Tab fall through to baseKeymap when not inside a list.
       keymap(createNotesRichKeymap(notesRichEditorSchema)),
@@ -409,6 +414,7 @@ export function NotesRichEditorPane({
   readOnly = false,
   focusMode = false,
   typewriterMode = false,
+  onUnparseableDocument,
 }: NotesRichEditorPaneProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   useNotesScrollMemory({
@@ -434,6 +440,9 @@ export function NotesRichEditorPane({
   const onEnsureWikiLinkNoteRef = useRef(onEnsureWikiLinkNote);
   const onOpenWikiLinkRef = useRef(onOpenWikiLink);
   const onSelectionStateChangeRef = useRef(onSelectionStateChange);
+  const onUnparseableDocumentRef = useRef(onUnparseableDocument);
+  const isDocumentRefusedRef = useRef(false);
+  const undoIntegrity = useMemo(() => createNotesUndoIntegrityPlugin(), []);
   const viewModeRef = useRef({ focusMode, readOnly, typewriterMode });
   const [tableToolbarState, setTableToolbarState] =
     useState<NotesRichTableToolbarState | null>(null);
@@ -536,6 +545,10 @@ export function NotesRichEditorPane({
   useEffect(() => {
     onSelectionStateChangeRef.current = onSelectionStateChange;
   }, [onSelectionStateChange]);
+
+  useEffect(() => {
+    onUnparseableDocumentRef.current = onUnparseableDocument;
+  }, [onUnparseableDocument]);
 
   const handleContextMenu = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -904,6 +917,29 @@ export function NotesRichEditorPane({
       });
     };
 
+    isDocumentRefusedRef.current = false;
+    let initialEditorState;
+    try {
+      initialEditorState = createNotesRichEditorState(
+        wysiwygDocumentSource,
+        (token) =>
+          wikiLinkExistsRef.current(
+            token,
+            editableDocumentRef.current?.path ?? "",
+          ),
+        sourcePeekControllerRef.current,
+        undoIntegrity.plugin,
+      );
+    } catch (error) {
+      isDocumentRefusedRef.current = true;
+      console.warn(
+        "[NotesRichEditorPane] Document refused by rich markdown parser:",
+        error,
+      );
+      onUnparseableDocumentRef.current?.(error);
+      return;
+    }
+
     const view = new EditorView(hostRef.current, {
       editable: () => !viewModeRef.current.readOnly,
       handleKeyDown(keyView, event) {
@@ -1002,64 +1038,70 @@ export function NotesRichEditorPane({
         return true;
       },
       dispatchTransaction(transaction) {
+        if (isDocumentRefusedRef.current) {
+          return;
+        }
+
         const currentView = viewState.current;
 
         if (!currentView) {
           return;
         }
 
-        if (
-          transaction.docChanged &&
-          viewModeRef.current.readOnly &&
-          !transaction.getMeta(NOTES_RICH_EDITOR_SYNC_META)
-        ) {
-          return;
-        }
-
-        const nextState = currentView.state.apply(transaction);
-        currentView.updateState(nextState);
-        updateActiveRichBlock(currentView, viewModeRef.current);
-        setTableToolbarState(getNotesRichTableToolbarState(nextState));
-
-        if (
-          transaction.getMeta(NOTES_RICH_EDITOR_SYNC_META) ||
-          transaction.getMeta(NOTES_SOURCE_PEEK_META)
-        ) {
-          return;
-        }
-
-        if (transaction.docChanged) {
-          window.dispatchEvent(new Event(NOTES_TOC_REFRESH_EVENT));
-          const nextWysiwygSource = serializeNotesRichMarkdown(nextState.doc);
-          const currentEditableDocument = editableDocumentRef.current;
-
-          if (!currentEditableDocument) {
+        undoIntegrity.dispatch(transaction, (tr) => {
+          if (
+            tr.docChanged &&
+            viewModeRef.current.readOnly &&
+            !tr.getMeta(NOTES_RICH_EDITOR_SYNC_META)
+          ) {
             return;
           }
 
-          const nextEditableDocument = parseEditableNoteSource(
-            nextWysiwygSource,
-            currentEditableDocument.path,
-          );
+          const nextState = currentView.state.apply(tr);
+          currentView.updateState(nextState);
+          updateActiveRichBlock(currentView, viewModeRef.current);
+          setTableToolbarState(getNotesRichTableToolbarState(nextState));
 
-          lastAppliedSourceRef.current = nextWysiwygSource;
-          const nextSource = composeEditableNoteSource(
-            currentEditableDocument,
-            {
-              bodySource: nextEditableDocument.bodySource,
-              title: nextEditableDocument.title,
-            },
-          );
-
-          if (isImeCompositionRef.current) {
-            pendingImeSourceRef.current = nextSource;
-          } else {
-            onDocumentChangeRef.current(nextSource);
+          if (
+            tr.getMeta(NOTES_RICH_EDITOR_SYNC_META) ||
+            tr.getMeta(NOTES_SOURCE_PEEK_META)
+          ) {
+            return;
           }
-        }
-        const selection = getSelectionState(currentView);
-        onSelectionStateChangeRef.current?.(selection);
-        onActiveLineChangeRef.current?.(selection.line);
+
+          if (tr.docChanged) {
+            window.dispatchEvent(new Event(NOTES_TOC_REFRESH_EVENT));
+            const nextWysiwygSource = serializeNotesRichMarkdown(nextState.doc);
+            const currentEditableDocument = editableDocumentRef.current;
+
+            if (!currentEditableDocument) {
+              return;
+            }
+
+            const nextEditableDocument = parseEditableNoteSource(
+              nextWysiwygSource,
+              currentEditableDocument.path,
+            );
+
+            lastAppliedSourceRef.current = nextWysiwygSource;
+            const nextSource = composeEditableNoteSource(
+              currentEditableDocument,
+              {
+                bodySource: nextEditableDocument.bodySource,
+                title: nextEditableDocument.title,
+              },
+            );
+
+            if (isImeCompositionRef.current) {
+              pendingImeSourceRef.current = nextSource;
+            } else {
+              onDocumentChangeRef.current(nextSource);
+            }
+          }
+          const selection = getSelectionState(currentView);
+          onSelectionStateChangeRef.current?.(selection);
+          onActiveLineChangeRef.current?.(selection.line);
+        });
       },
       nodeViews: {
         code_block: (node) => new RichCodeBlockView(node),
@@ -1069,15 +1111,7 @@ export function NotesRichEditorPane({
           createNotesMathInlineNodeView(node, mathView, getPos),
         toc: () => new RichTableOfContentsView(() => viewState.current),
       },
-      state: createNotesRichEditorState(
-        wysiwygDocumentSource,
-        (token) =>
-          wikiLinkExistsRef.current(
-            token,
-            editableDocumentRef.current?.path ?? "",
-          ),
-        sourcePeekControllerRef.current,
-      ),
+      state: initialEditorState,
     });
     viewState.current = view;
     view.dom.addEventListener("compositionstart", handleCompositionStart);
@@ -1109,6 +1143,7 @@ export function NotesRichEditorPane({
     editableDocument,
     openSourcePeek,
     readOnly,
+    undoIntegrity,
     wysiwygDocumentSource,
   ]);
 
@@ -1138,7 +1173,14 @@ export function NotesRichEditorPane({
       return;
     }
 
-    const nextDoc = parseNotesRichMarkdown(wysiwygDocumentSource);
+    let nextDoc;
+    try {
+      nextDoc = parseNotesRichMarkdown(wysiwygDocumentSource, { throwOnRefusal: true });
+    } catch (error) {
+      isDocumentRefusedRef.current = true;
+      onUnparseableDocumentRef.current?.(error);
+      return;
+    }
     const transaction = view.state.tr
       .setMeta(NOTES_RICH_EDITOR_SYNC_META, true)
       .replace(0, view.state.doc.content.size, new Slice(nextDoc.content, 0, 0));
