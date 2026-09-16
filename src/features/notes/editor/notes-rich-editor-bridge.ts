@@ -15,24 +15,34 @@ function clampPosition(state: EditorState, value: number) {
   return Math.min(Math.max(Math.round(value), 0), state.doc.content.size);
 }
 
-function getLineFromPosition(state: EditorState, position: number) {
+function getLineAndColumnFromPosition(state: EditorState, position: number) {
   const prefix = state.doc.textBetween(0, clampPosition(state, position), "\n");
 
   if (!prefix) {
-    return 0;
+    return { column: 0, line: 0 };
   }
 
-  return prefix.split("\n").length - 1;
+  const lines = prefix.split("\n");
+  const line = lines.length - 1;
+  const column = lines[line].length;
+
+  return { column, line };
+}
+
+function getLineFromPosition(state: EditorState, position: number) {
+  return getLineAndColumnFromPosition(state, position).line;
 }
 
 function getSelectionState(view: EditorView): NotesEditorSelectionState {
   const selection = view.state.selection;
   const { from, to } = selection;
   const selectedText = view.state.doc.textBetween(from, to, "\n");
+  const { line, column } = getLineAndColumnFromPosition(view.state, selection.head);
 
   return {
+    column,
     from,
-    line: getLineFromPosition(view.state, selection.head),
+    line,
     text: selectedText,
     to,
   };

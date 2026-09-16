@@ -65,10 +65,12 @@ const notesMarkdownHighlightStyle = HighlightStyle.define([
 
 function createSelectionState(updateState: EditorState): NotesEditorSelectionState {
   const selection = updateState.selection.main;
+  const line = updateState.doc.lineAt(selection.head);
 
   return {
+    column: selection.head - line.from,
     from: selection.from,
-    line: updateState.doc.lineAt(selection.head).number - 1,
+    line: line.number - 1,
     text: updateState.doc.sliceString(selection.from, selection.to),
     to: selection.to,
   };

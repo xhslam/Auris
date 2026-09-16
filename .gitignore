@@ -36,3 +36,4 @@ next-env.d.ts
 # Native build / installable artifacts
 *.apk
 build/native/desktop-island/
+release/

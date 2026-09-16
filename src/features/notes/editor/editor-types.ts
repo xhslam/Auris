@@ -8,6 +8,7 @@ export type NotesEditorChangeHandler = (nextSource: string) => void;
 export type NotesEditorMode = "source" | "split" | "wysiwyg";
 
 export type NotesEditorSelectionState = {
+  column?: number;
   from: number;
   line: number;
   text: string;

@@ -68,6 +68,63 @@ describe("NotesWorkbenchBottomRight", () => {
     expect(screen.getByText("12 字符")).toBeInTheDocument();
   });
 
+  it("shows cursor line and column and selection length on the status bar", () => {
+    const { rerender } = render(
+      <NotesWorkbenchBottomRight
+        activeDocument={activeDocument}
+        backlinks={[]}
+        documentSaveState="saved"
+        documents={[activeDocument]}
+        editorMode="wysiwyg"
+        isTerminalSplitOpen={false}
+        learningQuery=""
+        learningSnippets={[]}
+        onOpenPath={vi.fn()}
+        onTerminalSplitToggle={vi.fn()}
+        recentDocuments={[]}
+        searchQuery=""
+        searchResults={[]}
+        selectionState={{
+          column: 4,
+          from: 5,
+          line: 2,
+          text: "",
+          to: 5,
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("notes-cursor-stat")).toHaveTextContent("Ln 3, Col 5");
+
+    rerender(
+      <NotesWorkbenchBottomRight
+        activeDocument={activeDocument}
+        backlinks={[]}
+        documentSaveState="saved"
+        documents={[activeDocument]}
+        editorMode="wysiwyg"
+        isTerminalSplitOpen={false}
+        learningQuery=""
+        learningSnippets={[]}
+        onOpenPath={vi.fn()}
+        onTerminalSplitToggle={vi.fn()}
+        recentDocuments={[]}
+        searchQuery=""
+        searchResults={[]}
+        selectionState={{
+          column: 10,
+          from: 5,
+          line: 2,
+          text: "hello",
+          to: 10,
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("notes-cursor-stat")).toHaveTextContent("Ln 3, Col 11");
+    expect(screen.getByTestId("notes-selection-stat")).toHaveTextContent("已选 5 字符");
+  });
+
   it("shows a dependency review action only when the active learning note is stale", async () => {
     const user = userEvent.setup();
     const onResolveLearningDependencyReview = vi.fn();

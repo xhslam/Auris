@@ -131,14 +131,22 @@ function createSelection(doc: ProseMirrorNode, from: number, to: number) {
   return TextSelection.create(doc, start, end);
 }
 
-function getLineFromPosition(doc: ProseMirrorNode, position: number) {
+function getLineAndColumnFromPosition(doc: ProseMirrorNode, position: number) {
   const prefix = doc.textBetween(0, clampPosition(position, doc), "\n");
 
   if (!prefix) {
-    return 0;
+    return { column: 0, line: 0 };
   }
 
-  return prefix.split("\n").length - 1;
+  const lines = prefix.split("\n");
+  const line = lines.length - 1;
+  const column = lines[line].length;
+
+  return { column, line };
+}
+
+function getLineFromPosition(doc: ProseMirrorNode, position: number) {
+  return getLineAndColumnFromPosition(doc, position).line;
 }
 
 function updateActiveRichBlock(
@@ -167,10 +175,12 @@ function updateActiveRichBlock(
 
 function getSelectionState(view: EditorView): NotesEditorSelectionState {
   const selection = view.state.selection;
+  const { line, column } = getLineAndColumnFromPosition(view.state.doc, selection.head);
 
   return {
+    column,
     from: selection.from,
-    line: getLineFromPosition(view.state.doc, selection.head),
+    line,
     text: view.state.doc.textBetween(selection.from, selection.to, "\n"),
     to: selection.to,
   };

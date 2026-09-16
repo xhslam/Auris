@@ -62,11 +62,13 @@ export function createNotesEditorBridge(
       }
 
       const selection = view.state.selection.main;
+      const line = view.state.doc.lineAt(selection.head);
       const selectedText = view.state.doc.sliceString(selection.from, selection.to);
 
       return {
+        column: selection.head - line.from,
         from: selection.from,
-        line: view.state.doc.lineAt(selection.head).number - 1,
+        line: line.number - 1,
         text: selectedText,
         to: selection.to,
       };

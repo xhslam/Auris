@@ -90,4 +90,17 @@ describe("notes rich markdown round-trip integrity", () => {
       expectStableRoundTrip(source);
     });
   });
+
+  it("safely falls back to raw paragraph structure when exceeding length limits", () => {
+    // Generate an oversized string beyond 500k chars
+    const base = "A".repeat(1000) + "\n";
+    const oversized = base.repeat(501);
+    const parsed = parseNotesRichMarkdown(oversized);
+    expect(parsed).toBeDefined();
+    expect(parsed.type.name).toBe("doc");
+    expect(parsed.childCount).toBeGreaterThan(500);
+    // Ensure serialization preserves the content without throwing
+    const serialized = serializeNotesRichMarkdown(parsed);
+    expect(serialized.length).toBeGreaterThan(500_000);
+  });
 });

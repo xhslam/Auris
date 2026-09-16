@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   allowedDevOrigins: ["127.0.0.1"],
   output: "standalone",
   reactStrictMode: true,

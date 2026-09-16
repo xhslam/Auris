@@ -149,6 +149,18 @@ export function NotesWorkbenchBottomRight({
       >
         {saveStateLabel}
       </span>
+      {selectionState ? (
+        <>
+          <span className="notes-v2__corner-stat" data-testid="notes-cursor-stat">
+            Ln {selectionState.line + 1}, Col {(selectionState.column ?? 0) + 1}
+          </span>
+          {selectionLength > 0 ? (
+            <span className="notes-v2__corner-stat" data-testid="notes-selection-stat">
+              已选 {selectionLength} 字符
+            </span>
+          ) : null}
+        </>
+      ) : null}
       <span className="notes-v2__corner-stat">{metrics.words} 词</span>
       <span className="notes-v2__corner-stat">{metrics.characters} 字符</span>
       {learningDependencyNeedsReview ? (
@@ -460,8 +472,8 @@ export function NotesWorkbenchBottomRight({
               <dt>{selectionLength > 0 ? "选中" : "光标"}</dt>
               <dd>
                 {selectionLength > 0
-                  ? `${selectionLength} 字`
-                  : `行 ${selectionState.line + 1}`}
+                  ? `${selectionLength} 字符`
+                  : `Ln ${selectionState.line + 1}, Col ${(selectionState.column ?? 0) + 1}`}
               </dd>
             </div>
           ) : null}

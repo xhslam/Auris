@@ -518,16 +518,63 @@ export function createWikiLinkDecorationPlugin(
   });
 }
 
-export function parseNotesRichMarkdown(source: string) {
+export const NOTES_RICH_PARSER_LIMITS = {
+  maxCharacters: 500_000,
+  maxLines: 15_000,
+} as const;
+
+/**
+ * Creates a safe fallback ProseMirror document containing the raw text
+ * structured as plain paragraphs, ensuring zero data loss and preventing editor crashes.
+ */
+export function createSafeFallbackDoc(source: string): ProseMirrorNode {
+  const lines = source.split(/\r?\n/);
+  const paragraphs: ProseMirrorNode[] = [];
+
+  for (const line of lines) {
+    if (!line) {
+      const emptyParagraph = notesRichEditorSchema.nodes.paragraph.create();
+      if (emptyParagraph) paragraphs.push(emptyParagraph);
+      continue;
+    }
+    const textNode = notesRichEditorSchema.text(line);
+    const paragraph = notesRichEditorSchema.nodes.paragraph.create(null, textNode);
+    if (paragraph) paragraphs.push(paragraph);
+  }
+
+  if (paragraphs.length === 0) {
+    return notesRichEditorSchema.topNodeType.createAndFill()!;
+  }
+
+  return notesRichEditorSchema.topNodeType.create(null, paragraphs);
+}
+
+export function parseNotesRichMarkdown(source: string): ProseMirrorNode {
   if (!source.trim()) {
     return notesRichEditorSchema.topNodeType.createAndFill()!;
   }
 
-  const container = document.createElement("div");
-  container.innerHTML = String(
-    richMarkdownPipeline.processSync(normalizeNotesMathDelimiters(source)),
-  );
-  return DOMParser.fromSchema(notesRichEditorSchema).parse(container);
+  // Refusal & guard: If source exceeds safe limits, avoid parser freeze / ReDoS
+  if (source.length > NOTES_RICH_PARSER_LIMITS.maxCharacters) {
+    console.warn(
+      `[parseNotesRichMarkdown] Refusal: source length (${source.length}) exceeds safe limit (${NOTES_RICH_PARSER_LIMITS.maxCharacters}). Using safe fallback.`,
+    );
+    return createSafeFallbackDoc(source);
+  }
+
+  try {
+    const container = document.createElement("div");
+    container.innerHTML = String(
+      richMarkdownPipeline.processSync(normalizeNotesMathDelimiters(source)),
+    );
+    return DOMParser.fromSchema(notesRichEditorSchema).parse(container);
+  } catch (error) {
+    console.warn(
+      "[parseNotesRichMarkdown] Parser error caught, safely falling back to raw document:",
+      error,
+    );
+    return createSafeFallbackDoc(source);
+  }
 }
 
 export function serializeNotesRichMarkdown(doc: ProseMirrorNode) {

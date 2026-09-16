@@ -14,6 +14,14 @@ describe("notes editor mode shortcuts", () => {
     expect(shortcuts.find("F6", context)?.commandId).toBe("notes.source");
     expect(shortcuts.find("Shift+F6", context)?.commandId).toBe("notes.split");
     expect(shortcuts.find("Mod+\\", context)?.commandId).toBe("notes.split");
+
+    const cmContext = { ...context, activeSurface: "codemirror" as const };
+    expect(shortcuts.find("F6", cmContext)?.commandId).toBe("notes.source");
+    expect(shortcuts.find("Shift+F6", cmContext)?.commandId).toBe("notes.split");
+
+    const pmContext = { ...context, activeSurface: "prosemirror" as const };
+    expect(shortcuts.find("F6", pmContext)?.commandId).toBe("notes.source");
+    expect(shortcuts.find("Shift+F6", pmContext)?.commandId).toBe("notes.split");
   });
 
   it("registers Ctrl+Tab as last-used navigation without a Mod conflict", () => {

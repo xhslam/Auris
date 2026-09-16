@@ -39,6 +39,50 @@ function toggleHeading(schema: Schema, level: number): Command {
   };
 }
 
+/**
+ * Mod-k: toggle link on selection, or insert link template if selection is empty.
+ * Matches CodeMirror source-mode toggleMarkdownLink behaviour.
+ */
+function toggleRichLink(schema: Schema): Command {
+  return (state, dispatch) => {
+    const link = schema.marks.link;
+    if (!link) return false;
+    const { selection } = state;
+
+    if (selection.empty) {
+      if (dispatch) {
+        const textNode = schema.text("link", [link.create({ href: "https://" })]);
+        const tr = state.tr.replaceSelectionWith(textNode, false);
+        dispatch(tr.scrollIntoView());
+      }
+      return true;
+    }
+
+    const { from, to } = selection;
+    let hasLink = false;
+    state.doc.nodesBetween(from, to, (node) => {
+      if (link.isInSet(node.marks)) {
+        hasLink = true;
+        return false;
+      }
+    });
+
+    if (hasLink) {
+      return toggleMark(link)(state, dispatch);
+    }
+
+    const selectedText = state.doc.textBetween(from, to, "\n");
+    const isUrl = /^https?:\/\//i.test(selectedText.trim());
+    const href = isUrl ? selectedText.trim() : "https://";
+
+    if (dispatch) {
+      const tr = state.tr.addMark(from, to, link.create({ href }));
+      dispatch(tr.scrollIntoView());
+    }
+    return true;
+  };
+}
+
 export function createNotesRichKeymap(schema: Schema): Record<string, Command> {
   const keys: Record<string, Command> = {};
   const bind = (key: string, command: Command | undefined) => {
@@ -61,6 +105,11 @@ export function createNotesRichKeymap(schema: Schema): Record<string, Command> {
   if (schema.marks.code) {
     bind("Mod-e", toggleMark(schema.marks.code));
     bind("Mod-E", toggleMark(schema.marks.code));
+  }
+
+  if (schema.marks.link) {
+    bind("Mod-k", toggleRichLink(schema));
+    bind("Mod-K", toggleRichLink(schema));
   }
 
   const strikeMark = schema.marks.strikethrough || schema.marks.s;

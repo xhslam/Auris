@@ -200,4 +200,51 @@ describe("notes rich keymap", () => {
     // After split, there should be 2 paragraph blocks with selection deleted
     expect(next?.doc.childCount).toBe(2);
   });
+
+  it("Mod-k wraps selection in link", () => {
+    const doc = paragraphDoc("hello");
+    const selection = TextSelection.create(doc, 1, 6);
+    const next = runCommand("Mod-k", doc, selection);
+    let linkMark: { href: string } | null = null;
+    next?.doc.descendants((node) => {
+      const mark = node.marks.find((m) => m.type.name === "link");
+      if (mark) {
+        linkMark = mark.attrs as { href: string };
+      }
+    });
+    expect(linkMark).not.toBeNull();
+    expect(linkMark?.href).toBe("https://");
+  });
+
+  it("Mod-k on existing link removes the link", () => {
+    const linkType = notesRichEditorSchema.marks.link;
+    const doc = notesRichEditorSchema.node("doc", null, [
+      notesRichEditorSchema.node("paragraph", null, [
+        notesRichEditorSchema.text("hello", [linkType.create({ href: "https://example.com" })]),
+      ]),
+    ]);
+    const selection = TextSelection.create(doc, 1, 6);
+    const next = runCommand("Mod-k", doc, selection);
+    let hasLink = false;
+    next?.doc.descendants((node) => {
+      if (node.marks.some((m) => m.type.name === "link")) {
+        hasLink = true;
+      }
+    });
+    expect(hasLink).toBe(false);
+  });
+});
+
+describe("notes rich code block input rules", () => {
+  it("turns ```ts into a code block with params: ts", () => {
+    const { doc } = typeAtEnd("```ts", " ");
+    expect(doc.firstChild?.type.name).toBe("code_block");
+    expect(doc.firstChild?.attrs.params).toBe("ts");
+  });
+
+  it("turns ``` into a code block with empty params", () => {
+    const { doc } = typeAtEnd("```", " ");
+    expect(doc.firstChild?.type.name).toBe("code_block");
+    expect(doc.firstChild?.attrs.params).toBe("");
+  });
 });

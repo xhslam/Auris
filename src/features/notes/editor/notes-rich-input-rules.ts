@@ -77,7 +77,30 @@ export function createNotesRichInputRules(schema: Schema) {
   }
 
   if (schema.nodes.code_block) {
+    rules.push(
+      textblockTypeInputRule(
+        /^```([a-zA-Z0-9_+#.-]*)\s$/,
+        schema.nodes.code_block,
+        (match) => ({ params: match[1] || "" }),
+      ),
+    );
+    rules.push(
+      textblockTypeInputRule(
+        /^~~~([a-zA-Z0-9_+#.-]*)\s$/,
+        schema.nodes.code_block,
+        (match) => ({ params: match[1] || "" }),
+      ),
+    );
     rules.push(textblockTypeInputRule(/^```$/, schema.nodes.code_block));
+  }
+
+  if (schema.nodes.horizontal_rule) {
+    const hr = schema.nodes.horizontal_rule;
+    rules.push(
+      new InputRule(/^(?:---|___|\*\*\*)\s$/, (state, _match, start, end) => {
+        return state.tr.replaceWith(start - 1, end, hr.create());
+      }),
+    );
   }
 
   if (schema.nodes.heading) {
