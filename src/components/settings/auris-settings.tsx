@@ -1179,7 +1179,7 @@ export function AurisSettings({ accent }: { accent?: string }) {
             const found = results[index].installed;
             next[id] = found
               ? { status: "可用", color: "#7BB99A", disabled: false }
-              : { status: "未找到", color: "#56524B", disabled: true };
+              : { status: "未找到", color: "var(--app-muted)", disabled: true };
           });
           return next;
         });
@@ -1603,25 +1603,30 @@ function RenderRow(props: RowHandlers) {
       return (
         <div
           className="auris-settings__row auris-settings__row--split auris-settings__row--radio"
+          data-disabled={disabled ? "true" : "false"}
+          data-selected={selected ? "true" : "false"}
           onClick={disabled ? undefined : () => props.onRadio(row.group, row.id)}
           style={{ cursor: disabled ? "default" : "pointer" }}
         >
           <div className="auris-settings__radio-left">
             <div
               className="auris-settings__radio-circle"
-              style={{
-                border: `1.5px solid ${disabled ? "rgba(255,255,255,0.12)" : selected ? accent : "rgba(255,255,255,0.22)"}`,
-              }}
+              style={selected ? { borderColor: accent } : undefined}
             >
               <div
                 className="auris-settings__radio-dot"
                 style={selected ? { width: 10, height: 10, background: accent } : { width: 0, height: 0 }}
               />
             </div>
-            <span style={{ fontSize: 15, color: disabled ? "#56524B" : "#ECE8DF" }}>{row.name}</span>
+            <span className="auris-settings__radio-name">{row.name}</span>
           </div>
           {row.status ? (
-            <span style={{ fontSize: 13, color: row.statusColor || "#65615A", flex: "0 0 auto" }}>{row.status}</span>
+            <span
+              className="auris-settings__radio-status"
+              style={row.statusColor ? { color: row.statusColor } : undefined}
+            >
+              {row.status}
+            </span>
           ) : null}
         </div>
       );
@@ -1651,7 +1656,7 @@ function RenderRow(props: RowHandlers) {
                   <Icon
                     name={isCopied ? "check" : "copy"}
                     size={12}
-                    color={isCopied ? "#7BB99A" : "#4F4B44"}
+                    color={isCopied ? "#7BB99A" : "var(--app-muted)"}
                   />
                 </button>
               </div>
@@ -2052,10 +2057,10 @@ function buildPanel(
               { kind: "radio", group: "ai", id: "codex", name: "Codex", status: ctx.cliStatus.codex.status, statusColor: ctx.cliStatus.codex.color, disabled: ctx.cliStatus.codex.disabled },
               { kind: "radio", group: "ai", id: "antigravity", name: "Antigravity", status: ctx.cliStatus.antigravity.status, statusColor: ctx.cliStatus.antigravity.color, disabled: ctx.cliStatus.antigravity.disabled },
               { kind: "subhead", text: "REST API 提供商" },
-              { kind: "radio", group: "ai", id: "anthropic", name: "Anthropic", disabled: true, status: "暂不可用", statusColor: "#65615A" },
-              { kind: "radio", group: "ai", id: "openai", name: "OpenAI", disabled: true, status: "暂不可用", statusColor: "#65615A" },
-              { kind: "radio", group: "ai", id: "googleai", name: "Google AI", disabled: true, status: "暂不可用", statusColor: "#65615A" },
-              { kind: "radio", group: "ai", id: "ollama", name: "Ollama (API)", disabled: true, status: "暂不可用", statusColor: "#65615A" },
+              { kind: "radio", group: "ai", id: "anthropic", name: "Anthropic", disabled: true, status: "暂不可用", statusColor: "var(--app-muted)" },
+              { kind: "radio", group: "ai", id: "openai", name: "OpenAI", disabled: true, status: "暂不可用", statusColor: "var(--app-muted)" },
+              { kind: "radio", group: "ai", id: "googleai", name: "Google AI", disabled: true, status: "暂不可用", statusColor: "var(--app-muted)" },
+              { kind: "radio", group: "ai", id: "ollama", name: "Ollama (API)", disabled: true, status: "暂不可用", statusColor: "var(--app-muted)" },
             ],
           },
         ],
@@ -2299,8 +2304,15 @@ const SETTINGS_CSS = `
 .auris-settings__info-value{font-size:13px;}
 
 .auris-settings__radio-left{display:flex;align-items:center;gap:13px;min-width:0;}
-.auris-settings__radio-circle{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;}
+.auris-settings__radio-circle{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--app-line);flex:0 0 auto;display:grid;place-items:center;transition:border-color .15s;}
 .auris-settings__radio-dot{border-radius:50%;}
+.auris-settings__radio-name{font-size:15px;font-weight:500;color:var(--app-text);transition:color .15s;}
+.auris-settings__row--radio[data-disabled="true"]{opacity:0.55;}
+.auris-settings__row--radio[data-disabled="true"] .auris-settings__radio-circle{border-color:var(--app-line-soft);}
+.auris-settings__row--radio[data-disabled="true"] .auris-settings__radio-name{color:var(--app-muted);}
+.auris-settings__row--radio:hover:not([data-disabled="true"]) .auris-settings__radio-circle{border-color:var(--accent);}
+.auris-settings__row--radio:hover:not([data-disabled="true"]) .auris-settings__radio-name{color:var(--app-ink, var(--app-text));}
+.auris-settings__radio-status{font-size:13px;flex:0 0 auto;color:var(--app-muted);}
 
 .auris-settings__installer-left{display:flex;align-items:center;gap:13px;min-width:0;}
 .auris-settings__installer-circle{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--app-line);flex:0 0 auto;display:block;}

@@ -91,7 +91,10 @@ describe("AurisSettings Integrations panel", () => {
     expect(screen.getByRole("button", { name: "添加到 CC-Switch" })).toBeInTheDocument();
 
     // Verify AI CLI provider list contains Antigravity, not Gemini
-    expect(screen.getByText("Antigravity")).toBeInTheDocument();
+    const antigravityLabel = screen.getByText("Antigravity");
+    expect(antigravityLabel).toBeInTheDocument();
+    expect(antigravityLabel).toHaveClass("auris-settings__radio-name");
+    expect(antigravityLabel).not.toHaveStyle({ color: "#ECE8DF" });
     expect(screen.queryByRole("radio", { name: /gemini/i })).not.toBeInTheDocument();
   });
 
