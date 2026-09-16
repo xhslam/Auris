@@ -270,3 +270,26 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
    - 安装最新应用包至 `/Applications/Auris.app`，完成本地 ad-hoc 签名与严格签名核验；
    - 成功启动新版 `/Applications/Auris.app`，验证主进程、Renderer、GPU/Network Helper 与原生灵动岛进程均正常运行。
 
+
+## Engineering trajectory: VMark 0.9.74 韧性工程对齐、推送 GitHub 与本地应用更新（2026-09-16）
+
+根据用户需求，对齐上游 VMark v0.9.74 核心架构能力，吸收不可解析/超限文档安全拒绝、Micromark 内联快速路径（Inline Fast Paths）以及 Undo 事务历史完整性守卫（Undo Integrity），合并推送到 GitHub main 分支并完成本地 `/Applications/Auris.app` 的全量打包安装升级（v1.0.8）。
+
+实现与验证路径：
+1. **代码吸收与质量保障**：
+   - 上游跟踪升级：拉取 `xiaolai-source/vmark` 至最新发布标签 `v0.9.74`（commit `2fc00f4`），自动生成差量报告；
+   - 不可解析/超限文档安全拒绝与源码模式退避（`notes-rich-markdown.ts`, `notes-rich-editor-pane.tsx`, `notes-editor-pane.tsx`, `notes-workbench.tsx`）；
+   - Micromark 内联 Fast Paths 防 ReDoS 回溯挂起（`fast-paths/`, `notes-markdown-dialect.ts`）；
+   - Undo/Redo 事务守卫杜绝次生事务破坏历史栈（`notes-undo-integrity.ts`）；
+   - 运行 Notes 域全量单元测试（94 个文件、793 项通过）、VMark 契约测试（51 项通过）、定向 ESLint（0 error 0 warning）、`git diff --check`（通过）、TypeScript 校验（`src/` 0 新错误）；
+   - 递增版本至 `v1.0.8` 并提交推送至 GitHub `origin/main`。
+2. **桌面端打包与本地安装更新**：
+   - 执行 `npm run desktop:island:build` 编译原生辅助进程；
+   - 完成 Next.js 生产构建（10.4s 编译通过，23 个路由静态生成完成）；
+   - 执行 `npm run desktop:assemble` 完成沙箱装配并通过隐私审计；
+   - 执行 `electron-builder --mac --publish never` 生成 `release/mac-arm64/Auris.app`；
+   - 将现有 `/Applications/Auris.app` 完整备份至 `/Applications/Auris.app.backup-20260916-1529`；
+   - 替换安装最新应用包至 `/Applications/Auris.app`，完成本地 ad-hoc 签名与严格核验；
+   - 成功启动新版 `/Applications/Auris.app`，确认主进程（PID 44906）、Renderer 进程（PID 44960/44961）、GPU 进程与灵动岛辅助进程（PID 44956）均正常稳定运行。
+
+
