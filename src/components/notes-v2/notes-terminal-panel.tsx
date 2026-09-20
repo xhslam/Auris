@@ -20,6 +20,7 @@ type TerminalContextMenuState = {
 };
 
 type NotesTerminalPanelProps = {
+  autoFocus?: boolean;
   commands: DesktopCommandRecord[];
   compactChrome?: boolean;
   isDesktopBridgeAvailable: boolean;
@@ -36,6 +37,7 @@ function getSessionButtonLabel(label: string) {
 }
 
 export function NotesTerminalPanel({
+  autoFocus = true,
   commands,
   compactChrome = false,
   isDesktopBridgeAvailable,
@@ -70,6 +72,14 @@ export function NotesTerminalPanel({
     terminalBridge,
     workspaceInstanceId,
   });
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    const timer = requestAnimationFrame(() => {
+      focusActiveSession();
+    });
+    return () => cancelAnimationFrame(timer);
+  }, [autoFocus, focusActiveSession]);
   const contextMenuRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] =
     useState<TerminalContextMenuState | null>(null);

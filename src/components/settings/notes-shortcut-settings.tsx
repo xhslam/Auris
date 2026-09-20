@@ -25,10 +25,12 @@ const CUSTOMIZABLE_BINDINGS = NOTES_SHORTCUT_BINDINGS.filter(
       "notes.saveAll",
       "notes.split",
       "notes.terminal",
+      "notes.focusTerminalOrEditor",
     ].includes(binding.commandId),
 );
 
 const LABELS: Record<string, string> = {
+  "notes.focusTerminalOrEditor": "聚焦终端或编辑器",
   "notes.niaPicker": "打开 Nia 动作选择器",
   "notes.palette": "打开命令面板",
   "notes.save": "保存当前笔记",

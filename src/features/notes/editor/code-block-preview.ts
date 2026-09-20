@@ -40,15 +40,21 @@ function isAllowedExternalImageSource(value: string) {
   );
 }
 
+function namesDirectory(path: string) {
+  const last = path.replace(/\\/g, "/").split("/").pop() ?? "";
+  return last === "" || last === "." || last === "..";
+}
+
 function isSafeRelativeImagePath(value: string) {
   const normalized = value.replace(/\\/g, "/");
   if (!normalized || normalized === "." || normalized === "~") return false;
   if (normalized.startsWith("/") || normalized.startsWith("~/")) return false;
   if (/^[a-z]:\//iu.test(normalized) || hasUriScheme(normalized)) return false;
-  return !normalized.split("/").some((segment) => segment === "..");
+  if (namesDirectory(normalized)) return false;
+  return true;
 }
 
-function normalizeVaultPathSegments(path: string) {
+function normalizeVaultPathSegments(path: string): string | null {
   const segments: string[] = [];
 
   for (const segment of path.split("/")) {
@@ -57,6 +63,9 @@ function normalizeVaultPathSegments(path: string) {
     }
 
     if (segment === "..") {
+      if (segments.length === 0) {
+        return null;
+      }
       segments.pop();
       continue;
     }
@@ -68,7 +77,7 @@ function normalizeVaultPathSegments(path: string) {
 }
 
 function encodeVaultMediaPath(path: string) {
-  return normalizeVaultPathSegments(path)
+  return path
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");

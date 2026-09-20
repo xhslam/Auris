@@ -7,6 +7,7 @@ import {
 } from "@codemirror/search";
 import { EditorView, type KeyBinding } from "@codemirror/view";
 import { getMarkdownContinuation } from "@/features/notes/editor/editor-input-rules";
+import { selectOccurrencesInBlock } from "@/features/notes/editor/source-block-bounds";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Markdown list / blockquote continuation on Enter
@@ -535,6 +536,8 @@ export const notesEditorKeymap: readonly KeyBinding[] = [
   // ── Multi-cursor / search helpers ────────────────────────────────────────
   { key: "Mod-d",       run: selectNextOccurrence,    preventDefault: true },
   { key: "Mod-Shift-l", run: selectSelectionMatches },
+  { key: "Alt-Mod-Shift-l", run: selectOccurrencesInBlock, preventDefault: true },
+  { key: "Alt-Mod-Shift-L", run: selectOccurrencesInBlock, preventDefault: true },
   { key: "Mod-Alt-g",   run: gotoLine },
 
   // ── CM6 defaults (history, standard editing keybindings) ─────────────────

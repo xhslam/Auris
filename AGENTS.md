@@ -308,3 +308,19 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 2. 更新 `eslint.config.mjs`，完善忽略目录并在全局为 `**/*.cjs` 放行 `require()`；重构 `sync-personal-vocab.test.ts` 使用 `createRequire`。运行 `npm run lint` 实现全仓 0 errors。
 3. 精简 `.github/workflows/notes.yml`：保留核心代码规范检查（`npm run lint`）、MCP 服务健康检查（`mcp:notes --health-check`）以及 11 套单元/组件测试（148 项测试通过），移除陈旧的无头 Web Playwright E2E 步骤。
 4. 验证：148 项 Notes 契约与组件测试通过、MCP 健康检查返回 ok、定向脚本测试通过。提交并推送到 GitHub 远程 main 分支。
+
+
+## Engineering trajectory: VMark 0.9.81 韧性架构对齐、打包发布与本地应用更新（2026-09-20）
+
+本轮根据上游 VMark（v0.9.74 → v0.9.81，共 41 个提交）核心改进进行架构分析与针对性对齐，遵循 Auris 桌面端专属维护规则（Electron/React 架构），补齐了 5 项核心能力：
+1. **输入法组合键拦截守卫 (`imeChordGuard`)**：在 `src/features/notes/editor/ime-chord-guard.ts` 实现捕获阶段 `beforeinput` 事件拦截，彻底解决 macOS 拼音等输入法在 `Mod/Alt` 组合键激活时误提交字符（如 `·`）的顽疾。
+2. **终端与编辑器双向焦点流转**：在 `notes-terminal-panel.tsx` 新增终端启动与唤醒时的 `autoFocus` 机制；在 `notes-workbench.tsx` 增加 `restoreEditorFocusIfOrphaned()`，关闭终端时不掉焦至 body，光标平滑归还主编辑器；新增并注册 `notes.focusTerminalOrEditor`（快捷键 `Alt+Mod+T`）与命令面板条目。
+3. **当前块内全选匹配 (Select Occurrences in Block)**：在 `src/features/notes/editor/source-block-bounds.ts` 实现基于连续非空行与代码围栏的语法块边界判定，绑定快捷键 `Alt-Mod-Shift-l` / `Alt-Mod-Shift-L`。
+4. **放宽父级相对路径图片解析**：在 `code-block-preview.ts` 撤销对 `..` 的一刀切拦截，将安全边界收敛至 Vault 根目录，支持 Markdown 引用父级与同级目录图片。
+5. **自定义字体族安全消毒 (`customFont`)**：在 `src/features/notes/editor/custom-font.ts` 设立封闭 ASCII 危险字符黑名单与长度约束，防御 CSS 注入与非标准字体崩溃。
+
+质量与打包验证：
+- 单元测试：823 项全量单元测试全部通过（含新增 26 项针对性测试）。
+- 代码规范：`npm run lint` 0 errors。
+- 完整打包：执行 `npm run desktop:island:build`、`npm run build`、`npm run desktop:assemble` 及 `electron-builder`，产出 `Auris-1.0.9-arm64.dmg` 与 `mac-arm64/Auris.app`。
+- 本地替换：备份 `/Applications/Auris.app` 至 `/Applications/Auris.app.backup-20260920-1355`，完成就地替换、ad-hoc 重签名、签名完整性校验并成功拉起运行（PID 16829）。

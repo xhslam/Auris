@@ -488,12 +488,64 @@ export function NotesWorkbench({
     }
   }, [activePath, onOpenPath, openTabs, recentFiles]);
 
+  const isTerminalFocused = useCallback(() => {
+    if (typeof document === "undefined") return false;
+    const active = document.activeElement;
+    if (!active || active === document.body) return false;
+    return Boolean(
+      active.closest?.(".notes-v2__terminal-surface") ||
+      active.closest?.(".notes-v2__terminal-host") ||
+      active.closest?.(".notes-v2__minimal-terminal-pane") ||
+      active.classList?.contains?.("xterm-helper-textarea"),
+    );
+  }, []);
+
+  const restoreEditorFocusIfOrphaned = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const active = document.activeElement;
+    const isOrphaned =
+      !active ||
+      active === document.body ||
+      Boolean(active.closest?.(".notes-v2__terminal-surface")) ||
+      Boolean(active.closest?.(".notes-v2__terminal-host")) ||
+      Boolean(active.closest?.(".notes-v2__minimal-terminal-pane")) ||
+      active.classList?.contains?.("xterm-helper-textarea");
+    if (isOrphaned) {
+      editorBridgeRef.current?.focus();
+    }
+  }, []);
+
+  const focusTerminalSurface = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const xtermTextarea = document.querySelector<HTMLTextAreaElement>(
+      ".notes-v2__terminal-surface .xterm-helper-textarea, .notes-v2__minimal-terminal-pane .xterm-helper-textarea",
+    );
+    if (xtermTextarea) {
+      xtermTextarea.focus();
+    }
+  }, []);
+
   const commandInfrastructure = useNotesCommandInfrastructure({
     editorMode,
     hasActiveDocument: Boolean(activeDocument),
+    onFocusTerminalOrEditor: () => {
+      if (isTerminalSplitOpen) {
+        if (isTerminalFocused()) {
+          editorBridgeRef.current?.focus();
+        } else {
+          focusTerminalSurface();
+        }
+      } else {
+        setIsBrowserPaneOpen(false);
+        setIsTerminalSplitOpen(true);
+        requestAnimationFrame(() => {
+          focusTerminalSurface();
+        });
+      }
+    },
     onOpenBrowser: () => {
       setIsTerminalSplitOpen(false);
-      setIsBrowserPaneOpen(true);
+      setIsBrowserPaneOpen((current) => !current);
     },
     onOpenLastUsedTab: handleOpenLastUsedTab,
     onOpenNiaPicker: handleOpenNiaPicker,
@@ -503,7 +555,15 @@ export function NotesWorkbench({
     onSetEditorMode: onEditorModeChange,
     onToggleTerminal: () => {
       setIsBrowserPaneOpen(false);
-      setIsTerminalSplitOpen((current) => !current);
+      setIsTerminalSplitOpen((current) => {
+        const next = !current;
+        if (!next) {
+          requestAnimationFrame(() => {
+            restoreEditorFocusIfOrphaned();
+          });
+        }
+        return next;
+      });
     },
   });
   const resolvedCommandPaletteItems = useMemo(() => {

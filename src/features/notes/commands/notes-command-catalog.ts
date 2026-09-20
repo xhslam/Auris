@@ -27,6 +27,7 @@ export const NOTES_SHORTCUT_BINDINGS: readonly NotesShortcutBinding[] = [
   { commandId: "notes.split", key: "Mod+\\", surface: "codemirror" },
   { commandId: "notes.split", key: "Mod+\\", surface: "prosemirror" },
   { commandId: "notes.terminal", key: "Mod+`", surface: "global" },
+  { commandId: "notes.focusTerminalOrEditor", key: "Alt+Mod+T", surface: "global" },
   { commandId: "notes.find", key: "Mod+F", surface: "codemirror" },
   { commandId: "notes.find", key: "Mod+F", surface: "prosemirror" },
   { commandId: "notes.bold", key: "Mod+B", surface: "codemirror" },

@@ -13,13 +13,29 @@ describe("Markdown image source policy", () => {
     "data:text/html,<script>alert(1)</script>",
     "custom-protocol://resource",
     "//example.com/image.png",
-    "../outside.png",
-    "assets/../../outside.png",
     "/absolute/image.png",
     "C:\\absolute\\image.png",
     "~/private.png",
+    "..",
+    "../",
+    "../../outside.png",
+    "assets/../../../outside.png",
   ])("rejects untrusted or escaping source %s", (source) => {
     expect(resolveMarkdownImageSource(source, "notes/daily.md")).toBeNull();
+  });
+
+  it("rejects parent-relative paths when escaping above vault root", () => {
+    expect(resolveMarkdownImageSource("../outside.png", "daily.md")).toBeNull();
+  });
+
+  it("allows parent-relative image paths within the vault", () => {
+    expect(
+      resolveMarkdownImageSource("../images/photo.png", "notes/chapter1/daily.md"),
+    ).toBe("shadowing-media://vault/notes/images/photo.png");
+
+    expect(
+      resolveMarkdownImageSource("../outside.png", "notes/daily.md"),
+    ).toBe("shadowing-media://vault/outside.png");
   });
 
   it.each([

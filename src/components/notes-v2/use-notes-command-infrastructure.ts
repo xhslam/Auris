@@ -12,6 +12,7 @@ import {
   loadNotesShortcutOverrides,
   NOTES_SHORTCUTS_EVENT,
 } from "@/features/notes/commands/notes-shortcut-settings";
+import { installImeChordGuard } from "@/features/notes/editor/ime-chord-guard";
 import type { NotesEditorMode } from "@/features/notes/editor/editor-types";
 
 type CommandInfrastructureInput = {
@@ -25,6 +26,7 @@ type CommandInfrastructureInput = {
   onSaveAll?: () => void;
   onSetEditorMode?: (mode: NotesEditorMode) => void;
   onToggleTerminal?: () => void;
+  onFocusTerminalOrEditor?: () => void;
 };
 
 function getActiveSurface(target: EventTarget | null): NotesCommandSurface {
@@ -118,6 +120,11 @@ export function useNotesCommandInfrastructure(
         title: "Toggle terminal",
       }),
       bus.register({
+        handler: () => inputRef.current.onFocusTerminalOrEditor?.(),
+        id: "notes.focusTerminalOrEditor",
+        title: "Focus terminal or editor",
+      }),
+      bus.register({
         handler: () => inputRef.current.onOpenBrowser?.(),
         id: "notes.browser",
         title: "Open embedded browser",
@@ -155,9 +162,11 @@ export function useNotesCommandInfrastructure(
       },
     );
 
+    const disposeImeGuard = installImeChordGuard(window);
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      disposeImeGuard();
       unsubscribeMenu?.();
     };
   }, [bus, shortcuts]);
