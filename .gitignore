@@ -42,3 +42,19 @@ release/
 *.backup-*
 auris/
 vmark-upstream/
+
+# Python bytecode caches
+__pycache__/
+*.pyc
+
+# AI assistant local state & multi-agent workspace protection (fail-safe directory ignore)
+# .agents/ carries runtime credentials and machine paths; ignored as a directory to prevent leaks.
+.agents/
+.claude/settings.local.json
+.claude/CLAUDE.local.md
+.claude/*.local.*
+CLAUDE.local.md
+.cc-suite/audits/
+.cc-suite/provenance
+.cc-suite/original-claude.md
+.cc-suite-*.provenance.json

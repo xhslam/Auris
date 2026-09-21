@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `ec7b781602efb7b69b82ce2daee4bd0e8877e922`
-- Changed: **2077**
-- Added: **2370**
-- Deleted: **502**
-- Renamed: **111**
+- Compared commit: `13720e0bff1dee9772b51ffeed345f7badf56aed`
+- Changed: **2104**
+- Added: **2462**
+- Deleted: **503**
+- Renamed: **110**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
-- Mapped upstream changes: **160**
-- Capability-domain candidates: **669**
-- Unmapped upstream changes: **4231**
+- Mapped upstream changes: **163**
+- Capability-domain candidates: **672**
+- Unmapped upstream changes: **4344**
 
 ## Upstream changes
 
@@ -84,6 +84,7 @@
 - **added** `.codex/prompts/.gitkeep`
 - **changed** `.dependency-cruiser-known-violations.json`
 - **changed** `.dependency-cruiser.cjs`
+- **added** `.gitattributes`
 - **added** `.githooks/commit-msg`
 - **changed** `.githooks/pre-push`
 - **added** `.github/actions/setup-node-pnpm/action.yml`
@@ -106,6 +107,7 @@
 - **changed** `.github/workflows/update-homebrew.yml`
 - **changed** `.gitignore`
 - **added** `.jscpd.json`
+- **changed** `.mcp.json`
 - **added** `.npmrc`
 - **changed** `.size-limit.cjs`
 - **deleted** `.stylelintrc.json`
@@ -343,6 +345,7 @@
 - **added** `e2e/lib/rail.test.mjs`
 - **added** `e2e/lib/readiness.mjs`
 - **added** `e2e/lib/readiness.test.mjs`
+- **added** `e2e/lib/sessionLock.mjs`
 - **added** `e2e/lib/settingsPatch.mjs`
 - **added** `e2e/lib/staleBinary.mjs`
 - **added** `e2e/lib/staleBinary.test.mjs`
@@ -354,6 +357,7 @@
 - **added** `e2e/portFileAgreement.test.mjs`
 - **added** `e2e/run-ime.mjs`
 - **changed** `e2e/run-journeys.mjs`
+- **added** `e2e/sessionLock.test.mjs`
 - **changed** `e2e/smoke.mjs`
 - **added** `e2e/vmarkMcpResult.test.mjs`
 - **added** `e2e/wait-ready.mjs`
@@ -364,6 +368,9 @@
 - **changed** `knip.json`
 - **deleted** `ledger.json`
 - **changed** `package.json`
+- **added** `patches/@xterm__addon-webgl@0.19.0.patch`
+- **added** `patches/mdast-util-to-markdown@2.1.2.patch`
+- **added** `patches/micromark@4.0.2.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
 - **added** `scripts/__tests__/i18nIdenticalAllowlist.test.ts`
@@ -443,10 +450,12 @@
 - **changed** `scripts/check-multi-format-phase.sh`
 - **added** `scripts/check-mutants-config-path.mjs`
 - **added** `scripts/check-mutants-config-path.test.mjs`
+- **added** `scripts/check-mutation-in-place.test.mjs`
 - **changed** `scripts/check-new-deps.sh`
 - **added** `scripts/check-no-nul-bytes.mjs`
 - **added** `scripts/check-no-nul-bytes.test.mjs`
 - **added** `scripts/check-npm-audit.mjs`
+- **added** `scripts/check-numeric-env-reads.test.mjs`
 - **added** `scripts/check-paydown-phase.sh`
 - **added** `scripts/check-paydown-phase.test.mjs`
 - **added** `scripts/check-plugin-store-coupling.mjs`
@@ -495,6 +504,7 @@
 - **added** `scripts/check-wi-linkage.test.mjs`
 - **added** `scripts/check-window-creation-thread.mjs`
 - **added** `scripts/check-window-creation-thread.test.mjs`
+- **added** `scripts/check-workflow-input-fallbacks.test.mjs`
 - **added** `scripts/check-workflow-node-cache.test.mjs`
 - **added** `scripts/check-wrcs-phase.sh`
 - **added** `scripts/clean-dev.sh`
@@ -507,6 +517,7 @@
 - **added** `scripts/dod-syntax.mjs`
 - **added** `scripts/dod-syntax.test.mjs`
 - **added** `scripts/extension-budget.json`
+- **changed** `scripts/extract-menu-ids.ts`
 - **added** `scripts/feature-map.json`
 - **changed** `scripts/fetch-gha-fixtures.sh`
 - **changed** `scripts/file-size-baseline.json`
@@ -569,6 +580,7 @@
 - **added** `scripts/render-dock-icon.swift`
 - **changed** `scripts/setup-local-git.mjs`
 - **added** `scripts/shell-integration-smoke.test.mjs`
+- **added** `scripts/shell-script-eol.test.mjs`
 - **added** `scripts/shell-slots-baseline.json`
 - **added** `scripts/stryker-break-canary.test.mjs`
 - **changed** `scripts/tauri-wrapper.mjs`
@@ -967,6 +979,9 @@
 - **added** `src-tauri/src/browser/user_input_resolve_macos.rs`
 - **added** `src-tauri/src/canonical_path.rs`
 - **added** `src-tauri/src/capabilities.test.rs`
+- **added** `src-tauri/src/close_to_tray/mod.rs`
+- **added** `src-tauri/src/close_to_tray/mod.test.rs`
+- **added** `src-tauri/src/close_to_tray/tray.rs`
 - **added** `src-tauri/src/coherence/accept.rs`
 - **added** `src-tauri/src/coherence/accept.test.rs`
 - **added** `src-tauri/src/coherence/accept_precondition.rs`
@@ -1249,8 +1264,9 @@
 - **added** `src-tauri/src/mcp_server.test.rs`
 - **added** `src-tauri/src/mcp_server_health.rs`
 - **changed** `src-tauri/src/menu/accelerators.rs`
-- **added** `src-tauri/src/menu/browser_menu_item.rs`
 - **changed** `src-tauri/src/menu/commands.rs`
+- **added** `src-tauri/src/menu/conditional_items.rs`
+- **added** `src-tauri/src/menu/conditional_items.test.rs`
 - **changed** `src-tauri/src/menu/localized.rs`
 - **changed** `src-tauri/src/menu/localized.test.rs`
 - **changed** `src-tauri/src/menu/localized/edit_menu.rs`
@@ -1337,6 +1353,8 @@
 - **added** `src-tauri/src/shell_integration.test.rs`
 - **added** `src-tauri/src/single_instance.rs`
 - **added** `src-tauri/src/single_instance.test.rs`
+- **added** `src-tauri/src/system_fonts.rs`
+- **added** `src-tauri/src/system_fonts.test.rs`
 - **changed** `src-tauri/src/tab_transfer.rs`
 - **changed** `src-tauri/src/tab_transfer.test.rs`
 - **added** `src-tauri/src/tab_transfer/drop_target.rs`
@@ -1364,10 +1382,13 @@
 - **added** `src-tauri/src/window_manager/native_theme.test.rs`
 - **changed** `src-tauri/src/window_manager/path_validation.rs`
 - **changed** `src-tauri/src/window_manager/path_validation.test.rs`
+- **added** `src-tauri/src/window_manager/pdf_export_window.rs`
+- **added** `src-tauri/src/window_manager/pdf_export_window.test.rs`
 - **changed** `src-tauri/src/window_manager/settings_window.rs`
 - **added** `src-tauri/src/window_manager/settings_window.test.rs`
 - **added** `src-tauri/src/window_manager/traffic_lights.rs`
 - **added** `src-tauri/src/window_manager/window_events.rs`
+- **added** `src-tauri/src/window_manager/window_events.test.rs`
 - **added** `src-tauri/src/window_manager/window_url.rs`
 - **added** `src-tauri/src/window_manager/window_url.test.rs`
 - **changed** `src-tauri/src/window_status/mod.rs`
@@ -1668,6 +1689,7 @@
 - **added** `src/components/GeniePicker/invocationLifecycle.ts`
 - **added** `src/components/GeniePicker/useInvocationSession.ts`
 - **added** `src/components/KnowledgeBasePanel/KbGraphChunkFailure.test.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBaseOverlay.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBaseOverlay.tsx`
 - **added** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.runtime.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.test.tsx`
@@ -1746,6 +1768,7 @@
 - **added** `src/components/Sidebar/useSidebarInstanceSync.ts`
 - **changed** `src/components/StatusBar/FileLoadIndicator.tsx`
 - **changed** `src/components/StatusBar/LintBadge.tsx`
+- **changed** `src/components/StatusBar/SourceModeUpgrade.test.tsx`
 - **changed** `src/components/StatusBar/SourceModeUpgrade.tsx`
 - **added** `src/components/StatusBar/StatusBar.a11y.test.tsx`
 - **changed** `src/components/StatusBar/StatusBar.css`
@@ -1842,13 +1865,16 @@
 - **added** `src/components/Terminal/setupOsc52.test.ts`
 - **added** `src/components/Terminal/setupOsc52.ts`
 - **changed** `src/components/Terminal/setupWebLinks.test.ts`
+- **changed** `src/components/Terminal/setupWebglRenderer.ts`
 - **changed** `src/components/Terminal/spawnPty.test.ts`
 - **changed** `src/components/Terminal/spawnPty.ts`
 - **changed** `src/components/Terminal/terminal-panel.css`
 - **changed** `src/components/Terminal/terminalBell.test.ts`
 - **changed** `src/components/Terminal/terminalBell.ts`
+- **deleted** `src/components/Terminal/terminalGate.ts`
 - **added** `src/components/Terminal/terminalInputTrace.test.ts`
 - **added** `src/components/Terminal/terminalInputTrace.ts`
+- **added** `src/components/Terminal/terminalKeyHandler.focus.test.ts`
 - **added** `src/components/Terminal/terminalKeyHandler.ime.test.ts`
 - **added** `src/components/Terminal/terminalKeyHandler.scope.test.ts`
 - **changed** `src/components/Terminal/terminalKeyHandler.test.ts`
@@ -1894,6 +1920,7 @@
 - **changed** `src/components/Terminal/useTerminalShellLifecycle.test.ts`
 - **changed** `src/components/Terminal/useTerminalShellLifecycle.ts`
 - **added** `src/components/Terminal/useVisibleTerminalSessions.ts`
+- **added** `src/components/Terminal/webglAtlasPageUpload.webkit.test.ts`
 - **added** `src/components/ThemedToaster.test.tsx`
 - **added** `src/components/ThemedToaster.tsx`
 - **changed** `src/components/TitleBar/TitleBar.a11y.test.tsx`
@@ -2007,6 +2034,10 @@
 - **changed** `src/export/reader/vmark-reader.css`
 - **changed** `src/export/reader/vmark-reader.js`
 - **added** `src/export/renderMarkdownToHtml.ts`
+- **added** `src/export/resourcePaths.test.ts`
+- **added** `src/export/resourcePaths.ts`
+- **changed** `src/export/resourceResolver.test.ts`
+- **changed** `src/export/resourceResolver.ts`
 - **changed** `src/export/themeSnapshot.ts`
 - **changed** `src/export/useExportOperations.ts`
 - **changed** `src/export/waitForAssets.ts`
@@ -2094,6 +2125,8 @@
 - **added** `src/hooks/useAiProviderSync.ts`
 - **changed** `src/hooks/useAutoSave.ts`
 - **changed** `src/hooks/useBrowserOccluder.ts`
+- **added** `src/hooks/useCloseToTraySync.test.ts`
+- **added** `src/hooks/useCloseToTraySync.ts`
 - **added** `src/hooks/useCommandBootstrap.bindings.test.ts`
 - **added** `src/hooks/useCommandBootstrap.test.tsx`
 - **added** `src/hooks/useCommandBootstrap.ts`
@@ -2199,6 +2232,8 @@
 - **added** `src/hooks/useStatusToasts.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.test.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.ts`
+- **added** `src/hooks/useSystemFontFamilies.test.tsx`
+- **added** `src/hooks/useSystemFontFamilies.ts`
 - **deleted** `src/hooks/useTabOperations.test.ts`
 - **deleted** `src/hooks/useTabOperations.ts`
 - **deleted** `src/hooks/useTabShortcuts.statusbar.test.tsx`
@@ -2721,6 +2756,9 @@
 - **added** `src/pages/settings/FileBrowserSettingsGroup.tsx`
 - **added** `src/pages/settings/FilesImagesSettings.test.tsx`
 - **changed** `src/pages/settings/FilesImagesSettings.tsx`
+- **added** `src/pages/settings/FontSettingRow.tsx`
+- **added** `src/pages/settings/FontSettings.test.tsx`
+- **added** `src/pages/settings/FontSettings.tsx`
 - **changed** `src/pages/settings/FormatsSettings.test.tsx`
 - **changed** `src/pages/settings/FormatsSettings.tsx`
 - **changed** `src/pages/settings/HotExitDevTools.test.tsx`
@@ -2850,6 +2888,7 @@
 - **changed** `src/plugins/codePreview/blockMathKeymap.ts`
 - **added** `src/plugins/codePreview/builtinFenceRenderers.ts`
 - **changed** `src/plugins/codePreview/code-preview.css`
+- **added** `src/plugins/codePreview/displayMathTag.webkit.test.ts`
 - **changed** `src/plugins/codePreview/editMode.ts`
 - **added** `src/plugins/codePreview/editingRegistry.test.ts`
 - **added** `src/plugins/codePreview/editingRegistry.ts`
@@ -2902,6 +2941,8 @@
 - **changed** `src/plugins/codemirror/smartPasteUtils.test.ts`
 - **changed** `src/plugins/codemirror/smartPasteUtils.ts`
 - **changed** `src/plugins/codemirror/source-syntax.css`
+- **added** `src/plugins/codemirror/sourceBlockBounds.test.ts`
+- **added** `src/plugins/codemirror/sourceBlockBounds.ts`
 - **changed** `src/plugins/codemirror/sourceCopyOnSelect.test.ts`
 - **changed** `src/plugins/codemirror/sourceCopyOnSelect.ts`
 - **changed** `src/plugins/codemirror/sourceCursorContext.test.ts`
@@ -2918,6 +2959,9 @@
 - **changed** `src/plugins/codemirror/sourceMermaidPreview.test.ts`
 - **changed** `src/plugins/codemirror/sourceMermaidPreview.ts`
 - **changed** `src/plugins/codemirror/sourceSelectOccurrence.test.ts`
+- **changed** `src/plugins/codemirror/sourceSelectOccurrence.ts`
+- **added** `src/plugins/codemirror/sourceSelectOccurrenceInBlock.test.ts`
+- **added** `src/plugins/codemirror/sourceSelectOccurrenceInBlock.ts`
 - **changed** `src/plugins/codemirror/sourceShortcuts.test.ts`
 - **changed** `src/plugins/codemirror/sourceShortcuts.ts`
 - **changed** `src/plugins/codemirror/sourceShortcutsHelpers.test.ts`
@@ -2945,12 +2989,16 @@
 - **changed** `src/plugins/codemirror/viewportScanFinders.test.ts`
 - **added** `src/plugins/codemirror/workflowPort.test.ts`
 - **added** `src/plugins/codemirror/workflowPort.ts`
+- **added** `src/plugins/compositionGuard/__tests__/compositionKeys.test.ts`
 - **changed** `src/plugins/compositionGuard/__tests__/splitBlockFix.test.ts`
+- **added** `src/plugins/compositionGuard/__tests__/tiptap.domreconciliation.test.ts`
 - **added** `src/plugins/compositionGuard/__tests__/tiptap.imecleanup.test.ts`
 - **added** `src/plugins/compositionGuard/__tests__/tiptap.splitblock.test.ts`
 - **added** `src/plugins/compositionGuard/__tests__/tiptap.tablefix.test.ts`
 - **changed** `src/plugins/compositionGuard/__tests__/tiptap.test.ts`
+- **added** `src/plugins/compositionGuard/compositionKeys.ts`
 - **deleted** `src/plugins/compositionGuard/manifest.ts`
+- **changed** `src/plugins/compositionGuard/tiptap.ts`
 - **changed** `src/plugins/detailsBlock/__tests__/detailsBlock.test.ts`
 - **changed** `src/plugins/detailsBlock/details-block.css`
 - **deleted** `src/plugins/detailsBlock/manifest.ts`
@@ -3068,6 +3116,7 @@
 - **changed** `src/plugins/latex/MathInlineNodeView.test.ts`
 - **changed** `src/plugins/latex/MathInlineNodeView.ts`
 - **changed** `src/plugins/latex/__tests__/MathInlineNodeView.test.ts`
+- **added** `src/plugins/latex/displayMathTag.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.ts`
 - **changed** `src/plugins/latex/katexLoader.test.ts`
@@ -3160,11 +3209,13 @@
 - **changed** `src/plugins/mediaPopup/mediaPopupActions.ts`
 - **changed** `src/plugins/mediaPopup/mediaPopupDom.ts`
 - **changed** `src/plugins/mediaPopup/tiptap.ts`
+- **changed** `src/plugins/mermaid/constants.ts`
 - **added** `src/plugins/mermaid/ensureSvgSize.test.ts`
 - **added** `src/plugins/mermaid/ensureSvgSize.ts`
 - **deleted** `src/plugins/mermaid/manifest.ts`
 - **changed** `src/plugins/mermaid/mermaid-panzoom.css`
 - **changed** `src/plugins/mermaid/mermaid.test.ts`
+- **changed** `src/plugins/mermaid/plugin.test.ts`
 - **changed** `src/plugins/mermaid/plugin.ts`
 - **changed** `src/plugins/mermaid/themeConfig.test.ts`
 - **changed** `src/plugins/mermaidPreview/MermaidPreviewView.test.ts`
@@ -3191,11 +3242,16 @@
 - **added** `src/plugins/multiCursor/__tests__/multiSelectionInvariants.ts`
 - **added** `src/plugins/multiCursor/__tests__/multiSelectionMapping.property.test.ts`
 - **changed** `src/plugins/multiCursor/__tests__/rangeUtils.test.ts`
+- **added** `src/plugins/multiCursor/__tests__/selectAllOccurrencesInBlock.test.ts`
 - **changed** `src/plugins/multiCursor/__tests__/textSearch.test.ts`
 - **changed** `src/plugins/multiCursor/__tests__/undoRedoIntegration.test.ts`
+- **added** `src/plugins/multiCursor/blockBounds.test.ts`
+- **added** `src/plugins/multiCursor/blockBounds.ts`
+- **changed** `src/plugins/multiCursor/commands.ts`
 - **changed** `src/plugins/multiCursor/keymap.ts`
 - **deleted** `src/plugins/multiCursor/manifest.ts`
 - **changed** `src/plugins/multiCursor/multi-cursor.css`
+- **changed** `src/plugins/multiCursor/occurrenceCommands.ts`
 - **changed** `src/plugins/multiCursor/rangeUtils.ts`
 - **deleted** `src/plugins/registry.test.ts`
 - **deleted** `src/plugins/registry.ts`
@@ -3209,6 +3265,7 @@
 - **added** `src/plugins/search/replaceActions.ts`
 - **changed** `src/plugins/search/tiptap.test.ts`
 - **changed** `src/plugins/search/tiptap.ts`
+- **changed** `src/plugins/security.test.ts`
 - **changed** `src/plugins/shared/WysiwygPopupView.test.ts`
 - **changed** `src/plugins/shared/WysiwygPopupView.ts`
 - **changed** `src/plugins/shared/__tests__/WysiwygPopupView.test.ts`
@@ -3226,6 +3283,8 @@
 - **added** `src/plugins/shared/fenceDelimiter.test.ts`
 - **added** `src/plugins/shared/fenceDelimiter.ts`
 - **added** `src/plugins/shared/fenceScanner.ts`
+- **added** `src/plugins/shared/historyBatch.test.ts`
+- **added** `src/plugins/shared/historyBatch.ts`
 - **added** `src/plugins/shared/hostDocument.test.ts`
 - **added** `src/plugins/shared/hostDocument.ts`
 - **added** `src/plugins/shared/hostEditors.test.ts`
@@ -3497,6 +3556,8 @@
 - **changed** `src/plugins/typewriterMode/tiptap.ts`
 - **changed** `src/plugins/underline/__tests__/underline.test.ts`
 - **deleted** `src/plugins/underline/manifest.ts`
+- **added** `src/plugins/undoIntegrity/tiptap.test.ts`
+- **added** `src/plugins/undoIntegrity/tiptap.ts`
 - **changed** `src/plugins/videoEmbed/VideoEmbedNodeView.ts`
 - **changed** `src/plugins/videoEmbed/__tests__/VideoEmbedNodeView.test.ts`
 - **added** `src/plugins/videoEmbed/__tests__/tiptap.paste.test.ts`
@@ -3564,7 +3625,6 @@
 - **changed** `src/services/browser/browserEventBroker.ts`
 - **added** `src/services/browser/browserLeaseWiring.test.ts`
 - **added** `src/services/browser/browserLeaseWiring.ts`
-- **added** `src/services/browser/browserMenuSync.ts`
 - **added** `src/services/browser/browserNativeEventDecoder.test.ts`
 - **added** `src/services/browser/browserNativeEventDecoder.ts`
 - **added** `src/services/browser/browserNativeEvents.test.ts`
@@ -3675,6 +3735,8 @@
 - **added** `src/services/commands/windowCommands.ts`
 - **changed** `src/services/commands/workspaceCommands.test.ts`
 - **changed** `src/services/commands/workspaceCommands.ts`
+- **added** `src/services/contentServer/availability.test.ts`
+- **added** `src/services/contentServer/availability.ts`
 - **changed** `src/services/contentServer/client.test.ts`
 - **changed** `src/services/contentServer/client.ts`
 - **added** `src/services/contentServer/slidevDeck.test.ts`
@@ -3709,6 +3771,8 @@
 - **added** `src/services/editor/unifiedHistoryDispatch.ts`
 - **added** `src/services/editor/universalToolbarToggle.test.ts`
 - **added** `src/services/editor/universalToolbarToggle.ts`
+- **added** `src/services/editor/unparseableDocument.test.ts`
+- **added** `src/services/editor/unparseableDocument.ts`
 - **changed** `src/services/editor/urlDetection.test.ts`
 - **changed** `src/services/editor/urlDetection.ts`
 - **added** `src/services/featureFlags/workflowFeatureFlag.test.ts`
@@ -3724,6 +3788,8 @@
 - **added** `src/services/files/fileSave.test.ts`
 - **added** `src/services/files/fileSave.ts`
 - **added** `src/services/files/resolveDirtyBatch.ts`
+- **added** `src/services/fonts/systemFonts.test.ts`
+- **added** `src/services/fonts/systemFonts.ts`
 - **added** `src/services/fonts/verifiedMonoStack.test.ts`
 - **added** `src/services/fonts/verifiedMonoStack.ts`
 - **added** `src/services/fonts/verifiedMonoStack.webkit.test.ts`
@@ -3761,6 +3827,9 @@
 - **added** `src/services/keybinding/bindingRegistry.test.ts`
 - **added** `src/services/keybinding/bindingRegistry.ts`
 - **added** `src/services/keybinding/crossWindowPropagation.test.ts`
+- **added** `src/services/keybinding/imeChordGuard.test.ts`
+- **added** `src/services/keybinding/imeChordGuard.ts`
+- **added** `src/services/keybinding/imeChordGuard.webkit.test.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.test.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.ts`
 - **added** `src/services/keybinding/keybindingReferentialIntegrity.test.ts`
@@ -3906,6 +3975,8 @@
 - **added** `src/services/media/siblingReferences.ts`
 - **added** `src/services/media/workspaceReferenceCheck.test.ts`
 - **added** `src/services/media/workspaceReferenceCheck.ts`
+- **added** `src/services/menu/conditionalMenuItemSync.test.ts`
+- **added** `src/services/menu/conditionalMenuItemSync.ts`
 - **changed** `src/services/menu/rebuildNativeMenu.test.ts`
 - **changed** `src/services/menu/rebuildNativeMenu.ts`
 - **changed** `src/services/menu/startupMenuSync.ts`
@@ -3942,7 +4013,10 @@
 - **added** `src/services/navigation/openFragment.ts`
 - **renamed** `src/hooks/openMediaFile.test.ts` → `src/services/navigation/openMediaFile.test.ts`
 - **renamed** `src/hooks/openMediaFile.ts` → `src/services/navigation/openMediaFile.ts`
+- **added** `src/services/navigation/openWithDefaultApp.test.ts`
+- **added** `src/services/navigation/openWithDefaultApp.ts`
 - **added** `src/services/navigation/openWorkflowTarget.ts`
+- **added** `src/services/navigation/pdfExportWindow.test.ts`
 - **changed** `src/services/navigation/pdfExportWindow.ts`
 - **renamed** `src/hooks/replaceTabWithFile.ts` → `src/services/navigation/replaceTabWithFile.ts`
 - **changed** `src/services/navigation/restoreSplitLayout.test.ts`
@@ -4071,8 +4145,11 @@
 - **added** `src/services/terminal/runInTerminal.ts`
 - **added** `src/services/terminal/terminalCdFollow.test.ts`
 - **added** `src/services/terminal/terminalCdFollow.ts`
+- **added** `src/services/terminal/terminalFocus.test.ts`
+- **added** `src/services/terminal/terminalFocus.ts`
+- **added** `src/services/terminal/terminalGate.focus.test.ts`
 - **renamed** `src/components/Terminal/terminalGate.test.ts` → `src/services/terminal/terminalGate.test.ts`
-- **renamed** `src/components/Terminal/terminalGate.ts` → `src/services/terminal/terminalGate.ts`
+- **added** `src/services/terminal/terminalGate.ts`
 - **added** `src/services/terminal/visibleTerminalSessions.ts`
 - **added** `src/services/theme/nativeTheme.test.ts`
 - **added** `src/services/theme/nativeTheme.ts`
@@ -4278,6 +4355,7 @@
 - **changed** `src/stores/documentStore/document.ts`
 - **added** `src/stores/documentStore/documentState.ts`
 - **added** `src/stores/documentStore/ingestState.ts`
+- **changed** `src/stores/documentStore/largeFileSession.ts`
 - **changed** `src/stores/documentStore/lint.ts`
 - **added** `src/stores/documentStore/storeContract.ts`
 - **changed** `src/stores/documentStore/unifiedHistory.ts`
@@ -4425,6 +4503,7 @@
 - **changed** `src/styles/index.css`
 - **added** `src/styles/input-shared.css`
 - **added** `src/styles/input.test.ts`
+- **changed** `src/styles/katexFixes.css`
 - **deleted** `src/styles/media-popup-shared.css`
 - **added** `src/styles/overlay-shared.css`
 - **added** `src/styles/overlay.test.ts`
@@ -4435,6 +4514,8 @@
 - **deleted** `src/styles/syntax-palette.css`
 - **added** `src/styles/uiAuditFixes.test.ts`
 - **added** `src/test/adversarialMediaSources.ts`
+- **added** `src/test/arbitraryMarkdown.test.ts`
+- **added** `src/test/arbitraryMarkdown.ts`
 - **added** `src/test/axeMatchers.ts`
 - **added** `src/test/bindPluginRegistries.ts`
 - **added** `src/test/codePreviewTestUtils.ts`
@@ -4442,6 +4523,8 @@
 - **added** `src/test/devProfileIsolation.test.ts`
 - **added** `src/test/editingFuzz.test.ts`
 - **added** `src/test/editorComposition.webkit.test.ts`
+- **added** `src/test/envInteger.test.ts`
+- **added** `src/test/envInteger.ts`
 - **added** `src/test/externalCorpora.soak.test.ts`
 - **added** `src/test/externalFileChangesFixtures.ts`
 - **added** `src/test/fakeDisk.test.ts`
@@ -4559,6 +4642,8 @@
 - **changed** `src/utils/cursorSync/table.test.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.test.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.ts`
+- **added** `src/utils/customFont.test.ts`
+- **added** `src/utils/customFont.ts`
 - **changed** `src/utils/dateUtils.test.ts`
 - **changed** `src/utils/debounce.test.ts`
 - **changed** `src/utils/debug/error.ts`
@@ -4575,6 +4660,7 @@
 - **added** `src/utils/displayFileName.test.ts`
 - **added** `src/utils/displayFileName.ts`
 - **changed** `src/utils/dropPaths.test.ts`
+- **changed** `src/utils/dropPaths.ts`
 - **added** `src/utils/editorText.test.ts`
 - **added** `src/utils/editorText.ts`
 - **changed** `src/utils/errorMessage.test.ts`
@@ -4582,6 +4668,7 @@
 - **changed** `src/utils/exportNaming.test.ts`
 - **changed** `src/utils/fileSizeThresholds.test.ts`
 - **changed** `src/utils/fileSizeThresholds.ts`
+- **added** `src/utils/fontOptions.ts`
 - **changed** `src/utils/fontStacks.test.ts`
 - **changed** `src/utils/fontStacks.ts`
 - **deleted** `src/utils/fsEventFilter.test.ts`
@@ -4622,6 +4709,7 @@
 - **changed** `src/utils/markdownPasteDetection.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/adapter.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/adapterErrorWrapping.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/attentionRoundtrip.property.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/backslash-roundtrip.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/blankLinePreservation.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/characterization/README.md`
@@ -4694,6 +4782,7 @@
 - **changed** `src/utils/markdownPipeline/__tests__/parser.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathological.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalCases.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalScaling.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/runCases.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/performance.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/roundtrip.property.test.ts`
@@ -4733,6 +4822,8 @@
 - **added** `src/utils/markdownPipeline/imageReferenceRoundtrip.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.ts`
+- **added** `src/utils/markdownPipeline/listInterruptJoin.test.ts`
+- **added** `src/utils/markdownPipeline/listInterruptJoin.ts`
 - **added** `src/utils/markdownPipeline/markEdgeWhitespace.ts`
 - **changed** `src/utils/markdownPipeline/mdastBlockConverters.test.ts`
 - **changed** `src/utils/markdownPipeline/mdastBlockConverters.ts`
@@ -4747,7 +4838,15 @@
 - **changed** `src/utils/markdownPipeline/mdastToProseMirror.blocks.test.ts`
 - **changed** `src/utils/markdownPipeline/mdastToProseMirror.inline.test.ts`
 - **changed** `src/utils/markdownPipeline/mdastToProseMirror.ts`
+- **added** `src/utils/markdownPipeline/nestingDepth.test.ts`
+- **added** `src/utils/markdownPipeline/nestingDepth.ts`
 - **changed** `src/utils/markdownPipeline/parser.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/attentionFastPath.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/codeTextFastPath.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/inlineFastPaths.test.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/labelEndFastPath.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/micromarkTypes.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/remarkInlineFastPaths.ts`
 - **added** `src/utils/markdownPipeline/parser/mathDelimiterSpans.test.ts`
 - **added** `src/utils/markdownPipeline/parser/mathDelimiterSpans.ts`
 - **added** `src/utils/markdownPipeline/parser/mathGuards.integration.test.ts`
@@ -4762,6 +4861,8 @@
 - **changed** `src/utils/markdownPipeline/parser/remarkPlugins.ts`
 - **changed** `src/utils/markdownPipeline/plugins/customInline.test.ts`
 - **changed** `src/utils/markdownPipeline/plugins/customInline.ts`
+- **added** `src/utils/markdownPipeline/plugins/customInlineDepth.test.ts`
+- **added** `src/utils/markdownPipeline/plugins/customInlineMarks.ts`
 - **added** `src/utils/markdownPipeline/plugins/customInlineTransform.ts`
 - **changed** `src/utils/markdownPipeline/plugins/detailsBlock.test.ts`
 - **changed** `src/utils/markdownPipeline/plugins/detailsBlock.ts`
@@ -4795,14 +4896,19 @@
 - **changed** `src/utils/markdownPipeline/proseMirrorToMdast.ts`
 - **added** `src/utils/markdownPipeline/roundtripDefects.test.ts`
 - **added** `src/utils/markdownPipeline/schemaCoverage.test.ts`
+- **added** `src/utils/markdownPipeline/serializer.lineEndings.test.ts`
 - **changed** `src/utils/markdownPipeline/serializer.test.ts`
 - **changed** `src/utils/markdownPipeline/serializer.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.astral.test.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.strikethrough.test.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.test.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.ts`
+- **added** `src/utils/markdownPipeline/serializerCodeRanges.ts`
 - **added** `src/utils/markdownPipeline/serializerCosmetics.test.ts`
 - **added** `src/utils/markdownPipeline/serializerCosmetics.ts`
 - **changed** `src/utils/markdownPipeline/serializerHandlers.test.ts`
 - **changed** `src/utils/markdownPipeline/serializerHandlers.ts`
-- **added** `src/utils/markdownPipeline/serializerStrikethrough.test.ts`
-- **added** `src/utils/markdownPipeline/serializerStrikethrough.ts`
+- **added** `src/utils/markdownPipeline/serializerText.ts`
 - **changed** `src/utils/markdownPipeline/testSchema.ts`
 - **changed** `src/utils/markdownPipeline/types.ts`
 - **changed** `src/utils/markdownPipeline/urlValidation.test.ts`
@@ -4865,6 +4971,8 @@
 - **added** `src/utils/tabStripOverflow.test.ts`
 - **added** `src/utils/tabStripOverflow.ts`
 - **changed** `src/utils/tableParser.test.ts`
+- **added** `src/utils/terminalSurface.test.ts`
+- **added** `src/utils/terminalSurface.ts`
 - **changed** `src/utils/textTransformations.test.ts`
 - **changed** `src/utils/textTransformations.ts`
 - **changed** `src/utils/tooltipWithShortcut.test.ts`
@@ -4956,6 +5064,7 @@
 - **changed** `website/de/guide/cjk-formatting.md`
 - **added** `website/de/guide/coherence.md`
 - **added** `website/de/guide/knowledge-base.md`
+- **changed** `website/de/guide/large-files.md`
 - **changed** `website/de/guide/mcp-tools.md`
 - **changed** `website/de/guide/settings.md`
 - **changed** `website/de/guide/workflow-genies.md`
@@ -4967,6 +5076,7 @@
 - **changed** `website/es/guide/cjk-formatting.md`
 - **added** `website/es/guide/coherence.md`
 - **added** `website/es/guide/knowledge-base.md`
+- **changed** `website/es/guide/large-files.md`
 - **changed** `website/es/guide/mcp-tools.md`
 - **changed** `website/es/guide/settings.md`
 - **changed** `website/es/guide/workflow-genies.md`
@@ -4977,6 +5087,7 @@
 - **changed** `website/fr/guide/cjk-formatting.md`
 - **added** `website/fr/guide/coherence.md`
 - **added** `website/fr/guide/knowledge-base.md`
+- **changed** `website/fr/guide/large-files.md`
 - **changed** `website/fr/guide/mcp-tools.md`
 - **changed** `website/fr/guide/settings.md`
 - **changed** `website/fr/guide/workflow-genies.md`
@@ -4992,11 +5103,13 @@
 - **changed** `website/guide/formats.md`
 - **changed** `website/guide/index.md`
 - **changed** `website/guide/knowledge-base.md`
+- **changed** `website/guide/large-files.md`
 - **changed** `website/guide/link-check.md`
 - **changed** `website/guide/lint.md`
 - **changed** `website/guide/mcp-setup.md`
 - **changed** `website/guide/mcp-tools.md`
 - **changed** `website/guide/media-support.md`
+- **changed** `website/guide/multi-cursor.md`
 - **changed** `website/guide/popups.md`
 - **changed** `website/guide/privacy.md`
 - **changed** `website/guide/settings.md`
@@ -5015,6 +5128,7 @@
 - **changed** `website/it/guide/cjk-formatting.md`
 - **added** `website/it/guide/coherence.md`
 - **added** `website/it/guide/knowledge-base.md`
+- **changed** `website/it/guide/large-files.md`
 - **changed** `website/it/guide/mcp-tools.md`
 - **changed** `website/it/guide/settings.md`
 - **changed** `website/it/guide/workflow-genies.md`
@@ -5025,6 +5139,7 @@
 - **changed** `website/ja/guide/cjk-formatting.md`
 - **added** `website/ja/guide/coherence.md`
 - **added** `website/ja/guide/knowledge-base.md`
+- **changed** `website/ja/guide/large-files.md`
 - **changed** `website/ja/guide/mcp-tools.md`
 - **changed** `website/ja/guide/settings.md`
 - **changed** `website/ja/guide/workflow-genies.md`
@@ -5035,6 +5150,7 @@
 - **changed** `website/ko/guide/cjk-formatting.md`
 - **added** `website/ko/guide/coherence.md`
 - **added** `website/ko/guide/knowledge-base.md`
+- **changed** `website/ko/guide/large-files.md`
 - **changed** `website/ko/guide/mcp-tools.md`
 - **changed** `website/ko/guide/settings.md`
 - **changed** `website/ko/guide/workflow-genies.md`
@@ -5047,6 +5163,7 @@
 - **changed** `website/pt-BR/guide/cjk-formatting.md`
 - **added** `website/pt-BR/guide/coherence.md`
 - **added** `website/pt-BR/guide/knowledge-base.md`
+- **changed** `website/pt-BR/guide/large-files.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
 - **changed** `website/pt-BR/guide/settings.md`
 - **changed** `website/pt-BR/guide/workflow-genies.md`
@@ -5060,6 +5177,7 @@
 - **changed** `website/zh-CN/guide/cjk-formatting.md`
 - **added** `website/zh-CN/guide/coherence.md`
 - **added** `website/zh-CN/guide/knowledge-base.md`
+- **changed** `website/zh-CN/guide/large-files.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
 - **changed** `website/zh-CN/guide/settings.md`
 - **changed** `website/zh-CN/guide/workflow-genies.md`
@@ -5070,6 +5188,7 @@
 - **changed** `website/zh-TW/guide/cjk-formatting.md`
 - **added** `website/zh-TW/guide/coherence.md`
 - **added** `website/zh-TW/guide/knowledge-base.md`
+- **changed** `website/zh-TW/guide/large-files.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
 - **changed** `website/zh-TW/guide/settings.md`
 - **changed** `website/zh-TW/guide/workflow-genies.md`
@@ -5131,7 +5250,7 @@
 
 - Disposition: `rewritten`
 - Last compared commit: `2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c` (stale)
-- Matched upstream changes: 34
+- Matched upstream changes: 37
 - Missing Auris targets: 0
 
 ### `nia-legacy-genie`
@@ -5475,13 +5594,16 @@
 - `terminal` (`defer`): **added** `src/components/Terminal/setupOsc52.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/setupOsc52.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/setupWebLinks.test.ts`
+- `terminal` (`defer`): **changed** `src/components/Terminal/setupWebglRenderer.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/spawnPty.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/spawnPty.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminal-panel.css`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalBell.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalBell.ts`
+- `terminal` (`defer`): **deleted** `src/components/Terminal/terminalGate.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalInputTrace.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalInputTrace.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.focus.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.ime.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.scope.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalKeyHandler.test.ts`
@@ -5527,6 +5649,7 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalShellLifecycle.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalShellLifecycle.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useVisibleTerminalSessions.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/webglAtlasPageUpload.webkit.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/isValidMcpRequestRaw.test.ts` → `src/hooks/isValidMcpRequestRaw.test.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/handleRequest.ts`
 - `mcp-contract` (`adapt`): **deleted** `src/hooks/mcpBridge/index.ts`
@@ -5790,7 +5913,6 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/workspaceBootstrap.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/workspaceStorage.ts`
 - `terminal` (`defer`): **renamed** `src/components/Terminal/terminalGate.test.ts` → `src/services/terminal/terminalGate.test.ts`
-- `terminal` (`defer`): **renamed** `src/components/Terminal/terminalGate.ts` → `src/services/terminal/terminalGate.ts`
 - `theme-i18n` (`adapt`): **added** `src/services/theme/nativeTheme.test.ts`
 - `theme-i18n` (`adapt`): **added** `src/services/theme/nativeTheme.ts`
 - `formats` (`port`): **added** `src/stores/settingsStore/__tests__/unusedSettings.test.ts`
@@ -5905,6 +6027,7 @@
 - **added** `.codex/prompts/.gitkeep`
 - **changed** `.dependency-cruiser-known-violations.json`
 - **changed** `.dependency-cruiser.cjs`
+- **added** `.gitattributes`
 - **added** `.githooks/commit-msg`
 - **changed** `.githooks/pre-push`
 - **added** `.github/actions/setup-node-pnpm/action.yml`
@@ -5927,6 +6050,7 @@
 - **changed** `.github/workflows/update-homebrew.yml`
 - **changed** `.gitignore`
 - **added** `.jscpd.json`
+- **changed** `.mcp.json`
 - **added** `.npmrc`
 - **changed** `.size-limit.cjs`
 - **deleted** `.stylelintrc.json`
@@ -6164,6 +6288,7 @@
 - **added** `e2e/lib/rail.test.mjs`
 - **added** `e2e/lib/readiness.mjs`
 - **added** `e2e/lib/readiness.test.mjs`
+- **added** `e2e/lib/sessionLock.mjs`
 - **added** `e2e/lib/settingsPatch.mjs`
 - **added** `e2e/lib/staleBinary.mjs`
 - **added** `e2e/lib/staleBinary.test.mjs`
@@ -6175,6 +6300,7 @@
 - **added** `e2e/portFileAgreement.test.mjs`
 - **added** `e2e/run-ime.mjs`
 - **changed** `e2e/run-journeys.mjs`
+- **added** `e2e/sessionLock.test.mjs`
 - **changed** `e2e/smoke.mjs`
 - **added** `e2e/vmarkMcpResult.test.mjs`
 - **added** `e2e/wait-ready.mjs`
@@ -6184,6 +6310,9 @@
 - **added** `eslint.typeaware.config.mjs`
 - **changed** `knip.json`
 - **deleted** `ledger.json`
+- **added** `patches/@xterm__addon-webgl@0.19.0.patch`
+- **added** `patches/mdast-util-to-markdown@2.1.2.patch`
+- **added** `patches/micromark@4.0.2.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
 - **added** `scripts/__tests__/i18nIdenticalAllowlist.test.ts`
@@ -6261,10 +6390,12 @@
 - **changed** `scripts/check-multi-format-phase.sh`
 - **added** `scripts/check-mutants-config-path.mjs`
 - **added** `scripts/check-mutants-config-path.test.mjs`
+- **added** `scripts/check-mutation-in-place.test.mjs`
 - **changed** `scripts/check-new-deps.sh`
 - **added** `scripts/check-no-nul-bytes.mjs`
 - **added** `scripts/check-no-nul-bytes.test.mjs`
 - **added** `scripts/check-npm-audit.mjs`
+- **added** `scripts/check-numeric-env-reads.test.mjs`
 - **added** `scripts/check-paydown-phase.sh`
 - **added** `scripts/check-paydown-phase.test.mjs`
 - **added** `scripts/check-plugin-store-coupling.mjs`
@@ -6313,6 +6444,7 @@
 - **added** `scripts/check-wi-linkage.test.mjs`
 - **added** `scripts/check-window-creation-thread.mjs`
 - **added** `scripts/check-window-creation-thread.test.mjs`
+- **added** `scripts/check-workflow-input-fallbacks.test.mjs`
 - **added** `scripts/check-workflow-node-cache.test.mjs`
 - **added** `scripts/check-wrcs-phase.sh`
 - **added** `scripts/clean-dev.sh`
@@ -6325,6 +6457,7 @@
 - **added** `scripts/dod-syntax.mjs`
 - **added** `scripts/dod-syntax.test.mjs`
 - **added** `scripts/extension-budget.json`
+- **changed** `scripts/extract-menu-ids.ts`
 - **added** `scripts/feature-map.json`
 - **changed** `scripts/fetch-gha-fixtures.sh`
 - **changed** `scripts/file-size-baseline.json`
@@ -6387,6 +6520,7 @@
 - **added** `scripts/render-dock-icon.swift`
 - **changed** `scripts/setup-local-git.mjs`
 - **added** `scripts/shell-integration-smoke.test.mjs`
+- **added** `scripts/shell-script-eol.test.mjs`
 - **added** `scripts/shell-slots-baseline.json`
 - **added** `scripts/stryker-break-canary.test.mjs`
 - **changed** `scripts/tauri-wrapper.mjs`
@@ -6738,6 +6872,9 @@
 - **added** `src-tauri/src/browser/user_input_resolve_macos.rs`
 - **added** `src-tauri/src/canonical_path.rs`
 - **added** `src-tauri/src/capabilities.test.rs`
+- **added** `src-tauri/src/close_to_tray/mod.rs`
+- **added** `src-tauri/src/close_to_tray/mod.test.rs`
+- **added** `src-tauri/src/close_to_tray/tray.rs`
 - **added** `src-tauri/src/command_error.rs`
 - **added** `src-tauri/src/command_error.test.rs`
 - **added** `src-tauri/src/command_error_from.rs`
@@ -6902,8 +7039,9 @@
 - **added** `src-tauri/src/mcp_server.test.rs`
 - **added** `src-tauri/src/mcp_server_health.rs`
 - **changed** `src-tauri/src/menu/accelerators.rs`
-- **added** `src-tauri/src/menu/browser_menu_item.rs`
 - **changed** `src-tauri/src/menu/commands.rs`
+- **added** `src-tauri/src/menu/conditional_items.rs`
+- **added** `src-tauri/src/menu/conditional_items.test.rs`
 - **changed** `src-tauri/src/menu/localized.rs`
 - **changed** `src-tauri/src/menu/localized.test.rs`
 - **changed** `src-tauri/src/menu/localized/edit_menu.rs`
@@ -6987,6 +7125,8 @@
 - **added** `src-tauri/src/shell_integration.test.rs`
 - **added** `src-tauri/src/single_instance.rs`
 - **added** `src-tauri/src/single_instance.test.rs`
+- **added** `src-tauri/src/system_fonts.rs`
+- **added** `src-tauri/src/system_fonts.test.rs`
 - **changed** `src-tauri/src/tab_transfer.rs`
 - **changed** `src-tauri/src/tab_transfer.test.rs`
 - **added** `src-tauri/src/tab_transfer/drop_target.rs`
@@ -7113,6 +7253,7 @@
 - **added** `src/components/FindBar/useFindBarFocus.ts`
 - **added** `src/components/FindBar/useFindBarKeyboard.ts`
 - **added** `src/components/KnowledgeBasePanel/KbGraphChunkFailure.test.tsx`
+- **added** `src/components/KnowledgeBasePanel/KnowledgeBaseOverlay.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBaseOverlay.tsx`
 - **added** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.runtime.test.tsx`
 - **changed** `src/components/KnowledgeBasePanel/KnowledgeBasePanel.test.tsx`
@@ -7191,6 +7332,7 @@
 - **added** `src/components/Sidebar/useSidebarInstanceSync.ts`
 - **changed** `src/components/StatusBar/FileLoadIndicator.tsx`
 - **changed** `src/components/StatusBar/LintBadge.tsx`
+- **changed** `src/components/StatusBar/SourceModeUpgrade.test.tsx`
 - **changed** `src/components/StatusBar/SourceModeUpgrade.tsx`
 - **added** `src/components/StatusBar/StatusBar.a11y.test.tsx`
 - **changed** `src/components/StatusBar/StatusBar.css`
@@ -7342,6 +7484,10 @@
 - **changed** `src/export/reader/vmark-reader.css`
 - **changed** `src/export/reader/vmark-reader.js`
 - **added** `src/export/renderMarkdownToHtml.ts`
+- **added** `src/export/resourcePaths.test.ts`
+- **added** `src/export/resourcePaths.ts`
+- **changed** `src/export/resourceResolver.test.ts`
+- **changed** `src/export/resourceResolver.ts`
 - **changed** `src/export/themeSnapshot.ts`
 - **changed** `src/export/useExportOperations.ts`
 - **changed** `src/export/waitForAssets.ts`
@@ -7383,6 +7529,8 @@
 - **added** `src/hooks/useAiProviderSync.ts`
 - **changed** `src/hooks/useAutoSave.ts`
 - **changed** `src/hooks/useBrowserOccluder.ts`
+- **added** `src/hooks/useCloseToTraySync.test.ts`
+- **added** `src/hooks/useCloseToTraySync.ts`
 - **added** `src/hooks/useCommandBootstrap.bindings.test.ts`
 - **added** `src/hooks/useCommandBootstrap.test.tsx`
 - **added** `src/hooks/useCommandBootstrap.ts`
@@ -7484,6 +7632,8 @@
 - **added** `src/hooks/useStatusToasts.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.test.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.ts`
+- **added** `src/hooks/useSystemFontFamilies.test.tsx`
+- **added** `src/hooks/useSystemFontFamilies.ts`
 - **deleted** `src/hooks/useTabOperations.test.ts`
 - **deleted** `src/hooks/useTabOperations.ts`
 - **deleted** `src/hooks/useTabShortcuts.statusbar.test.tsx`
@@ -7915,6 +8065,9 @@
 - **added** `src/pages/settings/FileBrowserSettingsGroup.tsx`
 - **added** `src/pages/settings/FilesImagesSettings.test.tsx`
 - **changed** `src/pages/settings/FilesImagesSettings.tsx`
+- **added** `src/pages/settings/FontSettingRow.tsx`
+- **added** `src/pages/settings/FontSettings.test.tsx`
+- **added** `src/pages/settings/FontSettings.tsx`
 - **changed** `src/pages/settings/FormatsSettings.test.tsx`
 - **changed** `src/pages/settings/FormatsSettings.tsx`
 - **changed** `src/pages/settings/HotExitDevTools.test.tsx`
@@ -8044,6 +8197,7 @@
 - **changed** `src/plugins/codePreview/blockMathKeymap.ts`
 - **added** `src/plugins/codePreview/builtinFenceRenderers.ts`
 - **changed** `src/plugins/codePreview/code-preview.css`
+- **added** `src/plugins/codePreview/displayMathTag.webkit.test.ts`
 - **changed** `src/plugins/codePreview/editMode.ts`
 - **added** `src/plugins/codePreview/editingRegistry.test.ts`
 - **added** `src/plugins/codePreview/editingRegistry.ts`
@@ -8096,6 +8250,8 @@
 - **changed** `src/plugins/codemirror/smartPasteUtils.test.ts`
 - **changed** `src/plugins/codemirror/smartPasteUtils.ts`
 - **changed** `src/plugins/codemirror/source-syntax.css`
+- **added** `src/plugins/codemirror/sourceBlockBounds.test.ts`
+- **added** `src/plugins/codemirror/sourceBlockBounds.ts`
 - **changed** `src/plugins/codemirror/sourceCopyOnSelect.test.ts`
 - **changed** `src/plugins/codemirror/sourceCopyOnSelect.ts`
 - **changed** `src/plugins/codemirror/sourceCursorContext.test.ts`
@@ -8112,6 +8268,9 @@
 - **changed** `src/plugins/codemirror/sourceMermaidPreview.test.ts`
 - **changed** `src/plugins/codemirror/sourceMermaidPreview.ts`
 - **changed** `src/plugins/codemirror/sourceSelectOccurrence.test.ts`
+- **changed** `src/plugins/codemirror/sourceSelectOccurrence.ts`
+- **added** `src/plugins/codemirror/sourceSelectOccurrenceInBlock.test.ts`
+- **added** `src/plugins/codemirror/sourceSelectOccurrenceInBlock.ts`
 - **changed** `src/plugins/codemirror/sourceShortcuts.test.ts`
 - **changed** `src/plugins/codemirror/sourceShortcuts.ts`
 - **changed** `src/plugins/codemirror/sourceShortcutsHelpers.test.ts`
@@ -8139,12 +8298,16 @@
 - **changed** `src/plugins/codemirror/viewportScanFinders.test.ts`
 - **added** `src/plugins/codemirror/workflowPort.test.ts`
 - **added** `src/plugins/codemirror/workflowPort.ts`
+- **added** `src/plugins/compositionGuard/__tests__/compositionKeys.test.ts`
 - **changed** `src/plugins/compositionGuard/__tests__/splitBlockFix.test.ts`
+- **added** `src/plugins/compositionGuard/__tests__/tiptap.domreconciliation.test.ts`
 - **added** `src/plugins/compositionGuard/__tests__/tiptap.imecleanup.test.ts`
 - **added** `src/plugins/compositionGuard/__tests__/tiptap.splitblock.test.ts`
 - **added** `src/plugins/compositionGuard/__tests__/tiptap.tablefix.test.ts`
 - **changed** `src/plugins/compositionGuard/__tests__/tiptap.test.ts`
+- **added** `src/plugins/compositionGuard/compositionKeys.ts`
 - **deleted** `src/plugins/compositionGuard/manifest.ts`
+- **changed** `src/plugins/compositionGuard/tiptap.ts`
 - **changed** `src/plugins/detailsBlock/__tests__/detailsBlock.test.ts`
 - **changed** `src/plugins/detailsBlock/details-block.css`
 - **deleted** `src/plugins/detailsBlock/manifest.ts`
@@ -8262,6 +8425,7 @@
 - **changed** `src/plugins/latex/MathInlineNodeView.test.ts`
 - **changed** `src/plugins/latex/MathInlineNodeView.ts`
 - **changed** `src/plugins/latex/__tests__/MathInlineNodeView.test.ts`
+- **added** `src/plugins/latex/displayMathTag.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.ts`
 - **changed** `src/plugins/latex/katexLoader.test.ts`
@@ -8354,11 +8518,13 @@
 - **changed** `src/plugins/mediaPopup/mediaPopupActions.ts`
 - **changed** `src/plugins/mediaPopup/mediaPopupDom.ts`
 - **changed** `src/plugins/mediaPopup/tiptap.ts`
+- **changed** `src/plugins/mermaid/constants.ts`
 - **added** `src/plugins/mermaid/ensureSvgSize.test.ts`
 - **added** `src/plugins/mermaid/ensureSvgSize.ts`
 - **deleted** `src/plugins/mermaid/manifest.ts`
 - **changed** `src/plugins/mermaid/mermaid-panzoom.css`
 - **changed** `src/plugins/mermaid/mermaid.test.ts`
+- **changed** `src/plugins/mermaid/plugin.test.ts`
 - **changed** `src/plugins/mermaid/plugin.ts`
 - **changed** `src/plugins/mermaid/themeConfig.test.ts`
 - **changed** `src/plugins/mermaidPreview/MermaidPreviewView.test.ts`
@@ -8385,11 +8551,16 @@
 - **added** `src/plugins/multiCursor/__tests__/multiSelectionInvariants.ts`
 - **added** `src/plugins/multiCursor/__tests__/multiSelectionMapping.property.test.ts`
 - **changed** `src/plugins/multiCursor/__tests__/rangeUtils.test.ts`
+- **added** `src/plugins/multiCursor/__tests__/selectAllOccurrencesInBlock.test.ts`
 - **changed** `src/plugins/multiCursor/__tests__/textSearch.test.ts`
 - **changed** `src/plugins/multiCursor/__tests__/undoRedoIntegration.test.ts`
+- **added** `src/plugins/multiCursor/blockBounds.test.ts`
+- **added** `src/plugins/multiCursor/blockBounds.ts`
+- **changed** `src/plugins/multiCursor/commands.ts`
 - **changed** `src/plugins/multiCursor/keymap.ts`
 - **deleted** `src/plugins/multiCursor/manifest.ts`
 - **changed** `src/plugins/multiCursor/multi-cursor.css`
+- **changed** `src/plugins/multiCursor/occurrenceCommands.ts`
 - **changed** `src/plugins/multiCursor/rangeUtils.ts`
 - **deleted** `src/plugins/registry.test.ts`
 - **deleted** `src/plugins/registry.ts`
@@ -8403,6 +8574,7 @@
 - **added** `src/plugins/search/replaceActions.ts`
 - **changed** `src/plugins/search/tiptap.test.ts`
 - **changed** `src/plugins/search/tiptap.ts`
+- **changed** `src/plugins/security.test.ts`
 - **changed** `src/plugins/shared/WysiwygPopupView.test.ts`
 - **changed** `src/plugins/shared/WysiwygPopupView.ts`
 - **changed** `src/plugins/shared/__tests__/WysiwygPopupView.test.ts`
@@ -8420,6 +8592,8 @@
 - **added** `src/plugins/shared/fenceDelimiter.test.ts`
 - **added** `src/plugins/shared/fenceDelimiter.ts`
 - **added** `src/plugins/shared/fenceScanner.ts`
+- **added** `src/plugins/shared/historyBatch.test.ts`
+- **added** `src/plugins/shared/historyBatch.ts`
 - **added** `src/plugins/shared/hostDocument.test.ts`
 - **added** `src/plugins/shared/hostDocument.ts`
 - **added** `src/plugins/shared/hostEditors.test.ts`
@@ -8691,6 +8865,8 @@
 - **changed** `src/plugins/typewriterMode/tiptap.ts`
 - **changed** `src/plugins/underline/__tests__/underline.test.ts`
 - **deleted** `src/plugins/underline/manifest.ts`
+- **added** `src/plugins/undoIntegrity/tiptap.test.ts`
+- **added** `src/plugins/undoIntegrity/tiptap.ts`
 - **changed** `src/plugins/videoEmbed/VideoEmbedNodeView.ts`
 - **changed** `src/plugins/videoEmbed/__tests__/VideoEmbedNodeView.test.ts`
 - **added** `src/plugins/videoEmbed/__tests__/tiptap.paste.test.ts`
@@ -8756,7 +8932,6 @@
 - **changed** `src/services/browser/browserEventBroker.ts`
 - **added** `src/services/browser/browserLeaseWiring.test.ts`
 - **added** `src/services/browser/browserLeaseWiring.ts`
-- **added** `src/services/browser/browserMenuSync.ts`
 - **added** `src/services/browser/browserNativeEventDecoder.test.ts`
 - **added** `src/services/browser/browserNativeEventDecoder.ts`
 - **added** `src/services/browser/browserNativeEvents.test.ts`
@@ -8803,6 +8978,8 @@
 - **added** `src/services/coherence/mergeAuditService.ts`
 - **added** `src/services/coherence/scanOnChange.test.ts`
 - **added** `src/services/coherence/scanOnChange.ts`
+- **added** `src/services/contentServer/availability.test.ts`
+- **added** `src/services/contentServer/availability.ts`
 - **changed** `src/services/contentServer/client.test.ts`
 - **changed** `src/services/contentServer/client.ts`
 - **added** `src/services/contentServer/slidevDeck.test.ts`
@@ -8837,6 +9014,8 @@
 - **added** `src/services/editor/unifiedHistoryDispatch.ts`
 - **added** `src/services/editor/universalToolbarToggle.test.ts`
 - **added** `src/services/editor/universalToolbarToggle.ts`
+- **added** `src/services/editor/unparseableDocument.test.ts`
+- **added** `src/services/editor/unparseableDocument.ts`
 - **changed** `src/services/editor/urlDetection.test.ts`
 - **changed** `src/services/editor/urlDetection.ts`
 - **added** `src/services/featureFlags/workflowFeatureFlag.test.ts`
@@ -8852,6 +9031,8 @@
 - **added** `src/services/files/fileSave.test.ts`
 - **added** `src/services/files/fileSave.ts`
 - **added** `src/services/files/resolveDirtyBatch.ts`
+- **added** `src/services/fonts/systemFonts.test.ts`
+- **added** `src/services/fonts/systemFonts.ts`
 - **added** `src/services/fonts/verifiedMonoStack.test.ts`
 - **added** `src/services/fonts/verifiedMonoStack.ts`
 - **added** `src/services/fonts/verifiedMonoStack.webkit.test.ts`
@@ -8888,6 +9069,9 @@
 - **added** `src/services/keybinding/bindingRegistry.test.ts`
 - **added** `src/services/keybinding/bindingRegistry.ts`
 - **added** `src/services/keybinding/crossWindowPropagation.test.ts`
+- **added** `src/services/keybinding/imeChordGuard.test.ts`
+- **added** `src/services/keybinding/imeChordGuard.ts`
+- **added** `src/services/keybinding/imeChordGuard.webkit.test.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.test.ts`
 - **added** `src/services/keybinding/keybindingDefinitions.ts`
 - **added** `src/services/keybinding/keybindingReferentialIntegrity.test.ts`
@@ -9020,6 +9204,8 @@
 - **added** `src/services/media/siblingReferences.ts`
 - **added** `src/services/media/workspaceReferenceCheck.test.ts`
 - **added** `src/services/media/workspaceReferenceCheck.ts`
+- **added** `src/services/menu/conditionalMenuItemSync.test.ts`
+- **added** `src/services/menu/conditionalMenuItemSync.ts`
 - **changed** `src/services/menu/rebuildNativeMenu.test.ts`
 - **changed** `src/services/menu/rebuildNativeMenu.ts`
 - **changed** `src/services/menu/startupMenuSync.ts`
@@ -9056,7 +9242,10 @@
 - **added** `src/services/navigation/openFragment.ts`
 - **renamed** `src/hooks/openMediaFile.test.ts` → `src/services/navigation/openMediaFile.test.ts`
 - **renamed** `src/hooks/openMediaFile.ts` → `src/services/navigation/openMediaFile.ts`
+- **added** `src/services/navigation/openWithDefaultApp.test.ts`
+- **added** `src/services/navigation/openWithDefaultApp.ts`
 - **added** `src/services/navigation/openWorkflowTarget.ts`
+- **added** `src/services/navigation/pdfExportWindow.test.ts`
 - **changed** `src/services/navigation/pdfExportWindow.ts`
 - **renamed** `src/hooks/replaceTabWithFile.ts` → `src/services/navigation/replaceTabWithFile.ts`
 - **changed** `src/services/navigation/restoreSplitLayout.test.ts`
@@ -9112,6 +9301,10 @@
 - **added** `src/services/terminal/runInTerminal.ts`
 - **added** `src/services/terminal/terminalCdFollow.test.ts`
 - **added** `src/services/terminal/terminalCdFollow.ts`
+- **added** `src/services/terminal/terminalFocus.test.ts`
+- **added** `src/services/terminal/terminalFocus.ts`
+- **added** `src/services/terminal/terminalGate.focus.test.ts`
+- **added** `src/services/terminal/terminalGate.ts`
 - **added** `src/services/terminal/visibleTerminalSessions.ts`
 - **added** `src/services/trustedHtml/trustedHtmlBridge.test.ts`
 - **added** `src/services/trustedHtml/trustedHtmlBridge.ts`
@@ -9312,6 +9505,7 @@
 - **changed** `src/stores/documentStore/document.ts`
 - **added** `src/stores/documentStore/documentState.ts`
 - **added** `src/stores/documentStore/ingestState.ts`
+- **changed** `src/stores/documentStore/largeFileSession.ts`
 - **changed** `src/stores/documentStore/lint.ts`
 - **added** `src/stores/documentStore/storeContract.ts`
 - **changed** `src/stores/documentStore/unifiedHistory.ts`
@@ -9446,6 +9640,7 @@
 - **changed** `src/styles/index.css`
 - **added** `src/styles/input-shared.css`
 - **added** `src/styles/input.test.ts`
+- **changed** `src/styles/katexFixes.css`
 - **deleted** `src/styles/media-popup-shared.css`
 - **added** `src/styles/overlay-shared.css`
 - **added** `src/styles/overlay.test.ts`
@@ -9456,6 +9651,8 @@
 - **deleted** `src/styles/syntax-palette.css`
 - **added** `src/styles/uiAuditFixes.test.ts`
 - **added** `src/test/adversarialMediaSources.ts`
+- **added** `src/test/arbitraryMarkdown.test.ts`
+- **added** `src/test/arbitraryMarkdown.ts`
 - **added** `src/test/axeMatchers.ts`
 - **added** `src/test/bindPluginRegistries.ts`
 - **added** `src/test/codePreviewTestUtils.ts`
@@ -9463,6 +9660,8 @@
 - **added** `src/test/devProfileIsolation.test.ts`
 - **added** `src/test/editingFuzz.test.ts`
 - **added** `src/test/editorComposition.webkit.test.ts`
+- **added** `src/test/envInteger.test.ts`
+- **added** `src/test/envInteger.ts`
 - **added** `src/test/externalCorpora.soak.test.ts`
 - **added** `src/test/externalFileChangesFixtures.ts`
 - **added** `src/test/fakeDisk.test.ts`
@@ -9551,6 +9750,8 @@
 - **changed** `src/utils/cursorSync/table.test.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.test.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.ts`
+- **added** `src/utils/customFont.test.ts`
+- **added** `src/utils/customFont.ts`
 - **changed** `src/utils/dateUtils.test.ts`
 - **changed** `src/utils/debounce.test.ts`
 - **changed** `src/utils/debug/error.ts`
@@ -9567,6 +9768,7 @@
 - **added** `src/utils/displayFileName.test.ts`
 - **added** `src/utils/displayFileName.ts`
 - **changed** `src/utils/dropPaths.test.ts`
+- **changed** `src/utils/dropPaths.ts`
 - **added** `src/utils/editorText.test.ts`
 - **added** `src/utils/editorText.ts`
 - **changed** `src/utils/errorMessage.test.ts`
@@ -9574,6 +9776,7 @@
 - **changed** `src/utils/exportNaming.test.ts`
 - **changed** `src/utils/fileSizeThresholds.test.ts`
 - **changed** `src/utils/fileSizeThresholds.ts`
+- **added** `src/utils/fontOptions.ts`
 - **changed** `src/utils/fontStacks.test.ts`
 - **changed** `src/utils/fontStacks.ts`
 - **deleted** `src/utils/fsEventFilter.test.ts`
@@ -9614,6 +9817,7 @@
 - **changed** `src/utils/markdownPasteDetection.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/adapter.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/adapterErrorWrapping.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/attentionRoundtrip.property.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/backslash-roundtrip.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/blankLinePreservation.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/characterization/README.md`
@@ -9686,6 +9890,7 @@
 - **changed** `src/utils/markdownPipeline/__tests__/parser.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathological.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalCases.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalScaling.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/runCases.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/performance.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/roundtrip.property.test.ts`
@@ -9725,6 +9930,8 @@
 - **added** `src/utils/markdownPipeline/imageReferenceRoundtrip.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.ts`
+- **added** `src/utils/markdownPipeline/listInterruptJoin.test.ts`
+- **added** `src/utils/markdownPipeline/listInterruptJoin.ts`
 - **added** `src/utils/markdownPipeline/markEdgeWhitespace.ts`
 - **changed** `src/utils/markdownPipeline/mdastBlockConverters.test.ts`
 - **changed** `src/utils/markdownPipeline/mdastBlockConverters.ts`
@@ -9739,7 +9946,15 @@
 - **changed** `src/utils/markdownPipeline/mdastToProseMirror.blocks.test.ts`
 - **changed** `src/utils/markdownPipeline/mdastToProseMirror.inline.test.ts`
 - **changed** `src/utils/markdownPipeline/mdastToProseMirror.ts`
+- **added** `src/utils/markdownPipeline/nestingDepth.test.ts`
+- **added** `src/utils/markdownPipeline/nestingDepth.ts`
 - **changed** `src/utils/markdownPipeline/parser.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/attentionFastPath.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/codeTextFastPath.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/inlineFastPaths.test.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/labelEndFastPath.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/micromarkTypes.ts`
+- **added** `src/utils/markdownPipeline/parser/fastPaths/remarkInlineFastPaths.ts`
 - **added** `src/utils/markdownPipeline/parser/mathDelimiterSpans.test.ts`
 - **added** `src/utils/markdownPipeline/parser/mathDelimiterSpans.ts`
 - **added** `src/utils/markdownPipeline/parser/mathGuards.integration.test.ts`
@@ -9754,6 +9969,8 @@
 - **changed** `src/utils/markdownPipeline/parser/remarkPlugins.ts`
 - **changed** `src/utils/markdownPipeline/plugins/customInline.test.ts`
 - **changed** `src/utils/markdownPipeline/plugins/customInline.ts`
+- **added** `src/utils/markdownPipeline/plugins/customInlineDepth.test.ts`
+- **added** `src/utils/markdownPipeline/plugins/customInlineMarks.ts`
 - **added** `src/utils/markdownPipeline/plugins/customInlineTransform.ts`
 - **changed** `src/utils/markdownPipeline/plugins/detailsBlock.test.ts`
 - **changed** `src/utils/markdownPipeline/plugins/detailsBlock.ts`
@@ -9787,14 +10004,19 @@
 - **changed** `src/utils/markdownPipeline/proseMirrorToMdast.ts`
 - **added** `src/utils/markdownPipeline/roundtripDefects.test.ts`
 - **added** `src/utils/markdownPipeline/schemaCoverage.test.ts`
+- **added** `src/utils/markdownPipeline/serializer.lineEndings.test.ts`
 - **changed** `src/utils/markdownPipeline/serializer.test.ts`
 - **changed** `src/utils/markdownPipeline/serializer.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.astral.test.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.strikethrough.test.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.test.ts`
+- **added** `src/utils/markdownPipeline/serializerAttention.ts`
+- **added** `src/utils/markdownPipeline/serializerCodeRanges.ts`
 - **added** `src/utils/markdownPipeline/serializerCosmetics.test.ts`
 - **added** `src/utils/markdownPipeline/serializerCosmetics.ts`
 - **changed** `src/utils/markdownPipeline/serializerHandlers.test.ts`
 - **changed** `src/utils/markdownPipeline/serializerHandlers.ts`
-- **added** `src/utils/markdownPipeline/serializerStrikethrough.test.ts`
-- **added** `src/utils/markdownPipeline/serializerStrikethrough.ts`
+- **added** `src/utils/markdownPipeline/serializerText.ts`
 - **changed** `src/utils/markdownPipeline/testSchema.ts`
 - **changed** `src/utils/markdownPipeline/types.ts`
 - **changed** `src/utils/markdownPipeline/urlValidation.test.ts`
@@ -9857,6 +10079,8 @@
 - **added** `src/utils/tabStripOverflow.test.ts`
 - **added** `src/utils/tabStripOverflow.ts`
 - **changed** `src/utils/tableParser.test.ts`
+- **added** `src/utils/terminalSurface.test.ts`
+- **added** `src/utils/terminalSurface.ts`
 - **changed** `src/utils/textTransformations.test.ts`
 - **changed** `src/utils/textTransformations.ts`
 - **changed** `src/utils/tooltipWithShortcut.test.ts`
@@ -9948,6 +10172,7 @@
 - **changed** `website/de/guide/cjk-formatting.md`
 - **added** `website/de/guide/coherence.md`
 - **added** `website/de/guide/knowledge-base.md`
+- **changed** `website/de/guide/large-files.md`
 - **changed** `website/de/guide/mcp-tools.md`
 - **changed** `website/de/guide/settings.md`
 - **changed** `website/de/guide/workflow-genies.md`
@@ -9959,6 +10184,7 @@
 - **changed** `website/es/guide/cjk-formatting.md`
 - **added** `website/es/guide/coherence.md`
 - **added** `website/es/guide/knowledge-base.md`
+- **changed** `website/es/guide/large-files.md`
 - **changed** `website/es/guide/mcp-tools.md`
 - **changed** `website/es/guide/settings.md`
 - **changed** `website/es/guide/workflow-genies.md`
@@ -9969,6 +10195,7 @@
 - **changed** `website/fr/guide/cjk-formatting.md`
 - **added** `website/fr/guide/coherence.md`
 - **added** `website/fr/guide/knowledge-base.md`
+- **changed** `website/fr/guide/large-files.md`
 - **changed** `website/fr/guide/mcp-tools.md`
 - **changed** `website/fr/guide/settings.md`
 - **changed** `website/fr/guide/workflow-genies.md`
@@ -9984,11 +10211,13 @@
 - **changed** `website/guide/formats.md`
 - **changed** `website/guide/index.md`
 - **changed** `website/guide/knowledge-base.md`
+- **changed** `website/guide/large-files.md`
 - **changed** `website/guide/link-check.md`
 - **changed** `website/guide/lint.md`
 - **changed** `website/guide/mcp-setup.md`
 - **changed** `website/guide/mcp-tools.md`
 - **changed** `website/guide/media-support.md`
+- **changed** `website/guide/multi-cursor.md`
 - **changed** `website/guide/popups.md`
 - **changed** `website/guide/privacy.md`
 - **changed** `website/guide/settings.md`
@@ -10007,6 +10236,7 @@
 - **changed** `website/it/guide/cjk-formatting.md`
 - **added** `website/it/guide/coherence.md`
 - **added** `website/it/guide/knowledge-base.md`
+- **changed** `website/it/guide/large-files.md`
 - **changed** `website/it/guide/mcp-tools.md`
 - **changed** `website/it/guide/settings.md`
 - **changed** `website/it/guide/workflow-genies.md`
@@ -10017,6 +10247,7 @@
 - **changed** `website/ja/guide/cjk-formatting.md`
 - **added** `website/ja/guide/coherence.md`
 - **added** `website/ja/guide/knowledge-base.md`
+- **changed** `website/ja/guide/large-files.md`
 - **changed** `website/ja/guide/mcp-tools.md`
 - **changed** `website/ja/guide/settings.md`
 - **changed** `website/ja/guide/workflow-genies.md`
@@ -10027,6 +10258,7 @@
 - **changed** `website/ko/guide/cjk-formatting.md`
 - **added** `website/ko/guide/coherence.md`
 - **added** `website/ko/guide/knowledge-base.md`
+- **changed** `website/ko/guide/large-files.md`
 - **changed** `website/ko/guide/mcp-tools.md`
 - **changed** `website/ko/guide/settings.md`
 - **changed** `website/ko/guide/workflow-genies.md`
@@ -10039,6 +10271,7 @@
 - **changed** `website/pt-BR/guide/cjk-formatting.md`
 - **added** `website/pt-BR/guide/coherence.md`
 - **added** `website/pt-BR/guide/knowledge-base.md`
+- **changed** `website/pt-BR/guide/large-files.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
 - **changed** `website/pt-BR/guide/settings.md`
 - **changed** `website/pt-BR/guide/workflow-genies.md`
@@ -10052,6 +10285,7 @@
 - **changed** `website/zh-CN/guide/cjk-formatting.md`
 - **added** `website/zh-CN/guide/coherence.md`
 - **added** `website/zh-CN/guide/knowledge-base.md`
+- **changed** `website/zh-CN/guide/large-files.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
 - **changed** `website/zh-CN/guide/settings.md`
 - **changed** `website/zh-CN/guide/workflow-genies.md`
@@ -10062,6 +10296,7 @@
 - **changed** `website/zh-TW/guide/cjk-formatting.md`
 - **added** `website/zh-TW/guide/coherence.md`
 - **added** `website/zh-TW/guide/knowledge-base.md`
+- **changed** `website/zh-TW/guide/large-files.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
 - **changed** `website/zh-TW/guide/settings.md`
 - **changed** `website/zh-TW/guide/workflow-genies.md`

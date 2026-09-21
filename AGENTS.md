@@ -324,3 +324,26 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 - 代码规范：`npm run lint` 0 errors。
 - 完整打包：执行 `npm run desktop:island:build`、`npm run build`、`npm run desktop:assemble` 及 `electron-builder`，产出 `Auris-1.0.9-arm64.dmg` 与 `mac-arm64/Auris.app`。
 - 本地替换：备份 `/Applications/Auris.app` 至 `/Applications/Auris.app.backup-20260920-1355`，完成就地替换、ad-hoc 重签名、签名完整性校验并成功拉起运行（PID 16829）。
+
+
+## Engineering trajectory: VMark 基础设施与安全防御对齐（2026-09-21）
+
+本轮响应上游 VMark 最新变动（Commit `55e3ef5` 与 `13720e0`，聚焦配置输出确定性、失效安全防御与僵尸依赖切除），完成 Auris 的全量架构对齐与安全加固：
+1. **参考克隆与 Provenance 差量同步**：
+   - 将 Auris 内置参考仓库 `vmark-upstream` 快速向前（Fast-Forward）更新至 `13720e0bf`，与 `/Users/apple/Desktop/xiaolai-source/vmark` 完全一致；
+   - 运行 `scripts/vmark-sync-report.cjs` 生成最新差量审计，成功刷新 `docs/vmark-sync/latest.json` 与 `latest.md`。
+2. **仓库防御性忽略规约加固（Fail-Safe Security Defaults）**：
+   - 吸收 VMark 拒绝单文件收窄的防御性经验，在 Auris 根目录 `.gitignore` 引入目录级 `.agents/` 忽略，确保 subagent 与多智能体运行时生成的 0600 权限凭据及机器路径绝不被 `git add -A` 误提交；
+   - 补齐 `.cc-suite/audits/`（审计工作区产物）、`.claude/*.local.*`（本地助手设置）与 `__pycache__/` / `*.pyc` 规则；
+   - 使用 `git check-ignore -v` 实机验证规则生效（覆盖未发生的未来临时文件）。
+3. **MCP 安装器与生态依赖合规性复核**：
+   - 审查 `electron/auris-mcp-installer.cjs`：确认 Auris 对 TOML 的写回（Codex CLI 配置）始终采用 `locateTomlBlock` 局部切片替换机制，仅更新 `[mcp_servers.auris-notes]`，不改写其余内容与注释，天生具备确定性输出，免疫工具链重复执行导致的假 dirty 扰动；
+   - 确认 Auris 本身不依赖外部故障的 `codex-cli` stdio 服务，对外提供标准 `auris-notes` MCP 服务。
+4. **版本递增、打包发布与本地应用更新**：
+   - 递增版本至 `v1.0.10`（更新 `package.json` 与 `package-lock.json`）；
+   - 执行 `npm run desktop:island:build`、`npm run build`、`npm run desktop:assemble` 及 `electron-builder`，产出 `Auris-1.0.10-arm64.dmg` 与 `mac-arm64/Auris.app`；
+   - 备份旧应用至 `/Applications/Auris.app.backup-20260921-1355`，完成就地替换安装、ad-hoc 重签名与严格完整性校验；
+   - 启动 `/Applications/Auris.app`，验证主进程（PID 79289）、GPU 进程（PID 79311）及灵动岛辅助进程（PID 79352）正常稳定运行；
+   - 编写完成 `docs/vmark-sync/feature-gap-report-2026-09-21.md` 详细复盘报告；
+   - 运行 VMark 契约测试（51 项全部通过）、MCP 安装器与配置测试（22 项全部通过）；
+   - 运行全仓 `npm run lint`（0 errors）与 `git diff --check`（通过）。
