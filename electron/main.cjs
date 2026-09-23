@@ -176,6 +176,10 @@ const {
 } = require("./release-tag-preparer.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
+const {
+  collectMarkdownOpenPaths,
+  createExternalMarkdownFiles,
+} = require("./external-markdown-files.cjs");
 const { DesktopIslandService } = require("./desktop-island/desktop-island-service.cjs");
 const {
   normalizeDesktopIslandSettings,
@@ -185,6 +189,13 @@ const {
 } = require("./desktop-island/mac-desktop-island-native-host.cjs");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
+const EXTERNAL_MARKDOWN_OPEN_CHANNEL = "shadowing:external-markdown:open";
+const externalMarkdownFiles = createExternalMarkdownFiles({
+  fs,
+  writeFileAtomically,
+});
+const externalMarkdownSubscriptions = new Map();
+let externalMarkdownOpenQueue = Promise.resolve();
 const APP_ICON_PATH = path.join(
   PROJECT_ROOT,
   "assets",
@@ -3648,6 +3659,57 @@ async function openMainRoute(routePath) {
   }
 }
 
+async function focusNotesForExternalMarkdown() {
+  await app.whenReady();
+  await ensureMainWindow();
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  if (process.platform === "darwin") app.focus({ steal: true });
+  mainWindow.show();
+  mainWindow.focus();
+
+  let currentPath = null;
+  try {
+    currentPath = new URL(mainWindow.webContents.getURL()).pathname;
+  } catch {
+    // The first navigation may not have committed yet; load the Notes route below.
+  }
+  if (currentPath !== "/notes") {
+    await openMainRoute("/notes");
+  }
+}
+
+async function openExternalMarkdownFromSystem(rawPath) {
+  try {
+    const opened = await externalMarkdownFiles.open(rawPath);
+    if (opened) await focusNotesForExternalMarkdown();
+  } catch (error) {
+    writeStartupLog(`external-markdown:open-failed ${error?.stack ?? error}`);
+    await app.whenReady();
+    const reason = error?.message === "EXTERNAL_MARKDOWN_FILE_TOO_LARGE"
+      ? "文件超过 Auris 当前支持的 20 MB 上限。"
+      : error?.message === "EXTERNAL_MARKDOWN_FILE_NOT_UTF8"
+        ? "文件不是有效的 UTF-8 文本。"
+        : error?.message === "EXTERNAL_MARKDOWN_FILE_NOT_TEXT"
+          ? "文件包含二进制内容，Auris 无法作为 Markdown 文本打开。"
+          : "无法读取此文件，请检查文件是否存在以及是否有读取权限。";
+    dialog.showErrorBox("无法打开 Markdown 文件", reason);
+  }
+}
+
+function enqueueExternalMarkdownOpen(rawPath) {
+  externalMarkdownOpenQueue = externalMarkdownOpenQueue.then(() =>
+    openExternalMarkdownFromSystem(rawPath),
+  );
+  return externalMarkdownOpenQueue;
+}
+
+function openExternalMarkdownArguments(args, workingDirectory = process.cwd()) {
+  for (const filePath of collectMarkdownOpenPaths(args, workingDirectory)) {
+    void enqueueExternalMarkdownOpen(filePath);
+  }
+}
+
 function navigateToRoute(routePath) {
   if (!mainWindow || mainWindow.isDestroyed() || !nextServerUrl) {
     return;
@@ -3698,6 +3760,16 @@ const hasSingleInstanceLock =
 if (!hasSingleInstanceLock) {
   writeStartupLog("app:single-instance-lock-denied");
   app.quit();
+}
+
+if (hasSingleInstanceLock) {
+  if (process.platform === "darwin") {
+    app.on("open-file", (event, filePath) => {
+      event.preventDefault();
+      void enqueueExternalMarkdownOpen(filePath);
+    });
+  }
+  openExternalMarkdownArguments(process.argv.slice(1));
 }
 
 function registerDesktopHandlers() {
@@ -4197,6 +4269,70 @@ function registerDesktopHandlers() {
     return runtime.plugins;
   });
 
+  ipcMain.handle("shadowing:external-markdown:subscribe", async (event) => {
+    requireTrustedMainEvent(event);
+    const previous = externalMarkdownSubscriptions.get(event.sender.id);
+    if (previous) externalMarkdownFiles.unsubscribe(previous.listener);
+    const subscriptionId = crypto.randomUUID();
+    const listener = (file) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send(EXTERNAL_MARKDOWN_OPEN_CHANNEL, file);
+      }
+    };
+    externalMarkdownSubscriptions.set(event.sender.id, { listener, subscriptionId });
+    return {
+      files: externalMarkdownFiles.subscribe(listener),
+      subscriptionId,
+    };
+  });
+
+  ipcMain.handle("shadowing:external-markdown:unsubscribe", async (event, subscriptionId) => {
+    requireTrustedMainEvent(event);
+    const subscription = externalMarkdownSubscriptions.get(event.sender.id);
+    if (subscription?.subscriptionId === subscriptionId) {
+      externalMarkdownFiles.unsubscribe(subscription.listener);
+      externalMarkdownSubscriptions.delete(event.sender.id);
+    }
+  });
+
+  ipcMain.handle("shadowing:external-markdown:save", async (event, fileId, rawSource, overwriteExternalChanges, expectedDiskHash) => {
+    requireTrustedMainEvent(event);
+    return externalMarkdownFiles.save(
+      fileId,
+      rawSource,
+      overwriteExternalChanges === true,
+      typeof expectedDiskHash === "string" ? expectedDiskHash : null,
+    );
+  });
+
+  ipcMain.handle("shadowing:external-markdown:update-buffer", async (event, fileId, rawSource) => {
+    requireTrustedMainEvent(event);
+    return externalMarkdownFiles.updateBuffer(fileId, rawSource);
+  });
+
+  ipcMain.handle("shadowing:external-markdown:pick", async (event) => {
+    requireTrustedMainEvent(event);
+    const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+      filters: [{ extensions: ["md", "markdown", "mdown", "mkd", "mkdn", "mdx"], name: "Markdown" }],
+      properties: ["openFile"],
+      title: "打开 Markdown 文件",
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return externalMarkdownFiles.open(result.filePaths[0]);
+  });
+
+  ipcMain.handle("shadowing:external-markdown:close", async (event, fileId) => {
+    requireTrustedMainEvent(event);
+    return externalMarkdownFiles.close(fileId);
+  });
+
+  ipcMain.handle("shadowing:external-markdown:reveal", async (event, fileId) => {
+    requireTrustedMainEvent(event);
+    const filePath = externalMarkdownFiles.getPath(fileId);
+    if (!filePath) throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_OPEN");
+    shell.showItemInFolder(filePath);
+  });
+
   ipcMain.handle("shadowing:vault:get-directory-info", async (event) => {
     requireTrustedMainEvent(event);
     return getVaultDirectoryInfo();
@@ -4674,8 +4810,9 @@ app.whenReady().then(async () => {
   app.quit();
 });
 
-app.on("second-instance", () => {
+app.on("second-instance", (_event, commandLine, workingDirectory) => {
   writeStartupLog("app:second-instance");
+  openExternalMarkdownArguments(commandLine, workingDirectory);
   if (!focusExistingWindow()) {
     void ensureMainWindow();
   }

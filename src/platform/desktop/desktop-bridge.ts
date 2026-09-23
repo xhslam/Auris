@@ -401,6 +401,15 @@ export type DesktopVaultFileRecord = {
   relativePath: string;
 };
 
+export type DesktopExternalMarkdownFile = {
+  fileName: string;
+  id: string;
+  mtime: string;
+  path: string;
+  rawSource: string;
+  savedSource: string;
+};
+
 /* ------------------------------------------------------------------ */
 /* 自动更新（对齐 vmark mcpStore.update 语义）                          */
 /* ------------------------------------------------------------------ */
@@ -696,6 +705,19 @@ export type DesktopBridge = {
   };
   terminal?: DesktopTerminalBridge;
   updates?: DesktopUpdatesBridge;
+  externalMarkdown?: {
+    close: (fileId: string) => Promise<boolean>;
+    onOpen: (listener: (file: DesktopExternalMarkdownFile) => void) => () => void;
+    pick: () => Promise<DesktopExternalMarkdownFile | null>;
+    reveal: (fileId: string) => Promise<void>;
+    save: (
+      fileId: string,
+      rawSource: string,
+      overwriteExternalChanges?: boolean,
+      expectedDiskHash?: string,
+    ) => Promise<{ mtime: string }>;
+    updateBuffer: (fileId: string, rawSource: string) => Promise<void>;
+  };
   vault: {
     copyFile?: (fromPath: string, toPath: string) => Promise<void>;
     createDirectory?: (relativePath: string) => Promise<void>;

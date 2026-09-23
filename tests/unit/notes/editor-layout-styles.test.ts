@@ -13,7 +13,7 @@ describe("notes editor layout styles", () => {
     );
   });
 
-  it("keeps the minimal notes bottom controls from adding a second blocking status bar", () => {
+  it("keeps a 40px bottom bar without adding a second blocking status bar", () => {
     const css = readFileSync(redesignCssPath, "utf-8");
 
     expect(css).toMatch(
@@ -23,8 +23,14 @@ describe("notes editor layout styles", () => {
       /\.desktop-app-frame\s+\.notes-v2--minimal\s+\.notes-v2__editor-host--wysiwyg\s+\.ProseMirror/,
     );
     expect(css).toMatch(
-      /\.desktop-app-frame\s+\.notes-v2--minimal\s+\.notes-v2__editor-pane\s*\{[^}]*padding-bottom:\s*24px\s*!important/,
+      /\.desktop-app-frame\s+\.notes-v2--minimal\s+\.notes-v2__editor-pane\s*\{[^}]*padding-bottom:\s*48px\s*!important/,
     );
-    expect(css).toMatch(/padding-bottom:\s*24px\s*!important/);
+    expect(css).toMatch(/padding-bottom:\s*48px\s*!important/);
+    expect(css).toMatch(
+      /\.desktop-app-frame\s+\.notes-v2__corner-cluster\s*\{[^}]*bottom:\s*0\s*!important[^}]*height:\s*40px\s*!important/,
+    );
+    expect(css).toMatch(
+      /\.notes-v2__corner-icon\s*\{[^}]*width:\s*24px\s*!important[^}]*height:\s*24px\s*!important/,
+    );
   });
 });

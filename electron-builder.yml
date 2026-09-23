@@ -61,6 +61,11 @@ asarUnpack:
 mac:
   icon: assets/app-icon.icns
   category: public.app-category.education
+  fileAssociations:
+    - ext: [md, markdown, mdown, mkd, mkdn, mdx]
+      name: Markdown Document
+      role: Editor
+      rank: Default
   extraResources:
     - from: build/native/desktop-island/${arch}/AurisDesktopIslandHelper
       to: native/desktop-island/AurisDesktopIslandHelper

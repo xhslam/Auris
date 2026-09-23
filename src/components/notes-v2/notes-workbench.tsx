@@ -860,17 +860,6 @@ export function NotesWorkbench({
         <div className="notes-v2__minimal-workspace">
           <main className="notes-v2__minimal-canvas">
             <div className="notes-v2__editor-navigation">
-              {onReturnToFolder ? (
-                <button
-                  aria-label={`返回 ${returnFolderName ?? "文件夹"}`}
-                  className="notes-v2__return-to-folder"
-                  onClick={onReturnToFolder}
-                  type="button"
-                >
-                  <span aria-hidden="true">←</span>
-                  <span>返回 {returnFolderName ?? "文件夹"}</span>
-                </button>
-              ) : null}
               <NotesBreadcrumbBar
                 path={activeDocument?.path ?? null}
                 vaultName={directoryInfo?.directoryName}
@@ -1000,7 +989,9 @@ export function NotesWorkbench({
           }}
           onOpenPath={onOpenPath}
           onPickDirectory={onPickDirectory}
+          onReturnToFolder={onReturnToFolder}
           openPopover={openLeftPopover}
+          returnFolderName={returnFolderName}
           setOpenPopover={setOpenLeftPopover}
         />
 

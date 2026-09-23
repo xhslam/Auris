@@ -47,7 +47,17 @@ async function main() {
     for (const name of ["app-icon.icns", "app-icon-dock.png"]) {
       await fs.copyFile(path.join(work, name), path.join(assets, name));
     }
-    console.log("Built macOS bundle and development Dock icons.");
+    await fs.copyFile(source, path.join(assets, "app-icon.png"));
+    for (const [relativePath, size] of [
+      ["../src/app/icon.png", 512],
+      ["../src/app/apple-icon.png", 180],
+    ]) {
+      await sharp(source)
+        .resize(size, size)
+        .png()
+        .toFile(path.resolve(__dirname, relativePath));
+    }
+    console.log("Built macOS, Windows, web, and development Dock icons.");
   } finally {
     await fs.rm(work, { recursive: true, force: true });
   }

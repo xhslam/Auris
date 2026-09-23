@@ -2914,13 +2914,13 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 }
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane {
-  padding-bottom: 24px !important;
+  padding-bottom: 48px !important;
 }
 
 .desktop-app-frame
   .notes-v2--minimal
   .notes-v2__editor-pane[data-mode="reading"] {
-  padding-bottom: 24px !important;
+  padding-bottom: 48px !important;
 }
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-scroller,
@@ -2929,12 +2929,12 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   .notes-v2__editor-host--wysiwyg
   .ProseMirror,
 .desktop-app-frame .notes-v2--minimal .notes-v2__reading-pane {
-  padding-bottom: 24px !important;
+  padding-bottom: 48px !important;
 }
 
 .desktop-app-frame .notes-v2__corner-cluster {
-  bottom: 6px !important;
-  height: 20px !important;
+  bottom: 0 !important;
+  height: 40px !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -2945,13 +2945,21 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   align-items: center !important;
 }
 
+.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
+  width: 24px !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 !important;
+}
+
 .desktop-app-frame
   .notes-v2
   .notes-v2__corner-cluster
-  .notes-v2__active-note-pill,
-.desktop-app-frame .notes-v2 .notes-v2__corner-cluster .notes-v2__corner-icon {
-  height: 20px !important;
-  min-height: 20px !important;
+  .notes-v2__active-note-pill {
+  min-width: 0 !important;
+  height: 24px !important;
+  min-height: 24px !important;
   padding: 0 5px !important;
 }
 

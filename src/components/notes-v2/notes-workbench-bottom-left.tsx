@@ -28,7 +28,9 @@ type NotesWorkbenchBottomLeftProps = {
   onOpenBrowser?: () => void;
   onOpenPath: (path: string) => void;
   onPickDirectory?: () => void;
+  onReturnToFolder?: () => void;
   openPopover: "workspace" | null;
+  returnFolderName?: string | null;
   setOpenPopover: (popover: "workspace" | null) => void;
 };
 
@@ -56,19 +58,38 @@ export function NotesWorkbenchBottomLeft({
   onOpenBrowser,
   onOpenPath,
   onPickDirectory,
+  onReturnToFolder,
   openPopover,
+  returnFolderName = null,
   setOpenPopover,
 }: NotesWorkbenchBottomLeftProps) {
   const closePopover = useCallback(() => setOpenPopover(null), [setOpenPopover]);
+  const canReturnToFolder = Boolean(onReturnToFolder);
+  const backLabel = canGoBack
+    ? "返回上一个打开的文件"
+    : `返回 ${returnFolderName ?? "文件夹"}`;
+
+  const handleGoBack = () => {
+    if (canGoBack) {
+      onGoBack?.();
+      return;
+    }
+
+    onReturnToFolder?.();
+  };
 
   return (
     <div className="notes-v2__corner-cluster notes-v2__corner-cluster--left">
       <button
-        aria-label="返回上一个打开的文件"
+        aria-label={backLabel}
         className="notes-v2__corner-icon"
-        disabled={!canGoBack}
-        onClick={() => onGoBack?.()}
-        title="返回上一个打开的文件 (Alt + ←)"
+        disabled={!canGoBack && !canReturnToFolder}
+        onClick={handleGoBack}
+        title={
+          canGoBack
+            ? "返回上一个打开的文件 (Alt + ←)"
+            : `返回 ${returnFolderName ?? "文件夹"}`
+        }
         type="button"
       >
         <span aria-hidden="true">←</span>

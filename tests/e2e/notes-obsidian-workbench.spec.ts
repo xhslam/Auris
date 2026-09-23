@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("keeps both notes bottom toolbars close to the viewport edge", async ({ page }) => {
-  await page.goto("/notes", { waitUntil: "domcontentloaded" });
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".notes-v2--minimal")).toBeVisible();
 
   const offsets = await page.evaluate(() => {
@@ -34,26 +34,45 @@ test("keeps both notes bottom toolbars close to the viewport edge", async ({ pag
 
       return {
         bottom: Number.parseFloat(window.getComputedStyle(element).bottom),
+        height: rect.height,
         viewportGap: window.innerHeight - rect.bottom,
       };
     });
 
+    const iconButtons = Array.from(
+      document.querySelectorAll(".notes-v2__corner-cluster .notes-v2__corner-icon"),
+    ).map((element) => {
+      if (!(element instanceof HTMLElement)) {
+        throw new Error("Missing bottom icon button");
+      }
+
+      const rect = element.getBoundingClientRect();
+      return { height: rect.height, width: rect.width };
+    });
+
     return {
       afterContent: window.getComputedStyle(shell, "::after").content,
+      iconButtons,
       left: clusters[0],
       right: clusters[1],
     };
   });
 
   expect(offsets.afterContent).toBe("none");
-  expect(offsets.left.bottom).toBe(6);
-  expect(offsets.right.bottom).toBe(6);
-  expect(offsets.left.viewportGap).toBeGreaterThanOrEqual(6);
-  expect(offsets.right.viewportGap).toBeGreaterThanOrEqual(6);
+  expect(offsets.left.bottom).toBe(0);
+  expect(offsets.right.bottom).toBe(0);
+  expect(offsets.left.height).toBe(40);
+  expect(offsets.right.height).toBe(40);
+  expect(offsets.left.viewportGap).toBe(0);
+  expect(offsets.right.viewportGap).toBe(0);
+  expect(offsets.iconButtons).not.toHaveLength(0);
+  expect(
+    offsets.iconButtons.every(({ height, width }) => height === 24 && width === 24),
+  ).toBe(true);
 });
 
 test("keeps the terminal split clear of the left desktop rail", async ({ page }) => {
-  await page.goto("/notes", { waitUntil: "domcontentloaded" });
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".notes-v2--minimal")).toBeVisible();
 
   await page.getByRole("button", { name: "打开终端面板" }).click();
@@ -114,7 +133,7 @@ test("keeps the terminal split clear of the left desktop rail", async ({ page })
 });
 
 test("renders the workspace file tree with Obsidian-style chrome", async ({ page }) => {
-  await page.goto("/notes", { waitUntil: "domcontentloaded" });
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".notes-v2--minimal")).toBeVisible();
 
   await page.getByRole("button", { name: /Open workspace switcher/ }).click();
@@ -163,7 +182,7 @@ test("keeps the workspace file tree synced with dark notes theme", async ({ page
   await page.addInitScript(() => {
     window.localStorage.setItem("auris.notes.reading-theme", "night");
   });
-  await page.goto("/notes", { waitUntil: "domcontentloaded" });
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint", { waitUntil: "domcontentloaded" });
   await expect(page.locator('.notes-v2--minimal[data-notes-theme="night"]')).toBeVisible();
 
   await page.getByRole("button", { name: /Open workspace switcher/ }).click();
@@ -215,7 +234,7 @@ test("keeps the workspace file tree synced with dark notes theme", async ({ page
 
 test("creates a new note with a blank title placeholder", async ({ page }) => {
   const placeholder = "输入你想说的";
-  await page.goto("/notes");
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint");
   await expect(
     page.locator('[data-testid="notes-prosemirror-host"], [data-testid="notes-codemirror-host"]').first(),
   ).toBeVisible();
@@ -273,7 +292,7 @@ test("creates a new note with a blank title placeholder", async ({ page }) => {
 });
 
 test("collapses and re-expands the right sidebar", async ({ page }) => {
-  await page.goto("/notes");
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint");
 
   await expect(page.getByRole("button", { name: "收起右侧栏" })).toBeVisible();
   await expect(page.getByRole("region", { name: "属性" })).toBeVisible();
@@ -294,7 +313,7 @@ test("collapses and re-expands the right sidebar", async ({ page }) => {
 });
 
 test("deletes the active note from the workbench", async ({ page }) => {
-  await page.goto("/notes");
+  await page.goto("/notes?resumeNoteId=pronunciation-sprint");
   const deletedPath = await page
     .locator(".notes-v2__document-path")
     .textContent();

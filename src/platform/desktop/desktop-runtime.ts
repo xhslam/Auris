@@ -168,6 +168,13 @@ export function isDesktopBridge(value: unknown): value is DesktopBridge {
       isFunction(bridge.vault.removeFile) &&
       isFunction(bridge.vault.revealPluginsDirectory) &&
       isFunction(bridge.vault.saveFile) &&
+      (!bridge.externalMarkdown ||
+        (isFunction(bridge.externalMarkdown.close) &&
+          isFunction(bridge.externalMarkdown.onOpen) &&
+          isFunction(bridge.externalMarkdown.pick) &&
+          isFunction(bridge.externalMarkdown.reveal) &&
+          isFunction(bridge.externalMarkdown.save) &&
+          isFunction(bridge.externalMarkdown.updateBuffer))) &&
       (!bridge.videoLibrary ||
         (isFunction(bridge.videoLibrary.getSnapshot) &&
           isFunction(bridge.videoLibrary.getVideoDetails) &&

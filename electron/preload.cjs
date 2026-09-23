@@ -4,6 +4,7 @@ const NOTES_MCP_REQUEST_CHANNEL = "shadowing:notes-mcp:request";
 const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
 const UPDATES_STATE_CHANNEL = "shadowing:updates:state";
+const EXTERNAL_MARKDOWN_OPEN_CHANNEL = "shadowing:external-markdown:open";
 const {
   NIA_COMMAND_CHANNEL,
   NIA_EVENT_CHANNEL,
@@ -525,6 +526,49 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     quitAndInstall: () => invoke("shadowing:updates:quit-and-install"),
     reset: () => invoke("shadowing:updates:reset"),
     recover: () => invoke("shadowing:updates:recover"),
+  },
+  externalMarkdown: {
+    onOpen: (listener) => {
+      if (typeof listener !== "function") return () => undefined;
+      let disposed = false;
+      const handler = (_event, file) => {
+        if (!disposed) listener(file);
+      };
+      ipcRenderer.on(EXTERNAL_MARKDOWN_OPEN_CHANNEL, handler);
+      const subscription = invoke("shadowing:external-markdown:subscribe")
+        .then((result) => {
+          if (!disposed && Array.isArray(result?.files)) {
+            result.files.forEach(listener);
+          }
+          return result?.subscriptionId ?? null;
+        })
+        .catch(() => null);
+
+      return () => {
+        disposed = true;
+        ipcRenderer.removeListener(EXTERNAL_MARKDOWN_OPEN_CHANNEL, handler);
+        void subscription.then((subscriptionId) => {
+          if (subscriptionId) {
+            return invoke("shadowing:external-markdown:unsubscribe", subscriptionId)
+              .catch(() => undefined);
+          }
+          return undefined;
+        });
+      };
+    },
+    close: (fileId) => invoke("shadowing:external-markdown:close", fileId),
+    pick: () => invoke("shadowing:external-markdown:pick"),
+    reveal: (fileId) => invoke("shadowing:external-markdown:reveal", fileId),
+    save: (fileId, rawSource, overwriteExternalChanges = false, expectedDiskHash) =>
+      invoke(
+        "shadowing:external-markdown:save",
+        fileId,
+        rawSource,
+        overwriteExternalChanges,
+        expectedDiskHash,
+      ),
+    updateBuffer: (fileId, rawSource) =>
+      invoke("shadowing:external-markdown:update-buffer", fileId, rawSource),
   },
   vault: {
     copyFile: (fromPath, toPath) =>

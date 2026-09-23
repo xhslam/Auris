@@ -51,7 +51,6 @@ import type {
   NotesEditorMode,
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
-import { lintMarkdown } from "@/features/notes/editor/markdown-lint";
 import {
   DEFAULT_NOTES_VIEW_PREFERENCES,
   type NotesViewPreferences,
@@ -164,7 +163,6 @@ export function NotesEditorPane({
   const [findQuery, setFindQuery] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const [isFindOpen, setIsFindOpen] = useState(false);
-  const [isLintOpen, setIsLintOpen] = useState(false);
   const [sourceTitleDraft, setSourceTitleDraft] = useState("");
   const [splitPreview, setSplitPreview] = useState({
     path: document?.path ?? null,
@@ -199,12 +197,6 @@ export function NotesEditorPane({
       document ? parseDocumentEditableSource(document) : null,
     [document],
   );
-  const lintIssues = useMemo(
-    () =>
-      format.id === "markdown" ? lintMarkdown(document?.rawSource ?? "") : [],
-    [document?.rawSource, format.id],
-  );
-
   useEffect(() => {
     editableDocumentRef.current = editableDocument;
     const nextTitle = editableDocument?.title ?? "";
@@ -218,10 +210,6 @@ export function NotesEditorPane({
       source: document?.rawSource ?? "",
     });
   }, [document?.path, document?.rawSource]);
-  useEffect(() => {
-    setIsLintOpen(false);
-  }, [document?.path]);
-
   useEffect(() => {
     onActiveLineChangeRef.current = onActiveLineChange;
   }, [onActiveLineChange]);
@@ -777,52 +765,7 @@ export function NotesEditorPane({
             />
           ) : null}
         </div>
-        {format.id === "markdown" ? (
-          <button
-            aria-expanded={isLintOpen}
-            aria-label={`Markdown lint: ${lintIssues.length} issues`}
-            className="notes-v2__lint-summary"
-            data-has-errors={lintIssues.some(
-              (issue) => issue.severity === "error",
-            )}
-            onClick={() => setIsLintOpen((current) => !current)}
-            title={lintIssues
-              .map((issue) => `L${issue.line}: ${issue.message}`)
-              .join("\n")}
-            type="button"
-          >
-            Lint {lintIssues.length}
-          </button>
-        ) : null}
       </div>
-      {isLintOpen && format.id === "markdown" ? (
-        <section
-          aria-label="Markdown lint diagnostics"
-          className="notes-v2__lint-diagnostics"
-          role="region"
-        >
-          {lintIssues.length > 0 ? (
-            <ul>
-              {lintIssues.map((issue, index) => (
-                <li key={`${issue.line}-${issue.message}-${index}`}>
-                  <button
-                    data-severity={issue.severity}
-                    onClick={() => {
-                      bridgeRef.current?.revealLine(Math.max(issue.line - 1, 0));
-                      setIsLintOpen(false);
-                    }}
-                    type="button"
-                  >
-                    {`L${issue.line}: ${issue.message}`}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="notes-v2__empty-copy">Markdown lint 已通过。</p>
-          )}
-        </section>
-      ) : null}
       {editorMode !== "wysiwyg" && (isFindOpen || findQuery || replaceText) ? (
         <div
           className="notes-v2__find-replace"

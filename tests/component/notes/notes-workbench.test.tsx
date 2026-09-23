@@ -915,6 +915,34 @@ describe("NotesWorkbench", () => {
     expect(onGoForward).toHaveBeenCalledTimes(1);
   });
 
+  it("returns to the folder from the back button when file history starts here", async () => {
+    const user = userEvent.setup();
+    const onReturnToFolder = vi.fn();
+
+    render(
+      <NotesWorkbench
+        activePath="notes/daily.md"
+        documents={[createDocument()]}
+        entries={ENTRIES}
+        onDocumentChange={vi.fn()}
+        onOpenPath={vi.fn()}
+        onReturnToFolder={onReturnToFolder}
+        openTabs={["notes/daily.md"]}
+        returnFolderName="考研"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "返回 考研" }));
+
+    expect(onReturnToFolder).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: "返回上一个打开的文件" }),
+    ).not.toBeInTheDocument();
+    expect(
+      document.querySelector(".notes-v2__return-to-folder"),
+    ).toBeNull();
+  });
+
   it("moves search, tags, and recent files into the library navigator button", async () => {
     const user = userEvent.setup();
     const onOpenPath = vi.fn();
