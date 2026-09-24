@@ -347,3 +347,12 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
    - 编写完成 `docs/vmark-sync/feature-gap-report-2026-09-21.md` 详细复盘报告；
    - 运行 VMark 契约测试（51 项全部通过）、MCP 安装器与配置测试（22 项全部通过）；
    - 运行全仓 `npm run lint`（0 errors）与 `git diff --check`（通过）。
+
+
+## Engineering trajectory: VMark v0.9.84 Notes 超链接维护与演进（2026-09-24）
+
+本轮按 VMark `v0.9.84` 的 macOS/Windows 超链接修复选择性对齐 Auris Electron Notes。复核 PR #1449 / Issue #1448 确认根因包括 POSIX 绝对路径被错误相对化、Windows 盘符路径被误判及原生点击绕过应用路由；同时纳入上游在验证中发现的链接图片保存丢标记问题。Auris 的参考镜像 `vmark-upstream` 原先落后 `origin/main` 23 个提交，工作树干净；本轮快进至 commit `12c98051efec2adc12c3a8fdb7afe30be036e82a`。Auris 主仓库开始时与 `origin/main` 同步且干净。
+
+实现新增 Markdown 超链接安全解析与来源路径感知：源码模式 Cmd/Ctrl+点击从 AST 取得目标，WYSIWYG 普通点击拦截原生导航、Cmd/Ctrl+点击打开目标；Mod+K 编辑已有 link mark 的 href 并校验异步对话框返回时的文档/范围未过期。相对与 POSIX/Windows 绝对路径被正确解析，UNC、网络路径、盘符相对路径及非安全协议被拒绝；Vault 内 Markdown 复用笔记工作区，Vault 外 Markdown 通过可信 IPC 与受限本地绝对路径入口打开。支持安全片段解码及目标标题定位。增加路径、失败边界、实际 WYSIWYG 点击与编辑、链接图片 mark 范围/保存往返和 IPC 合约测试。
+
+验证纪律：新增测试尚未运行；本轮也未运行 lint、TypeScript、构建或 macOS/Windows 桌面手动验证，因此这些结果仍未知。未递增版本、提交、推送或重打包。软件工程归类为纠错性维护、功能增强、回归测试和跨平台验证。细节见 `docs/vmark-sync/implementation-status-2026-09-24.md`。

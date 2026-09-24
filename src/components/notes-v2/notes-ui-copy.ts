@@ -163,6 +163,14 @@ export const ZH_CN_NOTES_UI_COPY = {
     loading: "正在加载笔记库...",
   },
   emptyEditor: "选择或新建一篇笔记。",
+  links: {
+    editTarget: "编辑超链接地址",
+    headingNotFound: "此笔记中没有找到链接指向的标题。",
+    openFailed: "无法打开此链接。",
+    openMarkdownOnly: "Notes 目前只能在应用内打开 Markdown 文件链接。",
+    placeholder: "输入网址或相对文件路径",
+    unsupported: "此链接类型不受支持。",
+  },
   commandPalette: {
     dialogLabel: "笔记命令面板",
     placeholder: "执行命令或打开笔记",

@@ -715,6 +715,7 @@ export type DesktopBridge = {
       diskHash: string,
     ) => Promise<boolean>;
     close: (fileId: string) => Promise<boolean>;
+    openLinkedFile?: (absolutePath: string) => Promise<DesktopExternalMarkdownFile | null>;
     onOpen: (listener: (file: DesktopExternalMarkdownFile) => void) => () => void;
     pick: () => Promise<DesktopExternalMarkdownFile | null>;
     reveal: (fileId: string) => Promise<void>;

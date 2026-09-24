@@ -12,6 +12,19 @@ const SUPPORTED_MARKDOWN_EXTENSIONS = new Set([
 ]);
 const MAX_EXTERNAL_MARKDOWN_BYTES = 20 * 1024 * 1024;
 
+function isSafeAbsoluteLinkedMarkdownPath(rawPath, platform = process.platform) {
+  if (typeof rawPath !== "string" || rawPath.length === 0 || rawPath !== rawPath.trim()) {
+    return false;
+  }
+
+  if (platform === "win32") {
+    const normalized = rawPath.replace(/\//g, "\\");
+    return /^[a-z]:\\/i.test(normalized) && !normalized.startsWith("\\\\");
+  }
+
+  return rawPath.startsWith("/") && !rawPath.startsWith("//");
+}
+
 function hash(source) {
   return crypto.createHash("sha256").update(source, "utf8").digest("hex");
 }
@@ -140,6 +153,13 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
     } finally {
       openingByPath.delete(resolvedPath);
     }
+  }
+
+  async function openLinkedFile(rawPath) {
+    if (!isSafeAbsoluteLinkedMarkdownPath(rawPath)) {
+      throw new Error("EXTERNAL_MARKDOWN_LINK_PATH_INVALID");
+    }
+    return open(rawPath);
   }
 
   async function readAndOpen(resolvedPath) {
@@ -300,6 +320,7 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
     close,
     getPath,
     open,
+    openLinkedFile,
     save,
     subscribe,
     unsubscribe,
@@ -314,5 +335,6 @@ module.exports = {
   createExternalMarkdownFiles,
   decodeAndValidateMarkdown,
   hash,
+  isSafeAbsoluteLinkedMarkdownPath,
   readBoundedMarkdownText,
 };

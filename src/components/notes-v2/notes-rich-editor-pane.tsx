@@ -68,8 +68,11 @@ import {
 } from "@/features/notes/editor/notes-source-peek-inline";
 import type {
   NotesEditorBridge,
+  NotesLinkEditHandler,
+  NotesMarkdownLinkOpenHandler,
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
+import { findNotesRichLinkMarkRange } from "@/features/notes/editor/notes-rich-link-range";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { NotesRichTableToolbar } from "@/components/notes-v2/notes-rich-table-toolbar";
 import {
@@ -97,6 +100,8 @@ type NotesRichEditorPaneProps = {
   onBridgeReady?: (bridge: NotesEditorBridge | null) => void;
   onDocumentChange: (nextSource: string) => void;
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
+  onOpenMarkdownLink?: NotesMarkdownLinkOpenHandler;
+  onEditLink?: NotesLinkEditHandler;
   onOpenWikiLink?: (target: string) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
   onUnparseableDocument?: (error: unknown) => void;
@@ -409,6 +414,8 @@ export function NotesRichEditorPane({
   onBridgeReady,
   onDocumentChange,
   onEnsureWikiLinkNote,
+  onOpenMarkdownLink,
+  onEditLink,
   onOpenWikiLink,
   onSelectionStateChange,
   readOnly = false,
@@ -439,6 +446,9 @@ export function NotesRichEditorPane({
   const onDocumentChangeRef = useRef(onDocumentChange);
   const onEnsureWikiLinkNoteRef = useRef(onEnsureWikiLinkNote);
   const onOpenWikiLinkRef = useRef(onOpenWikiLink);
+  const onOpenMarkdownLinkRef = useRef(onOpenMarkdownLink);
+  const onEditLinkRef = useRef(onEditLink);
+  const documentPathRef = useRef(document?.path ?? null);
   const onSelectionStateChangeRef = useRef(onSelectionStateChange);
   const onUnparseableDocumentRef = useRef(onUnparseableDocument);
   const isDocumentRefusedRef = useRef(false);
@@ -541,6 +551,16 @@ export function NotesRichEditorPane({
   useEffect(() => {
     onOpenWikiLinkRef.current = onOpenWikiLink;
   }, [onOpenWikiLink]);
+
+  useEffect(() => {
+    onOpenMarkdownLinkRef.current = onOpenMarkdownLink;
+  }, [onOpenMarkdownLink]);
+
+  useEffect(() => {
+    onEditLinkRef.current = onEditLink;
+  }, [onEditLink]);
+
+  documentPathRef.current = document?.path ?? null;
 
   useEffect(() => {
     onSelectionStateChangeRef.current = onSelectionStateChange;
@@ -945,6 +965,70 @@ export function NotesRichEditorPane({
       handleKeyDown(keyView, event) {
         const isMod = event.metaKey || event.ctrlKey;
 
+        if (isMod && event.key.toLowerCase() === "k") {
+          const linkRange = findNotesRichLinkMarkRange(
+            keyView.state.doc,
+            keyView.state.selection.from,
+          );
+          const editLink = onEditLinkRef.current;
+
+          if (linkRange && editLink && !viewModeRef.current.readOnly) {
+            event.preventDefault();
+            const initialDoc = keyView.state.doc;
+            const initialPath = documentPathRef.current;
+            const initialHref = String(linkRange.mark.attrs.href ?? "");
+
+            void editLink(initialHref)
+              .then((nextHref) => {
+                if (
+                  nextHref === null ||
+                  documentPathRef.current !== initialPath ||
+                  !keyView.dom.isConnected ||
+                  !keyView.state.doc.eq(initialDoc)
+                ) {
+                  return;
+                }
+
+                const currentRange = findNotesRichLinkMarkRange(
+                  keyView.state.doc,
+                  keyView.state.selection.from,
+                );
+                if (
+                  !currentRange ||
+                  currentRange.from !== linkRange.from ||
+                  currentRange.to !== linkRange.to ||
+                  String(currentRange.mark.attrs.href ?? "") !== initialHref
+                ) {
+                  return;
+                }
+
+                const trimmedHref = nextHref.trim();
+                let transaction = keyView.state.tr.removeMark(
+                  currentRange.from,
+                  currentRange.to,
+                  currentRange.mark.type,
+                );
+                if (trimmedHref) {
+                  transaction = transaction.addMark(
+                    currentRange.from,
+                    currentRange.to,
+                    currentRange.mark.type.create({
+                      ...currentRange.mark.attrs,
+                      href: trimmedHref,
+                    }),
+                  );
+                }
+                keyView.dispatch(transaction);
+                keyView.focus();
+              })
+              .catch((error) => {
+                console.warn("[NotesRichEditorPane] Link edit failed:", error);
+              });
+
+            return true;
+          }
+        }
+
         if (isMod && event.key.toLowerCase() === "f") {
           event.preventDefault();
           setIsFindOpen(true);
@@ -1036,6 +1120,33 @@ export function NotesRichEditorPane({
         event.preventDefault();
         handler(target);
         return true;
+      },
+      handleDOMEvents: {
+        click(_clickView, event) {
+          const mouseEvent = event as MouseEvent;
+          if (mouseEvent.button !== 0) return false;
+          const eventTarget = event.target;
+          const target =
+            eventTarget instanceof Element
+              ? eventTarget
+              : eventTarget instanceof Node
+                ? eventTarget.parentElement
+                : null;
+          const anchor = target?.closest("a[href]");
+          if (!anchor || anchor.hasAttribute("data-wikilink-target")) return false;
+
+          const href = anchor.getAttribute("href");
+          if (!href) return false;
+
+          // Prevent native webview navigation on macOS and Windows. An
+          // ordinary editable click leaves the caret in the link text; a
+          // modified click opens it through the Notes link router.
+          event.preventDefault();
+          if (viewModeRef.current.readOnly || mouseEvent.metaKey || mouseEvent.ctrlKey) {
+            void onOpenMarkdownLinkRef.current?.(href, documentPathRef.current);
+          }
+          return true;
+        },
       },
       dispatchTransaction(transaction) {
         if (isDocumentRefusedRef.current) {
@@ -1164,6 +1275,7 @@ export function NotesRichEditorPane({
     const currentSource = serializeNotesRichMarkdown(view.state.doc);
     const hasNewExternalSource =
       lastAppliedSourceRef.current !== wysiwygDocumentSource;
+    const documentPathChanged = lastDocumentPathRef.current !== document.path;
 
     if (
       lastDocumentPathRef.current === document.path &&
@@ -1208,6 +1320,7 @@ export function NotesRichEditorPane({
     view.dispatch(transaction.scrollIntoView());
     lastAppliedSourceRef.current = wysiwygDocumentSource;
     lastDocumentPathRef.current = document.path;
+    if (documentPathChanged) onBridgeReadyRef.current?.(bridgeRef.current);
   }, [document, editableDocument, wysiwygDocumentSource]);
 
   useEffect(() => {

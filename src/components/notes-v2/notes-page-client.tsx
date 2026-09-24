@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { createNoteDocument } from "@/features/notes/documents/document-repository";
+import {
+  getVaultRelativeMarkdownPath,
+  isMarkdownLinkPath,
+  resolveMarkdownLinkTarget,
+} from "@/features/notes/documents/markdown-link-navigation";
 import { setNoteTags } from "@/features/notes/documents/note-tags";
 import { formatMarkdownChecked } from "@/features/notes/formatting/cjk-formatter";
 import { loadCjkFormattingSettings } from "@/features/notes/formatting/cjk-formatting-store";
@@ -27,6 +32,7 @@ import {
   writeSessionValue,
 } from "@/components/notes-v2/notes-navigation";
 import { NotesWorkbench } from "@/components/notes-v2/notes-workbench";
+import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesWorkbench } from "@/components/notes-v2/use-notes-workbench";
 import { useNotesDialog } from "@/components/notes-v2/use-notes-dialog";
 import { NotesWelcomeScreen } from "@/components/notes-v2/notes-welcome-screen";
@@ -88,6 +94,12 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
   const externalFilesRef = useRef<ExternalMarkdownSessionFile[]>([]);
   const externalSaveInFlightRef = useRef(new Set<string>());
   const [activeExternalFileId, setActiveExternalFileId] = useState<string | null>(null);
+  const [pendingMarkdownFragment, setPendingMarkdownFragment] = useState<{
+    fragment: string;
+    path: string;
+    requestId: number;
+  } | null>(null);
+  const markdownFragmentRequestIdRef = useRef(0);
   const [location, setLocation] = useState<NotesLocation>(() =>
     getInitialNotesLocation({ hasResumeNote: Boolean(resumeNoteId) }),
   );
@@ -496,6 +508,99 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
     [openInternalPath, workbenchDirectoryInfo],
   );
 
+  const handleOpenMarkdownLink = useCallback(
+    async (href: string, sourcePath: string | null) => {
+      const target = resolveMarkdownLinkTarget(href, sourcePath);
+      const queueFragment = (path: string, fragment: string) => {
+        if (!fragment) return;
+        markdownFragmentRequestIdRef.current += 1;
+        setPendingMarkdownFragment({
+          fragment,
+          path,
+          requestId: markdownFragmentRequestIdRef.current,
+        });
+      };
+
+      if (target.kind === "blocked") {
+        if (target.reason !== "empty") toast.error(NOTES_UI_COPY.links.unsupported);
+        return;
+      }
+      if (target.kind === "fragment") {
+        const currentPath = activeExternalFile?.path ?? workbench.activePath;
+        if (currentPath) queueFragment(currentPath, target.fragment);
+        return;
+      }
+
+      if (target.kind === "external") {
+        try {
+          const opened = await desktopBridge?.system.openExternal?.(target.href);
+          if (!opened) toast.error(NOTES_UI_COPY.links.openFailed);
+        } catch {
+          toast.error(NOTES_UI_COPY.links.openFailed);
+        }
+        return;
+      }
+
+      const vaultRoot = directoryInfoRef.current.vaultPath ?? workbenchDirectoryInfo.vaultPath ?? null;
+      if (!isMarkdownLinkPath(target.path)) {
+        toast.error(NOTES_UI_COPY.links.openMarkdownOnly);
+        return;
+      }
+      const pathIsAbsolute = target.path.startsWith("/") || /^[a-z]:\//i.test(target.path);
+      const vaultRelativePath = pathIsAbsolute
+        ? getVaultRelativeMarkdownPath(target.path, vaultRoot)
+        : target.path;
+
+      if (vaultRelativePath !== null) {
+        queueFragment(vaultRelativePath, target.fragment);
+        openNote(vaultRelativePath, folderFromDirectoryInfo(directoryInfoRef.current));
+        return;
+      }
+
+      try {
+        const opened = await externalMarkdownBridge?.openLinkedFile?.(target.path);
+        if (!opened) {
+          toast.error(NOTES_UI_COPY.links.openFailed);
+          return;
+        }
+        handleExternalFileOpen(opened);
+        queueFragment(opened.path, target.fragment);
+      } catch {
+        toast.error(NOTES_UI_COPY.links.openFailed);
+      }
+    },
+    [
+      activeExternalFile?.path,
+      desktopBridge,
+      externalMarkdownBridge,
+      handleExternalFileOpen,
+      openNote,
+      workbench.activePath,
+      workbenchDirectoryInfo.vaultPath,
+    ],
+  );
+
+  const handleMarkdownFragmentHandled = useCallback(
+    (requestId: number, found: boolean) => {
+      if (markdownFragmentRequestIdRef.current !== requestId) return;
+      setPendingMarkdownFragment((pending) =>
+        pending?.requestId === requestId ? null : pending,
+      );
+      if (!found) toast.error(NOTES_UI_COPY.links.headingNotFound);
+    },
+    [],
+  );
+
+  const handleEditMarkdownLink = useCallback(
+    (href: string) =>
+      promptFn(
+        NOTES_UI_COPY.links.editTarget,
+        href,
+        NOTES_UI_COPY.links.placeholder,
+      ),
+    [promptFn],
+  );
+
   const handleCloseWorkbenchPath = useCallback(
     async (path: string) => {
       const external = externalFilesRef.current.find((file) => file.path === path);
@@ -782,6 +887,10 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
             onEnsureWikiLinkNote={handleExternalEnsureWikiLinkNote}
             onEnsureGraphDocuments={workbench.ensureGraphDocuments}
             onOpenPath={handleOpenWorkbenchPath}
+            onOpenMarkdownLink={handleOpenMarkdownLink}
+            onEditLink={handleEditMarkdownLink}
+            pendingMarkdownFragment={pendingMarkdownFragment}
+            onMarkdownFragmentHandled={handleMarkdownFragmentHandled}
             onOpenWikiLink={handleExternalWikiLink}
             onExportActiveDocumentHtml={handleExternalHtmlExport}
             onExportActiveDocumentPdf={handleExternalPdfExport}

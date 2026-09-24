@@ -528,6 +528,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     recover: () => invoke("shadowing:updates:recover"),
   },
   externalMarkdown: {
+    openLinkedFile: (absolutePath) =>
+      invoke("shadowing:external-markdown:open-linked", absolutePath),
     onOpen: (listener) => {
       if (typeof listener !== "function") return () => undefined;
       let disposed = false;

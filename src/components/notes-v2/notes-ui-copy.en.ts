@@ -159,6 +159,14 @@ export const EN_US_NOTES_UI_COPY = {
     loading: "Loading vault…",
   },
   emptyEditor: "Select or create a note.",
+  links: {
+    editTarget: "Edit hyperlink target",
+    headingNotFound: "The linked heading was not found in this note.",
+    openFailed: "Could not open this link.",
+    openMarkdownOnly: "Notes can only open Markdown file links in the app.",
+    placeholder: "Enter a URL or relative file path",
+    unsupported: "This link type is not supported.",
+  },
   commandPalette: {
     dialogLabel: "Notes command palette",
     placeholder: "Run a command or open a note",

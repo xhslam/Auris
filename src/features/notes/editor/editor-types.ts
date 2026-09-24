@@ -15,6 +15,12 @@ export type NotesEditorSelectionState = {
   to: number;
 };
 
+export type NotesMarkdownLinkOpenHandler = (
+  href: string,
+  sourcePath: string | null,
+) => void | Promise<void>;
+export type NotesLinkEditHandler = (href: string) => Promise<string | null>;
+
 export type NotesEditorSurfaceView = EditorView | ProseMirrorEditorView;
 
 export type NotesEditorEnvironment = {
@@ -23,6 +29,7 @@ export type NotesEditorEnvironment = {
   getDocuments?: () => NoteDocument[];
   documentPath?: string;
   lineSeparator?: "\n" | "\r\n";
+  onOpenMarkdownLink?: NotesMarkdownLinkOpenHandler;
   onOpenWikiLink?: (target: string) => void;
   onSelectionChange?: (line: number) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState) => void;

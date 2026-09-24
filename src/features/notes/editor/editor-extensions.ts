@@ -17,6 +17,7 @@ import {
   rectangularSelection,
 } from "@codemirror/view";
 import { findWikiLinkAtLineOffset } from "@/features/notes/documents/wiki-link-navigation";
+import { findMarkdownSourceLinkAt } from "@/features/notes/documents/markdown-link-navigation";
 import { notesEditorSyncAnnotation } from "@/features/notes/editor/editor-annotations";
 import { notesEditorSearchExtensions } from "@/features/notes/editor/editor-find-replace";
 import { notesEditorKeymap } from "@/features/notes/editor/editor-keymap";
@@ -196,12 +197,6 @@ export function createNotesEditorExtensions(
           return false;
         }
 
-        const handler = environment?.onOpenWikiLink;
-
-        if (!handler) {
-          return false;
-        }
-
         const position = view.posAtCoords({
           x: event.clientX,
           y: event.clientY,
@@ -212,14 +207,24 @@ export function createNotesEditorExtensions(
         }
 
         const line = view.state.doc.lineAt(position);
-        const target = findWikiLinkAtLineOffset(line.text, position - line.from);
+        const offset = position - line.from;
+        const wikiHandler = environment?.onOpenWikiLink;
+        const wikiTarget = findWikiLinkAtLineOffset(line.text, offset);
 
-        if (!target) {
-          return false;
+        if (wikiTarget && wikiHandler) {
+          event.preventDefault();
+          wikiHandler(wikiTarget);
+          return true;
         }
 
+        const markdownLink = findMarkdownSourceLinkAt(line.text, offset);
+        if (!markdownLink || !environment?.onOpenMarkdownLink) return false;
+
         event.preventDefault();
-        handler(target);
+        void environment.onOpenMarkdownLink(
+          markdownLink.href,
+          environment.documentPath ?? null,
+        );
         return true;
       },
       drop(event, view) {

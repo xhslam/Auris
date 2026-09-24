@@ -9,6 +9,8 @@ import type {
   NotesEditorBridge,
   NotesEditorMode,
   NotesEditorSelectionState,
+  NotesLinkEditHandler,
+  NotesMarkdownLinkOpenHandler,
 } from "@/features/notes/editor/editor-types";
 import type { NotesViewPreferences } from "@/features/notes/editor/notes-view-preferences";
 
@@ -31,6 +33,8 @@ type NotesWorkbenchCenterProps = {
     selection: NotesEditorSelectionState | null,
   ) => void;
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
+  onOpenMarkdownLink?: NotesMarkdownLinkOpenHandler;
+  onEditLink?: NotesLinkEditHandler;
   onOpenPath: (path: string) => void;
   onOpenWikiLink?: (target: string) => void;
   openDocuments: NoteDocument[];
@@ -53,6 +57,8 @@ export function NotesWorkbenchCenter({
   onEditorModeChange,
   onEditorSelectionStateChange,
   onEnsureWikiLinkNote,
+  onOpenMarkdownLink,
+  onEditLink,
   onOpenPath,
   onOpenWikiLink,
   openDocuments,
@@ -102,6 +108,8 @@ export function NotesWorkbenchCenter({
           onBridgeReady={onEditorBridgeReady}
           onEditorModeChange={onEditorModeChange}
           onEnsureWikiLinkNote={onEnsureWikiLinkNote}
+          onOpenMarkdownLink={onOpenMarkdownLink}
+          onEditLink={onEditLink}
           onOpenWikiLink={onOpenWikiLink}
           onDocumentChange={(nextSource) => {
             if (!activeDocument) {

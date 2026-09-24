@@ -50,6 +50,8 @@ import type {
   NotesEditorBridge,
   NotesEditorMode,
   NotesEditorSelectionState,
+  NotesLinkEditHandler,
+  NotesMarkdownLinkOpenHandler,
 } from "@/features/notes/editor/editor-types";
 import {
   DEFAULT_NOTES_VIEW_PREFERENCES,
@@ -71,6 +73,8 @@ type NotesEditorPaneProps = {
   onDocumentChange: (nextSource: string) => void;
   onEditorModeChange?: (mode: NotesEditorMode) => void;
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
+  onOpenMarkdownLink?: NotesMarkdownLinkOpenHandler;
+  onEditLink?: NotesLinkEditHandler;
   onOpenWikiLink?: (target: string) => void;
   onSelectionStateChange?: (selection: NotesEditorSelectionState | null) => void;
   viewPreferences?: NotesViewPreferences;
@@ -105,6 +109,8 @@ export function NotesEditorPane({
   onDocumentChange,
   onEditorModeChange,
   onEnsureWikiLinkNote,
+  onOpenMarkdownLink,
+  onEditLink,
   onOpenWikiLink,
   onSelectionStateChange,
   viewPreferences = DEFAULT_NOTES_VIEW_PREFERENCES,
@@ -157,6 +163,8 @@ export function NotesEditorPane({
   const onBridgeReadyRef = useRef(onBridgeReady);
   const onDocumentChangeRef = useRef(onDocumentChange);
   const onOpenWikiLinkRef = useRef(onOpenWikiLink);
+  const onOpenMarkdownLinkRef = useRef(onOpenMarkdownLink);
+  const documentPathRef = useRef(document?.path ?? null);
   const onSelectionStateChangeRef = useRef(onSelectionStateChange);
   const [contextMenuTarget, setContextMenuTarget] =
     useState<EditorContextMenuTarget | null>(null);
@@ -183,6 +191,7 @@ export function NotesEditorPane({
     getNotesMediaReloadKey,
     () => 0,
   );
+  documentPathRef.current = document?.path ?? null;
 
   useEffect(() => {
     viewPreferencesRef.current = viewPreferences;
@@ -229,6 +238,10 @@ export function NotesEditorPane({
   useEffect(() => {
     onOpenWikiLinkRef.current = onOpenWikiLink;
   }, [onOpenWikiLink]);
+
+  useEffect(() => {
+    onOpenMarkdownLinkRef.current = onOpenMarkdownLink;
+  }, [onOpenMarkdownLink]);
 
   useEffect(() => {
     onSelectionStateChangeRef.current = onSelectionStateChange;
@@ -327,6 +340,11 @@ export function NotesEditorPane({
           onOpenWikiLink:
             format.id === "markdown"
               ? (target) => onOpenWikiLinkRef.current?.(target)
+              : undefined,
+          onOpenMarkdownLink:
+            format.id === "markdown"
+              ? (href) =>
+                  onOpenMarkdownLinkRef.current?.(href, documentPathRef.current)
               : undefined,
           onSelectionChange: (line) => onActiveLineChangeRef.current?.(line),
           onSelectionStateChange: (selection) =>
@@ -670,6 +688,9 @@ export function NotesEditorPane({
     lastAppliedSourceRef.current = document.rawSource;
     lastDocumentPathRef.current = document.path;
     lastEmittedSourceRef.current = null;
+    if (!isSameDocument) {
+      onBridgeReadyRef.current?.(bridgeRef.current);
+    }
   }, [document, editorMode]);
 
   useEffect(() => {
@@ -871,6 +892,8 @@ export function NotesEditorPane({
           onBridgeReady={handleRichBridgeReady}
           onDocumentChange={onDocumentChange}
           onEnsureWikiLinkNote={onEnsureWikiLinkNote}
+          onOpenMarkdownLink={onOpenMarkdownLink}
+          onEditLink={onEditLink}
           onOpenWikiLink={onOpenWikiLink}
           onSelectionStateChange={onSelectionStateChange}
           onUnparseableDocument={handleUnparseableDocument}

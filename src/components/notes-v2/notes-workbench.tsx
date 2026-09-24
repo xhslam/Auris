@@ -23,6 +23,7 @@ import { useNotesCommandInfrastructure } from "@/components/notes-v2/use-notes-c
 import { NotesWorkbenchBottomLeft } from "@/components/notes-v2/notes-workbench-bottom-left";
 import { NotesWorkbenchBottomRight } from "@/components/notes-v2/notes-workbench-bottom-right";
 import { getNotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
+import { findMarkdownHeadingLine } from "@/features/notes/documents/markdown-link-navigation";
 import { applyLearningDependencyReviewToDocument } from "@/features/learning-memory/learning-dependency-note-update";
 import { readLearningDependencySnapshot } from "@/features/learning-memory/learning-dependency-sync";
 import { useAppTheme } from "@/features/appearance/use-app-theme";
@@ -56,6 +57,8 @@ import type {
   NotesEditorBridge,
   NotesEditorMode,
   NotesEditorSelectionState,
+  NotesLinkEditHandler,
+  NotesMarkdownLinkOpenHandler,
 } from "@/features/notes/editor/editor-types";
 import {
   DEFAULT_NOTES_VIEW_PREFERENCES,
@@ -136,6 +139,14 @@ export type NotesWorkbenchProps = {
   onEnsureWikiLinkNote?: (target: string, sourcePath?: string) => void;
   onEnsureGraphDocuments?: () => Promise<void>;
   onOpenCommandPaletteChange?: (open: boolean) => void;
+  onOpenMarkdownLink?: NotesMarkdownLinkOpenHandler;
+  onEditLink?: NotesLinkEditHandler;
+  pendingMarkdownFragment?: {
+    fragment: string;
+    path: string;
+    requestId: number;
+  } | null;
+  onMarkdownFragmentHandled?: (requestId: number, found: boolean) => void;
   onOpenPath: (path: string) => void;
   onOpenWikiLink?: (target: string) => void;
   onPickDirectory?: () => void;
@@ -230,6 +241,10 @@ export function NotesWorkbench({
   onEnsureWikiLinkNote,
   onEnsureGraphDocuments,
   onOpenCommandPaletteChange,
+  onOpenMarkdownLink,
+  onEditLink,
+  pendingMarkdownFragment = null,
+  onMarkdownFragmentHandled,
   onOpenPath,
   onOpenWikiLink,
   onPickDirectory,
@@ -270,6 +285,11 @@ export function NotesWorkbench({
   );
   const shellRef = useRef<HTMLElement | null>(null);
   const editorBridgeRef = useRef<NotesEditorBridge | null>(null);
+  const editorBridgeDocumentPathRef = useRef<string | null>(null);
+  const onEditorBridgeReadyRef = useRef(onEditorBridgeReady);
+  onEditorBridgeReadyRef.current = onEditorBridgeReady;
+  const [editorBridgeRevision, setEditorBridgeRevision] = useState(0);
+  const [editorBridgePath, setEditorBridgePath] = useState<string | null>(null);
   const terminalDragStateRef = useRef<{
     startWidth: number;
     startX: number;
@@ -416,6 +436,7 @@ export function NotesWorkbench({
     };
   }, []);
   const activeDocument = getActiveDocument(documents, activePath);
+  editorBridgeDocumentPathRef.current = activeDocument?.path ?? null;
   const openDocuments = openTabs
     .map((path) => documents.find((document) => document.path === path) ?? null)
     .filter((document): document is NoteDocument => document !== null);
@@ -430,6 +451,34 @@ export function NotesWorkbench({
   });
   const activeLearningDependencyNeedsReview =
     readLearningDependencySnapshot(activeDocument?.frontmatter)?.status === "needs-review";
+
+  useEffect(() => {
+    if (
+      !pendingMarkdownFragment ||
+      activeDocument?.path !== pendingMarkdownFragment.path ||
+      editorBridgePath !== activeDocument.path ||
+      !editorBridgeRef.current
+    ) {
+      return;
+    }
+
+    const headingLine = findMarkdownHeadingLine(
+      activeDocument.parsed.headings,
+      pendingMarkdownFragment.fragment,
+    );
+
+    if (headingLine !== null) editorBridgeRef.current.revealLine(headingLine);
+    onMarkdownFragmentHandled?.(
+      pendingMarkdownFragment.requestId,
+      headingLine !== null,
+    );
+  }, [
+    activeDocument,
+    editorBridgeRevision,
+    editorBridgePath,
+    onMarkdownFragmentHandled,
+    pendingMarkdownFragment,
+  ]);
 
   const handleResolveLearningDependencyReview = useCallback(() => {
     if (!activeDocument) {
@@ -751,10 +800,12 @@ export function NotesWorkbench({
   const handleBridgeReady = useCallback(
     (bridge: NotesEditorBridge | null) => {
       editorBridgeRef.current = bridge;
-      onEditorBridgeReady?.(bridge);
+      setEditorBridgePath(bridge ? editorBridgeDocumentPathRef.current : null);
+      setEditorBridgeRevision((revision) => revision + 1);
+      onEditorBridgeReadyRef.current?.(bridge);
       setSelectionState(bridge?.getSelection() ?? null);
     },
-    [onEditorBridgeReady, setSelectionState],
+    [setSelectionState],
   );
 
   const handleOpenSourcePeek = useCallback(() => {
@@ -881,6 +932,8 @@ export function NotesWorkbench({
               onEditorSelectionStateChange={setSelectionState}
               onEnsureWikiLinkNote={onEnsureWikiLinkNote}
               onOpenPath={onOpenPath}
+              onOpenMarkdownLink={onOpenMarkdownLink}
+              onEditLink={onEditLink}
               onOpenWikiLink={onOpenWikiLink}
               openDocuments={openDocuments}
               rightToolbarActions={null}

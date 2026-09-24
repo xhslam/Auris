@@ -14,6 +14,7 @@ describe("desktop IPC contract", () => {
     expect(contract.invokes.length).toBeGreaterThan(0);
     expect(contract.missingHandlers).toEqual([]);
     expect(contract.invokes).toContain("shadowing:updates:recover");
+    expect(contract.invokes).toContain("shadowing:external-markdown:open-linked");
   });
 
   it("reports a missing main handler deterministically", () => {

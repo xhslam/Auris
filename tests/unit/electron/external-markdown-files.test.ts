@@ -9,6 +9,7 @@ const {
   createExternalMarkdownFiles,
   collectMarkdownOpenPaths,
   readBoundedMarkdownText,
+  isSafeAbsoluteLinkedMarkdownPath,
   hash,
 } = require("../../../electron/external-markdown-files.cjs");
 
@@ -53,6 +54,17 @@ describe("collectMarkdownOpenPaths", () => {
     } else {
       expect(collected).toHaveLength(2);
     }
+  });
+});
+
+describe("isSafeAbsoluteLinkedMarkdownPath", () => {
+  it("accepts local absolute paths while rejecting UNC and drive-relative paths", () => {
+    expect(isSafeAbsoluteLinkedMarkdownPath("C:/Vault/A.md", "win32")).toBe(true);
+    expect(isSafeAbsoluteLinkedMarkdownPath("C:Vault/A.md", "win32")).toBe(false);
+    expect(isSafeAbsoluteLinkedMarkdownPath("\\\\host\\share\\A.md", "win32")).toBe(false);
+    expect(isSafeAbsoluteLinkedMarkdownPath("/Users/me/A.md", "darwin")).toBe(true);
+    expect(isSafeAbsoluteLinkedMarkdownPath("//host/share/A.md", "darwin")).toBe(false);
+    expect(isSafeAbsoluteLinkedMarkdownPath("relative/A.md", "darwin")).toBe(false);
   });
 });
 
@@ -149,6 +161,20 @@ describe("createExternalMarkdownFiles", () => {
     await manager.open(filePath);
     expect(events1).toHaveLength(2);
     expect(events2).toHaveLength(1);
+  });
+
+  it("opens an absolute local Markdown path from a link", async () => {
+    const filePath = path.join(tempDir, "linked.md");
+    await fs.writeFile(filePath, "# Linked", "utf8");
+    const manager = createExternalMarkdownFiles({ fs, writeFileAtomically: mockWriteFileAtomically });
+
+    await expect(manager.openLinkedFile(filePath)).resolves.toMatchObject({
+      fileName: "linked.md",
+      rawSource: "# Linked",
+    });
+    await expect(manager.openLinkedFile("\\\\host\\share\\linked.md")).rejects.toThrow(
+      "EXTERNAL_MARKDOWN_LINK_PATH_INVALID",
+    );
   });
 
   it("prevents silent overwrite when reopening a file with dirty buffer", async () => {

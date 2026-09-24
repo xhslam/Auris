@@ -4342,6 +4342,11 @@ function registerDesktopHandlers() {
     return externalMarkdownFiles.open(result.filePaths[0]);
   });
 
+  ipcMain.handle("shadowing:external-markdown:open-linked", async (event, absolutePath) => {
+    requireTrustedMainEvent(event);
+    return externalMarkdownFiles.openLinkedFile(absolutePath);
+  });
+
   ipcMain.handle("shadowing:external-markdown:close", async (event, fileId) => {
     requireTrustedMainEvent(event);
     return externalMarkdownFiles.close(fileId);
