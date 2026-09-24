@@ -569,6 +569,8 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
       ),
     updateBuffer: (fileId, rawSource) =>
       invoke("shadowing:external-markdown:update-buffer", fileId, rawSource),
+    acceptCleanBaseline: (fileId, rawSource, diskHash) =>
+      invoke("shadowing:external-markdown:accept-clean-baseline", fileId, rawSource, diskHash),
   },
   vault: {
     copyFile: (fromPath, toPath) =>

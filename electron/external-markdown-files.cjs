@@ -12,6 +12,67 @@ const SUPPORTED_MARKDOWN_EXTENSIONS = new Set([
 ]);
 const MAX_EXTERNAL_MARKDOWN_BYTES = 20 * 1024 * 1024;
 
+function hash(source) {
+  return crypto.createHash("sha256").update(source, "utf8").digest("hex");
+}
+
+function decodeAndValidateMarkdown(bytes, stat) {
+  let text;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_UTF8");
+  }
+  if (text.includes("\u0000")) {
+    throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_TEXT");
+  }
+  return {
+    text,
+    size: bytes.byteLength,
+    mtime:
+      stat?.mtime instanceof Date
+        ? stat.mtime.toISOString()
+        : stat?.mtime
+          ? String(stat.mtime)
+          : new Date().toISOString(),
+    hash: hash(text),
+  };
+}
+
+async function readBoundedMarkdownText(fs, filePath, maxBytes = MAX_EXTERNAL_MARKDOWN_BYTES) {
+  if (typeof fs.open === "function") {
+    let fileHandle = null;
+    try {
+      fileHandle = await fs.open(filePath, "r");
+      const stat = await fileHandle.stat();
+      if (!stat.isFile()) {
+        throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_FILE");
+      }
+      if (stat.size > maxBytes) {
+        throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
+      }
+      const buffer = Buffer.alloc(maxBytes + 1);
+      const { bytesRead } = await fileHandle.read(buffer, 0, maxBytes + 1, 0);
+      if (bytesRead > maxBytes) {
+        throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
+      }
+      const actualBytes = buffer.subarray(0, bytesRead);
+      return decodeAndValidateMarkdown(actualBytes, stat);
+    } finally {
+      if (fileHandle) {
+        await fileHandle.close().catch(() => undefined);
+      }
+    }
+  }
+
+  const stat = await fs.stat(filePath);
+  if (!stat.isFile()) throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_FILE");
+  if (stat.size > maxBytes) throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
+  const bytes = await fs.readFile(filePath);
+  if (bytes.byteLength > maxBytes) throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
+  return decodeAndValidateMarkdown(bytes, stat);
+}
+
 function collectMarkdownOpenPaths(args, workingDirectory = process.cwd()) {
   const paths = [];
   const seen = new Set();
@@ -33,10 +94,12 @@ function collectMarkdownOpenPaths(args, workingDirectory = process.cwd()) {
 function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
   const filesById = new Map();
   const idsByPath = new Map();
+  const idsByDevIno = new Map();
   const openingByPath = new Map();
-  let subscriber = null;
+  const savingByPath = new Map();
+  const subscribers = new Set();
 
-  function toPayload(record) {
+  function toPayload(record, diskInfo = null) {
     return {
       fileName: path.basename(record.path),
       id: record.id,
@@ -44,12 +107,21 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
       path: record.path,
       rawSource: record.rawSource,
       savedSource: record.savedSource,
+      sourceHash: record.sourceHash,
+      diskHash: diskInfo?.hash ?? record.sourceHash,
+      diskSource: diskInfo?.text ?? record.savedSource,
     };
   }
 
-  function publish(record) {
-    const payload = toPayload(record);
-    if (subscriber) subscriber(payload);
+  function publish(record, diskInfo = null) {
+    const payload = toPayload(record, diskInfo);
+    for (const subscriber of subscribers) {
+      try {
+        subscriber(payload);
+      } catch {
+        // Ignore subscriber errors to allow remaining subscribers to proceed
+      }
+    }
     return payload;
   }
 
@@ -71,62 +143,57 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
   }
 
   async function readAndOpen(resolvedPath) {
-    const existingId = idsByPath.get(resolvedPath);
-    const stat = await fs.stat(resolvedPath);
-    if (!stat.isFile()) return null;
-    if (stat.size > MAX_EXTERNAL_MARKDOWN_BYTES) {
-      throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
-    }
+    const diskContent = await readBoundedMarkdownText(fs, resolvedPath);
+    const stat = typeof fs.lstat === "function" ? await fs.lstat(resolvedPath) : null;
+    const devInoKey = stat?.dev && stat?.ino ? `${stat.dev}:${stat.ino}` : null;
 
-    const bytes = await fs.readFile(resolvedPath);
-    if (bytes.byteLength > MAX_EXTERNAL_MARKDOWN_BYTES) {
-      throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
-    }
-    let rawSource;
-    try {
-      rawSource = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
-    } catch {
-      throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_UTF8");
-    }
-    if (rawSource.includes("\u0000")) {
-      throw new Error("EXTERNAL_MARKDOWN_FILE_NOT_TEXT");
-    }
-
-    const currentHash = hash(rawSource);
+    const existingId =
+      idsByPath.get(resolvedPath) || (devInoKey ? idsByDevIno.get(devInoKey) : null);
     const existing = existingId ? filesById.get(existingId) : null;
+
     if (existing) {
-      if (existing.rawSource === existing.savedSource && currentHash !== existing.sourceHash) {
-        existing.rawSource = rawSource;
-        existing.savedSource = rawSource;
-        existing.sourceHash = currentHash;
-        existing.bufferRevision += 1;
-      }
-      existing.mtime = stat.mtime.toISOString();
-      return publish(existing);
+      existing.mtime = diskContent.mtime;
+      return publish(existing, diskContent);
     }
 
     const record = {
       id: crypto.randomUUID(),
-      mtime: stat.mtime.toISOString(),
+      mtime: diskContent.mtime,
       path: resolvedPath,
-      rawSource,
-      savedSource: rawSource,
-      sourceHash: currentHash,
+      devInoKey,
+      rawSource: diskContent.text,
+      savedSource: diskContent.text,
+      sourceHash: diskContent.hash,
       bufferRevision: 0,
     };
+
     filesById.set(record.id, record);
     idsByPath.set(record.path, record.id);
+    if (devInoKey) {
+      idsByDevIno.set(devInoKey, record.id);
+    }
+
     return publish(record);
   }
 
   function subscribe(listener) {
     if (typeof listener !== "function") throw new TypeError("A file-open listener is required.");
-    subscriber = listener;
-    return [...filesById.values()].map(toPayload);
+    subscribers.add(listener);
+    return [...filesById.values()].map((r) => toPayload(r));
   }
 
   function unsubscribe(listener) {
-    if (subscriber === listener) subscriber = null;
+    subscribers.delete(listener);
+  }
+
+  function acceptCleanBaseline(id, rawSource, diskHash) {
+    const record = filesById.get(id);
+    if (!record) return false;
+    record.rawSource = rawSource;
+    record.savedSource = rawSource;
+    record.sourceHash = diskHash;
+    record.bufferRevision += 1;
+    return true;
   }
 
   async function save(id, rawSource, overwriteExternalChanges = false, expectedDiskHash = null) {
@@ -137,25 +204,68 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
       throw new Error("EXTERNAL_MARKDOWN_FILE_TOO_LARGE");
     }
 
+    const currentQueue = savingByPath.get(record.path) ?? Promise.resolve();
+    const savePromise = currentQueue.then(() =>
+      executeSave(record, rawSource, overwriteExternalChanges, expectedDiskHash),
+    );
+    savingByPath.set(
+      record.path,
+      savePromise.catch(() => undefined),
+    );
+    return await savePromise;
+  }
+
+  async function executeSave(record, rawSource, overwriteExternalChanges, expectedDiskHash) {
     const savedRevision = record.bufferRevision;
-    const current = await fs.readFile(record.path);
-    const currentSource = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(current);
-    const currentHash = hash(currentSource);
+
+    if (typeof fs.lstat === "function") {
+      const lstat = await fs.lstat(record.path);
+      if (lstat.isSymbolicLink()) {
+        throw new Error("EXTERNAL_MARKDOWN_FILE_SYMLINK_REPLACED");
+      }
+    }
+
+    const currentDisk = await readBoundedMarkdownText(fs, record.path);
+    const currentHash = currentDisk.hash;
+    const currentSource = currentDisk.text;
+
     if (currentHash !== record.sourceHash && !overwriteExternalChanges) {
       throw new Error(`EXTERNAL_MARKDOWN_FILE_CHANGED_ON_DISK:${currentHash}`);
     }
     if (overwriteExternalChanges && (!expectedDiskHash || currentHash !== expectedDiskHash)) {
       throw new Error(`EXTERNAL_MARKDOWN_FILE_CHANGED_ON_DISK:${currentHash}`);
     }
+
     if (rawSource !== currentSource) {
-      await writeFileAtomically(record.path, rawSource, "utf8");
+      await writeFileAtomically(
+        record.path,
+        rawSource,
+        "utf8",
+        async (resolvedTarget) => {
+          if (typeof fs.lstat === "function") {
+            const finalLstat = await fs.lstat(resolvedTarget);
+            if (finalLstat.isSymbolicLink()) {
+              throw new Error("EXTERNAL_MARKDOWN_FILE_SYMLINK_REPLACED");
+            }
+          }
+          const latest = await readBoundedMarkdownText(fs, resolvedTarget);
+          if (latest.hash !== currentHash) {
+            throw new Error(`EXTERNAL_MARKDOWN_FILE_CHANGED_ON_DISK:${latest.hash}`);
+          }
+        },
+      );
     }
 
     const stat = await fs.stat(record.path);
     if (record.bufferRevision === savedRevision) record.rawSource = rawSource;
     record.savedSource = rawSource;
     record.sourceHash = hash(rawSource);
-    record.mtime = stat.mtime.toISOString();
+    record.mtime =
+      stat.mtime instanceof Date
+        ? stat.mtime.toISOString()
+        : stat.mtime
+          ? String(stat.mtime)
+          : new Date().toISOString();
     return { mtime: record.mtime };
   }
 
@@ -175,6 +285,9 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
     if (!record) return false;
     filesById.delete(id);
     idsByPath.delete(record.path);
+    if (record.devInoKey) {
+      idsByDevIno.delete(record.devInoKey);
+    }
     return true;
   }
 
@@ -182,11 +295,16 @@ function createExternalMarkdownFiles({ fs, writeFileAtomically }) {
     return filesById.get(id)?.path ?? null;
   }
 
-  return { close, getPath, open, save, subscribe, unsubscribe, updateBuffer };
-}
-
-function hash(source) {
-  return crypto.createHash("sha256").update(source, "utf8").digest("hex");
+  return {
+    acceptCleanBaseline,
+    close,
+    getPath,
+    open,
+    save,
+    subscribe,
+    unsubscribe,
+    updateBuffer,
+  };
 }
 
 module.exports = {
@@ -194,4 +312,7 @@ module.exports = {
   SUPPORTED_MARKDOWN_EXTENSIONS,
   collectMarkdownOpenPaths,
   createExternalMarkdownFiles,
+  decodeAndValidateMarkdown,
+  hash,
+  readBoundedMarkdownText,
 };

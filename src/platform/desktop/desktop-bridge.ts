@@ -402,12 +402,15 @@ export type DesktopVaultFileRecord = {
 };
 
 export type DesktopExternalMarkdownFile = {
+  diskHash?: string;
+  diskSource?: string;
   fileName: string;
   id: string;
   mtime: string;
   path: string;
   rawSource: string;
   savedSource: string;
+  sourceHash?: string;
 };
 
 /* ------------------------------------------------------------------ */
@@ -706,6 +709,11 @@ export type DesktopBridge = {
   terminal?: DesktopTerminalBridge;
   updates?: DesktopUpdatesBridge;
   externalMarkdown?: {
+    acceptCleanBaseline?: (
+      fileId: string,
+      rawSource: string,
+      diskHash: string,
+    ) => Promise<boolean>;
     close: (fileId: string) => Promise<boolean>;
     onOpen: (listener: (file: DesktopExternalMarkdownFile) => void) => () => void;
     pick: () => Promise<DesktopExternalMarkdownFile | null>;

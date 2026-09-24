@@ -1990,7 +1990,7 @@ async function resolveLinkTarget(targetPath, maxDepth = 32) {
   throw new Error("Too many symbolic links encountered while resolving write target.");
 }
 
-async function writeFileAtomically(targetPath, content, options) {
+async function writeFileAtomically(targetPath, content, options, beforeRename) {
   // Resolve symlinks first so an atomic rename updates the real referent rather
   // than replacing the symlink with a regular file (aligned with vmark audit B2).
   const resolvedTarget = await resolveLinkTarget(targetPath);
@@ -2011,6 +2011,9 @@ async function writeFileAtomically(targetPath, content, options) {
     await fs.writeFile(temporaryPath, content, options);
     if (existingStat?.mode) {
       await fs.chmod(temporaryPath, existingStat.mode).catch(() => undefined);
+    }
+    if (typeof beforeRename === "function") {
+      await beforeRename(resolvedTarget);
     }
     await fs.rename(temporaryPath, resolvedTarget);
   } catch (error) {
@@ -3692,7 +3695,9 @@ async function openExternalMarkdownFromSystem(rawPath) {
         ? "文件不是有效的 UTF-8 文本。"
         : error?.message === "EXTERNAL_MARKDOWN_FILE_NOT_TEXT"
           ? "文件包含二进制内容，Auris 无法作为 Markdown 文本打开。"
-          : "无法读取此文件，请检查文件是否存在以及是否有读取权限。";
+          : error?.message === "EXTERNAL_MARKDOWN_FILE_NOT_FILE"
+            ? "目标不是普通文件，Auris 无法打开。"
+            : "无法读取此文件，请检查文件是否存在以及是否有读取权限。";
     dialog.showErrorBox("无法打开 Markdown 文件", reason);
   }
 }
@@ -4280,6 +4285,13 @@ function registerDesktopHandlers() {
       }
     };
     externalMarkdownSubscriptions.set(event.sender.id, { listener, subscriptionId });
+    event.sender.once("destroyed", () => {
+      const subscription = externalMarkdownSubscriptions.get(event.sender.id);
+      if (subscription?.subscriptionId === subscriptionId) {
+        externalMarkdownFiles.unsubscribe(subscription.listener);
+        externalMarkdownSubscriptions.delete(event.sender.id);
+      }
+    });
     return {
       files: externalMarkdownFiles.subscribe(listener),
       subscriptionId,
@@ -4293,6 +4305,15 @@ function registerDesktopHandlers() {
       externalMarkdownFiles.unsubscribe(subscription.listener);
       externalMarkdownSubscriptions.delete(event.sender.id);
     }
+  });
+
+  ipcMain.handle("shadowing:external-markdown:accept-clean-baseline", async (event, fileId, rawSource, diskHash) => {
+    requireTrustedMainEvent(event);
+    return externalMarkdownFiles.acceptCleanBaseline(
+      fileId,
+      typeof rawSource === "string" ? rawSource : "",
+      typeof diskHash === "string" ? diskHash : "",
+    );
   });
 
   ipcMain.handle("shadowing:external-markdown:save", async (event, fileId, rawSource, overwriteExternalChanges, expectedDiskHash) => {

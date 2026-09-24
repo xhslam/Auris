@@ -65,7 +65,7 @@ mac:
     - ext: [md, markdown, mdown, mkd, mkdn, mdx]
       name: Markdown Document
       role: Editor
-      rank: Default
+      rank: Alternate
   extraResources:
     - from: build/native/desktop-island/${arch}/AurisDesktopIslandHelper
       to: native/desktop-island/AurisDesktopIslandHelper

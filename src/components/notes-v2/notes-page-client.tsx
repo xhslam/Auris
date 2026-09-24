@@ -132,10 +132,15 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
     (file: DesktopExternalMarkdownFile) => {
       const existing = externalFilesRef.current.find((item) => item.path === file.path);
       const selected = existing?.id ?? file.id;
+      const incomingSource = file.diskSource ?? file.rawSource;
+      const incomingHash = file.diskHash ?? file.sourceHash ?? null;
+
       if (!existing) {
         const nextFile: ExternalMarkdownSessionFile = {
           ...file,
-          bufferSyncSource: file.rawSource,
+          rawSource: incomingSource,
+          savedSource: incomingSource,
+          bufferSyncSource: incomingSource,
           conflicted: false,
           conflictDiskHash: null,
           failedSource: null,
@@ -149,7 +154,9 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
               ? {
                   ...item,
                   ...file,
-                  bufferSyncSource: file.rawSource,
+                  rawSource: incomingSource,
+                  savedSource: incomingSource,
+                  bufferSyncSource: incomingSource,
                   conflicted: false,
                   conflictDiskHash: null,
                   failedSource: null,
@@ -158,6 +165,30 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
               : item,
           ),
         );
+        if (incomingHash && externalMarkdownBridge?.acceptCleanBaseline) {
+          void externalMarkdownBridge
+            .acceptCleanBaseline(existing.id, incomingSource, incomingHash)
+            .catch(() => undefined);
+        }
+      } else {
+        const isExternalChanged =
+          incomingSource !== existing.savedSource ||
+          (Boolean(incomingHash) && incomingHash !== (existing.sourceHash ?? null));
+
+        if (isExternalChanged) {
+          updateExternalFiles((previous) =>
+            previous.map((item) =>
+              item.id === existing.id
+                ? {
+                    ...item,
+                    conflicted: true,
+                    conflictDiskHash: incomingHash ?? file.sourceHash ?? null,
+                    saveError: "文件已在其他应用中修改。再次保存时可以确认是否覆盖磁盘版本。",
+                  }
+                : item,
+            ),
+          );
+        }
       }
       setActiveExternalFileId(selected);
       setLocation({
@@ -165,7 +196,7 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
         folder: folderFromDirectoryInfo(directoryInfoRef.current),
       });
     },
-    [updateExternalFiles],
+    [externalMarkdownBridge, updateExternalFiles],
   );
 
   const saveExternalFile = useCallback(

@@ -174,7 +174,9 @@ export function isDesktopBridge(value: unknown): value is DesktopBridge {
           isFunction(bridge.externalMarkdown.pick) &&
           isFunction(bridge.externalMarkdown.reveal) &&
           isFunction(bridge.externalMarkdown.save) &&
-          isFunction(bridge.externalMarkdown.updateBuffer))) &&
+          isFunction(bridge.externalMarkdown.updateBuffer) &&
+          (!bridge.externalMarkdown.acceptCleanBaseline ||
+            isFunction(bridge.externalMarkdown.acceptCleanBaseline)))) &&
       (!bridge.videoLibrary ||
         (isFunction(bridge.videoLibrary.getSnapshot) &&
           isFunction(bridge.videoLibrary.getVideoDetails) &&
