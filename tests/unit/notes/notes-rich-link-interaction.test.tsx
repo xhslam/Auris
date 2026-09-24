@@ -151,4 +151,41 @@ describe("rich Markdown hyperlink interactions", () => {
     expect(click.defaultPrevented).toBe(true);
     expect(onOpenMarkdownLink).toHaveBeenCalledWith("chapter.md", "note.md");
   });
+
+  it("uses the current note path after switching documents", async () => {
+    const first = createDocument("[guide](chapter.md)");
+    const second = { ...first, path: "folder/second.md" };
+    const onOpenMarkdownLink = vi.fn();
+    const props = {
+      documents: [first, second],
+      onDocumentChange: vi.fn(),
+      onOpenMarkdownLink,
+    };
+    const { container, rerender } = render(
+      <NotesRichEditorPane document={first} {...props} />,
+    );
+
+    await waitFor(() =>
+      expect(container.querySelector(".ProseMirror a[href]")).not.toBeNull(),
+    );
+    rerender(<NotesRichEditorPane document={second} {...props} />);
+
+    const anchor = await waitFor(() => {
+      const found = container.querySelector<HTMLAnchorElement>(".ProseMirror a[href]");
+      expect(found).not.toBeNull();
+      return found!;
+    });
+    act(() =>
+      anchor.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          button: 0,
+          ctrlKey: true,
+        }),
+      ),
+    );
+
+    expect(onOpenMarkdownLink).toHaveBeenCalledWith("chapter.md", "folder/second.md");
+  });
 });

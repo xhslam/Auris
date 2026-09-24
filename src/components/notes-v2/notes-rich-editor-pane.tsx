@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -560,7 +561,9 @@ export function NotesRichEditorPane({
     onEditLinkRef.current = onEditLink;
   }, [onEditLink]);
 
-  documentPathRef.current = document?.path ?? null;
+  useLayoutEffect(() => {
+    documentPathRef.current = document?.path ?? null;
+  }, [document?.path]);
 
   useEffect(() => {
     onSelectionStateChangeRef.current = onSelectionStateChange;

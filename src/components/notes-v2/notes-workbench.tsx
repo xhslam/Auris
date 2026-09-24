@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -287,7 +288,9 @@ export function NotesWorkbench({
   const editorBridgeRef = useRef<NotesEditorBridge | null>(null);
   const editorBridgeDocumentPathRef = useRef<string | null>(null);
   const onEditorBridgeReadyRef = useRef(onEditorBridgeReady);
-  onEditorBridgeReadyRef.current = onEditorBridgeReady;
+  useLayoutEffect(() => {
+    onEditorBridgeReadyRef.current = onEditorBridgeReady;
+  }, [onEditorBridgeReady]);
   const [editorBridgeRevision, setEditorBridgeRevision] = useState(0);
   const [editorBridgePath, setEditorBridgePath] = useState<string | null>(null);
   const terminalDragStateRef = useRef<{
@@ -436,7 +439,9 @@ export function NotesWorkbench({
     };
   }, []);
   const activeDocument = getActiveDocument(documents, activePath);
-  editorBridgeDocumentPathRef.current = activeDocument?.path ?? null;
+  useLayoutEffect(() => {
+    editorBridgeDocumentPathRef.current = activeDocument?.path ?? null;
+  }, [activeDocument?.path]);
   const openDocuments = openTabs
     .map((path) => documents.find((document) => document.path === path) ?? null)
     .filter((document): document is NoteDocument => document !== null);
@@ -805,7 +810,7 @@ export function NotesWorkbench({
       onEditorBridgeReadyRef.current?.(bridge);
       setSelectionState(bridge?.getSelection() ?? null);
     },
-    [setSelectionState],
+    [setEditorBridgePath, setEditorBridgeRevision, setSelectionState],
   );
 
   const handleOpenSourcePeek = useCallback(() => {

@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -191,7 +192,9 @@ export function NotesEditorPane({
     getNotesMediaReloadKey,
     () => 0,
   );
-  documentPathRef.current = document?.path ?? null;
+  useLayoutEffect(() => {
+    documentPathRef.current = document?.path ?? null;
+  }, [document?.path]);
 
   useEffect(() => {
     viewPreferencesRef.current = viewPreferences;
