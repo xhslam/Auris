@@ -82,7 +82,7 @@ mac:
 dmg:
   title: Auris
 win:
-  icon: assets/app-icon.png
+  icon: assets/app-icon-win.png
   target:
     # NSIS is the native Windows installer; zip remains useful for portable smoke tests.
     - target: nsis
@@ -92,9 +92,9 @@ win:
       arch:
         - x64
   artifactName: ${productName}-${version}-win-${arch}.${ext}
-  # Cross-build from macOS: do not rebuild native modules on the host.
-  # node-pty / sharp ship platform prebuilds instead.
-  signAndEditExecutable: false
+  # Keep app icon and version metadata resource editing enabled, but skip code signing
+  # because Windows release builds currently have no signing certificate configured.
+  signExecutable: false
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const sharp = require("sharp");
+const { buildWindowsIcon } = require("./build-windows-icon.cjs");
 
 async function main() {
   if (process.platform !== "darwin") throw new Error("Requires macOS iconutil");
@@ -48,6 +49,7 @@ async function main() {
       await fs.copyFile(path.join(work, name), path.join(assets, name));
     }
     await fs.copyFile(source, path.join(assets, "app-icon.png"));
+    await buildWindowsIcon(source, path.join(assets, "app-icon-win.png"));
     for (const [relativePath, size] of [
       ["../src/app/icon.png", 512],
       ["../src/app/apple-icon.png", 180],

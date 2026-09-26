@@ -17,6 +17,11 @@ interface BuilderConfig {
   mac?: {
     fileAssociations?: BuilderFileAssociation[];
   };
+  win?: {
+    icon?: string;
+    signAndEditExecutable?: boolean;
+    signExecutable?: boolean;
+  };
 }
 
 describe("electron-builder fileAssociations configuration", () => {
@@ -39,5 +44,15 @@ describe("electron-builder fileAssociations configuration", () => {
     // Must be Alternate, not Default, to avoid hijacking user's default markdown app
     expect(mdAssoc?.rank).toBe("Alternate");
     expect(mdAssoc?.ext).toEqual(["md", "markdown", "mdown", "mkd", "mkdn", "mdx"]);
+  });
+
+  it("keeps Windows icon resource editing enabled without requiring a signing certificate", () => {
+    const builderConfigPath = path.resolve(__dirname, "../../../electron-builder.yml");
+    const content = fs.readFileSync(builderConfigPath, "utf8");
+    const config = yaml.load(content) as BuilderConfig;
+
+    expect(config.win?.icon).toBe("assets/app-icon-win.png");
+    expect(config.win?.signExecutable).toBe(false);
+    expect(config.win?.signAndEditExecutable).not.toBe(false);
   });
 });
