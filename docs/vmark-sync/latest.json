@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "13720e0bff1dee9772b51ffeed345f7badf56aed",
+  "comparedCommit": "12c98051efec2adc12c3a8fdb7afe30be036e82a",
   "summary": {
-    "changed": 2104,
-    "added": 2462,
-    "deleted": 503,
+    "changed": 2117,
+    "added": 2473,
+    "deleted": 513,
     "renamed": 110,
     "missingAurisTargets": 0,
     "staleMappings": 12,
     "mappedUpstreamChanges": 163,
-    "domainCandidates": 672,
-    "unmappedUpstreamChanges": 4344
+    "domainCandidates": 674,
+    "unmappedUpstreamChanges": 4376
   },
   "upstreamChanges": [
     {
@@ -1448,6 +1448,46 @@
       "status": "changed"
     },
     {
+      "path": "public/dictionaries/de.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/de.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/en.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/en.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/es.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/es.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/fr.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/fr.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/ko.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/ko.dic",
+      "status": "deleted"
+    },
+    {
       "path": "scripts/__tests__/i18nIdenticalAllowlist.test.ts",
       "status": "added"
     },
@@ -1809,6 +1849,10 @@
     },
     {
       "path": "scripts/check-release-dispatch.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-release-updater-targets.test.mjs",
       "status": "added"
     },
     {
@@ -5345,6 +5389,14 @@
     },
     {
       "path": "src-tauri/src/pty/session.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pty/window_sessions.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/pty/window_sessions.test.rs",
       "status": "added"
     },
     {
@@ -10092,6 +10144,10 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/ghaWorkflow/render/renderXyflowSnapshot.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/ghaWorkflow/render/snapshotRoot.test.ts",
       "status": "changed"
     },
@@ -11624,6 +11680,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/codePreview/tiptap.diagramCleanup.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codePreview/tiptap.editmode.test.ts",
       "status": "added"
     },
@@ -12256,6 +12316,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/formatToolbar/tiptapContextHelpers.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/formatToolbar/types.ts",
       "status": "deleted"
     },
@@ -12556,6 +12620,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/linkPopup/findLinkMarkRange.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/linkPopup/findLinkMarkRange.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/linkPopup/link-popup.css",
       "status": "changed"
     },
@@ -12568,11 +12640,19 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/linkPopup/linkRange.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/linkPopup/manifest.ts",
       "status": "deleted"
     },
     {
       "path": "src/plugins/linkPopup/operations.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/linkPopup/operations.ts",
       "status": "changed"
     },
     {
@@ -12582,6 +12662,10 @@
     {
       "path": "src/plugins/linkPopup/tiptap.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/linkPopup/tiptapPointer.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/lint/__tests__/testHarness.ts",
@@ -12814,6 +12898,10 @@
     {
       "path": "src/plugins/mediaPopup/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mediaPopup/markedImageToggle.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/mediaPopup/media-popup.css",
@@ -13905,6 +13993,10 @@
     },
     {
       "path": "src/plugins/toolbarActions/cjkFormatFeedback.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/toolbarActions/clearFormattingMarkedImage.test.ts",
       "status": "added"
     },
     {
@@ -17177,6 +17269,10 @@
       "status": "added"
     },
     {
+      "path": "src/stores/__tests__/editorStore.sourceRelease.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/__tests__/geniePickerStore.test.ts",
       "status": "changed"
     },
@@ -19354,6 +19450,10 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/markdownPipeline/linkedImageRoundtrip.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/markdownPipeline/listInterruptJoin.test.ts",
       "status": "added"
     },
@@ -20330,6 +20430,10 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/settings.md",
       "status": "changed"
     },
@@ -20378,6 +20482,10 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/settings.md",
       "status": "changed"
     },
@@ -20419,6 +20527,10 @@
     },
     {
       "path": "website/fr/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/popups.md",
       "status": "changed"
     },
     {
@@ -20586,6 +20698,10 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/settings.md",
       "status": "changed"
     },
@@ -20630,6 +20746,10 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/settings.md",
       "status": "changed"
     },
@@ -20671,6 +20791,10 @@
     },
     {
       "path": "website/ko/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/popups.md",
       "status": "changed"
     },
     {
@@ -20723,6 +20847,10 @@
     },
     {
       "path": "website/pt-BR/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/popups.md",
       "status": "changed"
     },
     {
@@ -20782,6 +20910,10 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/settings.md",
       "status": "changed"
     },
@@ -20823,6 +20955,10 @@
     },
     {
       "path": "website/zh-TW/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/popups.md",
       "status": "changed"
     },
     {
@@ -24922,6 +25058,14 @@
           "status": "added"
         },
         {
+          "path": "src-tauri/src/pty/window_sessions.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/pty/window_sessions.test.rs",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/TerminalContextMenu.test.tsx",
           "status": "changed"
         },
@@ -26556,6 +26700,22 @@
     {
       "change": {
         "path": "src-tauri/src/pty/session.test.rs",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src-tauri/src/pty/window_sessions.rs",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src-tauri/src/pty/window_sessions.test.rs",
         "status": "added"
       },
       "decision": "defer",
@@ -32357,6 +32517,46 @@
       "status": "changed"
     },
     {
+      "path": "public/dictionaries/de.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/de.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/en.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/en.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/es.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/es.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/fr.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/fr.dic",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/ko.aff",
+      "status": "deleted"
+    },
+    {
+      "path": "public/dictionaries/ko.dic",
+      "status": "deleted"
+    },
+    {
       "path": "scripts/__tests__/i18nIdenticalAllowlist.test.ts",
       "status": "added"
     },
@@ -32710,6 +32910,10 @@
     },
     {
       "path": "scripts/check-release-dispatch.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-release-updater-targets.test.mjs",
       "status": "added"
     },
     {
@@ -38477,6 +38681,10 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/ghaWorkflow/render/renderXyflowSnapshot.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/ghaWorkflow/render/snapshotRoot.test.ts",
       "status": "changed"
     },
@@ -39985,6 +40193,10 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/codePreview/tiptap.diagramCleanup.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codePreview/tiptap.editmode.test.ts",
       "status": "added"
     },
@@ -40617,6 +40829,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/formatToolbar/tiptapContextHelpers.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/formatToolbar/types.ts",
       "status": "deleted"
     },
@@ -40917,6 +41133,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/linkPopup/findLinkMarkRange.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/linkPopup/findLinkMarkRange.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/linkPopup/link-popup.css",
       "status": "changed"
     },
@@ -40929,11 +41153,19 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/linkPopup/linkRange.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/linkPopup/manifest.ts",
       "status": "deleted"
     },
     {
       "path": "src/plugins/linkPopup/operations.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/plugins/linkPopup/operations.ts",
       "status": "changed"
     },
     {
@@ -40943,6 +41175,10 @@
     {
       "path": "src/plugins/linkPopup/tiptap.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/linkPopup/tiptapPointer.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/lint/__tests__/testHarness.ts",
@@ -41175,6 +41411,10 @@
     {
       "path": "src/plugins/mediaPopup/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/mediaPopup/markedImageToggle.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/mediaPopup/media-popup.css",
@@ -42266,6 +42506,10 @@
     },
     {
       "path": "src/plugins/toolbarActions/cjkFormatFeedback.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/toolbarActions/clearFormattingMarkedImage.test.ts",
       "status": "added"
     },
     {
@@ -44897,6 +45141,10 @@
       "status": "added"
     },
     {
+      "path": "src/stores/__tests__/editorStore.sourceRelease.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/__tests__/geniePickerStore.test.ts",
       "status": "changed"
     },
@@ -46894,6 +47142,10 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/markdownPipeline/linkedImageRoundtrip.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/markdownPipeline/listInterruptJoin.test.ts",
       "status": "added"
     },
@@ -47870,6 +48122,10 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/settings.md",
       "status": "changed"
     },
@@ -47918,6 +48174,10 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/settings.md",
       "status": "changed"
     },
@@ -47959,6 +48219,10 @@
     },
     {
       "path": "website/fr/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/popups.md",
       "status": "changed"
     },
     {
@@ -48126,6 +48390,10 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/settings.md",
       "status": "changed"
     },
@@ -48170,6 +48438,10 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/settings.md",
       "status": "changed"
     },
@@ -48211,6 +48483,10 @@
     },
     {
       "path": "website/ko/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/popups.md",
       "status": "changed"
     },
     {
@@ -48263,6 +48539,10 @@
     },
     {
       "path": "website/pt-BR/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/popups.md",
       "status": "changed"
     },
     {
@@ -48322,6 +48602,10 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/popups.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/settings.md",
       "status": "changed"
     },
@@ -48363,6 +48647,10 @@
     },
     {
       "path": "website/zh-TW/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/popups.md",
       "status": "changed"
     },
     {

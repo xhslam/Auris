@@ -76,10 +76,17 @@ describe("isChordArtifactInsertion", () => {
     // On macOS, Option+Command does not type characters, so still vetoed
     expect(isChordArtifactInsertion(baseEvent, altGrHeld, "mac")).toBe(true);
   });
+
+  it("does not veto insertion on non-macOS when only Meta/Super is held (fixes #1445)", () => {
+    // Windows/Linux users pressing Super key or with stuck Super must NOT have punctuation swallowed
+    expect(isChordArtifactInsertion(baseEvent, metaHeld, "other")).toBe(false);
+    // But on macOS, Meta/Cmd is the primary command modifier and must be vetoed
+    expect(isChordArtifactInsertion(baseEvent, metaHeld, "mac")).toBe(true);
+  });
 });
 
 describe("installImeChordGuard window integration", () => {
-  it("tracks keydown modifiers and vetoes beforeinput, clearing on blur/pointerdown", () => {
+  it("tracks keydown modifiers and vetoes beforeinput, clearing on blur/pointerdown/focus", () => {
     const listeners: Record<string, EventListenerOrEventListenerObject[]> = {};
     const mockWindow = {
       addEventListener: vi.fn((type: string, listener: EventListenerOrEventListenerObject) => {
@@ -114,8 +121,20 @@ describe("installImeChordGuard window integration", () => {
       });
     };
 
-    // Press Ctrl key
-    trigger("keydown", { ctrlKey: true, metaKey: false, altKey: false });
+    // 1. Positive evidence: a normal key with ctrlKey:true does NOT arm the guard
+    trigger("keydown", { type: "keydown", key: "a", ctrlKey: true, metaKey: false, altKey: false });
+    const mockPreventDefaultNoArm = vi.fn();
+    trigger("beforeinput", {
+      cancelable: true,
+      data: "·",
+      inputType: "insertText",
+      isComposing: false,
+      preventDefault: mockPreventDefaultNoArm,
+    });
+    expect(mockPreventDefaultNoArm).not.toHaveBeenCalled();
+
+    // 2. Press Control key itself: this arms the guard
+    trigger("keydown", { type: "keydown", key: "Control", ctrlKey: true, metaKey: false, altKey: false });
 
     // beforeinput fires with "·"
     const mockPreventDefault = vi.fn();
@@ -128,7 +147,7 @@ describe("installImeChordGuard window integration", () => {
     });
     expect(mockPreventDefault).toHaveBeenCalledTimes(1);
 
-    // After pointerdown (e.g. user clicked or emoji picker opened)
+    // 3. After pointerdown (e.g. user clicked or emoji picker opened)
     trigger("pointerdown", {});
 
     const mockPreventDefault2 = vi.fn();
@@ -141,6 +160,32 @@ describe("installImeChordGuard window integration", () => {
     });
     // Modifier state was cleared, so beforeinput is NOT prevented
     expect(mockPreventDefault2).not.toHaveBeenCalled();
+
+    // 4. Arm again with Control, then clear with focus
+    trigger("keydown", { type: "keydown", key: "Control", ctrlKey: true, metaKey: false, altKey: false });
+    trigger("focus", {});
+    const mockPreventDefault3 = vi.fn();
+    trigger("beforeinput", {
+      cancelable: true,
+      data: "·",
+      inputType: "insertText",
+      isComposing: false,
+      preventDefault: mockPreventDefault3,
+    });
+    expect(mockPreventDefault3).not.toHaveBeenCalled();
+
+    // 5. Release via keyup with ctrlKey: false
+    trigger("keydown", { type: "keydown", key: "Control", ctrlKey: true, metaKey: false, altKey: false });
+    trigger("keyup", { type: "keyup", key: "Control", ctrlKey: false, metaKey: false, altKey: false });
+    const mockPreventDefault4 = vi.fn();
+    trigger("beforeinput", {
+      cancelable: true,
+      data: "·",
+      inputType: "insertText",
+      isComposing: false,
+      preventDefault: mockPreventDefault4,
+    });
+    expect(mockPreventDefault4).not.toHaveBeenCalled();
 
     dispose();
   });

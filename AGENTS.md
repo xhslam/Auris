@@ -356,3 +356,26 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 实现新增 Markdown 超链接安全解析与来源路径感知：源码模式 Cmd/Ctrl+点击从 AST 取得目标，WYSIWYG 普通点击拦截原生导航、Cmd/Ctrl+点击打开目标；Mod+K 编辑已有 link mark 的 href 并校验异步对话框返回时的文档/范围未过期。相对与 POSIX/Windows 绝对路径被正确解析，UNC、网络路径、盘符相对路径及非安全协议被拒绝；Vault 内 Markdown 复用笔记工作区，Vault 外 Markdown 通过可信 IPC 与受限本地绝对路径入口打开。支持安全片段解码及目标标题定位。增加路径、失败边界、实际 WYSIWYG 点击与编辑、链接图片 mark 范围/保存往返和 IPC 合约测试。
 
 验证纪律：新增测试尚未运行；本轮也未运行 lint、TypeScript、构建或 macOS/Windows 桌面手动验证，因此这些结果仍未知。未递增版本、提交、推送或重打包。软件工程归类为纠错性维护、功能增强、回归测试和跨平台验证。细节见 `docs/vmark-sync/implementation-status-2026-09-24.md`。
+
+
+## Engineering trajectory: VMark IME 物理状态机同步、推送 GitHub 与本地应用更新（2026-09-27）
+
+本轮按用户要求全面跟踪 `xiaolai-source` 旗下项目最新版本，吸收上游 VMark（v0.9.82 ~ v0.9.84）输入法状态机治理核心思想并对齐 Auris，完成代码合并、版本递增、推送到 GitHub main 分支并重打包安装运行本地 `/Applications/Auris.app`（v1.0.11）。
+
+实现与工程对齐：
+1. **输入法状态机物理跃迁对齐（`src/features/notes/editor/ime-chord-guard.ts`）**：
+   - 移除非 macOS 平台的 Super/Windows 键（Meta）拦截，阻断 Windows/Linux 下中文逗号 `，` 等标点被误杀的严重缺陷（Issue #1445）；
+   - 彻底重构状态机激发条件：放弃被动采纳操作系统 `event.ctrlKey` / `event.metaKey` 瞬时聚合标志，改由修饰键自身物理 `keydown` 事件（`Control`、`Meta`、`OS`）独立激活；
+   - 确立聚合标志的释放权威：任意键盘事件检测到松开立即释放；支持 Windows 欧洲键盘 AltGr 规范化放行；
+   - 新增 `focus`、`pointerdown`（鼠标点击脱困与 Emoji 拾取兼容）及 `visibilitychange` 多维兜底。
+2. **测试与质量验证**：
+   - 扩充 `tests/unit/notes/ime-chord-guard.test.ts` 至 10 项全绿；
+   - 运行 Notes 模块全量单元测试（102 个文件、845 项测试全部通过，0 failure）；
+   - 验证超链接导航与 AST 嵌套图文往返 100% 稳定；
+   - 定向 ESLint 0 errors, 0 warnings；`npx tsc --noEmit` 确认无新增类型错误。
+3. **版本递增、本地全量打包安装与启动**：
+   - 递增版本至 `v1.0.11`（`package.json` 与 `package-lock.json`）；
+   - 成功执行 `desktop:island:build`、Next.js 生产优化构建（10.7s 完成，23 静态路由生成）、`desktop:assemble`（沙箱装配与隐私审计通过）及 `electron-builder`（产出 `Auris-1.0.11-arm64.dmg` 与 `mac-arm64/Auris.app`）；
+   - 备份旧版应用至 `/Applications/Auris.app.backup-20260927-1353`，就地替换安装并完成本地 ad-hoc 签名与严格签名核验；
+   - 成功拉起新版 `/Applications/Auris.app`，主进程（PID 22959）、GPU 进程（PID 22995）、Network Service（PID 22996）、桌面灵动岛辅助进程（PID 23008）、Next.js 服务器（PID 23009）与 Renderer 进程（PID 23017/23021）均稳定运行。
+

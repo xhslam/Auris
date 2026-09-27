@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `13720e0bff1dee9772b51ffeed345f7badf56aed`
-- Changed: **2104**
-- Added: **2462**
-- Deleted: **503**
+- Compared commit: `12c98051efec2adc12c3a8fdb7afe30be036e82a`
+- Changed: **2117**
+- Added: **2473**
+- Deleted: **513**
 - Renamed: **110**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
 - Mapped upstream changes: **163**
-- Capability-domain candidates: **672**
-- Unmapped upstream changes: **4344**
+- Capability-domain candidates: **674**
+- Unmapped upstream changes: **4376**
 
 ## Upstream changes
 
@@ -373,6 +373,16 @@
 - **added** `patches/micromark@4.0.2.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
+- **deleted** `public/dictionaries/de.aff`
+- **deleted** `public/dictionaries/de.dic`
+- **deleted** `public/dictionaries/en.aff`
+- **deleted** `public/dictionaries/en.dic`
+- **deleted** `public/dictionaries/es.aff`
+- **deleted** `public/dictionaries/es.dic`
+- **deleted** `public/dictionaries/fr.aff`
+- **deleted** `public/dictionaries/fr.dic`
+- **deleted** `public/dictionaries/ko.aff`
+- **deleted** `public/dictionaries/ko.dic`
 - **added** `scripts/__tests__/i18nIdenticalAllowlist.test.ts`
 - **added** `scripts/arch-graph.mjs`
 - **added** `scripts/arch-metrics.mjs`
@@ -464,6 +474,7 @@
 - **added** `scripts/check-predelta.mjs`
 - **added** `scripts/check-predelta.test.mjs`
 - **added** `scripts/check-release-dispatch.test.mjs`
+- **added** `scripts/check-release-updater-targets.test.mjs`
 - **added** `scripts/check-review-schedule.mjs`
 - **added** `scripts/check-review-schedule.test.mjs`
 - **added** `scripts/check-rust-cache-parity.test.mjs`
@@ -1340,6 +1351,8 @@
 - **added** `src-tauri/src/pty/reader.rs`
 - **added** `src-tauri/src/pty/session.rs`
 - **added** `src-tauri/src/pty/session.test.rs`
+- **added** `src-tauri/src/pty/window_sessions.rs`
+- **added** `src-tauri/src/pty/window_sessions.test.rs`
 - **changed** `src-tauri/src/quit.rs`
 - **added** `src-tauri/src/quit.test.rs`
 - **added** `src-tauri/src/secret_token.rs`
@@ -2522,6 +2535,7 @@
 - **changed** `src/lib/ghaWorkflow/render/__tests__/layout.test.ts`
 - **changed** `src/lib/ghaWorkflow/render/__tests__/renderXyflowSnapshot.test.ts`
 - **changed** `src/lib/ghaWorkflow/render/__tests__/toGraph.test.ts`
+- **changed** `src/lib/ghaWorkflow/render/renderXyflowSnapshot.ts`
 - **changed** `src/lib/ghaWorkflow/render/snapshotRoot.test.ts`
 - **added** `src/lib/ghaWorkflow/save/__tests__/corpusHelpers.test.ts`
 - **added** `src/lib/ghaWorkflow/save/__tests__/corpusRoundtrip.test.ts`
@@ -2905,6 +2919,7 @@
 - **changed** `src/plugins/codePreview/renderers/renderMermaidPreview.ts`
 - **changed** `src/plugins/codePreview/themeObserver.ts`
 - **added** `src/plugins/codePreview/tiptap.branches.test.ts`
+- **added** `src/plugins/codePreview/tiptap.diagramCleanup.test.ts`
 - **added** `src/plugins/codePreview/tiptap.editmode.test.ts`
 - **changed** `src/plugins/codePreview/tiptap.test.ts`
 - **added** `src/plugins/codePreview/tiptap.theme.test.ts`
@@ -3063,6 +3078,7 @@
 - **changed** `src/plugins/formatToolbar/tiptapContext.test.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContext.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContextHelpers.test.ts`
+- **changed** `src/plugins/formatToolbar/tiptapContextHelpers.ts`
 - **deleted** `src/plugins/formatToolbar/types.ts`
 - **changed** `src/plugins/frontmatterPanel/frontmatter-panel.css`
 - **deleted** `src/plugins/frontmatterPanel/manifest.ts`
@@ -3138,13 +3154,18 @@
 - **changed** `src/plugins/linkPopup/LinkPopupView.test.ts`
 - **changed** `src/plugins/linkPopup/LinkPopupView.ts`
 - **changed** `src/plugins/linkPopup/__tests__/LinkPopupView.test.ts`
+- **added** `src/plugins/linkPopup/findLinkMarkRange.test.ts`
+- **added** `src/plugins/linkPopup/findLinkMarkRange.ts`
 - **changed** `src/plugins/linkPopup/link-popup.css`
 - **changed** `src/plugins/linkPopup/linkPopupDom.ts`
 - **changed** `src/plugins/linkPopup/linkRange.test.ts`
+- **changed** `src/plugins/linkPopup/linkRange.ts`
 - **deleted** `src/plugins/linkPopup/manifest.ts`
 - **changed** `src/plugins/linkPopup/operations.test.ts`
+- **changed** `src/plugins/linkPopup/operations.ts`
 - **changed** `src/plugins/linkPopup/tiptap.test.ts`
 - **changed** `src/plugins/linkPopup/tiptap.ts`
+- **added** `src/plugins/linkPopup/tiptapPointer.test.ts`
 - **added** `src/plugins/lint/__tests__/testHarness.ts`
 - **added** `src/plugins/lint/docEpoch.test.ts`
 - **added** `src/plugins/lint/docEpoch.ts`
@@ -3203,6 +3224,7 @@
 - **changed** `src/plugins/mediaPopup/__tests__/mediaPopupActions.test.ts`
 - **changed** `src/plugins/mediaPopup/__tests__/mediaPopupDom.test.ts`
 - **deleted** `src/plugins/mediaPopup/manifest.ts`
+- **added** `src/plugins/mediaPopup/markedImageToggle.test.ts`
 - **changed** `src/plugins/mediaPopup/media-popup.css`
 - **added** `src/plugins/mediaPopup/mediaAttrUpdates.test.ts`
 - **added** `src/plugins/mediaPopup/mediaAttrUpdates.ts`
@@ -3476,6 +3498,7 @@
 - **added** `src/plugins/toolbarActions/adapterActions.ts`
 - **added** `src/plugins/toolbarActions/cjkFormatFeedback.test.ts`
 - **added** `src/plugins/toolbarActions/cjkFormatFeedback.ts`
+- **added** `src/plugins/toolbarActions/clearFormattingMarkedImage.test.ts`
 - **added** `src/plugins/toolbarActions/codeBlockSerialize.ts`
 - **changed** `src/plugins/toolbarActions/dispatch.test.ts`
 - **changed** `src/plugins/toolbarActions/dispatch.ts`
@@ -4284,6 +4307,7 @@
 - **deleted** `src/stores/__tests__/browserStore.test.ts`
 - **deleted** `src/stores/__tests__/editorContextMenuSlice.test.ts`
 - **added** `src/stores/__tests__/editorContextMenuStore.test.ts`
+- **added** `src/stores/__tests__/editorStore.sourceRelease.test.ts`
 - **changed** `src/stores/__tests__/geniePickerStore.test.ts`
 - **changed** `src/stores/__tests__/geniesStore.test.ts`
 - **deleted** `src/stores/__tests__/inlineMathEditingStore.test.ts`
@@ -4822,6 +4846,7 @@
 - **added** `src/utils/markdownPipeline/imageReferenceRoundtrip.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.ts`
+- **added** `src/utils/markdownPipeline/linkedImageRoundtrip.test.ts`
 - **added** `src/utils/markdownPipeline/listInterruptJoin.test.ts`
 - **added** `src/utils/markdownPipeline/listInterruptJoin.ts`
 - **added** `src/utils/markdownPipeline/markEdgeWhitespace.ts`
@@ -5066,6 +5091,7 @@
 - **added** `website/de/guide/knowledge-base.md`
 - **changed** `website/de/guide/large-files.md`
 - **changed** `website/de/guide/mcp-tools.md`
+- **changed** `website/de/guide/popups.md`
 - **changed** `website/de/guide/settings.md`
 - **changed** `website/de/guide/workflow-genies.md`
 - **added** `website/de/guide/workflows.md`
@@ -5078,6 +5104,7 @@
 - **added** `website/es/guide/knowledge-base.md`
 - **changed** `website/es/guide/large-files.md`
 - **changed** `website/es/guide/mcp-tools.md`
+- **changed** `website/es/guide/popups.md`
 - **changed** `website/es/guide/settings.md`
 - **changed** `website/es/guide/workflow-genies.md`
 - **added** `website/es/guide/workflows.md`
@@ -5089,6 +5116,7 @@
 - **added** `website/fr/guide/knowledge-base.md`
 - **changed** `website/fr/guide/large-files.md`
 - **changed** `website/fr/guide/mcp-tools.md`
+- **changed** `website/fr/guide/popups.md`
 - **changed** `website/fr/guide/settings.md`
 - **changed** `website/fr/guide/workflow-genies.md`
 - **added** `website/fr/guide/workflows.md`
@@ -5130,6 +5158,7 @@
 - **added** `website/it/guide/knowledge-base.md`
 - **changed** `website/it/guide/large-files.md`
 - **changed** `website/it/guide/mcp-tools.md`
+- **changed** `website/it/guide/popups.md`
 - **changed** `website/it/guide/settings.md`
 - **changed** `website/it/guide/workflow-genies.md`
 - **added** `website/it/guide/workflows.md`
@@ -5141,6 +5170,7 @@
 - **added** `website/ja/guide/knowledge-base.md`
 - **changed** `website/ja/guide/large-files.md`
 - **changed** `website/ja/guide/mcp-tools.md`
+- **changed** `website/ja/guide/popups.md`
 - **changed** `website/ja/guide/settings.md`
 - **changed** `website/ja/guide/workflow-genies.md`
 - **added** `website/ja/guide/workflows.md`
@@ -5152,6 +5182,7 @@
 - **added** `website/ko/guide/knowledge-base.md`
 - **changed** `website/ko/guide/large-files.md`
 - **changed** `website/ko/guide/mcp-tools.md`
+- **changed** `website/ko/guide/popups.md`
 - **changed** `website/ko/guide/settings.md`
 - **changed** `website/ko/guide/workflow-genies.md`
 - **added** `website/ko/guide/workflows.md`
@@ -5165,6 +5196,7 @@
 - **added** `website/pt-BR/guide/knowledge-base.md`
 - **changed** `website/pt-BR/guide/large-files.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
+- **changed** `website/pt-BR/guide/popups.md`
 - **changed** `website/pt-BR/guide/settings.md`
 - **changed** `website/pt-BR/guide/workflow-genies.md`
 - **added** `website/pt-BR/guide/workflows.md`
@@ -5179,6 +5211,7 @@
 - **added** `website/zh-CN/guide/knowledge-base.md`
 - **changed** `website/zh-CN/guide/large-files.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
+- **changed** `website/zh-CN/guide/popups.md`
 - **changed** `website/zh-CN/guide/settings.md`
 - **changed** `website/zh-CN/guide/workflow-genies.md`
 - **added** `website/zh-CN/guide/workflows.md`
@@ -5190,6 +5223,7 @@
 - **added** `website/zh-TW/guide/knowledge-base.md`
 - **changed** `website/zh-TW/guide/large-files.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
+- **changed** `website/zh-TW/guide/popups.md`
 - **changed** `website/zh-TW/guide/settings.md`
 - **changed** `website/zh-TW/guide/workflow-genies.md`
 - **added** `website/zh-TW/guide/workflows.md`
@@ -5413,6 +5447,8 @@
 - `terminal` (`defer`): **added** `src-tauri/src/pty/reader.rs`
 - `terminal` (`defer`): **added** `src-tauri/src/pty/session.rs`
 - `terminal` (`defer`): **added** `src-tauri/src/pty/session.test.rs`
+- `terminal` (`defer`): **added** `src-tauri/src/pty/window_sessions.rs`
+- `terminal` (`defer`): **added** `src-tauri/src/pty/window_sessions.test.rs`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/DocumentSplitContainer.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/SplitDivider.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/SplitDivider.tsx`
@@ -6315,6 +6351,16 @@
 - **added** `patches/micromark@4.0.2.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
+- **deleted** `public/dictionaries/de.aff`
+- **deleted** `public/dictionaries/de.dic`
+- **deleted** `public/dictionaries/en.aff`
+- **deleted** `public/dictionaries/en.dic`
+- **deleted** `public/dictionaries/es.aff`
+- **deleted** `public/dictionaries/es.dic`
+- **deleted** `public/dictionaries/fr.aff`
+- **deleted** `public/dictionaries/fr.dic`
+- **deleted** `public/dictionaries/ko.aff`
+- **deleted** `public/dictionaries/ko.dic`
 - **added** `scripts/__tests__/i18nIdenticalAllowlist.test.ts`
 - **added** `scripts/arch-graph.mjs`
 - **added** `scripts/arch-metrics.mjs`
@@ -6404,6 +6450,7 @@
 - **added** `scripts/check-predelta.mjs`
 - **added** `scripts/check-predelta.test.mjs`
 - **added** `scripts/check-release-dispatch.test.mjs`
+- **added** `scripts/check-release-updater-targets.test.mjs`
 - **added** `scripts/check-review-schedule.mjs`
 - **added** `scripts/check-review-schedule.test.mjs`
 - **added** `scripts/check-rust-cache-parity.test.mjs`
@@ -7837,6 +7884,7 @@
 - **changed** `src/lib/ghaWorkflow/render/__tests__/layout.test.ts`
 - **changed** `src/lib/ghaWorkflow/render/__tests__/renderXyflowSnapshot.test.ts`
 - **changed** `src/lib/ghaWorkflow/render/__tests__/toGraph.test.ts`
+- **changed** `src/lib/ghaWorkflow/render/renderXyflowSnapshot.ts`
 - **changed** `src/lib/ghaWorkflow/render/snapshotRoot.test.ts`
 - **added** `src/lib/ghaWorkflow/save/__tests__/corpusHelpers.test.ts`
 - **added** `src/lib/ghaWorkflow/save/__tests__/corpusRoundtrip.test.ts`
@@ -8214,6 +8262,7 @@
 - **changed** `src/plugins/codePreview/renderers/renderMermaidPreview.ts`
 - **changed** `src/plugins/codePreview/themeObserver.ts`
 - **added** `src/plugins/codePreview/tiptap.branches.test.ts`
+- **added** `src/plugins/codePreview/tiptap.diagramCleanup.test.ts`
 - **added** `src/plugins/codePreview/tiptap.editmode.test.ts`
 - **changed** `src/plugins/codePreview/tiptap.test.ts`
 - **added** `src/plugins/codePreview/tiptap.theme.test.ts`
@@ -8372,6 +8421,7 @@
 - **changed** `src/plugins/formatToolbar/tiptapContext.test.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContext.ts`
 - **changed** `src/plugins/formatToolbar/tiptapContextHelpers.test.ts`
+- **changed** `src/plugins/formatToolbar/tiptapContextHelpers.ts`
 - **deleted** `src/plugins/formatToolbar/types.ts`
 - **changed** `src/plugins/frontmatterPanel/frontmatter-panel.css`
 - **deleted** `src/plugins/frontmatterPanel/manifest.ts`
@@ -8447,13 +8497,18 @@
 - **changed** `src/plugins/linkPopup/LinkPopupView.test.ts`
 - **changed** `src/plugins/linkPopup/LinkPopupView.ts`
 - **changed** `src/plugins/linkPopup/__tests__/LinkPopupView.test.ts`
+- **added** `src/plugins/linkPopup/findLinkMarkRange.test.ts`
+- **added** `src/plugins/linkPopup/findLinkMarkRange.ts`
 - **changed** `src/plugins/linkPopup/link-popup.css`
 - **changed** `src/plugins/linkPopup/linkPopupDom.ts`
 - **changed** `src/plugins/linkPopup/linkRange.test.ts`
+- **changed** `src/plugins/linkPopup/linkRange.ts`
 - **deleted** `src/plugins/linkPopup/manifest.ts`
 - **changed** `src/plugins/linkPopup/operations.test.ts`
+- **changed** `src/plugins/linkPopup/operations.ts`
 - **changed** `src/plugins/linkPopup/tiptap.test.ts`
 - **changed** `src/plugins/linkPopup/tiptap.ts`
+- **added** `src/plugins/linkPopup/tiptapPointer.test.ts`
 - **added** `src/plugins/lint/__tests__/testHarness.ts`
 - **added** `src/plugins/lint/docEpoch.test.ts`
 - **added** `src/plugins/lint/docEpoch.ts`
@@ -8512,6 +8567,7 @@
 - **changed** `src/plugins/mediaPopup/__tests__/mediaPopupActions.test.ts`
 - **changed** `src/plugins/mediaPopup/__tests__/mediaPopupDom.test.ts`
 - **deleted** `src/plugins/mediaPopup/manifest.ts`
+- **added** `src/plugins/mediaPopup/markedImageToggle.test.ts`
 - **changed** `src/plugins/mediaPopup/media-popup.css`
 - **added** `src/plugins/mediaPopup/mediaAttrUpdates.test.ts`
 - **added** `src/plugins/mediaPopup/mediaAttrUpdates.ts`
@@ -8785,6 +8841,7 @@
 - **added** `src/plugins/toolbarActions/adapterActions.ts`
 - **added** `src/plugins/toolbarActions/cjkFormatFeedback.test.ts`
 - **added** `src/plugins/toolbarActions/cjkFormatFeedback.ts`
+- **added** `src/plugins/toolbarActions/clearFormattingMarkedImage.test.ts`
 - **added** `src/plugins/toolbarActions/codeBlockSerialize.ts`
 - **changed** `src/plugins/toolbarActions/dispatch.test.ts`
 - **changed** `src/plugins/toolbarActions/dispatch.ts`
@@ -9437,6 +9494,7 @@
 - **deleted** `src/stores/__tests__/browserStore.test.ts`
 - **deleted** `src/stores/__tests__/editorContextMenuSlice.test.ts`
 - **added** `src/stores/__tests__/editorContextMenuStore.test.ts`
+- **added** `src/stores/__tests__/editorStore.sourceRelease.test.ts`
 - **changed** `src/stores/__tests__/geniePickerStore.test.ts`
 - **changed** `src/stores/__tests__/geniesStore.test.ts`
 - **deleted** `src/stores/__tests__/inlineMathEditingStore.test.ts`
@@ -9930,6 +9988,7 @@
 - **added** `src/utils/markdownPipeline/imageReferenceRoundtrip.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.test.ts`
 - **changed** `src/utils/markdownPipeline/inlineParser.ts`
+- **added** `src/utils/markdownPipeline/linkedImageRoundtrip.test.ts`
 - **added** `src/utils/markdownPipeline/listInterruptJoin.test.ts`
 - **added** `src/utils/markdownPipeline/listInterruptJoin.ts`
 - **added** `src/utils/markdownPipeline/markEdgeWhitespace.ts`
@@ -10174,6 +10233,7 @@
 - **added** `website/de/guide/knowledge-base.md`
 - **changed** `website/de/guide/large-files.md`
 - **changed** `website/de/guide/mcp-tools.md`
+- **changed** `website/de/guide/popups.md`
 - **changed** `website/de/guide/settings.md`
 - **changed** `website/de/guide/workflow-genies.md`
 - **added** `website/de/guide/workflows.md`
@@ -10186,6 +10246,7 @@
 - **added** `website/es/guide/knowledge-base.md`
 - **changed** `website/es/guide/large-files.md`
 - **changed** `website/es/guide/mcp-tools.md`
+- **changed** `website/es/guide/popups.md`
 - **changed** `website/es/guide/settings.md`
 - **changed** `website/es/guide/workflow-genies.md`
 - **added** `website/es/guide/workflows.md`
@@ -10197,6 +10258,7 @@
 - **added** `website/fr/guide/knowledge-base.md`
 - **changed** `website/fr/guide/large-files.md`
 - **changed** `website/fr/guide/mcp-tools.md`
+- **changed** `website/fr/guide/popups.md`
 - **changed** `website/fr/guide/settings.md`
 - **changed** `website/fr/guide/workflow-genies.md`
 - **added** `website/fr/guide/workflows.md`
@@ -10238,6 +10300,7 @@
 - **added** `website/it/guide/knowledge-base.md`
 - **changed** `website/it/guide/large-files.md`
 - **changed** `website/it/guide/mcp-tools.md`
+- **changed** `website/it/guide/popups.md`
 - **changed** `website/it/guide/settings.md`
 - **changed** `website/it/guide/workflow-genies.md`
 - **added** `website/it/guide/workflows.md`
@@ -10249,6 +10312,7 @@
 - **added** `website/ja/guide/knowledge-base.md`
 - **changed** `website/ja/guide/large-files.md`
 - **changed** `website/ja/guide/mcp-tools.md`
+- **changed** `website/ja/guide/popups.md`
 - **changed** `website/ja/guide/settings.md`
 - **changed** `website/ja/guide/workflow-genies.md`
 - **added** `website/ja/guide/workflows.md`
@@ -10260,6 +10324,7 @@
 - **added** `website/ko/guide/knowledge-base.md`
 - **changed** `website/ko/guide/large-files.md`
 - **changed** `website/ko/guide/mcp-tools.md`
+- **changed** `website/ko/guide/popups.md`
 - **changed** `website/ko/guide/settings.md`
 - **changed** `website/ko/guide/workflow-genies.md`
 - **added** `website/ko/guide/workflows.md`
@@ -10273,6 +10338,7 @@
 - **added** `website/pt-BR/guide/knowledge-base.md`
 - **changed** `website/pt-BR/guide/large-files.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
+- **changed** `website/pt-BR/guide/popups.md`
 - **changed** `website/pt-BR/guide/settings.md`
 - **changed** `website/pt-BR/guide/workflow-genies.md`
 - **added** `website/pt-BR/guide/workflows.md`
@@ -10287,6 +10353,7 @@
 - **added** `website/zh-CN/guide/knowledge-base.md`
 - **changed** `website/zh-CN/guide/large-files.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
+- **changed** `website/zh-CN/guide/popups.md`
 - **changed** `website/zh-CN/guide/settings.md`
 - **changed** `website/zh-CN/guide/workflow-genies.md`
 - **added** `website/zh-CN/guide/workflows.md`
@@ -10298,6 +10365,7 @@
 - **added** `website/zh-TW/guide/knowledge-base.md`
 - **changed** `website/zh-TW/guide/large-files.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
+- **changed** `website/zh-TW/guide/popups.md`
 - **changed** `website/zh-TW/guide/settings.md`
 - **changed** `website/zh-TW/guide/workflow-genies.md`
 - **added** `website/zh-TW/guide/workflows.md`
