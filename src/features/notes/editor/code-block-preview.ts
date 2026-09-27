@@ -3,6 +3,7 @@
 import { WidgetType } from "@codemirror/view";
 import katex from "katex";
 import mermaid from "mermaid";
+import { sanitizeMathContent } from "@/features/notes/markdown/notes-markdown-dialect";
 
 mermaid.initialize({
   startOnLoad: false,
@@ -14,7 +15,8 @@ export const DEFAULT_KATEX_MACROS: Record<string, string> = {
 };
 
 export function renderMathMarkup(text: string, displayMode: boolean) {
-  return katex.renderToString(text, {
+  const sanitized = sanitizeMathContent(text);
+  return katex.renderToString(sanitized, {
     displayMode,
     strict: false,
     throwOnError: false,

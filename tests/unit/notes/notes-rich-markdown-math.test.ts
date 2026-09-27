@@ -126,6 +126,34 @@ describe("notes-rich-markdown math", () => {
     expect(html).not.toContain(String.raw`\\(`);
   });
 
+  it("sanitizes NotebookLM's double-escaped LaTeX commands, escaped brackets, subscripts, and percent signs without katex-error", () => {
+    const source = [
+      String.raw`相角裕度 \\(\\gamma = 180^\\circ + \\varphi(\\omega_c) = 180^\\circ - 90^\\circ - \\arctan(0.2\\omega_c) \\approx 4.12^\\circ\\)。`,
+      String.raw`令虚部为零 \\(\\text{Im}\[G_0(j\\omega)\] = 0\\)，代入得 \\(Re\[G_0(j\\omega_x)\] = -0.859\\)。`,
+      String.raw`截止频率 \\(\\omega\_{c0} \\approx 12.5\\text{ rad/s}\\)，最大延时 \\(\\tau\_{max}\\)。`,
+      String.raw`超调量 \\(\\sigma% = 15%\\)，误差带 \\(\\Delta = 2%\\)。`,
+    ].join("\n\n");
+
+    const doc = parseNotesRichMarkdown(source);
+    const contents: string[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "math_inline") {
+        contents.push(node.attrs.content as string);
+      }
+    });
+
+    expect(contents.some((c) => c.includes(String.raw`\gamma = 180^\circ`))).toBe(true);
+    expect(contents.some((c) => c.includes(String.raw`[G_0(j\omega)]`))).toBe(true);
+    expect(contents.some((c) => c.includes(String.raw`\omega_{c0}`))).toBe(true);
+    expect(contents.some((c) => c.includes(String.raw`\tau_{max}`))).toBe(true);
+    expect(contents.some((c) => c.includes(String.raw`\sigma\% = 15\%`))).toBe(true);
+
+    const html = renderMarkdown(source);
+    expect(html).not.toContain("katex-error");
+    expect(html.match(/class="katex"/gu)?.length).toBe(contents.length);
+  });
+
   it("parses balanced double-escaped display delimiters but keeps unmatched ones literal", () => {
     const source = String.raw`\\[
 \int_0^1 x\,dx

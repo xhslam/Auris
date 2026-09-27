@@ -208,7 +208,7 @@ export function findCompatibleMathDelimiterSpans(
     if (close < 0) continue;
     const end = close + delimiterWidth + 1;
     const rawContent = markdown.slice(openerIndex + 1, close);
-    const content = rawContent.trim();
+    const content = sanitizeMathContent(rawContent);
 
     if (
       !content ||
@@ -231,6 +231,44 @@ export function findCompatibleMathDelimiterSpans(
   }
 
   return spans;
+}
+
+/**
+ * Clean up common NotebookLM / AI export math quirks:
+ * 1. Double backslashes on LaTeX macros/delimiters: \\frac -> \frac, \\gamma -> \gamma, etc.
+ * 2. Double-escaped line-breaks in arrays/matrices: \\\\ -> \\
+ * 3. Markdown-escaped brackets inside math: \[ -> [, \] -> ] (preserving \left[ and \right])
+ * 4. Subscripts with markdown-escaped underscore: \_{...} -> _{...}
+ * 5. Unescaped percent signs in math: % -> \% (avoids LaTeX comment swallowing remainder)
+ */
+export function sanitizeMathContent(content: string): string {
+  let cleaned = content.trim();
+
+  // 1. Unescape double backslashes before LaTeX macro names, symbols or delimiters:
+  // e.g. \\gamma -> \gamma, \\frac -> \frac, \\{ -> \{, \\} -> \}, \\| -> \|, \\approx -> \approx
+  cleaned = cleaned.replace(/\\\\([a-zA-Z]+|\{|\}|\||,|:|;|!)/gu, "\\$1");
+
+  // 2. Double-escaped line-breaks in arrays/matrices: \\\\ followed by space/newline -> \\
+  cleaned = cleaned.replace(/\\\\(?:\s|$)/gu, "\\\\ ");
+
+  // 3. Unescape Markdown-escaped brackets inside math: \[ -> [, \] -> ]
+  // Preserving \left[ and \right], \bigl[, \bigr], etc.
+  cleaned = cleaned.replace(
+    /(?<!\\(?:left|right|bigl|Bigl|biggl|Biggl|bigr|Bigr|biggr|Biggr))\s*\\\[/gu,
+    "[",
+  );
+  cleaned = cleaned.replace(
+    /(?<!\\(?:left|right|bigl|Bigl|biggl|Biggl|bigr|Bigr|biggr|Biggr))\s*\\\]/gu,
+    "]",
+  );
+
+  // 4. Subscripts with markdown-escaped underscore: \_{...} -> _{...}
+  cleaned = cleaned.replace(/\\_\{/gu, "_{");
+
+  // 5. Unescaped percent signs in math: % -> \%
+  cleaned = cleaned.replace(/(?<!\\)%/gu, "\\%");
+
+  return cleaned;
 }
 
 /** Convert compatible one- or two-backslash AI delimiters to canonical `$` math. */
@@ -280,6 +318,12 @@ const remarkValidateNotesMath: Plugin = function () {
           (/^\s/u.test(child.value) || /\s$/u.test(child.value))
         ) {
           return { type: "text", value: `$${child.value}$` };
+        }
+        if (
+          (child.type === "inlineMath" || child.type === "math") &&
+          typeof child.value === "string"
+        ) {
+          child.value = sanitizeMathContent(child.value);
         }
         if (child.children) stack.push(child);
         return child;
