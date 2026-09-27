@@ -210,6 +210,24 @@ describe("notes mixed rendering", () => {
     host.remove();
   });
 
+  it("renders NotebookLM's double-escaped bracket display math", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    const view = new EditorView({
+      parent: host,
+      state: EditorState.create({
+        doc: ["Paragraph", "", "\\\\[", "\\int_0^1 x\\,dx", "\\\\]"].join("\n"),
+        extensions: [createNotesMixedRendering()],
+      }),
+    });
+
+    expect(host.querySelector(".notes-v2__cm-math-preview .katex")).not.toBeNull();
+
+    view.destroy();
+    host.remove();
+  });
+
   it("renders inline math spans as KaTeX preview widgets", () => {
     const host = document.createElement("div");
     document.body.append(host);
@@ -246,6 +264,27 @@ Inline \(E=mc^2\) but code \`\(x^2\)\``.replaceAll("\\`", "`"),
 
     expect(host.querySelectorAll(".notes-v2__cm-inline-math-preview")).toHaveLength(1);
     expect(host.textContent).toContain(String.raw`\(x^2\)`);
+
+    view.destroy();
+    host.remove();
+  });
+
+  it("renders NotebookLM's double-escaped inline math", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    const view = new EditorView({
+      parent: host,
+      state: EditorState.create({
+        doc: ["Paragraph", "Copied \\\\(G_0(s) = \\frac{K}{s(0.2s + 1)}\\\\)"].join("\n"),
+        extensions: [createNotesMixedRendering()],
+      }),
+    });
+
+    expect(host.querySelectorAll(".notes-v2__cm-inline-math-preview")).toHaveLength(1);
+    expect(
+      host.querySelector(".notes-v2__cm-inline-math-preview .katex"),
+    ).not.toBeNull();
 
     view.destroy();
     host.remove();

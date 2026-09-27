@@ -2,6 +2,7 @@ import {
   DOMParser,
   type DOMOutputSpec,
   Fragment,
+  Slice,
   type MarkSpec,
   type Node as ProseMirrorNode,
   type NodeSpec,
@@ -25,6 +26,7 @@ import {
 import { renderMathMarkup } from "@/features/notes/editor/code-block-preview";
 import {
   createNotesMarkdownProcessor,
+  findCompatibleMathDelimiterSpans,
   normalizeNotesMathDelimiters,
 } from "@/features/notes/markdown/notes-markdown-dialect";
 
@@ -513,6 +515,133 @@ export function createWikiLinkDecorationPlugin(
         });
 
         return DecorationSet.create(state.doc, decorations);
+      },
+    },
+  });
+}
+
+function parsePastedMathInTextRun(
+  textNodes: ProseMirrorNode[],
+  schema: Schema,
+) {
+  const source = textNodes.map((node) => node.text ?? "").join("");
+  const spans = findCompatibleMathDelimiterSpans(source).filter(
+    (span) => span.kind === "inline",
+  );
+
+  if (spans.length === 0 || !schema.nodes.math_inline) return null;
+
+  const segments: Array<{
+    from: number;
+    node: ProseMirrorNode;
+    to: number;
+  }> = [];
+  let sourceOffset = 0;
+  for (const node of textNodes) {
+    const text = node.text ?? "";
+    segments.push({ from: sourceOffset, node, to: sourceOffset + text.length });
+    sourceOffset += text.length;
+  }
+
+  const result: ProseMirrorNode[] = [];
+  const appendText = (from: number, to: number) => {
+    for (const segment of segments) {
+      const partFrom = Math.max(from, segment.from);
+      const partTo = Math.min(to, segment.to);
+      if (partFrom >= partTo) continue;
+      result.push(
+        schema.text(
+          source.slice(partFrom, partTo),
+          segment.node.marks,
+        ),
+      );
+    }
+  };
+  const marksAt = (position: number) =>
+    segments.find((segment) => position < segment.to)?.node.marks ?? [];
+
+  let cursor = 0;
+  for (const span of spans) {
+    appendText(cursor, span.start);
+    result.push(
+      schema.nodes.math_inline.create(
+        { content: span.content },
+        null,
+        marksAt(span.start),
+      ),
+    );
+    cursor = span.end;
+  }
+  appendText(cursor, source.length);
+
+  return result;
+}
+
+function transformPastedMathFragment(
+  fragment: Fragment,
+  schema: Schema,
+): Fragment {
+  let changed = false;
+  const nodes: ProseMirrorNode[] = [];
+
+  for (let index = 0; index < fragment.childCount;) {
+    const child = fragment.child(index);
+    const isMathEligibleText =
+      child.isText && !child.marks.some((mark) => mark.type.name === "code");
+
+    if (isMathEligibleText) {
+      const textNodes: ProseMirrorNode[] = [];
+      while (index < fragment.childCount) {
+        const next = fragment.child(index);
+        if (
+          !next.isText ||
+          next.marks.some((mark) => mark.type.name === "code")
+        ) {
+          break;
+        }
+        textNodes.push(next);
+        index += 1;
+      }
+
+      const parsed = parsePastedMathInTextRun(textNodes, schema);
+      if (parsed) {
+        nodes.push(...parsed);
+        changed = true;
+      } else {
+        nodes.push(...textNodes);
+      }
+      continue;
+    }
+
+    const transformed = child.isLeaf
+      ? child
+      : transformPastedMathNode(child, schema);
+    nodes.push(transformed);
+    changed ||= transformed !== child;
+    index += 1;
+  }
+
+  return changed ? Fragment.fromArray(nodes) : fragment;
+}
+
+function transformPastedMathNode(
+  node: ProseMirrorNode,
+  schema: Schema,
+): ProseMirrorNode {
+  if (node.isLeaf || node.type.spec.code) return node;
+  const content = transformPastedMathFragment(node.content, schema);
+  return content === node.content ? node : node.copy(content);
+}
+
+/** Parse pasted inline math delimiters inside rich Notes. */
+export function createNotesRichMathPastePlugin(schema: Schema) {
+  return new Plugin({
+    props: {
+      transformPasted(slice) {
+        const content = transformPastedMathFragment(slice.content, schema);
+        return content === slice.content
+          ? slice
+          : new Slice(content, slice.openStart, slice.openEnd);
       },
     },
   });

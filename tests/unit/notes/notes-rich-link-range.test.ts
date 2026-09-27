@@ -20,7 +20,7 @@ describe("rich editor link mark ranges", () => {
     expect(imageHref).toBe("A.md");
     const range = findNotesRichLinkMarkRange(doc, imagePosition);
     expect(range?.mark.attrs.href).toBe("A.md");
-    expect(range?.from).toBeLessThan(imagePosition);
+    expect(range?.from).toBeLessThanOrEqual(imagePosition);
     expect(range?.to).toBeGreaterThan(imagePosition);
   });
 

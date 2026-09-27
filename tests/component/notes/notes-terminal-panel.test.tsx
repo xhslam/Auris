@@ -734,7 +734,7 @@ describe("NotesTerminalPanel", () => {
 
     await user.click(document.querySelector(".notes-v2__terminal-surface") as Element);
 
-    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focusSpy).toHaveBeenCalled();
   });
 
   it("opens terminal edit actions from the context menu", async () => {

@@ -38,9 +38,9 @@ const QUOTE_PATTERN = /^(\s{0,3}>\s?)(.*)$/;
 const HORIZONTAL_RULE_PATTERN = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
 const FENCE_PATTERN = /^(\s{0,3})(`{3,}|~{3,})(.*)$/;
 const IMAGE_PATTERN = /^\s*!\[([^\]]*)\]\((.*)\)\s*$/;
-const MATH_BLOCK_OPEN_PATTERN = /^\s*(\$\$|\\\[)\s*$/;
+const MATH_BLOCK_OPEN_PATTERN = /^\s*(\$\$|(\\{1,2})\[)\s*$/;
 const MATH_DOLLAR_CLOSE_PATTERN = /^\s*\$\$\s*$/;
-const MATH_BRACKET_CLOSE_PATTERN = /^\s*\\\]\s*$/;
+const MATH_BRACKET_CLOSE_PATTERN = /^\s*(\\{1,2})\]\s*$/;
 
 type EditableLineRange = {
   from: number;
@@ -725,7 +725,7 @@ function buildMixedLineDecorations(
     | null = null;
   let activeMathBlock:
     | {
-        delimiter: "bracket" | "dollar";
+        delimiter: string;
         from: number;
         startLineNumber: number;
         textLines: string[];
@@ -770,10 +770,12 @@ function buildMixedLineDecorations(
     }
 
     if (activeMathBlock) {
+      const bracketCloseMatch = line.text.match(MATH_BRACKET_CLOSE_PATTERN);
       const isClosingDelimiter =
-        activeMathBlock.delimiter === "dollar"
+        activeMathBlock.delimiter === "$$"
           ? MATH_DOLLAR_CLOSE_PATTERN.test(line.text)
-          : MATH_BRACKET_CLOSE_PATTERN.test(line.text);
+          : bracketCloseMatch?.[1]?.length ===
+            activeMathBlock.delimiter.length - 1;
       if (isClosingDelimiter) {
         if (
           !isRangeEditable(
@@ -814,7 +816,7 @@ function buildMixedLineDecorations(
     const mathBlockOpen = line.text.match(MATH_BLOCK_OPEN_PATTERN);
     if (mathBlockOpen) {
       activeMathBlock = {
-        delimiter: mathBlockOpen[1] === "$$" ? "dollar" : "bracket",
+        delimiter: mathBlockOpen[1],
         from: line.from,
         startLineNumber: lineNumber,
         textLines: [],

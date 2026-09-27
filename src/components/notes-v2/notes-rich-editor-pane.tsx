@@ -38,6 +38,7 @@ import {
 } from "@/features/notes/editor/code-block-preview";
 import {
   createWikiLinkDecorationPlugin,
+  createNotesRichMathPastePlugin,
   notesRichEditorSchema,
   parseNotesRichMarkdown,
   serializeNotesRichMarkdown,
@@ -363,6 +364,7 @@ function createNotesRichEditorState(
     doc: initialDoc,
     plugins: [
       createNotesRichInputRules(notesRichEditorSchema),
+      createNotesRichMathPastePlugin(notesRichEditorSchema),
       history(),
       ...(undoIntegrityPlugin ? [undoIntegrityPlugin] : []),
       // Formatting/list shortcuts first, then base editing keys; list-aware

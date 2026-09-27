@@ -95,6 +95,54 @@ describe("notes-rich-markdown math", () => {
     );
   });
 
+  it("parses NotebookLM's double-escaped inline delimiters across a pasted explanation", () => {
+    const source = String.raw`# 稳定裕度的相关的10道习题
+
+开环传递函数为 \\(G_0(s) = \frac{K}{s(0.2s + 1)(0.5s + 1)}\\)，已知 \\(K=6\\)。相角裕度 \\(\gamma\\) 与幅值裕度 \\(h\\) 及 \\(h(\text{dB})\\)。
+
+由模值方程 \\(|G_0(j\omega_c)| = \frac{60}{\omega_c\sqrt{(\omega_c^2 + 25)(\omega_c^2 + 4)}} = 1\\)，解得 \\(\omega_c = 2.92\text{ rad/s}\\)。
+
+代入得 \\(\operatorname{Re}[G_0(j\omega_x)] = -0.859\\)，故幅值裕度 \\(h = \frac{1}{|G_0(j\omega_x)|} \approx 1.165\\)，换算成分贝形式为 \\(h(\text{dB}) = -20\lg |G_0(j\omega_x)| \approx 1.33\text{ dB}\\)。`;
+    const doc = parseNotesRichMarkdown(source);
+    const nodes: string[] = [];
+    const contents: string[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "math_inline" || node.type.name === "math_block") {
+        nodes.push(node.type.name);
+        contents.push(node.attrs.content as string);
+      }
+    });
+
+    expect(nodes).toHaveLength(10);
+    expect(nodes.every((type) => type === "math_inline")).toBe(true);
+    expect(contents).toContain(String.raw`\gamma`);
+    expect(contents).toContain(String.raw`h(\text{dB})`);
+    expect(contents.some((content) => content.includes("\\frac{K}"))).toBe(true);
+    expect(serializeNotesRichMarkdown(doc)).not.toContain(String.raw`\\(`);
+
+    const html = renderMarkdown(source);
+    expect(html.match(/class="katex"/gu)).toHaveLength(10);
+    expect(html).not.toContain(String.raw`\\(`);
+  });
+
+  it("parses balanced double-escaped display delimiters but keeps unmatched ones literal", () => {
+    const source = String.raw`\\[
+\int_0^1 x\,dx
+\\]`;
+    const nodes = collectMathNodes(source);
+
+    expect(nodes).toEqual([
+      {
+        content: String.raw`\int_0^1 x\,dx`,
+        type: "math_block",
+      },
+    ]);
+    expect(normalizeNotesMathDelimiters(String.raw`escaped \\\\(x^2\)`)).toBe(
+      String.raw`escaped \\\\(x^2\)`,
+    );
+  });
+
   it("parses a compatible display integral as math_block", () => {
     const source = String.raw`面积题需要计算：
 

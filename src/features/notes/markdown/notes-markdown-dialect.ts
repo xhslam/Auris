@@ -160,29 +160,54 @@ export function findCompatibleMathDelimiterSpans(
     if (
       mask[index] ||
       markdown[index] !== "\\" ||
-      isEscaped(markdown, index)
+      (index > 0 && markdown[index - 1] === "\\")
     ) {
       continue;
     }
 
-    const opener = markdown[index + 1];
+    let openerIndex = index;
+    while (markdown[openerIndex] === "\\") openerIndex += 1;
+    const delimiterWidth = openerIndex - index;
+
+    // NotebookLM sometimes copies math delimiters as `\\(...\\)` so
+    // Markdown displays the visible `\(...\)` literally. Accept a balanced
+    // pair of one or two backslashes, while leaving unmatched escaped
+    // backslashes and TeX line-breaks alone.
+    if (delimiterWidth > 2) continue;
+
+    const opener = markdown[openerIndex];
     const kind: MathDelimiterKind | null =
       opener === "(" ? "inline" : opener === "[" ? "display" : null;
-    if (!kind || mask[index + 1]) continue;
+    if (!kind || mask[openerIndex]) continue;
 
-    const closer = kind === "inline" ? "\\)" : "\\]";
-    let close = markdown.indexOf(closer, index + 2);
+    const closer = kind === "inline" ? ")" : "]";
+    let close = -1;
+    let cursor = openerIndex + 1;
 
-    while (
-      close >= 0 &&
-      (mask[close] || mask[close + 1] || isEscaped(markdown, close))
-    ) {
-      close = markdown.indexOf(closer, close + 2);
+    while (cursor < markdown.length) {
+      if (markdown[cursor] !== "\\") {
+        cursor += 1;
+        continue;
+      }
+
+      const closeStart = cursor;
+      while (markdown[cursor] === "\\") cursor += 1;
+      const closeWidth = cursor - closeStart;
+
+      if (
+        closeWidth === delimiterWidth &&
+        markdown[cursor] === closer &&
+        !mask[closeStart] &&
+        !mask[cursor]
+      ) {
+        close = closeStart;
+        break;
+      }
     }
 
     if (close < 0) continue;
-    const end = close + 2;
-    const rawContent = markdown.slice(index + 2, close);
+    const end = close + delimiterWidth + 1;
+    const rawContent = markdown.slice(openerIndex + 1, close);
     const content = rawContent.trim();
 
     if (
@@ -208,7 +233,7 @@ export function findCompatibleMathDelimiterSpans(
   return spans;
 }
 
-/** Convert compatible `\\(...\\)` / `\\[...\\]` input to canonical `$` math. */
+/** Convert compatible one- or two-backslash AI delimiters to canonical `$` math. */
 export function normalizeNotesMathDelimiters(markdown: string) {
   const spans = findCompatibleMathDelimiterSpans(markdown);
   if (spans.length === 0) return markdown;
