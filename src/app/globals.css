@@ -13324,6 +13324,13 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   font-size: 1rem;
 }
 
+.desktop-app-frame .notes-v2__cm-inline-math-preview--display {
+  display: block;
+  width: 100%;
+  margin-block: 0.5em;
+  text-align: center;
+}
+
 .desktop-app-frame .notes-v2__math-block {
   display: grid;
   place-items: center;

@@ -122,6 +122,19 @@ function lineEndAt(text: string, index: number) {
   return newline < 0 ? text.length : newline;
 }
 
+function displayBlockContext(before: string) {
+  const quotePrefix = /^( {0,3}(?:>[ \t]?)+)/u.exec(before)?.[1] ?? "";
+  const listPrefix = /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+/u.exec(
+    before.slice(quotePrefix.length),
+  )?.[0] ?? "";
+  const continuation = `${quotePrefix}${" ".repeat(listPrefix.length)}`;
+
+  return {
+    continuation,
+    separator: `\n${quotePrefix.trimEnd()}\n${continuation}`,
+  };
+}
+
 function containsBlankLine(value: string) {
   return /\n[ \t]*\r?\n/u.test(value);
 }
@@ -169,11 +182,11 @@ export function findCompatibleMathDelimiterSpans(
     while (markdown[openerIndex] === "\\") openerIndex += 1;
     const delimiterWidth = openerIndex - index;
 
-    // NotebookLM sometimes copies math delimiters as `\\(...\\)` so
-    // Markdown displays the visible `\(...\)` literally. Accept a balanced
-    // pair of one or two backslashes, while leaving unmatched escaped
-    // backslashes and TeX line-breaks alone.
-    if (delimiterWidth > 2) continue;
+    // NotebookLM can copy delimiters with two backslashes; an earlier rich
+    // editor save can then escape both the backslashes and bracket, leaving
+    // three. Accept only balanced runs of one to three, while leaving longer
+    // runs and TeX line breaks alone.
+    if (delimiterWidth > 3) continue;
 
     const opener = markdown[openerIndex];
     const kind: MathDelimiterKind | null =
@@ -218,12 +231,24 @@ export function findCompatibleMathDelimiterSpans(
       continue;
     }
 
+    if (kind === "inline" && rawContent.includes("\n")) {
+      continue;
+    }
+
     if (kind === "display") {
       const before = markdown.slice(lineStartAt(markdown, index), index);
       const after = markdown.slice(end, lineEndAt(markdown, end));
-      if (!/^[ \t]*$/u.test(before) || !/^[ \t]*\r?$/u.test(after)) continue;
-    } else if (rawContent.includes("\n")) {
-      continue;
+      const sharesLineWithProse = before.trim() || after.trim();
+
+      // A paired escaped bracket around an ordinary word is often literal
+      // Markdown text. Retain that spelling unless it contains math syntax.
+      if (
+        sharesLineWithProse &&
+        content.length > 1 &&
+        /^[\p{Letter}][\p{Letter}\p{Number}\s-]*$/u.test(content)
+      ) {
+        continue;
+      }
     }
 
     spans.push({ content, end, kind, start: index });
@@ -271,7 +296,7 @@ export function sanitizeMathContent(content: string): string {
   return cleaned;
 }
 
-/** Convert compatible one- or two-backslash AI delimiters to canonical `$` math. */
+/** Convert compatible one- to three-backslash AI delimiters to canonical `$` math. */
 export function normalizeNotesMathDelimiters(markdown: string) {
   const spans = findCompatibleMathDelimiterSpans(markdown);
   if (spans.length === 0) return markdown;
@@ -285,7 +310,15 @@ export function normalizeNotesMathDelimiters(markdown: string) {
       const fence = "$".repeat(
         Math.max(2, longestDollarOnlyLine(span.content) + 1),
       );
-      result.push(`${fence}\n${span.content}\n${fence}`);
+      const before = markdown.slice(lineStartAt(markdown, span.start), span.start);
+      const after = markdown.slice(span.end, lineEndAt(markdown, span.end));
+      const { continuation, separator } = displayBlockContext(before);
+      // remark-math only makes a block node when its fence is on a separate
+      // line. AI exports may place \[...\] directly after the prose that
+      // introduces it. Keep continuation indentation for lists and quotes.
+      result.push(
+        `${before.trim() ? separator : ""}${fence}\n${continuation}${span.content.replaceAll("\n", `\n${continuation}`)}\n${continuation}${fence}${after.trim() ? separator : ""}`,
+      );
     } else {
       const fence = "$".repeat(Math.max(1, longestDollarRun(span.content) + 1));
       result.push(`${fence}${span.content}${fence}`);

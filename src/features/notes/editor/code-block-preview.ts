@@ -341,6 +341,7 @@ export class MathBlockPreviewWidget extends WidgetType {
 }
 
 type MathInlinePreviewWidgetProps = {
+  display?: boolean;
   text: string;
 };
 
@@ -350,15 +351,18 @@ export class MathInlinePreviewWidget extends WidgetType {
   }
 
   eq(other: MathInlinePreviewWidget) {
-    return other.props.text === this.props.text;
+    return (
+      other.props.text === this.props.text &&
+      other.props.display === this.props.display
+    );
   }
 
   toDOM() {
     const wrapper = document.createElement("span");
-    wrapper.className = "notes-v2__cm-inline-math-preview";
+    wrapper.className = `notes-v2__cm-inline-math-preview${this.props.display ? " notes-v2__cm-inline-math-preview--display" : ""}`;
 
     try {
-      wrapper.innerHTML = renderMathMarkup(this.props.text, false);
+      wrapper.innerHTML = renderMathMarkup(this.props.text, this.props.display ?? false);
     } catch (error: unknown) {
       wrapper.textContent =
         error instanceof Error ? error.message : "KaTeX 渲染失败";

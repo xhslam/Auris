@@ -38,9 +38,9 @@ const QUOTE_PATTERN = /^(\s{0,3}>\s?)(.*)$/;
 const HORIZONTAL_RULE_PATTERN = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
 const FENCE_PATTERN = /^(\s{0,3})(`{3,}|~{3,})(.*)$/;
 const IMAGE_PATTERN = /^\s*!\[([^\]]*)\]\((.*)\)\s*$/;
-const MATH_BLOCK_OPEN_PATTERN = /^\s*(\$\$|(\\{1,2})\[)\s*$/;
+const MATH_BLOCK_OPEN_PATTERN = /^\s*(\$\$|(\\{1,3})\[)\s*$/;
 const MATH_DOLLAR_CLOSE_PATTERN = /^\s*\$\$\s*$/;
-const MATH_BRACKET_CLOSE_PATTERN = /^\s*(\\{1,2})\]\s*$/;
+const MATH_BRACKET_CLOSE_PATTERN = /^\s*(\\{1,3})\]\s*$/;
 
 type EditableLineRange = {
   from: number;
@@ -447,10 +447,12 @@ function collectInlineMathSpans(line: {
   const spans: InlineSpan[] = [];
 
   for (const span of findCompatibleMathDelimiterSpans(line.text)) {
-    if (span.kind !== "inline") continue;
     spans.push({
       decoration: Decoration.replace({
-        widget: new MathInlinePreviewWidget({ text: span.content }),
+        widget: new MathInlinePreviewWidget({
+          display: span.kind === "display",
+          text: span.content,
+        }),
       }),
       from: line.from + span.start,
       to: line.from + span.end,
@@ -567,7 +569,10 @@ function addInlineDecorations(
 ) {
   // Fast path: the vast majority of lines contain neither inline math nor a
   // wiki link, so skip the scans/allocation/sort entirely for them.
-  const hasMath = line.text.includes("$") || line.text.includes("\\(");
+  const hasMath =
+    line.text.includes("$") ||
+    line.text.includes("\\(") ||
+    line.text.includes("\\[");
   const hasWikiLink = line.text.includes("[[");
 
   if (!hasMath && !hasWikiLink) {

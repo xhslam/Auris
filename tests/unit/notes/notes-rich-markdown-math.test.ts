@@ -187,6 +187,118 @@ describe("notes-rich-markdown math", () => {
     ]);
   });
 
+  it("renders a display formula after prose on the same line", () => {
+    const source = String.raw`对数稳定判据的核心公式为： \[\mathbf{Z = P - 2N}\]
+
+- $Z$：闭环系统在右半 $s$ 平面的极点数。`;
+
+    expect(collectMathNodes(source)).toEqual([
+      { content: String.raw`\mathbf{Z = P - 2N}`, type: "math_block" },
+      { content: "Z", type: "math_inline" },
+      { content: "s", type: "math_inline" },
+    ]);
+
+    const html = renderMarkdown(source);
+    expect(html).toContain("katex-display");
+    expect(html).not.toContain(String.raw`\[\mathbf{Z = P - 2N}\]`);
+  });
+
+  it("separates a same-line display formula from a Markdown heading", () => {
+    const source = String.raw`## 对数稳定判据的核心公式为： \[\mathbf{Z = P - 2N}\]`;
+    const doc = parseNotesRichMarkdown(source);
+
+    expect(doc.child(0).type.name).toBe("heading");
+    expect(doc.child(0).textContent).toBe("对数稳定判据的核心公式为：");
+    expect(collectMathNodes(source)).toEqual([
+      { content: String.raw`\mathbf{Z = P - 2N}`, type: "math_block" },
+    ]);
+  });
+
+  it("renders a previously saved heading with triple-escaped brackets", () => {
+    const source = String.raw`# 对数稳定判据的核心公式为： \\\[\\mathbf{Z = P - 2N}\\\]`;
+    const doc = parseNotesRichMarkdown(source);
+
+    expect(doc.child(0).type.name).toBe("heading");
+    expect(doc.child(0).textContent).toBe("对数稳定判据的核心公式为：");
+    expect(collectMathNodes(source)).toEqual([
+      { content: String.raw`\mathbf{Z = P - 2N}`, type: "math_block" },
+    ]);
+    expect(renderMarkdown(source)).toContain("katex-display");
+  });
+
+  it("renders a previously saved ordered step with triple-escaped brackets", () => {
+    const source = String.raw`4. 计算临界增益： \\\[|G(j\\omega_x)| = \\frac{K}{12} < 1\\\]`;
+
+    expect(collectMathNodes(source)).toEqual([
+      { content: String.raw`|G(j\omega_x)| = \frac{K}{12} < 1`, type: "math_block" },
+    ]);
+    expect(renderMarkdown(source)).toContain("katex-display");
+  });
+
+  it("keeps same-line display math inside its list item or block quote", () => {
+    const listAst = parseNotesMarkdownAst(
+      String.raw`- 判据： \[\mathbf{Z = P - 2N}\]`,
+    ) as unknown as { children: Array<{ children?: Array<{ children?: Array<{ type: string }> }>; type: string }> };
+    const quoteAst = parseNotesMarkdownAst(
+      String.raw`> 判据： \[\mathbf{Z = P - 2N}\]`,
+    ) as unknown as { children: Array<{ children?: Array<{ type: string }>; type: string }> };
+
+    expect(listAst.children).toHaveLength(1);
+    expect(listAst.children[0].type).toBe("list");
+    expect(listAst.children[0].children?.[0].children?.map((node) => node.type)).toContain("math");
+    expect(quoteAst.children).toHaveLength(1);
+    expect(quoteAst.children[0].type).toBe("blockquote");
+    expect(quoteAst.children[0].children?.map((node) => node.type)).toContain("math");
+  });
+
+  it("keeps an ordered step and trailing explanation around a display formula", () => {
+    const source = String.raw`2. **尾 1 化与相频起点：** \[G(s) = \frac{-1(1-0.5s)}{s(s+1)}\] 因开环增益带有负号。`;
+    const ast = parseNotesMarkdownAst(source) as unknown as {
+      children: Array<{
+        children?: Array<{ children?: Array<{ type: string; value?: string }> }>;
+        type: string;
+      }>;
+    };
+
+    expect(ast.children).toHaveLength(1);
+    expect(ast.children[0].type).toBe("list");
+    expect(ast.children[0].children?.[0].children?.map((node) => node.type)).toEqual([
+      "paragraph",
+      "math",
+      "paragraph",
+    ]);
+    expect(collectMathNodes(source)).toContainEqual({
+      content: String.raw`G(s) = \frac{-1(1-0.5s)}{s(s+1)}`,
+      type: "math_block",
+    });
+    const html = renderMarkdown(source);
+    expect(html).toContain("<ol");
+    expect(html).toContain("katex-display");
+    expect(html).toContain("因开环增益带有负号。");
+  });
+
+  it("accepts NotebookLM's double-escaped display delimiters after prose", () => {
+    const source = String.raw`公式为： \\[\\mathbf{Z = P - 2N}\\]`;
+
+    expect(collectMathNodes(source)).toEqual([
+      { content: String.raw`\mathbf{Z = P - 2N}`, type: "math_block" },
+    ]);
+    expect(renderMarkdown(source)).toContain("katex-display");
+  });
+
+  it("keeps ordinary escaped square brackets in prose literal", () => {
+    const source = String.raw`请键入 \[example\] 作为占位文本。`;
+
+    expect(collectMathNodes(source)).toHaveLength(0);
+    expect(renderMarkdown(source)).not.toContain("katex-display");
+    expect(normalizeNotesMathDelimiters(String.raw`未配对 \\\[x + 1`)).toBe(
+      String.raw`未配对 \\\[x + 1`,
+    );
+    expect(normalizeNotesMathDelimiters(String.raw`四重转义 \\\\[x + 1\\\\]`)).toBe(
+      String.raw`四重转义 \\\\[x + 1\\\\]`,
+    );
+  });
+
   it("preserves a multiline boxed formula as one math_block node", () => {
     const source = String.raw`\[
 \boxed{

@@ -210,6 +210,43 @@ describe("notes mixed rendering", () => {
     host.remove();
   });
 
+  it("renders a bracket display formula after prose in mixed mode", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    const view = new EditorView({
+      parent: host,
+      state: EditorState.create({
+        doc: ["Paragraph", String.raw`核心公式为： \[\mathbf{Z = P - 2N}\]`].join("\n"),
+        extensions: [createNotesMixedRendering()],
+      }),
+    });
+
+    expect(host.querySelector(".notes-v2__cm-inline-math-preview--display .katex-display")).not.toBeNull();
+    expect(host.textContent).not.toContain(String.raw`\[\mathbf{Z = P - 2N}\]`);
+
+    view.destroy();
+    host.remove();
+  });
+
+  it("renders triple-escaped display delimiters from a saved note in mixed mode", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    const view = new EditorView({
+      parent: host,
+      state: EditorState.create({
+        doc: ["Paragraph", String.raw`# 公式： \\\[\\mathbf{Z = P - 2N}\\\]`].join("\n"),
+        extensions: [createNotesMixedRendering()],
+      }),
+    });
+
+    expect(host.querySelector(".notes-v2__cm-inline-math-preview--display .katex-display")).not.toBeNull();
+
+    view.destroy();
+    host.remove();
+  });
+
   it("renders NotebookLM's double-escaped bracket display math", () => {
     const host = document.createElement("div");
     document.body.append(host);
