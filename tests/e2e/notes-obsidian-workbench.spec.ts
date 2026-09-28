@@ -39,20 +39,37 @@ test("keeps both notes bottom toolbars close to the viewport edge", async ({ pag
       };
     });
 
-    const iconButtons = Array.from(
-      document.querySelectorAll(".notes-v2__corner-cluster .notes-v2__corner-icon"),
+    const controls = Array.from(
+      document.querySelectorAll(
+        ".notes-v2__corner-cluster .notes-v2__corner-icon, .notes-v2__corner-cluster .notes-v2__active-note-pill",
+      ),
     ).map((element) => {
       if (!(element instanceof HTMLElement)) {
-        throw new Error("Missing bottom icon button");
+        throw new Error("Missing bottom toolbar control");
       }
 
       const rect = element.getBoundingClientRect();
-      return { height: rect.height, width: rect.width };
+      const clusterRect = element
+        .closest(".notes-v2__corner-cluster")
+        ?.getBoundingClientRect();
+      if (!clusterRect) {
+        throw new Error("Missing bottom toolbar container");
+      }
+
+      return {
+        height: rect.height,
+        width: rect.width,
+        isIcon: element.classList.contains("notes-v2__corner-icon"),
+        centerOffset:
+          (rect.top + rect.bottom) / 2 -
+          (clusterRect.top + clusterRect.bottom) / 2,
+        inside: rect.top >= clusterRect.top && rect.bottom <= clusterRect.bottom,
+      };
     });
 
     return {
       afterContent: window.getComputedStyle(shell, "::after").content,
-      iconButtons,
+      controls,
       left: clusters[0],
       right: clusters[1],
     };
@@ -65,10 +82,19 @@ test("keeps both notes bottom toolbars close to the viewport edge", async ({ pag
   expect(offsets.right.height).toBe(40);
   expect(offsets.left.viewportGap).toBe(0);
   expect(offsets.right.viewportGap).toBe(0);
-  expect(offsets.iconButtons).not.toHaveLength(0);
+  expect(offsets.controls).not.toHaveLength(0);
   expect(
-    offsets.iconButtons.every(({ height, width }) => height === 24 && width === 24),
+    offsets.controls.every(({ height }) => height === 24),
   ).toBe(true);
+  expect(offsets.controls.filter(({ isIcon }) => isIcon)).not.toHaveLength(0);
+  expect(
+    offsets.controls.filter(({ isIcon, width }) => isIcon && width !== 24),
+  ).toEqual([]);
+  expect(
+    offsets.controls.filter(
+      ({ centerOffset, inside }) => Math.abs(centerOffset) > 1 || !inside,
+    ),
+  ).toEqual([]);
 });
 
 test("keeps the terminal split clear of the left desktop rail", async ({ page }) => {
