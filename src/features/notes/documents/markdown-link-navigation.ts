@@ -1,4 +1,5 @@
 import { createNotesMarkdownProcessor } from "@/features/notes/markdown/notes-markdown-dialect";
+import { assertNotesMarkdownNestingSafe } from "@/features/notes/markdown/notes-markdown-nesting";
 import type { NoteHeadingIndex } from "@/features/notes/documents/document-types";
 
 export type MarkdownLinkTarget =
@@ -205,6 +206,7 @@ export function findMarkdownSourceLinkAt(
 
   let tree: PositionedLink;
   try {
+    assertNotesMarkdownNestingSafe(sourceLine);
     tree = createNotesMarkdownProcessor().parse(sourceLine) as unknown as PositionedLink;
   } catch {
     return null;

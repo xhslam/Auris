@@ -29,6 +29,10 @@ import {
   findCompatibleMathDelimiterSpans,
   normalizeNotesMathDelimiters,
 } from "@/features/notes/markdown/notes-markdown-dialect";
+import {
+  assertNotesMarkdownNestingSafe,
+  NotesMarkdownNestingError,
+} from "@/features/notes/markdown/notes-markdown-nesting";
 
 type HtmlAstNode = {
   children?: HtmlAstNode[];
@@ -653,8 +657,8 @@ export const NOTES_RICH_PARSER_LIMITS = {
 } as const;
 
 export class NotesMarkdownRefusalError extends Error {
-  readonly code: "EXCEEDS_LIMITS" | "PARSE_ERROR";
-  constructor(message: string, code: "EXCEEDS_LIMITS" | "PARSE_ERROR") {
+  readonly code: "EXCEEDS_LIMITS" | "EXCEEDS_NESTING" | "PARSE_ERROR";
+  constructor(message: string, code: "EXCEEDS_LIMITS" | "EXCEEDS_NESTING" | "PARSE_ERROR") {
     super(message);
     this.name = "NotesMarkdownRefusalError";
     this.code = code;
@@ -714,6 +718,7 @@ export function parseNotesRichMarkdown(
   }
 
   try {
+    assertNotesMarkdownNestingSafe(source);
     const container = document.createElement("div");
     container.innerHTML = String(
       richMarkdownPipeline.processSync(normalizeNotesMathDelimiters(source)),
@@ -723,7 +728,7 @@ export function parseNotesRichMarkdown(
     if (options?.throwOnRefusal) {
       throw new NotesMarkdownRefusalError(
         error instanceof Error ? error.message : String(error),
-        "PARSE_ERROR",
+        error instanceof NotesMarkdownNestingError ? "EXCEEDS_NESTING" : "PARSE_ERROR",
       );
     }
     console.warn(

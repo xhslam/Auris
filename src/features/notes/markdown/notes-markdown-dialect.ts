@@ -5,6 +5,7 @@ import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import type { Plugin } from "unified";
 import { remarkInlineFastPaths } from "./fast-paths/remark-inline-fast-paths";
+import { assertNotesMarkdownNestingSafe } from "./notes-markdown-nesting";
 
 type MathDelimiterKind = "display" | "inline";
 
@@ -377,6 +378,7 @@ export function createNotesMarkdownProcessor() {
 }
 
 export function parseNotesMarkdownAst(markdown: string) {
+  assertNotesMarkdownNestingSafe(markdown);
   const processor = createNotesMarkdownProcessor();
   const source = normalizeNotesMathDelimiters(markdown);
   return processor.runSync(processor.parse(source));

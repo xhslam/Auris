@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "12c98051efec2adc12c3a8fdb7afe30be036e82a",
+  "comparedCommit": "241a25302e35b6a142aa16a7eba531cbf2046a0e",
   "summary": {
-    "changed": 2117,
-    "added": 2473,
-    "deleted": 513,
-    "renamed": 110,
+    "changed": 2320,
+    "added": 2590,
+    "deleted": 515,
+    "renamed": 108,
     "missingAurisTargets": 0,
     "staleMappings": 12,
-    "mappedUpstreamChanges": 163,
-    "domainCandidates": 674,
-    "unmappedUpstreamChanges": 4376
+    "mappedUpstreamChanges": 171,
+    "domainCandidates": 714,
+    "unmappedUpstreamChanges": 4648
   },
   "upstreamChanges": [
     {
@@ -120,6 +120,10 @@
       "status": "changed"
     },
     {
+      "path": ".claude/feature-ledger.md",
+      "status": "added"
+    },
+    {
       "path": ".claude/hooks/gha-tdd-guard.mjs",
       "status": "changed"
     },
@@ -153,6 +157,10 @@
     },
     {
       "path": ".claude/rules/21-website-docs.md",
+      "status": "changed"
+    },
+    {
+      "path": ".claude/rules/22-comment-maintenance.md",
       "status": "changed"
     },
     {
@@ -209,6 +217,10 @@
     },
     {
       "path": ".claude/tdd-guardian/20260831-terminal-per-instance-sessions.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/tdd-guardian/20260927-ledger-findings-fixes.md",
       "status": "added"
     },
     {
@@ -1436,6 +1448,10 @@
       "status": "added"
     },
     {
+      "path": "patches/micromark-extension-gfm-autolink-literal@2.1.0.patch",
+      "status": "added"
+    },
+    {
       "path": "patches/micromark@4.0.2.patch",
       "status": "added"
     },
@@ -1680,6 +1696,14 @@
       "status": "changed"
     },
     {
+      "path": "scripts/check-emdash-spacing.mjs",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-emdash-spacing.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-extension-budget.mjs",
       "status": "added"
     },
@@ -1689,6 +1713,14 @@
     },
     {
       "path": "scripts/check-feature-ledger-phase.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-feature-map.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-feature-map.test.mjs",
       "status": "added"
     },
     {
@@ -1881,6 +1913,14 @@
     },
     {
       "path": "scripts/check-shell-slots.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-singleton-deps.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-singleton-deps.test.mjs",
       "status": "added"
     },
     {
@@ -2220,7 +2260,23 @@
       "status": "added"
     },
     {
+      "path": "scripts/lib/featureHistory.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/featureLedgerDoc.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/lib/featureLedgerRender.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/featureMapInputs.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/featureOwnership.mjs",
       "status": "added"
     },
     {
@@ -3480,6 +3536,14 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/asset_access.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/asset_access.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/atomic_persist.rs",
       "status": "added"
     },
@@ -3980,6 +4044,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/coherence/adopt_duplicate.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/coherence/anchor_parse.rs",
       "status": "added"
     },
@@ -4009,6 +4077,18 @@
     },
     {
       "path": "src-tauri/src/coherence/capture_input.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture_output.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture_policy.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/capture_policy.test.rs",
       "status": "added"
     },
     {
@@ -4177,6 +4257,10 @@
     },
     {
       "path": "src-tauri/src/coherence/gitops_cmd.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/coherence/head_pin.rs",
       "status": "added"
     },
     {
@@ -4384,6 +4468,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/coherence/state_lock.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/coherence/state_write.rs",
       "status": "added"
     },
@@ -4584,6 +4672,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/file_create.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/file_open.rs",
       "status": "changed"
     },
@@ -4614,6 +4706,10 @@
     {
       "path": "src-tauri/src/file_write.test.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/file_write_anchored.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/fs_scope.rs",
@@ -5716,11 +5812,31 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/workflow/snapshot_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_commands.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/workflow/snapshot_copy.rs",
       "status": "added"
     },
     {
       "path": "src-tauri/src/workflow/snapshot_restore.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_restore.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_write.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_write.test.rs",
       "status": "added"
     },
     {
@@ -5744,6 +5860,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/workflow/state_restore.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/workflow/types.rs",
       "status": "changed"
     },
@@ -5754,6 +5874,66 @@
     {
       "path": "src-tauri/src/workspace.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/commands_policy.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/launch.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/launch.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/mod.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/mod.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/picker.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/picker.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/protect.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/protect.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/registry.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/registry.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/scope.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/scope.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/workspace_transfer.rs",
@@ -5770,6 +5950,10 @@
     {
       "path": "src-tauri/tauri.dev.conf.json",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/tauri.windows.conf.json",
+      "status": "added"
     },
     {
       "path": "src-tauri/tests/spike_sp1_dry_run_projection.rs",
@@ -6268,6 +6452,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Editor/SplitPaneEditor/SourcePane.trustSeverity.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/SplitPaneEditor/SourcePane.tsx",
       "status": "changed"
     },
@@ -6276,8 +6464,20 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Editor/SplitPaneEditor/SplitPaneEditor.trustSeverity.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/SplitPaneEditor/SplitPaneFrame.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/SplitPaneEditor/SplitPaneFrame.tsx",
+      "status": "added"
     },
     {
       "path": "src/components/Editor/SplitPaneEditor/ValidationGutter.i18n.test.tsx",
@@ -6308,11 +6508,23 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Editor/SplitPaneEditor/splitPaneLayout.webkit.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx",
       "status": "added"
     },
     {
       "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.ts",
       "status": "added"
     },
     {
@@ -6432,6 +6644,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Editor/WorkflowEditor/__tests__/DiagnosticsBanner.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx",
       "status": "changed"
     },
@@ -6528,9 +6744,12 @@
       "status": "deleted"
     },
     {
-      "fromPath": "src/plugins/workflowPreview/WorkflowSidePanel.tsx",
+      "path": "src/components/Editor/WorkflowPanel/WorkflowRunPanel.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx",
-      "status": "renamed"
+      "status": "added"
     },
     {
       "path": "src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowPanel.test.tsx",
@@ -6541,17 +6760,48 @@
       "status": "added"
     },
     {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/JobNode.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvas.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasLayout.test.tsx",
+      "status": "added"
     },
     {
       "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowPanelShell.test.tsx",
       "status": "deleted"
     },
     {
-      "fromPath": "src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx",
+      "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowRunPanel.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx",
-      "status": "renamed"
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/paneSourceView.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/useRunSnapshot.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/useWorkflowRunControls.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/__tests__/workflowSnapshots.test.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Editor/WorkflowPanel/gha-workflow-workbench.css",
@@ -6562,7 +6812,23 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Editor/WorkflowPanel/paneSourceView.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/useRunSnapshot.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/useWorkflowRunControls.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/WorkflowPanel/workflow-canvas.css",
+      "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/workflow-export-control.css",
       "status": "changed"
     },
     {
@@ -6573,6 +6839,10 @@
       "fromPath": "src/plugins/workflowPreview/workflow-side-panel.css",
       "path": "src/components/Editor/WorkflowPanel/workflow-side-panel.css",
       "status": "renamed"
+    },
+    {
+      "path": "src/components/Editor/WorkflowPanel/workflowSnapshots.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Editor/__tests__/HeadingPicker.test.tsx",
@@ -7207,6 +7477,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/StatusBar/statusBarFade.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/StatusBar/statusTextMetrics.test.ts",
       "status": "changed"
     },
@@ -7795,6 +8069,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/WorkflowApproval/ApprovalDialog.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/WorkflowApproval/ApprovalDialog.tsx",
       "status": "changed"
     },
@@ -7879,6 +8157,10 @@
       "status": "added"
     },
     {
+      "path": "src/contexts/WindowContext.restoredGrant.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/contexts/WindowContext.test.tsx",
       "status": "changed"
     },
@@ -7948,6 +8230,14 @@
     },
     {
       "path": "src/export/__tests__/exportDialogNamespaces.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/export/__tests__/exportErrorMessages.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/export/__tests__/exportErrorsLocalized.test.ts",
       "status": "added"
     },
     {
@@ -8045,6 +8335,10 @@
     {
       "path": "src/export/createExportExtensions.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/export/exportErrorMessages.ts",
+      "status": "added"
     },
     {
       "path": "src/export/exportGuards.ts",
@@ -8860,6 +9154,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/hooks/useOutlineSync.scroll.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useOutlineSync.ts",
       "status": "changed"
     },
@@ -8965,6 +9263,14 @@
     },
     {
       "path": "src/hooks/useSourceOutlineSync.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSourcePaneFocus.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSourcePaneFocus.ts",
       "status": "changed"
     },
     {
@@ -9832,6 +10138,26 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/formats/adapters/htmlAttributes.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/adapters/htmlAttributes.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/adapters/htmlScaling.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/adapters/htmlTags.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/adapters/htmlTags.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/formats/adapters/htmlTrust.test.ts",
       "status": "added"
     },
@@ -9854,6 +10180,10 @@
     {
       "path": "src/lib/formats/adapters/jsonViewStyles.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/formats/adapters/jsonViewStyles.webkit.test.tsx",
+      "status": "added"
     },
     {
       "path": "src/lib/formats/adapters/markdown.test.tsx",
@@ -9892,6 +10222,10 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/formats/adapters/pyprojectToml.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/lib/formats/adapters/svg.tsx",
       "status": "changed"
     },
@@ -9924,6 +10258,14 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/formats/adapters/yamlEngineRenderer.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/adapters/yamlEngineRenderer.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/lib/formats/adapters/yamlWorkflowChunkFailure.test.tsx",
       "status": "added"
     },
@@ -9941,6 +10283,14 @@
     },
     {
       "path": "src/lib/formats/adapters/yamlWorkflowRenderer.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/diagnosticPresentation.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/formats/diagnosticPresentation.ts",
       "status": "added"
     },
     {
@@ -10041,6 +10391,14 @@
     },
     {
       "path": "src/lib/ghaWorkflow/cron/readable.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/ghaWorkflow/cron/readable.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/ghaWorkflow/detection.ts",
       "status": "changed"
     },
     {
@@ -10432,6 +10790,10 @@
       "status": "added"
     },
     {
+      "path": "src/lib/workflow/__tests__/detection.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/workflow/__tests__/layout.test.ts",
       "status": "changed"
     },
@@ -10442,6 +10804,10 @@
     {
       "path": "src/lib/workflow/__tests__/parser.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/workflow/detection.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/workflow/layout.ts",
@@ -11960,6 +12326,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codemirror/sourceWorkflowPreview.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codemirror/sourceWorkflowPreview.ts",
       "status": "changed"
     },
@@ -11990,6 +12360,10 @@
     {
       "path": "src/plugins/codemirror/tabIndent.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/theme.highlight.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/codemirror/theme.ts",
@@ -12244,6 +12618,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/footnotePopup/tiptapDomUtils.test.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/footnotePopup/tiptapDomUtils.ts",
       "status": "changed"
     },
@@ -12374,6 +12752,14 @@
     {
       "path": "src/plugins/imageHandler/__tests__/imageHandler.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/imageHandler/imageHandlerClipboard.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/imageHandler/imageHandlerClipboard.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/imageHandler/imageHandlerInsert.test.ts",
@@ -13860,6 +14246,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/tableOfContents/__tests__/tocClickScroll.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/tableOfContents/__tests__/tocPipeline.test.ts",
       "status": "changed"
     },
@@ -13916,6 +14306,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/taskToggle/task-toggle.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/taskToggle/tiptap.ts",
       "status": "changed"
     },
@@ -13934,6 +14328,10 @@
     {
       "path": "src/plugins/textDragDrop/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/textDragDrop/textDragDrop.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/toolbarActions/__tests__/adapterActionParity.test.ts",
@@ -14404,8 +14802,16 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/workflowPreview/WorkflowSidePanel.tsx",
+      "status": "deleted"
+    },
+    {
       "path": "src/plugins/workflowPreview/__tests__/WorkflowPreview.test.tsx",
       "status": "added"
+    },
+    {
+      "path": "src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx",
+      "status": "deleted"
     },
     {
       "path": "src/plugins/workflowPreview/manifest.ts",
@@ -14771,6 +15177,22 @@
     },
     {
       "path": "src/services/coherence/captureFunnel.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/capturePolicy.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/capturePolicy.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/mcpCapture.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/mcpCapture.ts",
       "status": "added"
     },
     {
@@ -15708,6 +16130,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/mcpBridge/v2/__tests__/workspaceSaveAsCapture.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/workspaceSaveCapture.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/mcpBridge/v2/__tests__/workspaceSwitchTabVerify.test.ts",
       "status": "added"
     },
@@ -16431,6 +16861,10 @@
       "status": "changed"
     },
     {
+      "path": "src/services/persistence/resilience/_hotExitRestore.grant.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/persistence/resilience/_hotExitRestore.test.ts",
       "status": "changed"
     },
@@ -16832,6 +17266,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/workflow/dispatchWorkflowRun.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/dispatchWorkflowRun.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workflow/providerPayload.test.ts",
       "status": "added"
     },
@@ -16917,6 +17359,14 @@
     },
     {
       "path": "src/services/workflow/workflowEnginePolicySync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunEvents.ts",
       "status": "added"
     },
     {
@@ -17088,6 +17538,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/workspaces/workspaceAccess.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/workspaceAccess.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workspaces/workspaceActivationApis.test.ts",
       "status": "added"
     },
@@ -17218,6 +17676,10 @@
     },
     {
       "path": "src/shell/barHeight.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/shell/bottomLaneLayout.webkit.test.tsx",
       "status": "added"
     },
     {
@@ -18021,7 +18483,15 @@
       "status": "changed"
     },
     {
+      "path": "src/stores/workflowApprovalSlice.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/workflowApprovalSlice.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workflowEditQueue.test.ts",
       "status": "added"
     },
     {
@@ -18029,7 +18499,15 @@
       "status": "added"
     },
     {
+      "path": "src/stores/workflowPreviewSlice.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/workflowPreviewSlice.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workflowSerialize.test.ts",
       "status": "added"
     },
     {
@@ -18043,6 +18521,10 @@
     {
       "path": "src/stores/workflowStore.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/stores/workflowViewSlice.test.ts",
+      "status": "added"
     },
     {
       "path": "src/stores/workflowViewSlice.ts",
@@ -18931,6 +19413,14 @@
     },
     {
       "path": "src/utils/ingestOrigin.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/jsonErrorOffset.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/jsonErrorOffset.ts",
       "status": "added"
     },
     {
@@ -19826,7 +20316,15 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/mediaExtensions.json",
+      "status": "added"
+    },
+    {
       "path": "src/utils/mediaExtensions.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/mediaExtensions.ts",
       "status": "changed"
     },
     {
@@ -19960,6 +20458,18 @@
     {
       "path": "src/utils/sanitize.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/utils/settledScroll.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/settledScroll.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/settledScroll.webkit.test.ts",
+      "status": "added"
     },
     {
       "path": "src/utils/shortcutMatch.ts",
@@ -20378,6 +20888,10 @@
       "status": "changed"
     },
     {
+      "path": "website/.vitepress/config/guideSidebar.ts",
+      "status": "added"
+    },
+    {
       "path": "website/.vitepress/config/it.ts",
       "status": "changed"
     },
@@ -20394,6 +20908,22 @@
       "status": "changed"
     },
     {
+      "path": "website/.vitepress/config/shared.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/sidebarParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/config/slugify.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/config/slugify.ts",
+      "status": "added"
+    },
+    {
       "path": "website/.vitepress/config/zh-CN.ts",
       "status": "changed"
     },
@@ -20402,7 +20932,27 @@
       "status": "changed"
     },
     {
+      "path": "website/.vitepress/theme/index.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/theme/legacyAnchors.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/theme/legacyAnchors.ts",
+      "status": "added"
+    },
+    {
       "path": "website/de/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -20414,8 +20964,32 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/de/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/de/guide/knowledge-base.md",
@@ -20426,7 +21000,27 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20434,7 +21028,27 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20442,8 +21056,16 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/de/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/de/guide/workspace-rail.md",
@@ -20458,6 +21080,14 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/browser.md",
       "status": "added"
     },
@@ -20466,8 +21096,32 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/es/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/es/guide/knowledge-base.md",
@@ -20478,7 +21132,27 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20486,7 +21160,27 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20494,8 +21188,16 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/es/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/es/guide/workspace-rail.md",
@@ -20503,6 +21205,14 @@
     },
     {
       "path": "website/fr/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -20514,8 +21224,32 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/fr/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/fr/guide/knowledge-base.md",
@@ -20526,7 +21260,27 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20534,7 +21288,27 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20542,8 +21316,16 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/fr/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/fr/guide/workspace-rail.md",
@@ -20566,6 +21348,10 @@
       "status": "changed"
     },
     {
+      "path": "website/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/guide/coherence.md",
       "status": "added"
     },
@@ -20579,6 +21365,10 @@
     },
     {
       "path": "website/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/graphviz.md",
       "status": "changed"
     },
     {
@@ -20602,6 +21392,10 @@
       "status": "changed"
     },
     {
+      "path": "website/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/guide/mcp-setup.md",
       "status": "changed"
     },
@@ -20611,6 +21405,10 @@
     },
     {
       "path": "website/guide/media-support.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/mermaid.md",
       "status": "changed"
     },
     {
@@ -20674,6 +21472,14 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/browser.md",
       "status": "added"
     },
@@ -20682,8 +21488,32 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/it/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/it/guide/knowledge-base.md",
@@ -20694,7 +21524,27 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20702,7 +21552,27 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20710,8 +21580,16 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/it/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/it/guide/workspace-rail.md",
@@ -20719,6 +21597,14 @@
     },
     {
       "path": "website/ja/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -20730,8 +21616,32 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/ja/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/ja/guide/knowledge-base.md",
@@ -20742,7 +21652,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20750,7 +21680,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20758,8 +21708,16 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/ja/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/ja/guide/workspace-rail.md",
@@ -20767,6 +21725,14 @@
     },
     {
       "path": "website/ko/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -20778,8 +21744,32 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/ko/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/ko/guide/knowledge-base.md",
@@ -20790,7 +21780,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20798,7 +21808,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20806,8 +21836,16 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/ko/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/ko/guide/workspace-rail.md",
@@ -20826,6 +21864,14 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/browser.md",
       "status": "added"
     },
@@ -20834,8 +21880,32 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/pt-BR/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/pt-BR/guide/knowledge-base.md",
@@ -20846,7 +21916,27 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20854,7 +21944,27 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20862,8 +21972,16 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/pt-BR/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/pt-BR/guide/workspace-rail.md",
@@ -20886,6 +22004,14 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/browser.md",
       "status": "added"
     },
@@ -20894,8 +22020,32 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-CN/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-CN/guide/knowledge-base.md",
@@ -20906,7 +22056,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20914,7 +22084,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20922,8 +22112,16 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-CN/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-CN/guide/workspace-rail.md",
@@ -20931,6 +22129,14 @@
     },
     {
       "path": "website/zh-TW/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -20942,8 +22148,32 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-TW/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-TW/guide/knowledge-base.md",
@@ -20954,7 +22184,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -20962,7 +22212,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -20970,8 +22240,16 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-TW/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-TW/guide/workspace-rail.md",
@@ -21348,11 +22626,31 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/workflow/snapshot_commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_commands.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/workflow/snapshot_copy.rs",
       "status": "added"
     },
     {
       "path": "src-tauri/src/workflow/snapshot_restore.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_restore.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_write.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/snapshot_write.test.rs",
       "status": "added"
     },
     {
@@ -21373,6 +22671,10 @@
     },
     {
       "path": "src-tauri/src/workflow/state_cancel.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workflow/state_restore.rs",
       "status": "added"
     },
     {
@@ -21556,6 +22858,10 @@
       "status": "changed"
     },
     {
+      "path": "src/lib/workflow/__tests__/detection.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/workflow/__tests__/layout.test.ts",
       "status": "changed"
     },
@@ -21566,6 +22872,10 @@
     {
       "path": "src/lib/workflow/__tests__/parser.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/workflow/detection.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/workflow/layout.ts",
@@ -22663,11 +23973,31 @@
           "status": "changed"
         },
         {
+          "path": "src-tauri/src/workflow/snapshot_commands.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/snapshot_commands.test.rs",
+          "status": "added"
+        },
+        {
           "path": "src-tauri/src/workflow/snapshot_copy.rs",
           "status": "added"
         },
         {
           "path": "src-tauri/src/workflow/snapshot_restore.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/snapshot_restore.test.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/snapshot_write.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/workflow/snapshot_write.test.rs",
           "status": "added"
         },
         {
@@ -22691,11 +24021,19 @@
           "status": "added"
         },
         {
+          "path": "src-tauri/src/workflow/state_restore.rs",
+          "status": "added"
+        },
+        {
           "path": "src-tauri/src/workflow/types.rs",
           "status": "changed"
         },
         {
           "path": "src-tauri/src/workflow/validate.rs",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/workflow/__tests__/detection.test.ts",
           "status": "added"
         },
         {
@@ -22709,6 +24047,10 @@
         {
           "path": "src/lib/workflow/__tests__/parser.test.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/lib/workflow/detection.ts",
+          "status": "added"
         },
         {
           "path": "src/lib/workflow/layout.ts",
@@ -22842,6 +24184,10 @@
           "status": "added"
         },
         {
+          "path": "src-tauri/src/coherence/adopt_duplicate.rs",
+          "status": "added"
+        },
+        {
           "path": "src-tauri/src/coherence/anchor_parse.rs",
           "status": "added"
         },
@@ -22871,6 +24217,18 @@
         },
         {
           "path": "src-tauri/src/coherence/capture_input.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/coherence/capture_output.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/coherence/capture_policy.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/coherence/capture_policy.test.rs",
           "status": "added"
         },
         {
@@ -23039,6 +24397,10 @@
         },
         {
           "path": "src-tauri/src/coherence/gitops_cmd.rs",
+          "status": "added"
+        },
+        {
+          "path": "src-tauri/src/coherence/head_pin.rs",
           "status": "added"
         },
         {
@@ -23246,6 +24608,10 @@
           "status": "added"
         },
         {
+          "path": "src-tauri/src/coherence/state_lock.rs",
+          "status": "added"
+        },
+        {
           "path": "src-tauri/src/coherence/state_write.rs",
           "status": "added"
         },
@@ -23407,6 +24773,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/SplitPaneEditor/SourcePane.trustSeverity.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/SplitPaneEditor/SourcePane.tsx",
           "status": "changed"
         },
@@ -23415,8 +24785,20 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/SplitPaneEditor/SplitPaneEditor.trustSeverity.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/SplitPaneEditor/SplitPaneFrame.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/SplitPaneEditor/SplitPaneFrame.tsx",
+          "status": "added"
         },
         {
           "path": "src/components/Editor/SplitPaneEditor/ValidationGutter.i18n.test.tsx",
@@ -23447,11 +24829,23 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/SplitPaneEditor/splitPaneLayout.webkit.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx",
           "status": "added"
         },
         {
           "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.ts",
           "status": "added"
         },
         {
@@ -23571,6 +24965,10 @@
           "status": "added"
         },
         {
+          "path": "src/components/Editor/WorkflowEditor/__tests__/DiagnosticsBanner.test.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx",
           "status": "changed"
         },
@@ -23667,9 +25065,12 @@
           "status": "deleted"
         },
         {
-          "fromPath": "src/plugins/workflowPreview/WorkflowSidePanel.tsx",
+          "path": "src/components/Editor/WorkflowPanel/WorkflowRunPanel.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx",
-          "status": "renamed"
+          "status": "added"
         },
         {
           "path": "src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowPanel.test.tsx",
@@ -23680,17 +25081,48 @@
           "status": "added"
         },
         {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/JobNode.test.tsx",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvas.test.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasLayout.test.tsx",
+          "status": "added"
         },
         {
           "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowPanelShell.test.tsx",
           "status": "deleted"
         },
         {
-          "fromPath": "src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx",
+          "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowRunPanel.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx",
-          "status": "renamed"
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/paneSourceView.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/useRunSnapshot.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/useWorkflowRunControls.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/__tests__/workflowSnapshots.test.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Editor/WorkflowPanel/gha-workflow-workbench.css",
@@ -23701,7 +25133,23 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Editor/WorkflowPanel/paneSourceView.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/useRunSnapshot.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/useWorkflowRunControls.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/WorkflowPanel/workflow-canvas.css",
+          "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/workflow-export-control.css",
           "status": "changed"
         },
         {
@@ -23712,6 +25160,10 @@
           "fromPath": "src/plugins/workflowPreview/workflow-side-panel.css",
           "path": "src/components/Editor/WorkflowPanel/workflow-side-panel.css",
           "status": "renamed"
+        },
+        {
+          "path": "src/components/Editor/WorkflowPanel/workflowSnapshots.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Editor/__tests__/HeadingPicker.test.tsx",
@@ -24281,6 +25733,10 @@
           "status": "changed"
         },
         {
+          "path": "src/services/persistence/resilience/_hotExitRestore.grant.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/services/persistence/resilience/_hotExitRestore.test.ts",
           "status": "changed"
         },
@@ -24512,6 +25968,26 @@
           "status": "changed"
         },
         {
+          "path": "src/lib/formats/adapters/htmlAttributes.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/adapters/htmlAttributes.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/adapters/htmlScaling.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/adapters/htmlTags.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/adapters/htmlTags.ts",
+          "status": "added"
+        },
+        {
           "path": "src/lib/formats/adapters/htmlTrust.test.ts",
           "status": "added"
         },
@@ -24534,6 +26010,10 @@
         {
           "path": "src/lib/formats/adapters/jsonViewStyles.test.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/lib/formats/adapters/jsonViewStyles.webkit.test.tsx",
+          "status": "added"
         },
         {
           "path": "src/lib/formats/adapters/markdown.test.tsx",
@@ -24572,6 +26052,10 @@
           "status": "changed"
         },
         {
+          "path": "src/lib/formats/adapters/pyprojectToml.tsx",
+          "status": "changed"
+        },
+        {
           "path": "src/lib/formats/adapters/svg.tsx",
           "status": "changed"
         },
@@ -24604,6 +26088,14 @@
           "status": "changed"
         },
         {
+          "path": "src/lib/formats/adapters/yamlEngineRenderer.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/adapters/yamlEngineRenderer.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/lib/formats/adapters/yamlWorkflowChunkFailure.test.tsx",
           "status": "added"
         },
@@ -24621,6 +26113,14 @@
         },
         {
           "path": "src/lib/formats/adapters/yamlWorkflowRenderer.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/diagnosticPresentation.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/lib/formats/diagnosticPresentation.ts",
           "status": "added"
         },
         {
@@ -25843,6 +27343,14 @@
     },
     {
       "change": {
+        "path": "src-tauri/src/coherence/adopt_duplicate.rs",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "coherence"
+    },
+    {
+      "change": {
         "path": "src-tauri/src/coherence/anchor_parse.rs",
         "status": "added"
       },
@@ -25900,6 +27408,30 @@
     {
       "change": {
         "path": "src-tauri/src/coherence/capture_input.rs",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "coherence"
+    },
+    {
+      "change": {
+        "path": "src-tauri/src/coherence/capture_output.rs",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "coherence"
+    },
+    {
+      "change": {
+        "path": "src-tauri/src/coherence/capture_policy.rs",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "coherence"
+    },
+    {
+      "change": {
+        "path": "src-tauri/src/coherence/capture_policy.test.rs",
         "status": "added"
       },
       "decision": "adapt",
@@ -26236,6 +27768,14 @@
     {
       "change": {
         "path": "src-tauri/src/coherence/gitops_cmd.rs",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "coherence"
+    },
+    {
+      "change": {
+        "path": "src-tauri/src/coherence/head_pin.rs",
         "status": "added"
       },
       "decision": "adapt",
@@ -26651,6 +28191,14 @@
     },
     {
       "change": {
+        "path": "src-tauri/src/coherence/state_lock.rs",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "coherence"
+    },
+    {
+      "change": {
         "path": "src-tauri/src/coherence/state_write.rs",
         "status": "added"
       },
@@ -26971,6 +28519,14 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/SplitPaneEditor/SourcePane.trustSeverity.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/SplitPaneEditor/SourcePane.tsx",
         "status": "changed"
       },
@@ -26987,8 +28543,32 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/SplitPaneEditor/SplitPaneEditor.trustSeverity.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx",
         "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/SplitPaneEditor/SplitPaneFrame.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/SplitPaneEditor/SplitPaneFrame.tsx",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -27051,6 +28631,14 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/SplitPaneEditor/splitPaneLayout.webkit.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx",
         "status": "added"
       },
@@ -27060,6 +28648,22 @@
     {
       "change": {
         "path": "src/components/Editor/SplitPaneEditor/usePreviewModel.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.ts",
         "status": "added"
       },
       "decision": "adapt",
@@ -27299,6 +28903,14 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/WorkflowEditor/__tests__/DiagnosticsBanner.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx",
         "status": "changed"
       },
@@ -27491,9 +29103,16 @@
     },
     {
       "change": {
-        "fromPath": "src/plugins/workflowPreview/WorkflowSidePanel.tsx",
+        "path": "src/components/Editor/WorkflowPanel/WorkflowRunPanel.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx",
-        "status": "renamed"
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -27516,8 +29135,32 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/JobNode.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvas.test.tsx",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx",
         "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasLayout.test.tsx",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -27532,9 +29175,48 @@
     },
     {
       "change": {
-        "fromPath": "src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx",
+        "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowRunPanel.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx",
-        "status": "renamed"
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/paneSourceView.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/useRunSnapshot.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/useWorkflowRunControls.test.tsx",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/__tests__/workflowSnapshots.test.ts",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -27557,7 +29239,39 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/WorkflowPanel/paneSourceView.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/useRunSnapshot.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/useWorkflowRunControls.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/WorkflowPanel/workflow-canvas.css",
+        "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/workflow-export-control.css",
         "status": "changed"
       },
       "decision": "adapt",
@@ -27576,6 +29290,14 @@
         "fromPath": "src/plugins/workflowPreview/workflow-side-panel.css",
         "path": "src/components/Editor/WorkflowPanel/workflow-side-panel.css",
         "status": "renamed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/WorkflowPanel/workflowSnapshots.ts",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -29187,6 +30909,46 @@
     },
     {
       "change": {
+        "path": "src/lib/formats/adapters/htmlAttributes.test.ts",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/htmlAttributes.ts",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/htmlScaling.test.ts",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/htmlTags.test.ts",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/htmlTags.ts",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
         "path": "src/lib/formats/adapters/htmlTrust.test.ts",
         "status": "added"
       },
@@ -29229,6 +30991,14 @@
       "change": {
         "path": "src/lib/formats/adapters/jsonViewStyles.test.ts",
         "status": "changed"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/jsonViewStyles.webkit.test.tsx",
+        "status": "added"
       },
       "decision": "port",
       "domainId": "formats"
@@ -29307,6 +31077,14 @@
     },
     {
       "change": {
+        "path": "src/lib/formats/adapters/pyprojectToml.tsx",
+        "status": "changed"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
         "path": "src/lib/formats/adapters/svg.tsx",
         "status": "changed"
       },
@@ -29371,6 +31149,22 @@
     },
     {
       "change": {
+        "path": "src/lib/formats/adapters/yamlEngineRenderer.test.tsx",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/adapters/yamlEngineRenderer.tsx",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
         "path": "src/lib/formats/adapters/yamlWorkflowChunkFailure.test.tsx",
         "status": "added"
       },
@@ -29404,6 +31198,22 @@
     {
       "change": {
         "path": "src/lib/formats/adapters/yamlWorkflowRenderer.tsx",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/diagnosticPresentation.test.ts",
+        "status": "added"
+      },
+      "decision": "port",
+      "domainId": "formats"
+    },
+    {
+      "change": {
+        "path": "src/lib/formats/diagnosticPresentation.ts",
         "status": "added"
       },
       "decision": "port",
@@ -30543,6 +32353,14 @@
     },
     {
       "change": {
+        "path": "src/services/persistence/resilience/_hotExitRestore.grant.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/services/persistence/resilience/_hotExitRestore.test.ts",
         "status": "changed"
       },
@@ -31193,6 +33011,10 @@
       "status": "changed"
     },
     {
+      "path": ".claude/feature-ledger.md",
+      "status": "added"
+    },
+    {
       "path": ".claude/hooks/gha-tdd-guard.mjs",
       "status": "changed"
     },
@@ -31226,6 +33048,10 @@
     },
     {
       "path": ".claude/rules/21-website-docs.md",
+      "status": "changed"
+    },
+    {
+      "path": ".claude/rules/22-comment-maintenance.md",
       "status": "changed"
     },
     {
@@ -31282,6 +33108,10 @@
     },
     {
       "path": ".claude/tdd-guardian/20260831-terminal-per-instance-sessions.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/tdd-guardian/20260927-ledger-findings-fixes.md",
       "status": "added"
     },
     {
@@ -32505,6 +34335,10 @@
       "status": "added"
     },
     {
+      "path": "patches/micromark-extension-gfm-autolink-literal@2.1.0.patch",
+      "status": "added"
+    },
+    {
       "path": "patches/micromark@4.0.2.patch",
       "status": "added"
     },
@@ -32741,6 +34575,14 @@
       "status": "changed"
     },
     {
+      "path": "scripts/check-emdash-spacing.mjs",
+      "status": "changed"
+    },
+    {
+      "path": "scripts/check-emdash-spacing.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-extension-budget.mjs",
       "status": "added"
     },
@@ -32750,6 +34592,14 @@
     },
     {
       "path": "scripts/check-feature-ledger-phase.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-feature-map.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-feature-map.test.mjs",
       "status": "added"
     },
     {
@@ -32942,6 +34792,14 @@
     },
     {
       "path": "scripts/check-shell-slots.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-singleton-deps.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-singleton-deps.test.mjs",
       "status": "added"
     },
     {
@@ -33281,7 +35139,23 @@
       "status": "added"
     },
     {
+      "path": "scripts/lib/featureHistory.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/featureLedgerDoc.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/lib/featureLedgerRender.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/featureMapInputs.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/featureOwnership.mjs",
       "status": "added"
     },
     {
@@ -34409,6 +36283,14 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/asset_access.rs",
+      "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/asset_access.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/atomic_persist.rs",
       "status": "added"
     },
@@ -35017,6 +36899,10 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/file_create.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/file_open.rs",
       "status": "changed"
     },
@@ -35047,6 +36933,10 @@
     {
       "path": "src-tauri/src/file_write.test.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/src/file_write_anchored.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/src/fs_scope.rs",
@@ -35897,6 +37787,66 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/src/workspace_grants/commands.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/commands.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/commands_policy.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/launch.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/launch.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/mod.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/mod.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/picker.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/picker.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/protect.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/protect.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/registry.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/registry.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/scope.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/workspace_grants/scope.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/workspace_transfer.rs",
       "status": "changed"
     },
@@ -35911,6 +37861,10 @@
     {
       "path": "src-tauri/tauri.dev.conf.json",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/tauri.windows.conf.json",
+      "status": "added"
     },
     {
       "path": "src-tauri/tests/spike_sp1_dry_run_projection.rs",
@@ -36753,6 +38707,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/StatusBar/statusBarFade.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/StatusBar/statusTextMetrics.test.ts",
       "status": "changed"
     },
@@ -36885,6 +38843,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/WorkflowApproval/ApprovalDialog.test.tsx",
+      "status": "changed"
+    },
+    {
       "path": "src/components/WorkflowApproval/ApprovalDialog.tsx",
       "status": "changed"
     },
@@ -36969,6 +38931,10 @@
       "status": "added"
     },
     {
+      "path": "src/contexts/WindowContext.restoredGrant.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/contexts/WindowContext.test.tsx",
       "status": "changed"
     },
@@ -37038,6 +39004,14 @@
     },
     {
       "path": "src/export/__tests__/exportDialogNamespaces.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/export/__tests__/exportErrorMessages.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/export/__tests__/exportErrorsLocalized.test.ts",
       "status": "added"
     },
     {
@@ -37135,6 +39109,10 @@
     {
       "path": "src/export/createExportExtensions.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/export/exportErrorMessages.ts",
+      "status": "added"
     },
     {
       "path": "src/export/exportGuards.ts",
@@ -37737,6 +39715,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/hooks/useOutlineSync.scroll.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/hooks/useOutlineSync.ts",
       "status": "changed"
     },
@@ -37842,6 +39824,14 @@
     },
     {
       "path": "src/hooks/useSourceOutlineSync.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSourcePaneFocus.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useSourcePaneFocus.ts",
       "status": "changed"
     },
     {
@@ -38578,6 +40568,14 @@
     },
     {
       "path": "src/lib/ghaWorkflow/cron/readable.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/ghaWorkflow/cron/readable.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/lib/ghaWorkflow/detection.ts",
       "status": "changed"
     },
     {
@@ -40473,6 +42471,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/codemirror/sourceWorkflowPreview.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codemirror/sourceWorkflowPreview.ts",
       "status": "changed"
     },
@@ -40503,6 +42505,10 @@
     {
       "path": "src/plugins/codemirror/tabIndent.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/codemirror/theme.highlight.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/codemirror/theme.ts",
@@ -40757,6 +42763,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/footnotePopup/tiptapDomUtils.test.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/footnotePopup/tiptapDomUtils.ts",
       "status": "changed"
     },
@@ -40887,6 +42897,14 @@
     {
       "path": "src/plugins/imageHandler/__tests__/imageHandler.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/imageHandler/imageHandlerClipboard.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/imageHandler/imageHandlerClipboard.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/imageHandler/imageHandlerInsert.test.ts",
@@ -42373,6 +44391,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/tableOfContents/__tests__/tocClickScroll.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/tableOfContents/__tests__/tocPipeline.test.ts",
       "status": "changed"
     },
@@ -42429,6 +44451,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/taskToggle/task-toggle.css",
+      "status": "changed"
+    },
+    {
       "path": "src/plugins/taskToggle/tiptap.ts",
       "status": "changed"
     },
@@ -42447,6 +44473,10 @@
     {
       "path": "src/plugins/textDragDrop/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/textDragDrop/textDragDrop.css",
+      "status": "changed"
     },
     {
       "path": "src/plugins/toolbarActions/__tests__/adapterActionParity.test.ts",
@@ -42917,8 +44947,16 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/workflowPreview/WorkflowSidePanel.tsx",
+      "status": "deleted"
+    },
+    {
       "path": "src/plugins/workflowPreview/__tests__/WorkflowPreview.test.tsx",
       "status": "added"
+    },
+    {
+      "path": "src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx",
+      "status": "deleted"
     },
     {
       "path": "src/plugins/workflowPreview/manifest.ts",
@@ -43266,6 +45304,22 @@
     },
     {
       "path": "src/services/coherence/captureFunnel.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/capturePolicy.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/capturePolicy.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/mcpCapture.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/coherence/mcpCapture.ts",
       "status": "added"
     },
     {
@@ -43897,6 +45951,14 @@
     },
     {
       "path": "src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/workspaceSaveAsCapture.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/mcpBridge/v2/__tests__/workspaceSaveCapture.test.ts",
       "status": "added"
     },
     {
@@ -44704,6 +46766,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/workflow/dispatchWorkflowRun.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/dispatchWorkflowRun.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workflow/providerPayload.test.ts",
       "status": "added"
     },
@@ -44789,6 +46859,14 @@
     },
     {
       "path": "src/services/workflow/workflowEnginePolicySync.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunEvents.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workflow/workflowRunEvents.ts",
       "status": "added"
     },
     {
@@ -44960,6 +47038,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/workspaces/workspaceAccess.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/workspaces/workspaceAccess.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/workspaces/workspaceActivationApis.test.ts",
       "status": "added"
     },
@@ -45090,6 +47176,10 @@
     },
     {
       "path": "src/shell/barHeight.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/shell/bottomLaneLayout.webkit.test.tsx",
       "status": "added"
     },
     {
@@ -45829,7 +47919,15 @@
       "status": "changed"
     },
     {
+      "path": "src/stores/workflowApprovalSlice.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/workflowApprovalSlice.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workflowEditQueue.test.ts",
       "status": "added"
     },
     {
@@ -45837,7 +47935,15 @@
       "status": "added"
     },
     {
+      "path": "src/stores/workflowPreviewSlice.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/stores/workflowPreviewSlice.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/stores/workflowSerialize.test.ts",
       "status": "added"
     },
     {
@@ -45851,6 +47957,10 @@
     {
       "path": "src/stores/workflowStore.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/stores/workflowViewSlice.test.ts",
+      "status": "added"
     },
     {
       "path": "src/stores/workflowViewSlice.ts",
@@ -46623,6 +48733,14 @@
     },
     {
       "path": "src/utils/ingestOrigin.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/jsonErrorOffset.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/jsonErrorOffset.ts",
       "status": "added"
     },
     {
@@ -47518,7 +49636,15 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/mediaExtensions.json",
+      "status": "added"
+    },
+    {
       "path": "src/utils/mediaExtensions.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/mediaExtensions.ts",
       "status": "changed"
     },
     {
@@ -47652,6 +49778,18 @@
     {
       "path": "src/utils/sanitize.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/utils/settledScroll.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/settledScroll.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/settledScroll.webkit.test.ts",
+      "status": "added"
     },
     {
       "path": "src/utils/shortcutMatch.ts",
@@ -48070,6 +50208,10 @@
       "status": "changed"
     },
     {
+      "path": "website/.vitepress/config/guideSidebar.ts",
+      "status": "added"
+    },
+    {
       "path": "website/.vitepress/config/it.ts",
       "status": "changed"
     },
@@ -48086,6 +50228,22 @@
       "status": "changed"
     },
     {
+      "path": "website/.vitepress/config/shared.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/config/sidebarParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/config/slugify.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/config/slugify.ts",
+      "status": "added"
+    },
+    {
       "path": "website/.vitepress/config/zh-CN.ts",
       "status": "changed"
     },
@@ -48094,7 +50252,27 @@
       "status": "changed"
     },
     {
+      "path": "website/.vitepress/theme/index.ts",
+      "status": "changed"
+    },
+    {
+      "path": "website/.vitepress/theme/legacyAnchors.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "website/.vitepress/theme/legacyAnchors.ts",
+      "status": "added"
+    },
+    {
       "path": "website/de/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -48106,8 +50284,32 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/de/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/de/guide/knowledge-base.md",
@@ -48118,7 +50320,27 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48126,7 +50348,27 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/de/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48134,8 +50376,16 @@
       "status": "changed"
     },
     {
+      "path": "website/de/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/de/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/de/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/de/guide/workspace-rail.md",
@@ -48150,6 +50400,14 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/browser.md",
       "status": "added"
     },
@@ -48158,8 +50416,32 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/es/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/es/guide/knowledge-base.md",
@@ -48170,7 +50452,27 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48178,7 +50480,27 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/es/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48186,8 +50508,16 @@
       "status": "changed"
     },
     {
+      "path": "website/es/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/es/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/es/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/es/guide/workspace-rail.md",
@@ -48195,6 +50525,14 @@
     },
     {
       "path": "website/fr/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -48206,8 +50544,32 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/fr/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/fr/guide/knowledge-base.md",
@@ -48218,7 +50580,27 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48226,7 +50608,27 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/fr/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48234,8 +50636,16 @@
       "status": "changed"
     },
     {
+      "path": "website/fr/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/fr/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/fr/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/fr/guide/workspace-rail.md",
@@ -48258,6 +50668,10 @@
       "status": "changed"
     },
     {
+      "path": "website/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/guide/coherence.md",
       "status": "added"
     },
@@ -48271,6 +50685,10 @@
     },
     {
       "path": "website/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/graphviz.md",
       "status": "changed"
     },
     {
@@ -48294,6 +50712,10 @@
       "status": "changed"
     },
     {
+      "path": "website/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/guide/mcp-setup.md",
       "status": "changed"
     },
@@ -48303,6 +50725,10 @@
     },
     {
       "path": "website/guide/media-support.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/guide/mermaid.md",
       "status": "changed"
     },
     {
@@ -48366,6 +50792,14 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/browser.md",
       "status": "added"
     },
@@ -48374,8 +50808,32 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/it/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/it/guide/knowledge-base.md",
@@ -48386,7 +50844,27 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48394,7 +50872,27 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/it/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48402,8 +50900,16 @@
       "status": "changed"
     },
     {
+      "path": "website/it/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/it/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/it/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/it/guide/workspace-rail.md",
@@ -48411,6 +50917,14 @@
     },
     {
       "path": "website/ja/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -48422,8 +50936,32 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/ja/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/ja/guide/knowledge-base.md",
@@ -48434,7 +50972,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48442,7 +51000,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ja/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48450,8 +51028,16 @@
       "status": "changed"
     },
     {
+      "path": "website/ja/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ja/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/ja/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/ja/guide/workspace-rail.md",
@@ -48459,6 +51045,14 @@
     },
     {
       "path": "website/ko/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -48470,8 +51064,32 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/ko/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/ko/guide/knowledge-base.md",
@@ -48482,7 +51100,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48490,7 +51128,27 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/ko/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48498,8 +51156,16 @@
       "status": "changed"
     },
     {
+      "path": "website/ko/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/ko/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/ko/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/ko/guide/workspace-rail.md",
@@ -48518,6 +51184,14 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/browser.md",
       "status": "added"
     },
@@ -48526,8 +51200,32 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/pt-BR/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/pt-BR/guide/knowledge-base.md",
@@ -48538,7 +51236,27 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48546,7 +51264,27 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/pt-BR/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48554,8 +51292,16 @@
       "status": "changed"
     },
     {
+      "path": "website/pt-BR/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/pt-BR/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/pt-BR/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/pt-BR/guide/workspace-rail.md",
@@ -48578,6 +51324,14 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/ai-providers.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/browser.md",
       "status": "added"
     },
@@ -48586,8 +51340,32 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-CN/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-CN/guide/knowledge-base.md",
@@ -48598,7 +51376,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48606,7 +51404,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-CN/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48614,8 +51432,16 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-CN/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-CN/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-CN/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-CN/guide/workspace-rail.md",
@@ -48623,6 +51449,14 @@
     },
     {
       "path": "website/zh-TW/download.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/ai-genies.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/ai-providers.md",
       "status": "changed"
     },
     {
@@ -48634,8 +51468,32 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/cloud-images.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/coherence.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-TW/guide/export.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/features.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/formats.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/graphviz.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/index.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-TW/guide/knowledge-base.md",
@@ -48646,7 +51504,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/link-check.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/lint.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/markmap.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/mcp-tools.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/mermaid.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/multi-cursor.md",
       "status": "changed"
     },
     {
@@ -48654,7 +51532,27 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/privacy.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/settings.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/shortcuts.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/svg.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/terminal.md",
+      "status": "changed"
+    },
+    {
+      "path": "website/zh-TW/guide/troubleshooting.md",
       "status": "changed"
     },
     {
@@ -48662,8 +51560,16 @@
       "status": "changed"
     },
     {
+      "path": "website/zh-TW/guide/workflow-viewer.md",
+      "status": "changed"
+    },
+    {
       "path": "website/zh-TW/guide/workflows.md",
       "status": "added"
+    },
+    {
+      "path": "website/zh-TW/guide/workspace-management.md",
+      "status": "changed"
     },
     {
       "path": "website/zh-TW/guide/workspace-rail.md",

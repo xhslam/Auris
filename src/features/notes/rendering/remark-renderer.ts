@@ -22,6 +22,10 @@ import {
   normalizeNotesMathDelimiters,
 } from "@/features/notes/markdown/notes-markdown-dialect";
 import {
+  assertNotesMarkdownNestingSafe,
+  NotesMarkdownNestingError,
+} from "@/features/notes/markdown/notes-markdown-nesting";
+import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
 } from "@/features/notes/documents/wiki-links";
@@ -398,12 +402,18 @@ export function renderMarkdown(
   source: string,
   options?: RemarkRenderOptions,
 ): string {
-  const rawHtml = String(
-    pipeline.processSync(normalizeNotesMathDelimiters(source)),
-  );
-  return postProcessWikiLinks(
-    rawHtml,
-    options?.wikiLinkExists,
-    options?.wikiLinkClickable,
-  );
+  try {
+    assertNotesMarkdownNestingSafe(source);
+    const rawHtml = String(
+      pipeline.processSync(normalizeNotesMathDelimiters(source)),
+    );
+    return postProcessWikiLinks(
+      rawHtml,
+      options?.wikiLinkExists,
+      options?.wikiLinkClickable,
+    );
+  } catch (error) {
+    if (!(error instanceof NotesMarkdownNestingError)) throw error;
+    return `<pre class="notes-v2__reading-source-fallback">${escapeHtml(source)}</pre>`;
+  }
 }

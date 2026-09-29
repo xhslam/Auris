@@ -379,3 +379,9 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
    - 备份旧版应用至 `/Applications/Auris.app.backup-20260927-1353`，就地替换安装并完成本地 ad-hoc 签名与严格签名核验；
    - 成功拉起新版 `/Applications/Auris.app`，主进程（PID 22959）、GPU 进程（PID 22995）、Network Service（PID 22996）、桌面灵动岛辅助进程（PID 23008）、Next.js 服务器（PID 23009）与 Renderer 进程（PID 23017/23021）均稳定运行。
 
+
+## Engineering trajectory: VMark v0.9.87 输入复杂度与依赖身份选择性对齐（2026-09-29）
+
+参考仓库 `vmark-upstream/` 更新至 `v0.9.87`（`241a25302e35b6a142aa16a7eba531cbf2046a0e`），并刷新 `docs/vmark-sync/latest.json` / `latest.md`。核查确认 Auris 使用受影响的 GFM autolink micromark 版本，因此通过 `patch-package` 在完整 `npm ci` 后对其开发与默认导出同时应用上游正向缓存修复。Notes 共用 Markdown 入口新增同线列表/引用深度扫描与 1,000 层上限；超限时富文本导入拒绝、阅读输出安全转义源码、来源链接扫描返回 `null`，不改写笔记。npm lockfile v3 增加 CodeMirror/Lezer、ProseMirror、React 共 12 个核心包的物理单例 CI 门禁。Electron 没有 VMark 的 WebKitGTK `blob:tauri` 链路，Notes 未用 `content-visibility` 虚拟化，也没有同构 HTML Trusted 预览和 SplitPane，故这些实现未照搬。
+
+验证：全新 `npm ci` 补丁成功，Notes 定向 58 项与门禁自测 4 项通过；`npm run lint` 0 error（20 项其他文件 warning），`npm run build` 成功，`git diff --check` 通过。全仓 `tsc --noEmit` 有 142 项错误，但本轮改动路径无错误。打包核查曾发现旧 Webpack 缓存仍输出补丁前代码；移走 `.next` 后重新构建，确认服务端和客户端 chunk 均含修复，并新增 `postbuild` 产物门禁防止重现。按用户后续要求递增版本至 `1.0.12`，完成 macOS arm64 辅助程序、Next 生产构建、独立运行时装配及本地应用打包；ad-hoc 签名与严格校验通过。`/Applications/Auris.app` 已替换并启动，`/` 与 `/notes` 均返回 200，旧版保存在 `/Applications/Auris.app.backup-1.0.11-before-vmark-0987`。适用性、反例与余留边界见 `docs/vmark-sync/implementation-status-2026-09-29.md`。

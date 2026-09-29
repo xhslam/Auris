@@ -1,0 +1,115 @@
+diff --git a/node_modules/micromark-extension-gfm-autolink-literal/dev/lib/syntax.js b/node_modules/micromark-extension-gfm-autolink-literal/dev/lib/syntax.js
+index 904e272..cca32a3 100644
+--- a/node_modules/micromark-extension-gfm-autolink-literal/dev/lib/syntax.js
++++ b/node_modules/micromark-extension-gfm-autolink-literal/dev/lib/syntax.js
+@@ -952,7 +952,8 @@ function gfmAtext(code) {
+  */
+ function previousUnbalanced(events) {
+   let index = events.length
+-  let result = false
++  /** @type {{label: Event[1], index: number} | undefined} */
++  let found
+ 
+   while (index--) {
+     const token = events[index][1]
+@@ -961,23 +962,39 @@ function previousUnbalanced(events) {
+       (token.type === 'labelLink' || token.type === 'labelImage') &&
+       !token._balanced
+     ) {
+-      result = true
++      found = {label: token, index}
+       break
+     }
+ 
+     // If we’ve seen this token, and it was marked as not having any unbalanced
+     // bracket before it, we can exit.
+     if (token._gfmAutolinkLiteralWalkedInto) {
+-      result = false
++      break
++    }
++
++    // Cache a positive answer too. A later link may splice events from the
++    // label, so validate both the token identity and its position first.
++    const memo = token._gfmAutolinkLiteralUnbalanced
++    if (
++      memo &&
++      events[memo.index] &&
++      events[memo.index][1] === memo.label &&
++      !memo.label._balanced
++    ) {
++      found = memo
+       break
+     }
+   }
+ 
+-  if (events.length > 0 && !result) {
+-    // Mark the last token as “walked into” w/o finding
+-    // anything.
+-    events[events.length - 1][1]._gfmAutolinkLiteralWalkedInto = true
++  if (events.length > 0) {
++    const last = events[events.length - 1][1]
++    if (found) {
++      last._gfmAutolinkLiteralUnbalanced = found
++    } else {
++      // Mark the last token as “walked into” w/o finding anything.
++      last._gfmAutolinkLiteralWalkedInto = true
++    }
+   }
+ 
+-  return result
++  return found !== undefined
+ }
+diff --git a/node_modules/micromark-extension-gfm-autolink-literal/lib/syntax.js b/node_modules/micromark-extension-gfm-autolink-literal/lib/syntax.js
+index dffbaf1..c47091c 100644
+--- a/node_modules/micromark-extension-gfm-autolink-literal/lib/syntax.js
++++ b/node_modules/micromark-extension-gfm-autolink-literal/lib/syntax.js
+@@ -830,25 +830,40 @@ function gfmAtext(code) {
+  */
+ function previousUnbalanced(events) {
+   let index = events.length;
+-  let result = false;
++  /** @type {{label: Event[1], index: number} | undefined} */
++  let found;
+   while (index--) {
+     const token = events[index][1];
+     if ((token.type === 'labelLink' || token.type === 'labelImage') && !token._balanced) {
+-      result = true;
++      found = {
++        label: token,
++        index
++      };
+       break;
+     }
+ 
+     // If we’ve seen this token, and it was marked as not having any unbalanced
+     // bracket before it, we can exit.
+     if (token._gfmAutolinkLiteralWalkedInto) {
+-      result = false;
++      break;
++    }
++
++    // Cache a positive answer too. A later link may splice events from the
++    // label, so validate both the token identity and its position first.
++    const memo = token._gfmAutolinkLiteralUnbalanced;
++    if (memo && events[memo.index] && events[memo.index][1] === memo.label && !memo.label._balanced) {
++      found = memo;
+       break;
+     }
+   }
+-  if (events.length > 0 && !result) {
+-    // Mark the last token as “walked into” w/o finding
+-    // anything.
+-    events[events.length - 1][1]._gfmAutolinkLiteralWalkedInto = true;
++  if (events.length > 0) {
++    const last = events[events.length - 1][1];
++    if (found) {
++      last._gfmAutolinkLiteralUnbalanced = found;
++    } else {
++      // Mark the last token as “walked into” w/o finding anything.
++      last._gfmAutolinkLiteralWalkedInto = true;
++    }
+   }
+-  return result;
++  return found !== undefined;
+ }
+\ No newline at end of file

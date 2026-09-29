@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `12c98051efec2adc12c3a8fdb7afe30be036e82a`
-- Changed: **2117**
-- Added: **2473**
-- Deleted: **513**
-- Renamed: **110**
+- Compared commit: `241a25302e35b6a142aa16a7eba531cbf2046a0e`
+- Changed: **2320**
+- Added: **2590**
+- Deleted: **515**
+- Renamed: **108**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
-- Mapped upstream changes: **163**
-- Capability-domain candidates: **674**
-- Unmapped upstream changes: **4376**
+- Mapped upstream changes: **171**
+- Capability-domain candidates: **714**
+- Unmapped upstream changes: **4648**
 
 ## Upstream changes
 
@@ -41,6 +41,7 @@
 - **added** `.cc-suite/audits/audit-fix-20260908-round2-findings.md`
 - **changed** `.claude/commands/bump.md`
 - **changed** `.claude/docs-guardian/config.json`
+- **added** `.claude/feature-ledger.md`
 - **changed** `.claude/hooks/gha-tdd-guard.mjs`
 - **changed** `.claude/hooks/gha-tdd-guard.test.mjs`
 - **changed** `.claude/hooks/multi-format-tdd-guard.test.mjs`
@@ -50,6 +51,7 @@
 - **changed** `.claude/rules/00-engineering-principles.md`
 - **changed** `.claude/rules/10-tdd.md`
 - **changed** `.claude/rules/21-website-docs.md`
+- **changed** `.claude/rules/22-comment-maintenance.md`
 - **changed** `.claude/rules/30-ui-consistency.md`
 - **changed** `.claude/rules/31-design-tokens.md`
 - **changed** `.claude/rules/32-component-patterns.md`
@@ -64,6 +66,7 @@
 - **changed** `.claude/skills/mcp-dev/references/paths.md`
 - **added** `.claude/tdd-guardian/20260816-cross-platform-pdf-export.md`
 - **added** `.claude/tdd-guardian/20260831-terminal-per-instance-sessions.md`
+- **added** `.claude/tdd-guardian/20260927-ledger-findings-fixes.md`
 - **added** `.claude/tdd-guardian/attack-20260822-153000.md`
 - **added** `.claude/tdd-guardian/attack-20260822-160000-round2.md`
 - **added** `.claude/tdd-guardian/audit-20260731-branch-findings.md`
@@ -370,6 +373,7 @@
 - **changed** `package.json`
 - **added** `patches/@xterm__addon-webgl@0.19.0.patch`
 - **added** `patches/mdast-util-to-markdown@2.1.2.patch`
+- **added** `patches/micromark-extension-gfm-autolink-literal@2.1.0.patch`
 - **added** `patches/micromark@4.0.2.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
@@ -431,9 +435,13 @@
 - **added** `scripts/check-doc-joins.test.mjs`
 - **changed** `scripts/check-eager-chunks.mjs`
 - **changed** `scripts/check-eager-chunks.test.ts`
+- **changed** `scripts/check-emdash-spacing.mjs`
+- **added** `scripts/check-emdash-spacing.test.mjs`
 - **added** `scripts/check-extension-budget.mjs`
 - **added** `scripts/check-feature-ledger-phase.sh`
 - **added** `scripts/check-feature-ledger-phase.test.mjs`
+- **added** `scripts/check-feature-map.mjs`
+- **added** `scripts/check-feature-map.test.mjs`
 - **changed** `scripts/check-file-size.mjs`
 - **added** `scripts/check-file-size.test.ts`
 - **added** `scripts/check-followups-phase.sh`
@@ -482,6 +490,8 @@
 - **deleted** `scripts/check-selection-styles.mjs`
 - **added** `scripts/check-shell-slots.mjs`
 - **added** `scripts/check-shell-slots.test.ts`
+- **added** `scripts/check-singleton-deps.mjs`
+- **added** `scripts/check-singleton-deps.test.mjs`
 - **changed** `scripts/check-slidev-kb-phase.sh`
 - **changed** `scripts/check-split-view-phase.sh`
 - **added** `scripts/check-tag-green.sh`
@@ -566,7 +576,11 @@
 - **added** `scripts/lib/docJoins/settingsDefaultsRowMap.mjs`
 - **added** `scripts/lib/dod-assertions.sh`
 - **added** `scripts/lib/dod-assertions.test.mjs`
+- **added** `scripts/lib/featureHistory.mjs`
+- **added** `scripts/lib/featureLedgerDoc.mjs`
 - **added** `scripts/lib/featureLedgerRender.mjs`
+- **added** `scripts/lib/featureMapInputs.mjs`
+- **added** `scripts/lib/featureOwnership.mjs`
 - **added** `scripts/lib/headerReferenceTargets.mjs`
 - **added** `scripts/lib/headerReferences.mjs`
 - **added** `scripts/lib/keybindingFormat.mjs`
@@ -873,6 +887,8 @@
 - **added** `src-tauri/src/app_plugins.rs`
 - **changed** `src-tauri/src/app_setup.rs`
 - **added** `src-tauri/src/app_setup.test.rs`
+- **changed** `src-tauri/src/asset_access.rs`
+- **added** `src-tauri/src/asset_access.test.rs`
 - **added** `src-tauri/src/atomic_persist.rs`
 - **added** `src-tauri/src/atomic_replace.rs`
 - **added** `src-tauri/src/atomic_replace.test.rs`
@@ -998,6 +1014,7 @@
 - **added** `src-tauri/src/coherence/accept_precondition.rs`
 - **added** `src-tauri/src/coherence/accept_precondition.test.rs`
 - **added** `src-tauri/src/coherence/adopt.rs`
+- **added** `src-tauri/src/coherence/adopt_duplicate.rs`
 - **added** `src-tauri/src/coherence/anchor_parse.rs`
 - **added** `src-tauri/src/coherence/anchors.rs`
 - **added** `src-tauri/src/coherence/anchors.test.rs`
@@ -1006,6 +1023,9 @@
 - **added** `src-tauri/src/coherence/capture.rs`
 - **added** `src-tauri/src/coherence/capture.test.rs`
 - **added** `src-tauri/src/coherence/capture_input.rs`
+- **added** `src-tauri/src/coherence/capture_output.rs`
+- **added** `src-tauri/src/coherence/capture_policy.rs`
+- **added** `src-tauri/src/coherence/capture_policy.test.rs`
 - **added** `src-tauri/src/coherence/cas.rs`
 - **added** `src-tauri/src/coherence/cas.test.rs`
 - **added** `src-tauri/src/coherence/check_commands.rs`
@@ -1048,6 +1068,7 @@
 - **added** `src-tauri/src/coherence/gitops.rs`
 - **added** `src-tauri/src/coherence/gitops.test.rs`
 - **added** `src-tauri/src/coherence/gitops_cmd.rs`
+- **added** `src-tauri/src/coherence/head_pin.rs`
 - **added** `src-tauri/src/coherence/index.rs`
 - **added** `src-tauri/src/coherence/index.test.rs`
 - **added** `src-tauri/src/coherence/index_apply.rs`
@@ -1099,6 +1120,7 @@
 - **added** `src-tauri/src/coherence/scan_walk.rs`
 - **added** `src-tauri/src/coherence/state.rs`
 - **added** `src-tauri/src/coherence/state.test.rs`
+- **added** `src-tauri/src/coherence/state_lock.rs`
 - **added** `src-tauri/src/coherence/state_write.rs`
 - **added** `src-tauri/src/coherence/types.rs`
 - **added** `src-tauri/src/coherence/types.test.rs`
@@ -1149,6 +1171,7 @@
 - **added** `src-tauri/src/dock_recent.test.rs`
 - **changed** `src-tauri/src/external_editor.rs`
 - **added** `src-tauri/src/external_editor.test.rs`
+- **added** `src-tauri/src/file_create.rs`
 - **changed** `src-tauri/src/file_open.rs`
 - **changed** `src-tauri/src/file_open.test.rs`
 - **changed** `src-tauri/src/file_ops.rs`
@@ -1157,6 +1180,7 @@
 - **added** `src-tauri/src/file_tree_walk.test.rs`
 - **changed** `src-tauri/src/file_write.rs`
 - **changed** `src-tauri/src/file_write.test.rs`
+- **added** `src-tauri/src/file_write_anchored.rs`
 - **added** `src-tauri/src/fs_scope.rs`
 - **added** `src-tauri/src/fs_scope.test.rs`
 - **changed** `src-tauri/src/genies/commands.rs`
@@ -1432,20 +1456,42 @@
 - **added** `src-tauri/src/workflow/recent_ids.rs`
 - **changed** `src-tauri/src/workflow/runner.rs`
 - **changed** `src-tauri/src/workflow/runner.test.rs`
+- **added** `src-tauri/src/workflow/snapshot_commands.rs`
+- **added** `src-tauri/src/workflow/snapshot_commands.test.rs`
 - **added** `src-tauri/src/workflow/snapshot_copy.rs`
 - **added** `src-tauri/src/workflow/snapshot_restore.rs`
+- **added** `src-tauri/src/workflow/snapshot_restore.test.rs`
+- **added** `src-tauri/src/workflow/snapshot_write.rs`
+- **added** `src-tauri/src/workflow/snapshot_write.test.rs`
 - **changed** `src-tauri/src/workflow/snapshots.rs`
 - **changed** `src-tauri/src/workflow/snapshots.test.rs`
 - **added** `src-tauri/src/workflow/state.rs`
 - **added** `src-tauri/src/workflow/state.test.rs`
 - **added** `src-tauri/src/workflow/state_cancel.rs`
+- **added** `src-tauri/src/workflow/state_restore.rs`
 - **changed** `src-tauri/src/workflow/types.rs`
 - **added** `src-tauri/src/workflow/validate.rs`
 - **changed** `src-tauri/src/workspace.rs`
+- **added** `src-tauri/src/workspace_grants/commands.rs`
+- **added** `src-tauri/src/workspace_grants/commands.test.rs`
+- **added** `src-tauri/src/workspace_grants/commands_policy.test.rs`
+- **added** `src-tauri/src/workspace_grants/launch.rs`
+- **added** `src-tauri/src/workspace_grants/launch.test.rs`
+- **added** `src-tauri/src/workspace_grants/mod.rs`
+- **added** `src-tauri/src/workspace_grants/mod.test.rs`
+- **added** `src-tauri/src/workspace_grants/picker.rs`
+- **added** `src-tauri/src/workspace_grants/picker.test.rs`
+- **added** `src-tauri/src/workspace_grants/protect.rs`
+- **added** `src-tauri/src/workspace_grants/protect.test.rs`
+- **added** `src-tauri/src/workspace_grants/registry.rs`
+- **added** `src-tauri/src/workspace_grants/registry.test.rs`
+- **added** `src-tauri/src/workspace_grants/scope.rs`
+- **added** `src-tauri/src/workspace_grants/scope.test.rs`
 - **changed** `src-tauri/src/workspace_transfer.rs`
 - **added** `src-tauri/src/workspace_validation.rs`
 - **changed** `src-tauri/tauri.conf.json`
 - **changed** `src-tauri/tauri.dev.conf.json`
+- **added** `src-tauri/tauri.windows.conf.json`
 - **added** `src-tauri/tests/spike_sp1_dry_run_projection.rs`
 - **added** `src-tauri/tests/spike_sp3_edge_kind_registry.rs`
 - **added** `src-tauri/tests/verify_at_volume_inventory.rs`
@@ -1570,9 +1616,13 @@
 - **changed** `src/components/Editor/SplitPaneEditor/ReadOnlyBanner.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/ReadOnlyBanner.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/SourcePane.test.tsx`
+- **added** `src/components/Editor/SplitPaneEditor/SourcePane.trustSeverity.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/SourcePane.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.test.tsx`
+- **added** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.trustSeverity.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx`
+- **added** `src/components/Editor/SplitPaneEditor/SplitPaneFrame.test.tsx`
+- **added** `src/components/Editor/SplitPaneEditor/SplitPaneFrame.tsx`
 - **added** `src/components/Editor/SplitPaneEditor/ValidationGutter.i18n.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.test.tsx`
 - **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.tsx`
@@ -1580,8 +1630,11 @@
 - **changed** `src/components/Editor/SplitPaneEditor/sourcePaneExtensions.test.ts`
 - **changed** `src/components/Editor/SplitPaneEditor/sourcePaneExtensions.ts`
 - **changed** `src/components/Editor/SplitPaneEditor/split-pane-editor.css`
+- **added** `src/components/Editor/SplitPaneEditor/splitPaneLayout.webkit.test.tsx`
 - **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx`
 - **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.ts`
+- **added** `src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.test.tsx`
+- **added** `src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.ts`
 - **changed** `src/components/Editor/SplitPaneEditor/validation-gutter.css`
 - **changed** `src/components/Editor/SplitPaneEditor/view-mode-toggle.css`
 - **added** `src/components/Editor/TiptapEditor.callbacks.test.tsx`
@@ -1611,6 +1664,7 @@
 - **changed** `src/components/Editor/WorkflowEditor/TriggerForm.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx`
 - **added** `src/components/Editor/WorkflowEditor/__tests__/AddJobControl.test.tsx`
+- **changed** `src/components/Editor/WorkflowEditor/__tests__/DiagnosticsBanner.test.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/__tests__/PermissionsForm.test.tsx`
 - **changed** `src/components/Editor/WorkflowEditor/__tests__/StepForm.test.tsx`
@@ -1635,17 +1689,31 @@
 - **added** `src/components/Editor/WorkflowPanel/WorkflowEngineSlot.tsx`
 - **changed** `src/components/Editor/WorkflowPanel/WorkflowExportControl.tsx`
 - **deleted** `src/components/Editor/WorkflowPanel/WorkflowPanelShell.tsx`
-- **renamed** `src/plugins/workflowPreview/WorkflowSidePanel.tsx` → `src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx`
+- **added** `src/components/Editor/WorkflowPanel/WorkflowRunPanel.tsx`
+- **added** `src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx`
 - **deleted** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowPanel.test.tsx`
 - **added** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowWorkbench.test.tsx`
+- **changed** `src/components/Editor/WorkflowPanel/__tests__/JobNode.test.tsx`
+- **changed** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvas.test.tsx`
 - **changed** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasLayout.test.tsx`
 - **deleted** `src/components/Editor/WorkflowPanel/__tests__/WorkflowPanelShell.test.tsx`
-- **renamed** `src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx` → `src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/WorkflowRunPanel.test.tsx`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/paneSourceView.test.ts`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/useRunSnapshot.test.tsx`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/useWorkflowRunControls.test.tsx`
+- **added** `src/components/Editor/WorkflowPanel/__tests__/workflowSnapshots.test.ts`
 - **added** `src/components/Editor/WorkflowPanel/gha-workflow-workbench.css`
 - **changed** `src/components/Editor/WorkflowPanel/job-node.css`
+- **added** `src/components/Editor/WorkflowPanel/paneSourceView.ts`
+- **added** `src/components/Editor/WorkflowPanel/useRunSnapshot.ts`
+- **added** `src/components/Editor/WorkflowPanel/useWorkflowRunControls.ts`
 - **changed** `src/components/Editor/WorkflowPanel/workflow-canvas.css`
+- **changed** `src/components/Editor/WorkflowPanel/workflow-export-control.css`
 - **deleted** `src/components/Editor/WorkflowPanel/workflow-panel-shell.css`
 - **renamed** `src/plugins/workflowPreview/workflow-side-panel.css` → `src/components/Editor/WorkflowPanel/workflow-side-panel.css`
+- **added** `src/components/Editor/WorkflowPanel/workflowSnapshots.ts`
 - **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
 - **added** `src/components/Editor/cvIdleViewportLock.test.ts`
@@ -1804,6 +1872,7 @@
 - **added** `src/components/StatusBar/paneIndicator.ts`
 - **added** `src/components/StatusBar/scrollActiveTabIntoView.test.ts`
 - **added** `src/components/StatusBar/scrollActiveTabIntoView.ts`
+- **added** `src/components/StatusBar/statusBarFade.test.ts`
 - **changed** `src/components/StatusBar/statusTextMetrics.test.ts`
 - **changed** `src/components/StatusBar/tabDragRules.test.ts`
 - **changed** `src/components/StatusBar/tabDragRules.ts`
@@ -1951,6 +2020,7 @@
 - **changed** `src/components/WindowStatusPanel/window-status-overlay.css`
 - **changed** `src/components/WindowStatusPanel/window-status-panel.css`
 - **changed** `src/components/WorkflowApproval/ApprovalDialog.a11y.test.tsx`
+- **changed** `src/components/WorkflowApproval/ApprovalDialog.test.tsx`
 - **changed** `src/components/WorkflowApproval/ApprovalDialog.tsx`
 - **changed** `src/components/WorkflowApproval/approval-dialog.css`
 - **added** `src/components/Workspace/WorkspaceApprovalDialog.test.tsx`
@@ -1972,6 +2042,7 @@
 - **changed** `src/components/spotlight/spotlightDialog.tsx`
 - **added** `src/components/toastIcons.test.tsx`
 - **added** `src/components/toastIcons.tsx`
+- **added** `src/contexts/WindowContext.restoredGrant.test.tsx`
 - **changed** `src/contexts/WindowContext.test.tsx`
 - **changed** `src/contexts/WindowContext.tsx`
 - **added** `src/contexts/prepareWindowStorage.ts`
@@ -1990,6 +2061,8 @@
 - **changed** `src/export/__tests__/editorCSSBundle.test.ts`
 - **added** `src/export/__tests__/exportCssVarCoverage.test.ts`
 - **added** `src/export/__tests__/exportDialogNamespaces.test.ts`
+- **added** `src/export/__tests__/exportErrorMessages.test.ts`
+- **added** `src/export/__tests__/exportErrorsLocalized.test.ts`
 - **added** `src/export/__tests__/exportFolderPath.test.ts`
 - **added** `src/export/__tests__/exportFsHarness.ts`
 - **added** `src/export/__tests__/exportLock.test.ts`
@@ -2014,6 +2087,7 @@
 - **changed** `src/export/__tests__/waitForAssets.test.ts`
 - **added** `src/export/assetReadiness.ts`
 - **changed** `src/export/createExportExtensions.ts`
+- **added** `src/export/exportErrorMessages.ts`
 - **added** `src/export/exportGuards.ts`
 - **added** `src/export/exportLock.ts`
 - **added** `src/export/exportLockFile.ts`
@@ -2214,6 +2288,7 @@
 - **deleted** `src/hooks/useMediaOperations.ts`
 - **added** `src/hooks/useOpenFileEvent.ts`
 - **deleted** `src/hooks/useOpenWorkflowTarget.ts`
+- **added** `src/hooks/useOutlineSync.scroll.test.ts`
 - **changed** `src/hooks/useOutlineSync.ts`
 - **added** `src/hooks/usePromptHistory.clearHistory.test.ts`
 - **changed** `src/hooks/usePromptHistory.comprehensive.test.ts`
@@ -2241,6 +2316,8 @@
 - **changed** `src/hooks/useSourceEditorSearch.test.ts`
 - **changed** `src/hooks/useSourceEditorSearch.ts`
 - **changed** `src/hooks/useSourceOutlineSync.ts`
+- **changed** `src/hooks/useSourcePaneFocus.test.tsx`
+- **changed** `src/hooks/useSourcePaneFocus.ts`
 - **added** `src/hooks/useStatusToasts.test.tsx`
 - **added** `src/hooks/useStatusToasts.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.test.ts`
@@ -2457,12 +2534,18 @@
 - **changed** `src/lib/formats/adapters/html-preview.css`
 - **changed** `src/lib/formats/adapters/html.test.ts`
 - **changed** `src/lib/formats/adapters/html.tsx`
+- **added** `src/lib/formats/adapters/htmlAttributes.test.ts`
+- **added** `src/lib/formats/adapters/htmlAttributes.ts`
+- **added** `src/lib/formats/adapters/htmlScaling.test.ts`
+- **added** `src/lib/formats/adapters/htmlTags.test.ts`
+- **added** `src/lib/formats/adapters/htmlTags.ts`
 - **added** `src/lib/formats/adapters/htmlTrust.test.ts`
 - **added** `src/lib/formats/adapters/htmlTrust.ts`
 - **changed** `src/lib/formats/adapters/json-view-theme.css`
 - **changed** `src/lib/formats/adapters/json.test.ts`
 - **changed** `src/lib/formats/adapters/json.tsx`
 - **changed** `src/lib/formats/adapters/jsonViewStyles.test.ts`
+- **added** `src/lib/formats/adapters/jsonViewStyles.webkit.test.tsx`
 - **changed** `src/lib/formats/adapters/markdown.test.tsx`
 - **changed** `src/lib/formats/adapters/markdown.tsx`
 - **added** `src/lib/formats/adapters/markdownSurface.test.tsx`
@@ -2472,6 +2555,7 @@
 - **changed** `src/lib/formats/adapters/mermaid.tsx`
 - **changed** `src/lib/formats/adapters/packageJson.test.ts`
 - **changed** `src/lib/formats/adapters/pyprojectToml.test.ts`
+- **changed** `src/lib/formats/adapters/pyprojectToml.tsx`
 - **changed** `src/lib/formats/adapters/svg.tsx`
 - **changed** `src/lib/formats/adapters/toml.test.ts`
 - **changed** `src/lib/formats/adapters/toml.tsx`
@@ -2480,11 +2564,15 @@
 - **added** `src/lib/formats/adapters/useHtmlTrust.ts`
 - **changed** `src/lib/formats/adapters/yaml.test.ts`
 - **changed** `src/lib/formats/adapters/yaml.tsx`
+- **added** `src/lib/formats/adapters/yamlEngineRenderer.test.tsx`
+- **added** `src/lib/formats/adapters/yamlEngineRenderer.tsx`
 - **added** `src/lib/formats/adapters/yamlWorkflowChunkFailure.test.tsx`
 - **added** `src/lib/formats/adapters/yamlWorkflowExtensions.test.ts`
 - **added** `src/lib/formats/adapters/yamlWorkflowExtensions.ts`
 - **added** `src/lib/formats/adapters/yamlWorkflowRenderer.test.tsx`
 - **added** `src/lib/formats/adapters/yamlWorkflowRenderer.tsx`
+- **added** `src/lib/formats/diagnosticPresentation.test.ts`
+- **added** `src/lib/formats/diagnosticPresentation.ts`
 - **changed** `src/lib/formats/dispatch.test.ts`
 - **changed** `src/lib/formats/extSync.test.ts`
 - **added** `src/lib/formats/formatPathKeys.test.ts`
@@ -2510,6 +2598,8 @@
 - **changed** `src/lib/ghaWorkflow/actions/registry.ts`
 - **changed** `src/lib/ghaWorkflow/completion/expressionCompletion.test.ts`
 - **changed** `src/lib/ghaWorkflow/cron/readable.test.ts`
+- **changed** `src/lib/ghaWorkflow/cron/readable.ts`
+- **changed** `src/lib/ghaWorkflow/detection.ts`
 - **deleted** `src/lib/ghaWorkflow/eval/staticIf.test.ts`
 - **deleted** `src/lib/ghaWorkflow/eval/staticIf.ts`
 - **changed** `src/lib/ghaWorkflow/export/__tests__/saveExport.test.ts`
@@ -2607,9 +2697,11 @@
 - **added** `src/lib/sites/wikipedia/__fixtures__/article.html`
 - **added** `src/lib/sites/wikipedia/wikipedia.test.ts`
 - **added** `src/lib/sites/wikipedia/wikipedia.ts`
+- **added** `src/lib/workflow/__tests__/detection.test.ts`
 - **changed** `src/lib/workflow/__tests__/layout.test.ts`
 - **added** `src/lib/workflow/__tests__/parser.edges.test.ts`
 - **changed** `src/lib/workflow/__tests__/parser.test.ts`
+- **added** `src/lib/workflow/detection.ts`
 - **changed** `src/lib/workflow/layout.ts`
 - **changed** `src/lib/workflow/parser.ts`
 - **changed** `src/lib/workflow/types.ts`
@@ -2989,6 +3081,7 @@
 - **changed** `src/plugins/codemirror/sourceWorkflowCursorSync.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowGoto.test.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowGoto.ts`
+- **added** `src/plugins/codemirror/sourceWorkflowPreview.test.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowPreview.ts`
 - **changed** `src/plugins/codemirror/sourceYamlLint.test.ts`
 - **changed** `src/plugins/codemirror/sourceYamlLint.ts`
@@ -2997,6 +3090,7 @@
 - **changed** `src/plugins/codemirror/structuralCharProtection.ts`
 - **changed** `src/plugins/codemirror/tabIndent.test.ts`
 - **changed** `src/plugins/codemirror/tabIndent.ts`
+- **added** `src/plugins/codemirror/theme.highlight.test.ts`
 - **changed** `src/plugins/codemirror/theme.ts`
 - **changed** `src/plugins/codemirror/typewriterModePlugin.test.ts`
 - **changed** `src/plugins/codemirror/typewriterModePlugin.ts`
@@ -3060,6 +3154,7 @@
 - **changed** `src/plugins/footnotePopup/tiptap.ts`
 - **changed** `src/plugins/footnotePopup/tiptapCleanup.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptapCleanup.ts`
+- **changed** `src/plugins/footnotePopup/tiptapDomUtils.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptapDomUtils.ts`
 - **changed** `src/plugins/footnotePopup/tiptapInsertFootnote.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptapInsertFootnote.ts`
@@ -3093,6 +3188,8 @@
 - **changed** `src/plugins/htmlPaste/tiptap.test.ts`
 - **changed** `src/plugins/htmlPaste/tiptap.ts`
 - **changed** `src/plugins/imageHandler/__tests__/imageHandler.test.ts`
+- **added** `src/plugins/imageHandler/imageHandlerClipboard.test.ts`
+- **added** `src/plugins/imageHandler/imageHandlerClipboard.ts`
 - **changed** `src/plugins/imageHandler/imageHandlerInsert.test.ts`
 - **changed** `src/plugins/imageHandler/imageHandlerInsert.ts`
 - **changed** `src/plugins/imageHandler/imageHandlerToast.test.ts`
@@ -3464,6 +3561,7 @@
 - **changed** `src/plugins/tabIndent/tiptap.test.ts`
 - **changed** `src/plugins/tabIndent/tiptap.ts`
 - **changed** `src/plugins/tableOfContents/TocNodeView.ts`
+- **added** `src/plugins/tableOfContents/__tests__/tocClickScroll.test.ts`
 - **changed** `src/plugins/tableOfContents/__tests__/tocPipeline.test.ts`
 - **deleted** `src/plugins/tableOfContents/manifest.ts`
 - **deleted** `src/plugins/tableScroll/manifest.ts`
@@ -3478,11 +3576,13 @@
 - **changed** `src/plugins/tableUI/tableEscape.edge-cases.test.ts`
 - **changed** `src/plugins/tableUI/tableEscape.test.ts`
 - **deleted** `src/plugins/taskToggle/manifest.ts`
+- **changed** `src/plugins/taskToggle/task-toggle.css`
 - **changed** `src/plugins/taskToggle/tiptap.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.test.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.ts`
 - **added** `src/plugins/taskToggle/tiptapTaskListUtils.wrap.test.ts`
 - **deleted** `src/plugins/textDragDrop/manifest.ts`
+- **changed** `src/plugins/textDragDrop/textDragDrop.css`
 - **added** `src/plugins/toolbarActions/__tests__/adapterActionParity.test.ts`
 - **added** `src/plugins/toolbarActions/__tests__/codeBlockSerialize.test.ts`
 - **added** `src/plugins/toolbarActions/__tests__/handleInsertCodeBlock.test.ts`
@@ -3600,7 +3700,9 @@
 - **changed** `src/plugins/wikiLinkPopup/wikiLinkPaths.test.ts`
 - **changed** `src/plugins/workflowPreview/WorkflowNode.tsx`
 - **changed** `src/plugins/workflowPreview/WorkflowPreview.tsx`
+- **deleted** `src/plugins/workflowPreview/WorkflowSidePanel.tsx`
 - **added** `src/plugins/workflowPreview/__tests__/WorkflowPreview.test.tsx`
+- **deleted** `src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx`
 - **deleted** `src/plugins/workflowPreview/manifest.ts`
 - **changed** `src/plugins/workflowPreview/workflow-node.css`
 - **changed** `src/plugins/workflowPreview/workflow-preview.css`
@@ -3692,6 +3794,10 @@
 - **added** `src/services/claims/claimService.ts`
 - **added** `src/services/coherence/captureFunnel.test.ts`
 - **added** `src/services/coherence/captureFunnel.ts`
+- **added** `src/services/coherence/capturePolicy.test.ts`
+- **added** `src/services/coherence/capturePolicy.ts`
+- **added** `src/services/coherence/mcpCapture.test.ts`
+- **added** `src/services/coherence/mcpCapture.ts`
 - **added** `src/services/coherence/mergeAuditService.test.ts`
 - **added** `src/services/coherence/mergeAuditService.ts`
 - **added** `src/services/coherence/scanOnChange.test.ts`
@@ -3921,6 +4027,8 @@
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenBackground.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenErrors.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveAsCapture.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveCapture.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceSwitchTabVerify.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts`
 - **added** `src/services/mcpBridge/v2/bridgeError.ts`
@@ -4099,6 +4207,7 @@
 - **changed** `src/services/persistence/renameFile.ts`
 - **deleted** `src/services/persistence/resilience/_crashRecoveryStartup.ts`
 - **changed** `src/services/persistence/resilience/_hotExitCaptureConvert.test.ts`
+- **added** `src/services/persistence/resilience/_hotExitRestore.grant.test.ts`
 - **changed** `src/services/persistence/resilience/_hotExitRestore.test.ts`
 - **changed** `src/services/persistence/resilience/_hotExitRestore.ts`
 - **deleted** `src/services/persistence/resilience/index.ts`
@@ -4198,6 +4307,8 @@
 - **added** `src/services/windowClose/tabCleanup.ts`
 - **added** `src/services/windowClose/windowCloseFlow.test.ts`
 - **added** `src/services/windowClose/windowCloseFlow.ts`
+- **added** `src/services/workflow/dispatchWorkflowRun.test.ts`
+- **added** `src/services/workflow/dispatchWorkflowRun.ts`
 - **added** `src/services/workflow/providerPayload.test.ts`
 - **added** `src/services/workflow/providerPayload.ts`
 - **added** `src/services/workflow/recorderSession.test.ts`
@@ -4220,6 +4331,8 @@
 - **added** `src/services/workflow/saveGhaWorkflowDocument.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.test.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.ts`
+- **added** `src/services/workflow/workflowRunEvents.test.ts`
+- **added** `src/services/workflow/workflowRunEvents.ts`
 - **added** `src/services/workflow/workflowRunService.test.ts`
 - **added** `src/services/workflow/workflowRunService.ts`
 - **added** `src/services/workflow/workflowRunValidate.test.ts`
@@ -4262,6 +4375,8 @@
 - **added** `src/services/workspaces/switchWorkspaceInstance.ts`
 - **added** `src/services/workspaces/syncLegacyWorkspaceContext.test.ts`
 - **added** `src/services/workspaces/syncLegacyWorkspaceContext.ts`
+- **added** `src/services/workspaces/workspaceAccess.test.ts`
+- **added** `src/services/workspaces/workspaceAccess.ts`
 - **added** `src/services/workspaces/workspaceActivationApis.test.ts`
 - **renamed** `src/hooks/workspaceConfig.test.ts` → `src/services/workspaces/workspaceConfig.test.ts`
 - **added** `src/services/workspaces/workspaceConfig.ts`
@@ -4295,6 +4410,7 @@
 - **changed** `src/shell/app-shell.css`
 - **changed** `src/shell/appShellClassName.test.ts`
 - **added** `src/shell/barHeight.test.ts`
+- **added** `src/shell/bottomLaneLayout.webkit.test.tsx`
 - **added** `src/shell/shellChrome.test.ts`
 - **added** `src/shell/shellChrome.ts`
 - **added** `src/shell/trafficLights.test.ts`
@@ -4494,12 +4610,17 @@
 - **changed** `src/stores/wikiLinkPopupStore.ts`
 - **changed** `src/stores/windowStatusStore.test.ts`
 - **changed** `src/stores/windowStatusStore.ts`
+- **added** `src/stores/workflowApprovalSlice.test.ts`
 - **added** `src/stores/workflowApprovalSlice.ts`
+- **added** `src/stores/workflowEditQueue.test.ts`
 - **added** `src/stores/workflowEditQueue.ts`
+- **added** `src/stores/workflowPreviewSlice.test.ts`
 - **added** `src/stores/workflowPreviewSlice.ts`
+- **added** `src/stores/workflowSerialize.test.ts`
 - **added** `src/stores/workflowSerialize.ts`
 - **changed** `src/stores/workflowStore.test.ts`
 - **changed** `src/stores/workflowStore.ts`
+- **added** `src/stores/workflowViewSlice.test.ts`
 - **added** `src/stores/workflowViewSlice.ts`
 - **added** `src/stores/workspaceApprovalStore.test.ts`
 - **added** `src/stores/workspaceApprovalStore.ts`
@@ -4717,6 +4838,8 @@
 - **changed** `src/utils/imeGuard.ts`
 - **added** `src/utils/ingestOrigin.test.ts`
 - **added** `src/utils/ingestOrigin.ts`
+- **added** `src/utils/jsonErrorOffset.test.ts`
+- **added** `src/utils/jsonErrorOffset.ts`
 - **added** `src/utils/katexStyleFiltering.test.ts`
 - **added** `src/utils/keybinding/canonicalChord.test.ts`
 - **added** `src/utils/keybinding/canonicalChord.ts`
@@ -4940,7 +5063,9 @@
 - **changed** `src/utils/markdownPipeline/urlValidation.ts`
 - **changed** `src/utils/markdownUrl.test.ts`
 - **changed** `src/utils/mcpBridgePathPolicy.test.ts`
+- **added** `src/utils/mediaExtensions.json`
 - **changed** `src/utils/mediaExtensions.test.ts`
+- **changed** `src/utils/mediaExtensions.ts`
 - **changed** `src/utils/mediaPathDetection.test.ts`
 - **added** `src/utils/motion.test.ts`
 - **added** `src/utils/motion.ts`
@@ -4974,6 +5099,9 @@
 - **changed** `src/utils/safeUnlisten.ts`
 - **changed** `src/utils/sanitize.test.ts`
 - **changed** `src/utils/sanitize.ts`
+- **added** `src/utils/settledScroll.test.ts`
+- **added** `src/utils/settledScroll.ts`
+- **added** `src/utils/settledScroll.webkit.test.ts`
 - **changed** `src/utils/shortcutMatch.ts`
 - **changed** `src/utils/sourceEditorSearch.test.ts`
 - **changed** `src/utils/sourceEditorSearch.ts`
@@ -5078,65 +5206,137 @@
 - **changed** `website/.vitepress/config/en.ts`
 - **changed** `website/.vitepress/config/es.ts`
 - **changed** `website/.vitepress/config/fr.ts`
+- **added** `website/.vitepress/config/guideSidebar.ts`
 - **changed** `website/.vitepress/config/it.ts`
 - **changed** `website/.vitepress/config/ja.ts`
 - **changed** `website/.vitepress/config/ko.ts`
 - **changed** `website/.vitepress/config/pt-BR.ts`
+- **changed** `website/.vitepress/config/shared.ts`
+- **added** `website/.vitepress/config/sidebarParity.test.ts`
+- **added** `website/.vitepress/config/slugify.test.ts`
+- **added** `website/.vitepress/config/slugify.ts`
 - **changed** `website/.vitepress/config/zh-CN.ts`
 - **changed** `website/.vitepress/config/zh-TW.ts`
+- **changed** `website/.vitepress/theme/index.ts`
+- **added** `website/.vitepress/theme/legacyAnchors.test.ts`
+- **added** `website/.vitepress/theme/legacyAnchors.ts`
 - **changed** `website/de/download.md`
+- **changed** `website/de/guide/ai-genies.md`
+- **changed** `website/de/guide/ai-providers.md`
 - **added** `website/de/guide/browser.md`
 - **changed** `website/de/guide/cjk-formatting.md`
+- **changed** `website/de/guide/cloud-images.md`
 - **added** `website/de/guide/coherence.md`
+- **changed** `website/de/guide/export.md`
+- **changed** `website/de/guide/features.md`
+- **changed** `website/de/guide/formats.md`
+- **changed** `website/de/guide/graphviz.md`
+- **changed** `website/de/guide/index.md`
 - **added** `website/de/guide/knowledge-base.md`
 - **changed** `website/de/guide/large-files.md`
+- **changed** `website/de/guide/link-check.md`
+- **changed** `website/de/guide/lint.md`
+- **changed** `website/de/guide/markmap.md`
 - **changed** `website/de/guide/mcp-tools.md`
+- **changed** `website/de/guide/mermaid.md`
+- **changed** `website/de/guide/multi-cursor.md`
 - **changed** `website/de/guide/popups.md`
+- **changed** `website/de/guide/privacy.md`
 - **changed** `website/de/guide/settings.md`
+- **changed** `website/de/guide/shortcuts.md`
+- **changed** `website/de/guide/svg.md`
+- **changed** `website/de/guide/terminal.md`
+- **changed** `website/de/guide/troubleshooting.md`
 - **changed** `website/de/guide/workflow-genies.md`
+- **changed** `website/de/guide/workflow-viewer.md`
 - **added** `website/de/guide/workflows.md`
+- **changed** `website/de/guide/workspace-management.md`
 - **added** `website/de/guide/workspace-rail.md`
 - **changed** `website/download.md`
 - **changed** `website/es/download.md`
+- **changed** `website/es/guide/ai-genies.md`
+- **changed** `website/es/guide/ai-providers.md`
 - **added** `website/es/guide/browser.md`
 - **changed** `website/es/guide/cjk-formatting.md`
+- **changed** `website/es/guide/cloud-images.md`
 - **added** `website/es/guide/coherence.md`
+- **changed** `website/es/guide/export.md`
+- **changed** `website/es/guide/features.md`
+- **changed** `website/es/guide/formats.md`
+- **changed** `website/es/guide/graphviz.md`
+- **changed** `website/es/guide/index.md`
 - **added** `website/es/guide/knowledge-base.md`
 - **changed** `website/es/guide/large-files.md`
+- **changed** `website/es/guide/link-check.md`
+- **changed** `website/es/guide/lint.md`
+- **changed** `website/es/guide/markmap.md`
 - **changed** `website/es/guide/mcp-tools.md`
+- **changed** `website/es/guide/mermaid.md`
+- **changed** `website/es/guide/multi-cursor.md`
 - **changed** `website/es/guide/popups.md`
+- **changed** `website/es/guide/privacy.md`
 - **changed** `website/es/guide/settings.md`
+- **changed** `website/es/guide/shortcuts.md`
+- **changed** `website/es/guide/svg.md`
+- **changed** `website/es/guide/terminal.md`
+- **changed** `website/es/guide/troubleshooting.md`
 - **changed** `website/es/guide/workflow-genies.md`
+- **changed** `website/es/guide/workflow-viewer.md`
 - **added** `website/es/guide/workflows.md`
+- **changed** `website/es/guide/workspace-management.md`
 - **added** `website/es/guide/workspace-rail.md`
 - **changed** `website/fr/download.md`
+- **changed** `website/fr/guide/ai-genies.md`
+- **changed** `website/fr/guide/ai-providers.md`
 - **added** `website/fr/guide/browser.md`
 - **changed** `website/fr/guide/cjk-formatting.md`
+- **changed** `website/fr/guide/cloud-images.md`
 - **added** `website/fr/guide/coherence.md`
+- **changed** `website/fr/guide/export.md`
+- **changed** `website/fr/guide/features.md`
+- **changed** `website/fr/guide/formats.md`
+- **changed** `website/fr/guide/graphviz.md`
+- **changed** `website/fr/guide/index.md`
 - **added** `website/fr/guide/knowledge-base.md`
 - **changed** `website/fr/guide/large-files.md`
+- **changed** `website/fr/guide/link-check.md`
+- **changed** `website/fr/guide/lint.md`
+- **changed** `website/fr/guide/markmap.md`
 - **changed** `website/fr/guide/mcp-tools.md`
+- **changed** `website/fr/guide/mermaid.md`
+- **changed** `website/fr/guide/multi-cursor.md`
 - **changed** `website/fr/guide/popups.md`
+- **changed** `website/fr/guide/privacy.md`
 - **changed** `website/fr/guide/settings.md`
+- **changed** `website/fr/guide/shortcuts.md`
+- **changed** `website/fr/guide/svg.md`
+- **changed** `website/fr/guide/terminal.md`
+- **changed** `website/fr/guide/troubleshooting.md`
 - **changed** `website/fr/guide/workflow-genies.md`
+- **changed** `website/fr/guide/workflow-viewer.md`
 - **added** `website/fr/guide/workflows.md`
+- **changed** `website/fr/guide/workspace-management.md`
 - **added** `website/fr/guide/workspace-rail.md`
 - **changed** `website/guide/ai-genies.md`
 - **changed** `website/guide/ai-providers.md`
 - **changed** `website/guide/browser.md`
 - **changed** `website/guide/cjk-formatting.md`
+- **changed** `website/guide/cloud-images.md`
 - **added** `website/guide/coherence.md`
 - **changed** `website/guide/export.md`
 - **changed** `website/guide/features.md`
 - **changed** `website/guide/formats.md`
+- **changed** `website/guide/graphviz.md`
 - **changed** `website/guide/index.md`
 - **changed** `website/guide/knowledge-base.md`
 - **changed** `website/guide/large-files.md`
 - **changed** `website/guide/link-check.md`
 - **changed** `website/guide/lint.md`
+- **changed** `website/guide/markmap.md`
 - **changed** `website/guide/mcp-setup.md`
 - **changed** `website/guide/mcp-tools.md`
 - **changed** `website/guide/media-support.md`
+- **changed** `website/guide/mermaid.md`
 - **changed** `website/guide/multi-cursor.md`
 - **changed** `website/guide/popups.md`
 - **changed** `website/guide/privacy.md`
@@ -5152,81 +5352,201 @@
 - **changed** `website/guide/workspace-management.md`
 - **added** `website/guide/workspace-rail.md`
 - **changed** `website/it/download.md`
+- **changed** `website/it/guide/ai-genies.md`
+- **changed** `website/it/guide/ai-providers.md`
 - **added** `website/it/guide/browser.md`
 - **changed** `website/it/guide/cjk-formatting.md`
+- **changed** `website/it/guide/cloud-images.md`
 - **added** `website/it/guide/coherence.md`
+- **changed** `website/it/guide/export.md`
+- **changed** `website/it/guide/features.md`
+- **changed** `website/it/guide/formats.md`
+- **changed** `website/it/guide/graphviz.md`
+- **changed** `website/it/guide/index.md`
 - **added** `website/it/guide/knowledge-base.md`
 - **changed** `website/it/guide/large-files.md`
+- **changed** `website/it/guide/link-check.md`
+- **changed** `website/it/guide/lint.md`
+- **changed** `website/it/guide/markmap.md`
 - **changed** `website/it/guide/mcp-tools.md`
+- **changed** `website/it/guide/mermaid.md`
+- **changed** `website/it/guide/multi-cursor.md`
 - **changed** `website/it/guide/popups.md`
+- **changed** `website/it/guide/privacy.md`
 - **changed** `website/it/guide/settings.md`
+- **changed** `website/it/guide/shortcuts.md`
+- **changed** `website/it/guide/svg.md`
+- **changed** `website/it/guide/terminal.md`
+- **changed** `website/it/guide/troubleshooting.md`
 - **changed** `website/it/guide/workflow-genies.md`
+- **changed** `website/it/guide/workflow-viewer.md`
 - **added** `website/it/guide/workflows.md`
+- **changed** `website/it/guide/workspace-management.md`
 - **added** `website/it/guide/workspace-rail.md`
 - **changed** `website/ja/download.md`
+- **changed** `website/ja/guide/ai-genies.md`
+- **changed** `website/ja/guide/ai-providers.md`
 - **added** `website/ja/guide/browser.md`
 - **changed** `website/ja/guide/cjk-formatting.md`
+- **changed** `website/ja/guide/cloud-images.md`
 - **added** `website/ja/guide/coherence.md`
+- **changed** `website/ja/guide/export.md`
+- **changed** `website/ja/guide/features.md`
+- **changed** `website/ja/guide/formats.md`
+- **changed** `website/ja/guide/graphviz.md`
+- **changed** `website/ja/guide/index.md`
 - **added** `website/ja/guide/knowledge-base.md`
 - **changed** `website/ja/guide/large-files.md`
+- **changed** `website/ja/guide/link-check.md`
+- **changed** `website/ja/guide/lint.md`
+- **changed** `website/ja/guide/markmap.md`
 - **changed** `website/ja/guide/mcp-tools.md`
+- **changed** `website/ja/guide/mermaid.md`
+- **changed** `website/ja/guide/multi-cursor.md`
 - **changed** `website/ja/guide/popups.md`
+- **changed** `website/ja/guide/privacy.md`
 - **changed** `website/ja/guide/settings.md`
+- **changed** `website/ja/guide/shortcuts.md`
+- **changed** `website/ja/guide/svg.md`
+- **changed** `website/ja/guide/terminal.md`
+- **changed** `website/ja/guide/troubleshooting.md`
 - **changed** `website/ja/guide/workflow-genies.md`
+- **changed** `website/ja/guide/workflow-viewer.md`
 - **added** `website/ja/guide/workflows.md`
+- **changed** `website/ja/guide/workspace-management.md`
 - **added** `website/ja/guide/workspace-rail.md`
 - **changed** `website/ko/download.md`
+- **changed** `website/ko/guide/ai-genies.md`
+- **changed** `website/ko/guide/ai-providers.md`
 - **added** `website/ko/guide/browser.md`
 - **changed** `website/ko/guide/cjk-formatting.md`
+- **changed** `website/ko/guide/cloud-images.md`
 - **added** `website/ko/guide/coherence.md`
+- **changed** `website/ko/guide/export.md`
+- **changed** `website/ko/guide/features.md`
+- **changed** `website/ko/guide/formats.md`
+- **changed** `website/ko/guide/graphviz.md`
+- **changed** `website/ko/guide/index.md`
 - **added** `website/ko/guide/knowledge-base.md`
 - **changed** `website/ko/guide/large-files.md`
+- **changed** `website/ko/guide/link-check.md`
+- **changed** `website/ko/guide/lint.md`
+- **changed** `website/ko/guide/markmap.md`
 - **changed** `website/ko/guide/mcp-tools.md`
+- **changed** `website/ko/guide/mermaid.md`
+- **changed** `website/ko/guide/multi-cursor.md`
 - **changed** `website/ko/guide/popups.md`
+- **changed** `website/ko/guide/privacy.md`
 - **changed** `website/ko/guide/settings.md`
+- **changed** `website/ko/guide/shortcuts.md`
+- **changed** `website/ko/guide/svg.md`
+- **changed** `website/ko/guide/terminal.md`
+- **changed** `website/ko/guide/troubleshooting.md`
 - **changed** `website/ko/guide/workflow-genies.md`
+- **changed** `website/ko/guide/workflow-viewer.md`
 - **added** `website/ko/guide/workflows.md`
+- **changed** `website/ko/guide/workspace-management.md`
 - **added** `website/ko/guide/workspace-rail.md`
 - **changed** `website/package.json`
 - **deleted** `website/pnpm-lock.yaml`
 - **changed** `website/pt-BR/download.md`
+- **changed** `website/pt-BR/guide/ai-genies.md`
+- **changed** `website/pt-BR/guide/ai-providers.md`
 - **added** `website/pt-BR/guide/browser.md`
 - **changed** `website/pt-BR/guide/cjk-formatting.md`
+- **changed** `website/pt-BR/guide/cloud-images.md`
 - **added** `website/pt-BR/guide/coherence.md`
+- **changed** `website/pt-BR/guide/export.md`
+- **changed** `website/pt-BR/guide/features.md`
+- **changed** `website/pt-BR/guide/formats.md`
+- **changed** `website/pt-BR/guide/graphviz.md`
+- **changed** `website/pt-BR/guide/index.md`
 - **added** `website/pt-BR/guide/knowledge-base.md`
 - **changed** `website/pt-BR/guide/large-files.md`
+- **changed** `website/pt-BR/guide/link-check.md`
+- **changed** `website/pt-BR/guide/lint.md`
+- **changed** `website/pt-BR/guide/markmap.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
+- **changed** `website/pt-BR/guide/mermaid.md`
+- **changed** `website/pt-BR/guide/multi-cursor.md`
 - **changed** `website/pt-BR/guide/popups.md`
+- **changed** `website/pt-BR/guide/privacy.md`
 - **changed** `website/pt-BR/guide/settings.md`
+- **changed** `website/pt-BR/guide/shortcuts.md`
+- **changed** `website/pt-BR/guide/svg.md`
+- **changed** `website/pt-BR/guide/terminal.md`
+- **changed** `website/pt-BR/guide/troubleshooting.md`
 - **changed** `website/pt-BR/guide/workflow-genies.md`
+- **changed** `website/pt-BR/guide/workflow-viewer.md`
 - **added** `website/pt-BR/guide/workflows.md`
+- **changed** `website/pt-BR/guide/workspace-management.md`
 - **added** `website/pt-BR/guide/workspace-rail.md`
 - **changed** `website/public/favicon.ico`
 - **changed** `website/public/favicon.svg`
 - **changed** `website/public/logo.png`
 - **changed** `website/zh-CN/download.md`
+- **changed** `website/zh-CN/guide/ai-genies.md`
+- **changed** `website/zh-CN/guide/ai-providers.md`
 - **added** `website/zh-CN/guide/browser.md`
 - **changed** `website/zh-CN/guide/cjk-formatting.md`
+- **changed** `website/zh-CN/guide/cloud-images.md`
 - **added** `website/zh-CN/guide/coherence.md`
+- **changed** `website/zh-CN/guide/export.md`
+- **changed** `website/zh-CN/guide/features.md`
+- **changed** `website/zh-CN/guide/formats.md`
+- **changed** `website/zh-CN/guide/graphviz.md`
+- **changed** `website/zh-CN/guide/index.md`
 - **added** `website/zh-CN/guide/knowledge-base.md`
 - **changed** `website/zh-CN/guide/large-files.md`
+- **changed** `website/zh-CN/guide/link-check.md`
+- **changed** `website/zh-CN/guide/lint.md`
+- **changed** `website/zh-CN/guide/markmap.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
+- **changed** `website/zh-CN/guide/mermaid.md`
+- **changed** `website/zh-CN/guide/multi-cursor.md`
 - **changed** `website/zh-CN/guide/popups.md`
+- **changed** `website/zh-CN/guide/privacy.md`
 - **changed** `website/zh-CN/guide/settings.md`
+- **changed** `website/zh-CN/guide/shortcuts.md`
+- **changed** `website/zh-CN/guide/svg.md`
+- **changed** `website/zh-CN/guide/terminal.md`
+- **changed** `website/zh-CN/guide/troubleshooting.md`
 - **changed** `website/zh-CN/guide/workflow-genies.md`
+- **changed** `website/zh-CN/guide/workflow-viewer.md`
 - **added** `website/zh-CN/guide/workflows.md`
+- **changed** `website/zh-CN/guide/workspace-management.md`
 - **added** `website/zh-CN/guide/workspace-rail.md`
 - **changed** `website/zh-TW/download.md`
+- **changed** `website/zh-TW/guide/ai-genies.md`
+- **changed** `website/zh-TW/guide/ai-providers.md`
 - **added** `website/zh-TW/guide/browser.md`
 - **changed** `website/zh-TW/guide/cjk-formatting.md`
+- **changed** `website/zh-TW/guide/cloud-images.md`
 - **added** `website/zh-TW/guide/coherence.md`
+- **changed** `website/zh-TW/guide/export.md`
+- **changed** `website/zh-TW/guide/features.md`
+- **changed** `website/zh-TW/guide/formats.md`
+- **changed** `website/zh-TW/guide/graphviz.md`
+- **changed** `website/zh-TW/guide/index.md`
 - **added** `website/zh-TW/guide/knowledge-base.md`
 - **changed** `website/zh-TW/guide/large-files.md`
+- **changed** `website/zh-TW/guide/link-check.md`
+- **changed** `website/zh-TW/guide/lint.md`
+- **changed** `website/zh-TW/guide/markmap.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
+- **changed** `website/zh-TW/guide/mermaid.md`
+- **changed** `website/zh-TW/guide/multi-cursor.md`
 - **changed** `website/zh-TW/guide/popups.md`
+- **changed** `website/zh-TW/guide/privacy.md`
 - **changed** `website/zh-TW/guide/settings.md`
+- **changed** `website/zh-TW/guide/shortcuts.md`
+- **changed** `website/zh-TW/guide/svg.md`
+- **changed** `website/zh-TW/guide/terminal.md`
+- **changed** `website/zh-TW/guide/troubleshooting.md`
 - **changed** `website/zh-TW/guide/workflow-genies.md`
+- **changed** `website/zh-TW/guide/workflow-viewer.md`
 - **added** `website/zh-TW/guide/workflows.md`
+- **changed** `website/zh-TW/guide/workspace-management.md`
 - **added** `website/zh-TW/guide/workspace-rail.md`
 
 ## Mappings
@@ -5298,7 +5618,7 @@
 
 - Disposition: `rewritten`
 - Last compared commit: `2805ea81c1fe47ba8fbbc6aa582eaa087060ef7c` (stale)
-- Matched upstream changes: 43
+- Matched upstream changes: 51
 - Missing Auris targets: 0
 
 ### `source-license-attribution`
@@ -5339,6 +5659,7 @@
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/accept_precondition.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/accept_precondition.test.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/adopt.rs`
+- `coherence` (`adapt`): **added** `src-tauri/src/coherence/adopt_duplicate.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/anchor_parse.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/anchors.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/anchors.test.rs`
@@ -5347,6 +5668,9 @@
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/capture.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/capture.test.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/capture_input.rs`
+- `coherence` (`adapt`): **added** `src-tauri/src/coherence/capture_output.rs`
+- `coherence` (`adapt`): **added** `src-tauri/src/coherence/capture_policy.rs`
+- `coherence` (`adapt`): **added** `src-tauri/src/coherence/capture_policy.test.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/cas.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/cas.test.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/check_commands.rs`
@@ -5389,6 +5713,7 @@
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/gitops.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/gitops.test.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/gitops_cmd.rs`
+- `coherence` (`adapt`): **added** `src-tauri/src/coherence/head_pin.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/index.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/index.test.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/index_apply.rs`
@@ -5440,6 +5765,7 @@
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/scan_walk.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/state.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/state.test.rs`
+- `coherence` (`adapt`): **added** `src-tauri/src/coherence/state_lock.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/state_write.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/types.rs`
 - `coherence` (`adapt`): **added** `src-tauri/src/coherence/types.test.rs`
@@ -5480,9 +5806,13 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/ReadOnlyBanner.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/ReadOnlyBanner.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SourcePane.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/SourcePane.trustSeverity.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SourcePane.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.trustSeverity.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/SplitPaneEditor.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/SplitPaneFrame.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/SplitPaneFrame.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/ValidationGutter.i18n.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/ValidationGutter.tsx`
@@ -5490,8 +5820,11 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/sourcePaneExtensions.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/sourcePaneExtensions.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/split-pane-editor.css`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/splitPaneLayout.webkit.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/usePreviewModel.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/SplitPaneEditor/useTrustedSeveritySync.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/validation-gutter.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/SplitPaneEditor/view-mode-toggle.css`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/TiptapEditor.callbacks.test.tsx`
@@ -5521,6 +5854,7 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/TriggerForm.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/WorkflowEditorPanel.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowEditor/__tests__/AddJobControl.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/DiagnosticsBanner.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/JobForm.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/PermissionsForm.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowEditor/__tests__/StepForm.test.tsx`
@@ -5545,17 +5879,31 @@
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/WorkflowEngineSlot.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/WorkflowExportControl.tsx`
 - `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/WorkflowPanelShell.tsx`
-- `editor-infrastructure` (`adapt`): **renamed** `src/plugins/workflowPreview/WorkflowSidePanel.tsx` → `src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/WorkflowRunPanel.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/WorkflowSidePanel.tsx`
 - `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowPanel.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/GhaWorkflowWorkbench.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/__tests__/JobNode.test.tsx`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvas.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasInner.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/WorkflowCanvasLayout.test.tsx`
 - `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/__tests__/WorkflowPanelShell.test.tsx`
-- `editor-infrastructure` (`adapt`): **renamed** `src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx` → `src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/WorkflowRunPanel.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/WorkflowSidePanel.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/paneSourceView.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/useRunSnapshot.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/useWorkflowRunControls.test.tsx`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/__tests__/workflowSnapshots.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/gha-workflow-workbench.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/job-node.css`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/paneSourceView.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/useRunSnapshot.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/useWorkflowRunControls.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/workflow-canvas.css`
+- `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/WorkflowPanel/workflow-export-control.css`
 - `editor-infrastructure` (`adapt`): **deleted** `src/components/Editor/WorkflowPanel/workflow-panel-shell.css`
 - `editor-infrastructure` (`adapt`): **renamed** `src/plugins/workflowPreview/workflow-side-panel.css` → `src/components/Editor/WorkflowPanel/workflow-side-panel.css`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/workflowSnapshots.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleViewportLock.test.ts`
@@ -5755,12 +6103,18 @@
 - `formats` (`port`): **changed** `src/lib/formats/adapters/html-preview.css`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/html.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/html.tsx`
+- `formats` (`port`): **added** `src/lib/formats/adapters/htmlAttributes.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/adapters/htmlAttributes.ts`
+- `formats` (`port`): **added** `src/lib/formats/adapters/htmlScaling.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/adapters/htmlTags.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/adapters/htmlTags.ts`
 - `formats` (`port`): **added** `src/lib/formats/adapters/htmlTrust.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/adapters/htmlTrust.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/json-view-theme.css`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/json.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/json.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/jsonViewStyles.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/adapters/jsonViewStyles.webkit.test.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/markdown.test.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/markdown.tsx`
 - `formats` (`port`): **added** `src/lib/formats/adapters/markdownSurface.test.tsx`
@@ -5770,6 +6124,7 @@
 - `formats` (`port`): **changed** `src/lib/formats/adapters/mermaid.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/packageJson.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/pyprojectToml.test.ts`
+- `formats` (`port`): **changed** `src/lib/formats/adapters/pyprojectToml.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/svg.tsx`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/toml.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/toml.tsx`
@@ -5778,11 +6133,15 @@
 - `formats` (`port`): **added** `src/lib/formats/adapters/useHtmlTrust.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/yaml.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/adapters/yaml.tsx`
+- `formats` (`port`): **added** `src/lib/formats/adapters/yamlEngineRenderer.test.tsx`
+- `formats` (`port`): **added** `src/lib/formats/adapters/yamlEngineRenderer.tsx`
 - `formats` (`port`): **added** `src/lib/formats/adapters/yamlWorkflowChunkFailure.test.tsx`
 - `formats` (`port`): **added** `src/lib/formats/adapters/yamlWorkflowExtensions.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/adapters/yamlWorkflowExtensions.ts`
 - `formats` (`port`): **added** `src/lib/formats/adapters/yamlWorkflowRenderer.test.tsx`
 - `formats` (`port`): **added** `src/lib/formats/adapters/yamlWorkflowRenderer.tsx`
+- `formats` (`port`): **added** `src/lib/formats/diagnosticPresentation.test.ts`
+- `formats` (`port`): **added** `src/lib/formats/diagnosticPresentation.ts`
 - `formats` (`port`): **changed** `src/lib/formats/dispatch.test.ts`
 - `formats` (`port`): **changed** `src/lib/formats/extSync.test.ts`
 - `formats` (`port`): **added** `src/lib/formats/formatPathKeys.test.ts`
@@ -5923,6 +6282,7 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/renameFile.ts`
 - `editor-infrastructure` (`adapt`): **deleted** `src/services/persistence/resilience/_crashRecoveryStartup.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/resilience/_hotExitCaptureConvert.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/services/persistence/resilience/_hotExitRestore.grant.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/resilience/_hotExitRestore.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/services/persistence/resilience/_hotExitRestore.ts`
 - `editor-infrastructure` (`adapt`): **deleted** `src/services/persistence/resilience/index.ts`
@@ -6020,6 +6380,7 @@
 - **added** `.cc-suite/audits/audit-fix-20260908-round2-findings.md`
 - **changed** `.claude/commands/bump.md`
 - **changed** `.claude/docs-guardian/config.json`
+- **added** `.claude/feature-ledger.md`
 - **changed** `.claude/hooks/gha-tdd-guard.mjs`
 - **changed** `.claude/hooks/gha-tdd-guard.test.mjs`
 - **changed** `.claude/hooks/multi-format-tdd-guard.test.mjs`
@@ -6029,6 +6390,7 @@
 - **changed** `.claude/rules/00-engineering-principles.md`
 - **changed** `.claude/rules/10-tdd.md`
 - **changed** `.claude/rules/21-website-docs.md`
+- **changed** `.claude/rules/22-comment-maintenance.md`
 - **changed** `.claude/rules/30-ui-consistency.md`
 - **changed** `.claude/rules/31-design-tokens.md`
 - **changed** `.claude/rules/32-component-patterns.md`
@@ -6043,6 +6405,7 @@
 - **changed** `.claude/skills/mcp-dev/references/paths.md`
 - **added** `.claude/tdd-guardian/20260816-cross-platform-pdf-export.md`
 - **added** `.claude/tdd-guardian/20260831-terminal-per-instance-sessions.md`
+- **added** `.claude/tdd-guardian/20260927-ledger-findings-fixes.md`
 - **added** `.claude/tdd-guardian/attack-20260822-153000.md`
 - **added** `.claude/tdd-guardian/attack-20260822-160000-round2.md`
 - **added** `.claude/tdd-guardian/audit-20260731-branch-findings.md`
@@ -6348,6 +6711,7 @@
 - **deleted** `ledger.json`
 - **added** `patches/@xterm__addon-webgl@0.19.0.patch`
 - **added** `patches/mdast-util-to-markdown@2.1.2.patch`
+- **added** `patches/micromark-extension-gfm-autolink-literal@2.1.0.patch`
 - **added** `patches/micromark@4.0.2.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
@@ -6407,9 +6771,13 @@
 - **added** `scripts/check-doc-joins.test.mjs`
 - **changed** `scripts/check-eager-chunks.mjs`
 - **changed** `scripts/check-eager-chunks.test.ts`
+- **changed** `scripts/check-emdash-spacing.mjs`
+- **added** `scripts/check-emdash-spacing.test.mjs`
 - **added** `scripts/check-extension-budget.mjs`
 - **added** `scripts/check-feature-ledger-phase.sh`
 - **added** `scripts/check-feature-ledger-phase.test.mjs`
+- **added** `scripts/check-feature-map.mjs`
+- **added** `scripts/check-feature-map.test.mjs`
 - **changed** `scripts/check-file-size.mjs`
 - **added** `scripts/check-file-size.test.ts`
 - **added** `scripts/check-followups-phase.sh`
@@ -6458,6 +6826,8 @@
 - **deleted** `scripts/check-selection-styles.mjs`
 - **added** `scripts/check-shell-slots.mjs`
 - **added** `scripts/check-shell-slots.test.ts`
+- **added** `scripts/check-singleton-deps.mjs`
+- **added** `scripts/check-singleton-deps.test.mjs`
 - **changed** `scripts/check-slidev-kb-phase.sh`
 - **changed** `scripts/check-split-view-phase.sh`
 - **added** `scripts/check-tag-green.sh`
@@ -6542,7 +6912,11 @@
 - **added** `scripts/lib/docJoins/settingsDefaultsRowMap.mjs`
 - **added** `scripts/lib/dod-assertions.sh`
 - **added** `scripts/lib/dod-assertions.test.mjs`
+- **added** `scripts/lib/featureHistory.mjs`
+- **added** `scripts/lib/featureLedgerDoc.mjs`
 - **added** `scripts/lib/featureLedgerRender.mjs`
+- **added** `scripts/lib/featureMapInputs.mjs`
+- **added** `scripts/lib/featureOwnership.mjs`
 - **added** `scripts/lib/headerReferenceTargets.mjs`
 - **added** `scripts/lib/headerReferences.mjs`
 - **added** `scripts/lib/keybindingFormat.mjs`
@@ -6816,6 +7190,8 @@
 - **added** `src-tauri/src/app_plugins.rs`
 - **changed** `src-tauri/src/app_setup.rs`
 - **added** `src-tauri/src/app_setup.test.rs`
+- **changed** `src-tauri/src/asset_access.rs`
+- **added** `src-tauri/src/asset_access.test.rs`
 - **added** `src-tauri/src/atomic_persist.rs`
 - **added** `src-tauri/src/atomic_replace.rs`
 - **added** `src-tauri/src/atomic_replace.test.rs`
@@ -6968,6 +7344,7 @@
 - **added** `src-tauri/src/dock_recent.test.rs`
 - **changed** `src-tauri/src/external_editor.rs`
 - **added** `src-tauri/src/external_editor.test.rs`
+- **added** `src-tauri/src/file_create.rs`
 - **changed** `src-tauri/src/file_open.rs`
 - **changed** `src-tauri/src/file_open.test.rs`
 - **changed** `src-tauri/src/file_ops.rs`
@@ -6976,6 +7353,7 @@
 - **added** `src-tauri/src/file_tree_walk.test.rs`
 - **changed** `src-tauri/src/file_write.rs`
 - **changed** `src-tauri/src/file_write.test.rs`
+- **added** `src-tauri/src/file_write_anchored.rs`
 - **added** `src-tauri/src/fs_scope.rs`
 - **added** `src-tauri/src/fs_scope.test.rs`
 - **changed** `src-tauri/src/gha_workflow/action_fetch.rs`
@@ -7188,10 +7566,26 @@
 - **changed** `src-tauri/src/watcher.rs`
 - **added** `src-tauri/src/watcher.test.rs`
 - **changed** `src-tauri/src/workspace.rs`
+- **added** `src-tauri/src/workspace_grants/commands.rs`
+- **added** `src-tauri/src/workspace_grants/commands.test.rs`
+- **added** `src-tauri/src/workspace_grants/commands_policy.test.rs`
+- **added** `src-tauri/src/workspace_grants/launch.rs`
+- **added** `src-tauri/src/workspace_grants/launch.test.rs`
+- **added** `src-tauri/src/workspace_grants/mod.rs`
+- **added** `src-tauri/src/workspace_grants/mod.test.rs`
+- **added** `src-tauri/src/workspace_grants/picker.rs`
+- **added** `src-tauri/src/workspace_grants/picker.test.rs`
+- **added** `src-tauri/src/workspace_grants/protect.rs`
+- **added** `src-tauri/src/workspace_grants/protect.test.rs`
+- **added** `src-tauri/src/workspace_grants/registry.rs`
+- **added** `src-tauri/src/workspace_grants/registry.test.rs`
+- **added** `src-tauri/src/workspace_grants/scope.rs`
+- **added** `src-tauri/src/workspace_grants/scope.test.rs`
 - **changed** `src-tauri/src/workspace_transfer.rs`
 - **added** `src-tauri/src/workspace_validation.rs`
 - **changed** `src-tauri/tauri.conf.json`
 - **changed** `src-tauri/tauri.dev.conf.json`
+- **added** `src-tauri/tauri.windows.conf.json`
 - **added** `src-tauri/tests/spike_sp1_dry_run_projection.rs`
 - **added** `src-tauri/tests/spike_sp3_edge_kind_registry.rs`
 - **added** `src-tauri/tests/verify_at_volume_inventory.rs`
@@ -7402,6 +7796,7 @@
 - **added** `src/components/StatusBar/paneIndicator.ts`
 - **added** `src/components/StatusBar/scrollActiveTabIntoView.test.ts`
 - **added** `src/components/StatusBar/scrollActiveTabIntoView.ts`
+- **added** `src/components/StatusBar/statusBarFade.test.ts`
 - **changed** `src/components/StatusBar/statusTextMetrics.test.ts`
 - **changed** `src/components/StatusBar/tabDragRules.test.ts`
 - **changed** `src/components/StatusBar/tabDragRules.ts`
@@ -7435,6 +7830,7 @@
 - **changed** `src/components/Welcome/WelcomeScreen.tsx`
 - **changed** `src/components/Welcome/welcome.css`
 - **changed** `src/components/WorkflowApproval/ApprovalDialog.a11y.test.tsx`
+- **changed** `src/components/WorkflowApproval/ApprovalDialog.test.tsx`
 - **changed** `src/components/WorkflowApproval/ApprovalDialog.tsx`
 - **changed** `src/components/WorkflowApproval/approval-dialog.css`
 - **added** `src/components/Workspace/WorkspaceApprovalDialog.test.tsx`
@@ -7456,6 +7852,7 @@
 - **changed** `src/components/spotlight/spotlightDialog.tsx`
 - **added** `src/components/toastIcons.test.tsx`
 - **added** `src/components/toastIcons.tsx`
+- **added** `src/contexts/WindowContext.restoredGrant.test.tsx`
 - **changed** `src/contexts/WindowContext.test.tsx`
 - **changed** `src/contexts/WindowContext.tsx`
 - **added** `src/contexts/prepareWindowStorage.ts`
@@ -7474,6 +7871,8 @@
 - **changed** `src/export/__tests__/editorCSSBundle.test.ts`
 - **added** `src/export/__tests__/exportCssVarCoverage.test.ts`
 - **added** `src/export/__tests__/exportDialogNamespaces.test.ts`
+- **added** `src/export/__tests__/exportErrorMessages.test.ts`
+- **added** `src/export/__tests__/exportErrorsLocalized.test.ts`
 - **added** `src/export/__tests__/exportFolderPath.test.ts`
 - **added** `src/export/__tests__/exportFsHarness.ts`
 - **added** `src/export/__tests__/exportLock.test.ts`
@@ -7498,6 +7897,7 @@
 - **changed** `src/export/__tests__/waitForAssets.test.ts`
 - **added** `src/export/assetReadiness.ts`
 - **changed** `src/export/createExportExtensions.ts`
+- **added** `src/export/exportErrorMessages.ts`
 - **added** `src/export/exportGuards.ts`
 - **added** `src/export/exportLock.ts`
 - **added** `src/export/exportLockFile.ts`
@@ -7648,6 +8048,7 @@
 - **deleted** `src/hooks/useMediaOperations.ts`
 - **added** `src/hooks/useOpenFileEvent.ts`
 - **deleted** `src/hooks/useOpenWorkflowTarget.ts`
+- **added** `src/hooks/useOutlineSync.scroll.test.ts`
 - **changed** `src/hooks/useOutlineSync.ts`
 - **added** `src/hooks/usePromptHistory.clearHistory.test.ts`
 - **changed** `src/hooks/usePromptHistory.comprehensive.test.ts`
@@ -7675,6 +8076,8 @@
 - **changed** `src/hooks/useSourceEditorSearch.test.ts`
 - **changed** `src/hooks/useSourceEditorSearch.ts`
 - **changed** `src/hooks/useSourceOutlineSync.ts`
+- **changed** `src/hooks/useSourcePaneFocus.test.tsx`
+- **changed** `src/hooks/useSourcePaneFocus.ts`
 - **added** `src/hooks/useStatusToasts.test.tsx`
 - **added** `src/hooks/useStatusToasts.ts`
 - **added** `src/hooks/useSystemAppearanceWatcher.test.ts`
@@ -7859,6 +8262,8 @@
 - **changed** `src/lib/ghaWorkflow/actions/registry.ts`
 - **changed** `src/lib/ghaWorkflow/completion/expressionCompletion.test.ts`
 - **changed** `src/lib/ghaWorkflow/cron/readable.test.ts`
+- **changed** `src/lib/ghaWorkflow/cron/readable.ts`
+- **changed** `src/lib/ghaWorkflow/detection.ts`
 - **deleted** `src/lib/ghaWorkflow/eval/staticIf.test.ts`
 - **deleted** `src/lib/ghaWorkflow/eval/staticIf.ts`
 - **changed** `src/lib/ghaWorkflow/export/__tests__/saveExport.test.ts`
@@ -8332,6 +8737,7 @@
 - **changed** `src/plugins/codemirror/sourceWorkflowCursorSync.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowGoto.test.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowGoto.ts`
+- **added** `src/plugins/codemirror/sourceWorkflowPreview.test.ts`
 - **changed** `src/plugins/codemirror/sourceWorkflowPreview.ts`
 - **changed** `src/plugins/codemirror/sourceYamlLint.test.ts`
 - **changed** `src/plugins/codemirror/sourceYamlLint.ts`
@@ -8340,6 +8746,7 @@
 - **changed** `src/plugins/codemirror/structuralCharProtection.ts`
 - **changed** `src/plugins/codemirror/tabIndent.test.ts`
 - **changed** `src/plugins/codemirror/tabIndent.ts`
+- **added** `src/plugins/codemirror/theme.highlight.test.ts`
 - **changed** `src/plugins/codemirror/theme.ts`
 - **changed** `src/plugins/codemirror/typewriterModePlugin.test.ts`
 - **changed** `src/plugins/codemirror/typewriterModePlugin.ts`
@@ -8403,6 +8810,7 @@
 - **changed** `src/plugins/footnotePopup/tiptap.ts`
 - **changed** `src/plugins/footnotePopup/tiptapCleanup.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptapCleanup.ts`
+- **changed** `src/plugins/footnotePopup/tiptapDomUtils.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptapDomUtils.ts`
 - **changed** `src/plugins/footnotePopup/tiptapInsertFootnote.test.ts`
 - **changed** `src/plugins/footnotePopup/tiptapInsertFootnote.ts`
@@ -8436,6 +8844,8 @@
 - **changed** `src/plugins/htmlPaste/tiptap.test.ts`
 - **changed** `src/plugins/htmlPaste/tiptap.ts`
 - **changed** `src/plugins/imageHandler/__tests__/imageHandler.test.ts`
+- **added** `src/plugins/imageHandler/imageHandlerClipboard.test.ts`
+- **added** `src/plugins/imageHandler/imageHandlerClipboard.ts`
 - **changed** `src/plugins/imageHandler/imageHandlerInsert.test.ts`
 - **changed** `src/plugins/imageHandler/imageHandlerInsert.ts`
 - **changed** `src/plugins/imageHandler/imageHandlerToast.test.ts`
@@ -8807,6 +9217,7 @@
 - **changed** `src/plugins/tabIndent/tiptap.test.ts`
 - **changed** `src/plugins/tabIndent/tiptap.ts`
 - **changed** `src/plugins/tableOfContents/TocNodeView.ts`
+- **added** `src/plugins/tableOfContents/__tests__/tocClickScroll.test.ts`
 - **changed** `src/plugins/tableOfContents/__tests__/tocPipeline.test.ts`
 - **deleted** `src/plugins/tableOfContents/manifest.ts`
 - **deleted** `src/plugins/tableScroll/manifest.ts`
@@ -8821,11 +9232,13 @@
 - **changed** `src/plugins/tableUI/tableEscape.edge-cases.test.ts`
 - **changed** `src/plugins/tableUI/tableEscape.test.ts`
 - **deleted** `src/plugins/taskToggle/manifest.ts`
+- **changed** `src/plugins/taskToggle/task-toggle.css`
 - **changed** `src/plugins/taskToggle/tiptap.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.test.ts`
 - **changed** `src/plugins/taskToggle/tiptapTaskListUtils.ts`
 - **added** `src/plugins/taskToggle/tiptapTaskListUtils.wrap.test.ts`
 - **deleted** `src/plugins/textDragDrop/manifest.ts`
+- **changed** `src/plugins/textDragDrop/textDragDrop.css`
 - **added** `src/plugins/toolbarActions/__tests__/adapterActionParity.test.ts`
 - **added** `src/plugins/toolbarActions/__tests__/codeBlockSerialize.test.ts`
 - **added** `src/plugins/toolbarActions/__tests__/handleInsertCodeBlock.test.ts`
@@ -8943,7 +9356,9 @@
 - **changed** `src/plugins/wikiLinkPopup/wikiLinkPaths.test.ts`
 - **changed** `src/plugins/workflowPreview/WorkflowNode.tsx`
 - **changed** `src/plugins/workflowPreview/WorkflowPreview.tsx`
+- **deleted** `src/plugins/workflowPreview/WorkflowSidePanel.tsx`
 - **added** `src/plugins/workflowPreview/__tests__/WorkflowPreview.test.tsx`
+- **deleted** `src/plugins/workflowPreview/__tests__/WorkflowSidePanel.test.tsx`
 - **deleted** `src/plugins/workflowPreview/manifest.ts`
 - **changed** `src/plugins/workflowPreview/workflow-node.css`
 - **changed** `src/plugins/workflowPreview/workflow-preview.css`
@@ -9031,6 +9446,10 @@
 - **added** `src/services/claims/claimService.ts`
 - **added** `src/services/coherence/captureFunnel.test.ts`
 - **added** `src/services/coherence/captureFunnel.ts`
+- **added** `src/services/coherence/capturePolicy.test.ts`
+- **added** `src/services/coherence/capturePolicy.ts`
+- **added** `src/services/coherence/mcpCapture.test.ts`
+- **added** `src/services/coherence/mcpCapture.ts`
 - **added** `src/services/coherence/mergeAuditService.test.ts`
 - **added** `src/services/coherence/mergeAuditService.ts`
 - **added** `src/services/coherence/scanOnChange.test.ts`
@@ -9187,6 +9606,8 @@
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenBackground.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceOpenErrors.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveAs.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveAsCapture.test.ts`
+- **added** `src/services/mcpBridge/v2/__tests__/workspaceSaveCapture.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/workspaceSwitchTabVerify.test.ts`
 - **added** `src/services/mcpBridge/v2/__tests__/wrapHandler.test.ts`
 - **added** `src/services/mcpBridge/v2/bridgeError.ts`
@@ -9385,6 +9806,8 @@
 - **added** `src/services/windowClose/tabCleanup.ts`
 - **added** `src/services/windowClose/windowCloseFlow.test.ts`
 - **added** `src/services/windowClose/windowCloseFlow.ts`
+- **added** `src/services/workflow/dispatchWorkflowRun.test.ts`
+- **added** `src/services/workflow/dispatchWorkflowRun.ts`
 - **added** `src/services/workflow/providerPayload.test.ts`
 - **added** `src/services/workflow/providerPayload.ts`
 - **added** `src/services/workflow/recorderSession.test.ts`
@@ -9407,6 +9830,8 @@
 - **added** `src/services/workflow/saveGhaWorkflowDocument.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.test.ts`
 - **added** `src/services/workflow/workflowEnginePolicySync.ts`
+- **added** `src/services/workflow/workflowRunEvents.test.ts`
+- **added** `src/services/workflow/workflowRunEvents.ts`
 - **added** `src/services/workflow/workflowRunService.test.ts`
 - **added** `src/services/workflow/workflowRunService.ts`
 - **added** `src/services/workflow/workflowRunValidate.test.ts`
@@ -9449,6 +9874,8 @@
 - **added** `src/services/workspaces/switchWorkspaceInstance.ts`
 - **added** `src/services/workspaces/syncLegacyWorkspaceContext.test.ts`
 - **added** `src/services/workspaces/syncLegacyWorkspaceContext.ts`
+- **added** `src/services/workspaces/workspaceAccess.test.ts`
+- **added** `src/services/workspaces/workspaceAccess.ts`
 - **added** `src/services/workspaces/workspaceActivationApis.test.ts`
 - **renamed** `src/hooks/workspaceConfig.test.ts` → `src/services/workspaces/workspaceConfig.test.ts`
 - **added** `src/services/workspaces/workspaceConfig.ts`
@@ -9482,6 +9909,7 @@
 - **changed** `src/shell/app-shell.css`
 - **changed** `src/shell/appShellClassName.test.ts`
 - **added** `src/shell/barHeight.test.ts`
+- **added** `src/shell/bottomLaneLayout.webkit.test.tsx`
 - **added** `src/shell/shellChrome.test.ts`
 - **added** `src/shell/shellChrome.ts`
 - **added** `src/shell/trafficLights.test.ts`
@@ -9665,12 +10093,17 @@
 - **changed** `src/stores/uiStore/types.ts`
 - **changed** `src/stores/unifiedHistoryStore.test.ts`
 - **changed** `src/stores/wikiLinkPopupStore.ts`
+- **added** `src/stores/workflowApprovalSlice.test.ts`
 - **added** `src/stores/workflowApprovalSlice.ts`
+- **added** `src/stores/workflowEditQueue.test.ts`
 - **added** `src/stores/workflowEditQueue.ts`
+- **added** `src/stores/workflowPreviewSlice.test.ts`
 - **added** `src/stores/workflowPreviewSlice.ts`
+- **added** `src/stores/workflowSerialize.test.ts`
 - **added** `src/stores/workflowSerialize.ts`
 - **changed** `src/stores/workflowStore.test.ts`
 - **changed** `src/stores/workflowStore.ts`
+- **added** `src/stores/workflowViewSlice.test.ts`
 - **added** `src/stores/workflowViewSlice.ts`
 - **added** `src/stores/workspaceApprovalStore.test.ts`
 - **added** `src/stores/workspaceApprovalStore.ts`
@@ -9859,6 +10292,8 @@
 - **changed** `src/utils/imeGuard.ts`
 - **added** `src/utils/ingestOrigin.test.ts`
 - **added** `src/utils/ingestOrigin.ts`
+- **added** `src/utils/jsonErrorOffset.test.ts`
+- **added** `src/utils/jsonErrorOffset.ts`
 - **added** `src/utils/katexStyleFiltering.test.ts`
 - **added** `src/utils/keybinding/canonicalChord.test.ts`
 - **added** `src/utils/keybinding/canonicalChord.ts`
@@ -10082,7 +10517,9 @@
 - **changed** `src/utils/markdownPipeline/urlValidation.ts`
 - **changed** `src/utils/markdownUrl.test.ts`
 - **changed** `src/utils/mcpBridgePathPolicy.test.ts`
+- **added** `src/utils/mediaExtensions.json`
 - **changed** `src/utils/mediaExtensions.test.ts`
+- **changed** `src/utils/mediaExtensions.ts`
 - **changed** `src/utils/mediaPathDetection.test.ts`
 - **added** `src/utils/motion.test.ts`
 - **added** `src/utils/motion.ts`
@@ -10116,6 +10553,9 @@
 - **changed** `src/utils/safeUnlisten.ts`
 - **changed** `src/utils/sanitize.test.ts`
 - **changed** `src/utils/sanitize.ts`
+- **added** `src/utils/settledScroll.test.ts`
+- **added** `src/utils/settledScroll.ts`
+- **added** `src/utils/settledScroll.webkit.test.ts`
 - **changed** `src/utils/shortcutMatch.ts`
 - **changed** `src/utils/sourceEditorSearch.test.ts`
 - **changed** `src/utils/sourceEditorSearch.ts`
@@ -10220,65 +10660,137 @@
 - **changed** `website/.vitepress/config/en.ts`
 - **changed** `website/.vitepress/config/es.ts`
 - **changed** `website/.vitepress/config/fr.ts`
+- **added** `website/.vitepress/config/guideSidebar.ts`
 - **changed** `website/.vitepress/config/it.ts`
 - **changed** `website/.vitepress/config/ja.ts`
 - **changed** `website/.vitepress/config/ko.ts`
 - **changed** `website/.vitepress/config/pt-BR.ts`
+- **changed** `website/.vitepress/config/shared.ts`
+- **added** `website/.vitepress/config/sidebarParity.test.ts`
+- **added** `website/.vitepress/config/slugify.test.ts`
+- **added** `website/.vitepress/config/slugify.ts`
 - **changed** `website/.vitepress/config/zh-CN.ts`
 - **changed** `website/.vitepress/config/zh-TW.ts`
+- **changed** `website/.vitepress/theme/index.ts`
+- **added** `website/.vitepress/theme/legacyAnchors.test.ts`
+- **added** `website/.vitepress/theme/legacyAnchors.ts`
 - **changed** `website/de/download.md`
+- **changed** `website/de/guide/ai-genies.md`
+- **changed** `website/de/guide/ai-providers.md`
 - **added** `website/de/guide/browser.md`
 - **changed** `website/de/guide/cjk-formatting.md`
+- **changed** `website/de/guide/cloud-images.md`
 - **added** `website/de/guide/coherence.md`
+- **changed** `website/de/guide/export.md`
+- **changed** `website/de/guide/features.md`
+- **changed** `website/de/guide/formats.md`
+- **changed** `website/de/guide/graphviz.md`
+- **changed** `website/de/guide/index.md`
 - **added** `website/de/guide/knowledge-base.md`
 - **changed** `website/de/guide/large-files.md`
+- **changed** `website/de/guide/link-check.md`
+- **changed** `website/de/guide/lint.md`
+- **changed** `website/de/guide/markmap.md`
 - **changed** `website/de/guide/mcp-tools.md`
+- **changed** `website/de/guide/mermaid.md`
+- **changed** `website/de/guide/multi-cursor.md`
 - **changed** `website/de/guide/popups.md`
+- **changed** `website/de/guide/privacy.md`
 - **changed** `website/de/guide/settings.md`
+- **changed** `website/de/guide/shortcuts.md`
+- **changed** `website/de/guide/svg.md`
+- **changed** `website/de/guide/terminal.md`
+- **changed** `website/de/guide/troubleshooting.md`
 - **changed** `website/de/guide/workflow-genies.md`
+- **changed** `website/de/guide/workflow-viewer.md`
 - **added** `website/de/guide/workflows.md`
+- **changed** `website/de/guide/workspace-management.md`
 - **added** `website/de/guide/workspace-rail.md`
 - **changed** `website/download.md`
 - **changed** `website/es/download.md`
+- **changed** `website/es/guide/ai-genies.md`
+- **changed** `website/es/guide/ai-providers.md`
 - **added** `website/es/guide/browser.md`
 - **changed** `website/es/guide/cjk-formatting.md`
+- **changed** `website/es/guide/cloud-images.md`
 - **added** `website/es/guide/coherence.md`
+- **changed** `website/es/guide/export.md`
+- **changed** `website/es/guide/features.md`
+- **changed** `website/es/guide/formats.md`
+- **changed** `website/es/guide/graphviz.md`
+- **changed** `website/es/guide/index.md`
 - **added** `website/es/guide/knowledge-base.md`
 - **changed** `website/es/guide/large-files.md`
+- **changed** `website/es/guide/link-check.md`
+- **changed** `website/es/guide/lint.md`
+- **changed** `website/es/guide/markmap.md`
 - **changed** `website/es/guide/mcp-tools.md`
+- **changed** `website/es/guide/mermaid.md`
+- **changed** `website/es/guide/multi-cursor.md`
 - **changed** `website/es/guide/popups.md`
+- **changed** `website/es/guide/privacy.md`
 - **changed** `website/es/guide/settings.md`
+- **changed** `website/es/guide/shortcuts.md`
+- **changed** `website/es/guide/svg.md`
+- **changed** `website/es/guide/terminal.md`
+- **changed** `website/es/guide/troubleshooting.md`
 - **changed** `website/es/guide/workflow-genies.md`
+- **changed** `website/es/guide/workflow-viewer.md`
 - **added** `website/es/guide/workflows.md`
+- **changed** `website/es/guide/workspace-management.md`
 - **added** `website/es/guide/workspace-rail.md`
 - **changed** `website/fr/download.md`
+- **changed** `website/fr/guide/ai-genies.md`
+- **changed** `website/fr/guide/ai-providers.md`
 - **added** `website/fr/guide/browser.md`
 - **changed** `website/fr/guide/cjk-formatting.md`
+- **changed** `website/fr/guide/cloud-images.md`
 - **added** `website/fr/guide/coherence.md`
+- **changed** `website/fr/guide/export.md`
+- **changed** `website/fr/guide/features.md`
+- **changed** `website/fr/guide/formats.md`
+- **changed** `website/fr/guide/graphviz.md`
+- **changed** `website/fr/guide/index.md`
 - **added** `website/fr/guide/knowledge-base.md`
 - **changed** `website/fr/guide/large-files.md`
+- **changed** `website/fr/guide/link-check.md`
+- **changed** `website/fr/guide/lint.md`
+- **changed** `website/fr/guide/markmap.md`
 - **changed** `website/fr/guide/mcp-tools.md`
+- **changed** `website/fr/guide/mermaid.md`
+- **changed** `website/fr/guide/multi-cursor.md`
 - **changed** `website/fr/guide/popups.md`
+- **changed** `website/fr/guide/privacy.md`
 - **changed** `website/fr/guide/settings.md`
+- **changed** `website/fr/guide/shortcuts.md`
+- **changed** `website/fr/guide/svg.md`
+- **changed** `website/fr/guide/terminal.md`
+- **changed** `website/fr/guide/troubleshooting.md`
 - **changed** `website/fr/guide/workflow-genies.md`
+- **changed** `website/fr/guide/workflow-viewer.md`
 - **added** `website/fr/guide/workflows.md`
+- **changed** `website/fr/guide/workspace-management.md`
 - **added** `website/fr/guide/workspace-rail.md`
 - **changed** `website/guide/ai-genies.md`
 - **changed** `website/guide/ai-providers.md`
 - **changed** `website/guide/browser.md`
 - **changed** `website/guide/cjk-formatting.md`
+- **changed** `website/guide/cloud-images.md`
 - **added** `website/guide/coherence.md`
 - **changed** `website/guide/export.md`
 - **changed** `website/guide/features.md`
 - **changed** `website/guide/formats.md`
+- **changed** `website/guide/graphviz.md`
 - **changed** `website/guide/index.md`
 - **changed** `website/guide/knowledge-base.md`
 - **changed** `website/guide/large-files.md`
 - **changed** `website/guide/link-check.md`
 - **changed** `website/guide/lint.md`
+- **changed** `website/guide/markmap.md`
 - **changed** `website/guide/mcp-setup.md`
 - **changed** `website/guide/mcp-tools.md`
 - **changed** `website/guide/media-support.md`
+- **changed** `website/guide/mermaid.md`
 - **changed** `website/guide/multi-cursor.md`
 - **changed** `website/guide/popups.md`
 - **changed** `website/guide/privacy.md`
@@ -10294,79 +10806,199 @@
 - **changed** `website/guide/workspace-management.md`
 - **added** `website/guide/workspace-rail.md`
 - **changed** `website/it/download.md`
+- **changed** `website/it/guide/ai-genies.md`
+- **changed** `website/it/guide/ai-providers.md`
 - **added** `website/it/guide/browser.md`
 - **changed** `website/it/guide/cjk-formatting.md`
+- **changed** `website/it/guide/cloud-images.md`
 - **added** `website/it/guide/coherence.md`
+- **changed** `website/it/guide/export.md`
+- **changed** `website/it/guide/features.md`
+- **changed** `website/it/guide/formats.md`
+- **changed** `website/it/guide/graphviz.md`
+- **changed** `website/it/guide/index.md`
 - **added** `website/it/guide/knowledge-base.md`
 - **changed** `website/it/guide/large-files.md`
+- **changed** `website/it/guide/link-check.md`
+- **changed** `website/it/guide/lint.md`
+- **changed** `website/it/guide/markmap.md`
 - **changed** `website/it/guide/mcp-tools.md`
+- **changed** `website/it/guide/mermaid.md`
+- **changed** `website/it/guide/multi-cursor.md`
 - **changed** `website/it/guide/popups.md`
+- **changed** `website/it/guide/privacy.md`
 - **changed** `website/it/guide/settings.md`
+- **changed** `website/it/guide/shortcuts.md`
+- **changed** `website/it/guide/svg.md`
+- **changed** `website/it/guide/terminal.md`
+- **changed** `website/it/guide/troubleshooting.md`
 - **changed** `website/it/guide/workflow-genies.md`
+- **changed** `website/it/guide/workflow-viewer.md`
 - **added** `website/it/guide/workflows.md`
+- **changed** `website/it/guide/workspace-management.md`
 - **added** `website/it/guide/workspace-rail.md`
 - **changed** `website/ja/download.md`
+- **changed** `website/ja/guide/ai-genies.md`
+- **changed** `website/ja/guide/ai-providers.md`
 - **added** `website/ja/guide/browser.md`
 - **changed** `website/ja/guide/cjk-formatting.md`
+- **changed** `website/ja/guide/cloud-images.md`
 - **added** `website/ja/guide/coherence.md`
+- **changed** `website/ja/guide/export.md`
+- **changed** `website/ja/guide/features.md`
+- **changed** `website/ja/guide/formats.md`
+- **changed** `website/ja/guide/graphviz.md`
+- **changed** `website/ja/guide/index.md`
 - **added** `website/ja/guide/knowledge-base.md`
 - **changed** `website/ja/guide/large-files.md`
+- **changed** `website/ja/guide/link-check.md`
+- **changed** `website/ja/guide/lint.md`
+- **changed** `website/ja/guide/markmap.md`
 - **changed** `website/ja/guide/mcp-tools.md`
+- **changed** `website/ja/guide/mermaid.md`
+- **changed** `website/ja/guide/multi-cursor.md`
 - **changed** `website/ja/guide/popups.md`
+- **changed** `website/ja/guide/privacy.md`
 - **changed** `website/ja/guide/settings.md`
+- **changed** `website/ja/guide/shortcuts.md`
+- **changed** `website/ja/guide/svg.md`
+- **changed** `website/ja/guide/terminal.md`
+- **changed** `website/ja/guide/troubleshooting.md`
 - **changed** `website/ja/guide/workflow-genies.md`
+- **changed** `website/ja/guide/workflow-viewer.md`
 - **added** `website/ja/guide/workflows.md`
+- **changed** `website/ja/guide/workspace-management.md`
 - **added** `website/ja/guide/workspace-rail.md`
 - **changed** `website/ko/download.md`
+- **changed** `website/ko/guide/ai-genies.md`
+- **changed** `website/ko/guide/ai-providers.md`
 - **added** `website/ko/guide/browser.md`
 - **changed** `website/ko/guide/cjk-formatting.md`
+- **changed** `website/ko/guide/cloud-images.md`
 - **added** `website/ko/guide/coherence.md`
+- **changed** `website/ko/guide/export.md`
+- **changed** `website/ko/guide/features.md`
+- **changed** `website/ko/guide/formats.md`
+- **changed** `website/ko/guide/graphviz.md`
+- **changed** `website/ko/guide/index.md`
 - **added** `website/ko/guide/knowledge-base.md`
 - **changed** `website/ko/guide/large-files.md`
+- **changed** `website/ko/guide/link-check.md`
+- **changed** `website/ko/guide/lint.md`
+- **changed** `website/ko/guide/markmap.md`
 - **changed** `website/ko/guide/mcp-tools.md`
+- **changed** `website/ko/guide/mermaid.md`
+- **changed** `website/ko/guide/multi-cursor.md`
 - **changed** `website/ko/guide/popups.md`
+- **changed** `website/ko/guide/privacy.md`
 - **changed** `website/ko/guide/settings.md`
+- **changed** `website/ko/guide/shortcuts.md`
+- **changed** `website/ko/guide/svg.md`
+- **changed** `website/ko/guide/terminal.md`
+- **changed** `website/ko/guide/troubleshooting.md`
 - **changed** `website/ko/guide/workflow-genies.md`
+- **changed** `website/ko/guide/workflow-viewer.md`
 - **added** `website/ko/guide/workflows.md`
+- **changed** `website/ko/guide/workspace-management.md`
 - **added** `website/ko/guide/workspace-rail.md`
 - **changed** `website/package.json`
 - **deleted** `website/pnpm-lock.yaml`
 - **changed** `website/pt-BR/download.md`
+- **changed** `website/pt-BR/guide/ai-genies.md`
+- **changed** `website/pt-BR/guide/ai-providers.md`
 - **added** `website/pt-BR/guide/browser.md`
 - **changed** `website/pt-BR/guide/cjk-formatting.md`
+- **changed** `website/pt-BR/guide/cloud-images.md`
 - **added** `website/pt-BR/guide/coherence.md`
+- **changed** `website/pt-BR/guide/export.md`
+- **changed** `website/pt-BR/guide/features.md`
+- **changed** `website/pt-BR/guide/formats.md`
+- **changed** `website/pt-BR/guide/graphviz.md`
+- **changed** `website/pt-BR/guide/index.md`
 - **added** `website/pt-BR/guide/knowledge-base.md`
 - **changed** `website/pt-BR/guide/large-files.md`
+- **changed** `website/pt-BR/guide/link-check.md`
+- **changed** `website/pt-BR/guide/lint.md`
+- **changed** `website/pt-BR/guide/markmap.md`
 - **changed** `website/pt-BR/guide/mcp-tools.md`
+- **changed** `website/pt-BR/guide/mermaid.md`
+- **changed** `website/pt-BR/guide/multi-cursor.md`
 - **changed** `website/pt-BR/guide/popups.md`
+- **changed** `website/pt-BR/guide/privacy.md`
 - **changed** `website/pt-BR/guide/settings.md`
+- **changed** `website/pt-BR/guide/shortcuts.md`
+- **changed** `website/pt-BR/guide/svg.md`
+- **changed** `website/pt-BR/guide/terminal.md`
+- **changed** `website/pt-BR/guide/troubleshooting.md`
 - **changed** `website/pt-BR/guide/workflow-genies.md`
+- **changed** `website/pt-BR/guide/workflow-viewer.md`
 - **added** `website/pt-BR/guide/workflows.md`
+- **changed** `website/pt-BR/guide/workspace-management.md`
 - **added** `website/pt-BR/guide/workspace-rail.md`
 - **changed** `website/public/favicon.ico`
 - **changed** `website/public/favicon.svg`
 - **changed** `website/public/logo.png`
 - **changed** `website/zh-CN/download.md`
+- **changed** `website/zh-CN/guide/ai-genies.md`
+- **changed** `website/zh-CN/guide/ai-providers.md`
 - **added** `website/zh-CN/guide/browser.md`
 - **changed** `website/zh-CN/guide/cjk-formatting.md`
+- **changed** `website/zh-CN/guide/cloud-images.md`
 - **added** `website/zh-CN/guide/coherence.md`
+- **changed** `website/zh-CN/guide/export.md`
+- **changed** `website/zh-CN/guide/features.md`
+- **changed** `website/zh-CN/guide/formats.md`
+- **changed** `website/zh-CN/guide/graphviz.md`
+- **changed** `website/zh-CN/guide/index.md`
 - **added** `website/zh-CN/guide/knowledge-base.md`
 - **changed** `website/zh-CN/guide/large-files.md`
+- **changed** `website/zh-CN/guide/link-check.md`
+- **changed** `website/zh-CN/guide/lint.md`
+- **changed** `website/zh-CN/guide/markmap.md`
 - **changed** `website/zh-CN/guide/mcp-tools.md`
+- **changed** `website/zh-CN/guide/mermaid.md`
+- **changed** `website/zh-CN/guide/multi-cursor.md`
 - **changed** `website/zh-CN/guide/popups.md`
+- **changed** `website/zh-CN/guide/privacy.md`
 - **changed** `website/zh-CN/guide/settings.md`
+- **changed** `website/zh-CN/guide/shortcuts.md`
+- **changed** `website/zh-CN/guide/svg.md`
+- **changed** `website/zh-CN/guide/terminal.md`
+- **changed** `website/zh-CN/guide/troubleshooting.md`
 - **changed** `website/zh-CN/guide/workflow-genies.md`
+- **changed** `website/zh-CN/guide/workflow-viewer.md`
 - **added** `website/zh-CN/guide/workflows.md`
+- **changed** `website/zh-CN/guide/workspace-management.md`
 - **added** `website/zh-CN/guide/workspace-rail.md`
 - **changed** `website/zh-TW/download.md`
+- **changed** `website/zh-TW/guide/ai-genies.md`
+- **changed** `website/zh-TW/guide/ai-providers.md`
 - **added** `website/zh-TW/guide/browser.md`
 - **changed** `website/zh-TW/guide/cjk-formatting.md`
+- **changed** `website/zh-TW/guide/cloud-images.md`
 - **added** `website/zh-TW/guide/coherence.md`
+- **changed** `website/zh-TW/guide/export.md`
+- **changed** `website/zh-TW/guide/features.md`
+- **changed** `website/zh-TW/guide/formats.md`
+- **changed** `website/zh-TW/guide/graphviz.md`
+- **changed** `website/zh-TW/guide/index.md`
 - **added** `website/zh-TW/guide/knowledge-base.md`
 - **changed** `website/zh-TW/guide/large-files.md`
+- **changed** `website/zh-TW/guide/link-check.md`
+- **changed** `website/zh-TW/guide/lint.md`
+- **changed** `website/zh-TW/guide/markmap.md`
 - **changed** `website/zh-TW/guide/mcp-tools.md`
+- **changed** `website/zh-TW/guide/mermaid.md`
+- **changed** `website/zh-TW/guide/multi-cursor.md`
 - **changed** `website/zh-TW/guide/popups.md`
+- **changed** `website/zh-TW/guide/privacy.md`
 - **changed** `website/zh-TW/guide/settings.md`
+- **changed** `website/zh-TW/guide/shortcuts.md`
+- **changed** `website/zh-TW/guide/svg.md`
+- **changed** `website/zh-TW/guide/terminal.md`
+- **changed** `website/zh-TW/guide/troubleshooting.md`
 - **changed** `website/zh-TW/guide/workflow-genies.md`
+- **changed** `website/zh-TW/guide/workflow-viewer.md`
 - **added** `website/zh-TW/guide/workflows.md`
+- **changed** `website/zh-TW/guide/workspace-management.md`
 - **added** `website/zh-TW/guide/workspace-rail.md`

@@ -1,12 +1,13 @@
 {
   "name": "auris",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "private": true,
   "main": "electron/main.cjs",
   "description": "Auris — language learning through listening and shadowing.",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
+    "postbuild": "node scripts/verify-micromark-build.cjs",
     "browser:smoke": "node tests/electron/browser-window-smoke.cjs",
     "browser:isolation": "env -u ELECTRON_RUN_AS_NODE electron tests/electron/browser-isolation-smoke.cjs",
     "browser:partition-isolation": "env -u ELECTRON_RUN_AS_NODE electron tests/electron/browser-partition-isolation-smoke.cjs",
@@ -49,8 +50,9 @@
     "desktop:release:check": "node scripts/publish-desktop-release.cjs --check",
     "desktop:release:local": "node scripts/publish-desktop-release.cjs",
     "desktop:release": "node scripts/prepare-desktop-release.cjs",
-    "postinstall": "node scripts/copy-pdf-worker.cjs",
+    "postinstall": "node scripts/copy-pdf-worker.cjs && patch-package --error-on-fail",
     "quality:desktop-ipc": "node scripts/verify-desktop-ipc-contract.cjs",
+    "quality:singleton-deps": "node --test scripts/check-singleton-deps.test.mjs && node scripts/check-singleton-deps.mjs",
     "quality:feature-ledger": "node scripts/verify-feature-ledger.cjs"
   },
   "keywords": [
@@ -138,6 +140,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.7",
     "jsdom": "^29.0.0",
+    "patch-package": "8.0.1",
     "playwright": "^1.58.2",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"

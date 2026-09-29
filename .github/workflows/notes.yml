@@ -16,6 +16,9 @@ on:
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
       - "package-lock.json"
+      - "patches/**"
+      - "scripts/check-singleton-deps*.mjs"
+      - "scripts/verify-micromark-build.cjs"
   push:
     branches:
       - master
@@ -34,6 +37,9 @@ on:
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
       - "package-lock.json"
+      - "patches/**"
+      - "scripts/check-singleton-deps*.mjs"
+      - "scripts/verify-micromark-build.cjs"
 
 jobs:
   notes:
@@ -49,6 +55,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Check editor dependency identity
+        run: npm run quality:singleton-deps
+
       - name: Lint notes surface
         run: npm run lint
 
@@ -61,6 +70,7 @@ jobs:
           tests/unit/notes/notes-mcp-request-handler.test.ts
           tests/unit/notes/notes-mcp-workspace-handler.test.ts
           tests/unit/notes/notes-mcp-contract.test.ts
+          tests/unit/notes/notes-markdown-nesting.test.ts
           tests/unit/notes/vault-safe-write.test.ts
           tests/unit/notes/vault-write-conflict.test.ts
           tests/unit/notes/workspace-store.test.ts
