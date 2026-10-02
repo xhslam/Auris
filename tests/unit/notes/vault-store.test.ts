@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createVaultStore } from "@/features/notes/vault/vault-store";
-import type { VaultClient } from "@/features/notes/vault/vault-types";
+import type { VaultClient, VaultEntry } from "@/features/notes/vault/vault-types";
 
 function createClient(onRead?: (path: string) => void): VaultClient {
   const files = new Map<string, string>([
@@ -65,12 +65,40 @@ function createClient(onRead?: (path: string) => void): VaultClient {
 }
 
 describe("vault-store", () => {
+  it("loads requested paths against a real listing even before the first refresh", async () => {
+    const store = createVaultStore(createClient());
+    const loaded = await store.loadDocuments(["notes/grammar.md"]);
+    expect(loaded.entries.some((entry) => entry.path === "notes/grammar.md")).toBe(true);
+    expect(loaded.documents.find((doc) => doc.path === "notes/grammar.md")?.rawSource).toContain("Core note");
+  });
+
+  it("queues lazy loading behind an unfinished directory refresh", async () => {
+    const client = createClient();
+    const originalList = client.listEntries;
+    let releaseList!: () => void;
+    client.listEntries = async () => {
+      await new Promise<void>((resolve) => { releaseList = resolve; });
+      return originalList();
+    };
+    const store = createVaultStore(client);
+    const refresh = store.refresh();
+    await Promise.resolve();
+    let published = false;
+    const load = store.loadDocuments(["notes/grammar.md"]).then((snapshot) => { published = true; return snapshot; });
+    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    expect(published).toBe(false);
+    releaseList();
+    await refresh;
+    const loaded = await load;
+    expect(loaded.documents.find((doc) => doc.path === "notes/grammar.md")?.rawSource).toContain("Core note");
+  });
+
   it("serializes refreshes so an older read cannot publish after a newer event", async () => {
-    let releaseFirstList: (() => void) | null = null;
+    let releaseFirstList: () => void = () => undefined;
     let generation = 0;
     const client: VaultClient = {
       ...createClient(),
-      listEntries: vi.fn(async () => {
+      listEntries: vi.fn(async (): Promise<VaultEntry[]> => {
         generation += 1;
         const current = generation;
         if (current === 1) {
@@ -97,7 +125,7 @@ describe("vault-store", () => {
     await Promise.resolve();
 
     expect(client.listEntries).toHaveBeenCalledTimes(1);
-    releaseFirstList?.();
+    releaseFirstList();
     await Promise.all([first, second]);
 
     expect(client.listEntries).toHaveBeenCalledTimes(2);

@@ -36,6 +36,14 @@ describe("notes recovery and history persistence", () => {
     await expect(listNotesRecoveryDrafts("/vault")).resolves.toEqual([]);
   });
 
+  it("conditional cleanup retains a different newer draft", async () => {
+    await captureNotesRecoveryDraft({ path: "a.md", rawSource: "newest", vaultRoot: "/vault" });
+    await clearNotesRecoveryDraft("a.md", "/vault", "older");
+    expect(await listNotesRecoveryDrafts("/vault")).toEqual([expect.objectContaining({ rawSource: "newest" })]);
+    await clearNotesRecoveryDraft("a.md", "/vault", "newest");
+    expect(await listNotesRecoveryDrafts("/vault")).toEqual([]);
+  });
+
   it("deduplicates adjacent history versions", async () => {
     await recordNotesHistoryVersion({
       path: "a.md",

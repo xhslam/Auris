@@ -685,6 +685,35 @@ export function useNotesTerminalSessions({
           terminal,
         });
 
+        // Listen before awaiting the backend; starting input uses the existing queue.
+        terminal.onData((data) => {
+          const currentSession = sessionsRef.current.find(
+            (item) => item.id === session.id,
+          );
+
+          if (!currentSession) {
+            return;
+          }
+
+          if (currentSession.status === "starting") {
+            queuePendingInput(session.id, data);
+            return;
+          }
+
+          if (currentSession.status !== "running") {
+            queueSessionRestart(session.id, data);
+            return;
+          }
+
+          const normalizedData = normalizeInputForBackend(
+            data,
+            currentSession.backend,
+          );
+          void terminalBridge.write(session.id, normalizedData).catch(() => {
+            queueSessionRestart(session.id, data);
+          });
+        });
+
         const record = await terminalBridge.resume({
           cols: terminal.cols || DEFAULT_COLS,
           cwd,
@@ -737,33 +766,7 @@ export function useNotesTerminalSessions({
           void terminalBridge.write(session.id, "\n").catch(() => undefined);
         }
 
-        terminal.onData((data) => {
-          const currentSession = sessionsRef.current.find(
-            (item) => item.id === session.id,
-          );
 
-          if (!currentSession) {
-            return;
-          }
-
-          if (currentSession.status === "starting") {
-            queuePendingInput(session.id, data);
-            return;
-          }
-
-          if (currentSession.status !== "running") {
-            queueSessionRestart(session.id, data);
-            return;
-          }
-
-          const normalizedData = normalizeInputForBackend(
-            data,
-            currentSession.backend,
-          );
-          void terminalBridge.write(session.id, normalizedData).catch(() => {
-            queueSessionRestart(session.id, data);
-          });
-        });
 
         showActiveSession(activeSessionId);
       } catch (error) {

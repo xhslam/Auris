@@ -1,0 +1,12 @@
+{
+  "appVersion": "1.0.13",
+  "origin": "http://127.0.0.1:3001",
+  "notesOpened": true,
+  "formulaCount": 1200,
+  "initiallyPending": 1163,
+  "lastFormulaRenderedAfterScroll": true,
+  "backend": "pty",
+  "transcriptFixtureRendered": true,
+  "terminalHeight": 386.1015625,
+  "temporaryCliRootsOnly": true
+}

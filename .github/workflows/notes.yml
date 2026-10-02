@@ -7,6 +7,17 @@ on:
       - "electron/auris-notes-mcp-server.mjs"
       - "electron/notes-mcp-bridge.cjs"
       - "electron/main.cjs"
+      - "electron/terminal-*.cjs"
+      - "electron/preload.cjs"
+      - "electron-builder.yml"
+      - "build/entitlements.mac*.plist"
+      - "src/platform/desktop/desktop-bridge.ts"
+      - "tests/unit/electron/terminal-*.test.ts"
+      - "tests/unit/electron/macos-terminal-permissions.test.ts"
+      - "tests/fixtures/notes/**"
+      - "scripts/verify-markdown-patches.cjs"
+      - "scripts/markdown-patch-contract.json"
+      - "scripts/verify-macos-terminal-permissions.cjs"
       - "src/components/notes-v2/**"
       - "src/features/notes/**"
       - "src/platform/notes/**"
@@ -28,6 +39,17 @@ on:
       - "electron/auris-notes-mcp-server.mjs"
       - "electron/notes-mcp-bridge.cjs"
       - "electron/main.cjs"
+      - "electron/terminal-*.cjs"
+      - "electron/preload.cjs"
+      - "electron-builder.yml"
+      - "build/entitlements.mac*.plist"
+      - "src/platform/desktop/desktop-bridge.ts"
+      - "tests/unit/electron/terminal-*.test.ts"
+      - "tests/unit/electron/macos-terminal-permissions.test.ts"
+      - "tests/fixtures/notes/**"
+      - "scripts/verify-markdown-patches.cjs"
+      - "scripts/markdown-patch-contract.json"
+      - "scripts/verify-macos-terminal-permissions.cjs"
       - "src/components/notes-v2/**"
       - "src/features/notes/**"
       - "src/platform/notes/**"
@@ -71,6 +93,14 @@ jobs:
           tests/unit/notes/notes-mcp-workspace-handler.test.ts
           tests/unit/notes/notes-mcp-contract.test.ts
           tests/unit/notes/notes-markdown-nesting.test.ts
+          tests/unit/notes/markdown-linear-dependencies.test.ts
+          tests/unit/notes/notes-math-render-scheduler.test.ts
+          tests/unit/electron/terminal-session-manager.test.ts
+          tests/unit/electron/terminal-transcript-service.test.ts
+          tests/unit/electron/macos-terminal-permissions.test.ts
+          tests/component/notes/notes-math-node-view.test.tsx
+          tests/component/notes/notes-terminal-transcript.test.tsx
+          tests/component/notes/notes-terminal-panel.test.tsx
           tests/unit/notes/vault-safe-write.test.ts
           tests/unit/notes/vault-write-conflict.test.ts
           tests/unit/notes/workspace-store.test.ts

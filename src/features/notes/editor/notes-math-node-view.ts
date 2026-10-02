@@ -4,6 +4,7 @@ import type {
   NodeView,
 } from "prosemirror-view";
 import { renderMathMarkup } from "@/features/notes/editor/code-block-preview";
+import { scheduleNotesMathRender } from "./notes-math-render-scheduler";
 
 type MathNodeKind = "block" | "inline";
 
@@ -14,6 +15,7 @@ class NotesMathNodeView implements NodeView {
   private editing = false;
   private preview: HTMLElement;
   private livePreview: HTMLElement | null = null;
+  private cancelRender: (() => void) | null = null;
 
   constructor(
     private node: ProseMirrorNode,
@@ -34,7 +36,11 @@ class NotesMathNodeView implements NodeView {
     this.preview = document.createElement("span");
     this.preview.className = `notes-v2__math-${kind}-preview`;
     this.dom.append(this.preview);
-    this.renderInto(this.preview, this.content, kind === "block");
+    this.preview.textContent = "\u00a0";
+    this.preview.style.display = "inline-block";
+    this.preview.style.minWidth = `${Math.min(16, Math.max(2, this.content.length / 3))}ch`;
+    this.dom.dataset.mathPending = "true";
+    this.cancelRender = scheduleNotesMathRender(this.dom, view.dom, () => this.renderPreview());
 
     this.dom.addEventListener("click", this.handleClick);
     this.dom.addEventListener("keydown", this.handlePreviewKeydown);
@@ -56,6 +62,15 @@ class NotesMathNodeView implements NodeView {
     }
   }
 
+  private renderPreview() {
+    this.cancelRender?.();
+    this.cancelRender = null;
+    delete this.dom.dataset.mathPending;
+    this.preview.style.removeProperty("min-width");
+    this.preview.style.removeProperty("display");
+    this.renderInto(this.preview, this.content, this.kind === "block");
+  }
+
   private handleClick = (event: MouseEvent) => {
     if (this.editor && this.editor.contains(event.target as Node)) return;
     event.preventDefault();
@@ -70,6 +85,7 @@ class NotesMathNodeView implements NodeView {
   };
 
   private enterEditMode() {
+    this.renderPreview();
     if (this.editing) {
       this.editor?.focus();
       return;
@@ -182,7 +198,7 @@ class NotesMathNodeView implements NodeView {
     this.preview.hidden = false;
     this.dom.dataset.mathSource = this.content;
     this.dom.setAttribute("aria-label", `LaTeX: ${this.content}`);
-    this.renderInto(this.preview, this.content, this.kind === "block");
+    this.renderPreview();
   }
 
   update(node: ProseMirrorNode) {
@@ -192,7 +208,8 @@ class NotesMathNodeView implements NodeView {
     if (!this.editing && nextContent !== this.content) {
       this.content = nextContent;
       this.dom.dataset.mathSource = nextContent;
-      this.renderInto(this.preview, nextContent, this.kind === "block");
+      this.dom.setAttribute("aria-label", `LaTeX: ${nextContent}`);
+      this.renderPreview();
     }
     return true;
   }
@@ -206,6 +223,7 @@ class NotesMathNodeView implements NodeView {
   }
 
   destroy() {
+    this.cancelRender?.();
     this.dom.removeEventListener("click", this.handleClick);
     this.dom.removeEventListener("keydown", this.handlePreviewKeydown);
     this.editor?.removeEventListener("input", this.handleInput);

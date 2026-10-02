@@ -250,6 +250,7 @@ function createTerminalSessionManager(options = {}) {
 
   function removeSession(sessionId) {
     sessions.delete(sessionId);
+    options.onSessionRemoved?.(sessionId);
   }
 
   function emitExit(sessionId, exitCode, signal, errorMessage = null) {
@@ -313,7 +314,10 @@ function createTerminalSessionManager(options = {}) {
     const shell = requestedShell ?? resolveDefaultShell(platform, env);
     const cols = normalizePositiveInteger(input.cols, DEFAULT_COLS);
     const rows = normalizePositiveInteger(input.rows, DEFAULT_ROWS);
-    const childEnv = createTerminalEnvironment(env, cwd, platform);
+    const childEnv = {
+      ...createTerminalEnvironment(env, cwd, platform),
+      ...options.sessionEnvironment?.(sessionId),
+    };
     const workspaceInstanceId =
       typeof input.workspaceInstanceId === "string" &&
       input.workspaceInstanceId.trim()

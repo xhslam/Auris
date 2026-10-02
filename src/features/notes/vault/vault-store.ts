@@ -146,17 +146,22 @@ export function createVaultStore(client: VaultClient) {
     return result;
   }
 
-  async function loadDocuments(paths: readonly string[]) {
-    const requestedPaths = paths
-      .map(normalizeVaultPath)
-      .filter((path) => !documentCache.has(path));
-
-    if (requestedPaths.length === 0) {
-      return snapshot;
-    }
-
-    await readEntries(snapshot.entries, requestedPaths);
-    return publish(snapshot.entries);
+  function loadDocuments(paths: readonly string[]) {
+    // Lazy loading publishes snapshots too. Use the refresh queue so it cannot
+    // publish an empty initial listing as if the scan had proved files missing.
+    const result = refreshChain.then(async () => {
+      if (snapshot.generatedAt === new Date(0).toISOString()) {
+        return performRefresh({ eagerPaths: paths });
+      }
+      const requestedPaths = paths
+        .map(normalizeVaultPath)
+        .filter((path) => !documentCache.has(path));
+      if (requestedPaths.length === 0) return snapshot;
+      await readEntries(snapshot.entries, requestedPaths);
+      return publish(snapshot.entries);
+    });
+    refreshChain = result.then(() => undefined, () => undefined);
+    return result;
   }
 
   function getSnapshot() {

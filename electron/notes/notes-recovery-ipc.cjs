@@ -29,7 +29,10 @@ function createNotesRecoveryIpc({
       case "capture-draft":
         return store.captureDraft(input.draft);
       case "clear-draft":
-        return store.clearDraft(input.path, input.vaultRoot ?? null);
+        if (input.expectedRawSource !== undefined && typeof input.expectedRawSource !== "string") {
+          throw new TypeError("Expected recovery source must be a string.");
+        }
+        return store.clearDraft(input.path, input.vaultRoot ?? null, input.expectedRawSource);
       case "list-drafts":
         return store.listDrafts(input.vaultRoot ?? null);
       case "capture-workspace":

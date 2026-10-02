@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `241a25302e35b6a142aa16a7eba531cbf2046a0e`
-- Changed: **2320**
-- Added: **2590**
+- Compared commit: `662d73d46d2ed6294d087ad1ced30223384de170`
+- Changed: **2323**
+- Added: **2679**
 - Deleted: **515**
 - Renamed: **108**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
 - Mapped upstream changes: **171**
-- Capability-domain candidates: **714**
-- Unmapped upstream changes: **4648**
+- Capability-domain candidates: **745**
+- Unmapped upstream changes: **4709**
 
 ## Upstream changes
 
@@ -372,6 +372,8 @@
 - **deleted** `ledger.json`
 - **changed** `package.json`
 - **added** `patches/@xterm__addon-webgl@0.19.0.patch`
+- **added** `patches/mdast-util-find-and-replace@3.0.2.patch`
+- **added** `patches/mdast-util-from-markdown@2.0.3.patch`
 - **added** `patches/mdast-util-to-markdown@2.1.2.patch`
 - **added** `patches/micromark-extension-gfm-autolink-literal@2.1.0.patch`
 - **added** `patches/micromark@4.0.2.patch`
@@ -455,11 +457,14 @@
 - **added** `scripts/check-hooks-react-purity.mjs`
 - **added** `scripts/check-i18n-copy.test.ts`
 - **changed** `scripts/check-i18n-keys.ts`
+- **changed** `scripts/check-index-barrels.mjs`
 - **added** `scripts/check-ipc-contract.mjs`
 - **added** `scripts/check-ipc-contract.test.mjs`
 - **added** `scripts/check-keybinding-manifest.mjs`
 - **added** `scripts/check-keybinding-manifest.test.mjs`
 - **added** `scripts/check-knip-baseline.mjs`
+- **added** `scripts/check-macos-tcc-entitlements.test.mjs`
+- **added** `scripts/check-main-module-guards.test.mjs`
 - **added** `scripts/check-mcp-docs.mjs`
 - **added** `scripts/check-mcp-docs.test.mjs`
 - **added** `scripts/check-merge-drops.mjs`
@@ -496,6 +501,7 @@
 - **changed** `scripts/check-split-view-phase.sh`
 - **added** `scripts/check-tag-green.sh`
 - **added** `scripts/check-tag-green.test.mjs`
+- **changed** `scripts/check-tauri-versions.mjs`
 - **added** `scripts/check-terminal-edge-phase.sh`
 - **added** `scripts/check-terminal-edge-phase.test.mjs`
 - **changed** `scripts/check-terminal-gaps-phase.sh`
@@ -531,6 +537,7 @@
 - **added** `scripts/clean-dev.sh`
 - **added** `scripts/clean-dev.test.mjs`
 - **added** `scripts/command-error-baseline.json`
+- **changed** `scripts/compare-bench.mjs`
 - **added** `scripts/depcruise-sensitivity.test.mjs`
 - **added** `scripts/design-tokens-baseline.json`
 - **added** `scripts/dev-disk.mjs`
@@ -583,6 +590,9 @@
 - **added** `scripts/lib/featureOwnership.mjs`
 - **added** `scripts/lib/headerReferenceTargets.mjs`
 - **added** `scripts/lib/headerReferences.mjs`
+- **added** `scripts/lib/isMainModule.d.mts`
+- **added** `scripts/lib/isMainModule.mjs`
+- **added** `scripts/lib/isMainModule.test.mjs`
 - **added** `scripts/lib/keybindingFormat.mjs`
 - **added** `scripts/lib/keybindingFormat.test.mjs`
 - **added** `scripts/lib/packageScripts.mjs`
@@ -610,6 +620,7 @@
 - **added** `scripts/stryker-break-canary.test.mjs`
 - **changed** `scripts/tauri-wrapper.mjs`
 - **added** `scripts/tauri-wrapper.test.ts`
+- **added** `scripts/terminal-transcript-hook.test.mjs`
 - **added** `scripts/test-changed.mjs`
 - **added** `scripts/test-changed.test.mjs`
 - **added** `scripts/test-only-modules-baseline.json`
@@ -619,6 +630,7 @@
 - **added** `scripts/ui-consistency-baseline.json`
 - **added** `scripts/vendor-spec-corpus.d.mts`
 - **added** `scripts/vendor-spec-corpus.mjs`
+- **added** `scripts/verify-macos-bundle-entitlements.sh`
 - **added** `scripts/vitestReportVerdict.mjs`
 - **added** `scripts/vitestReportVerdict.test.mjs`
 - **added** `server/content/package.json`
@@ -768,6 +780,7 @@
 - **changed** `src-tauri/Cargo.lock`
 - **changed** `src-tauri/Cargo.toml`
 - **changed** `src-tauri/Info.plist`
+- **added** `src-tauri/app-entitlements.plist`
 - **changed** `src-tauri/binaries/.gitignore`
 - **changed** `src-tauri/build.rs`
 - **changed** `src-tauri/capabilities/default.json`
@@ -867,9 +880,20 @@
 - **changed** `src-tauri/locales/pt-BR.yml`
 - **changed** `src-tauri/locales/zh-CN.yml`
 - **changed** `src-tauri/locales/zh-TW.yml`
+- **added** `src-tauri/macos-l10n/de.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/en.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/es.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/fr.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/it.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/ja.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/ko.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/pt-BR.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/zh-Hans.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/zh-Hant.lproj/InfoPlist.strings`
 - **deleted** `src-tauri/mutants.toml`
 - **deleted** `src-tauri/resources/genies/outline-and-polish.yml`
 - **added** `src-tauri/resources/shell-integration/vmark.bash`
+- **added** `src-tauri/resources/terminal-transcript-hook.cjs`
 - **changed** `src-tauri/resources/workflows/examples/triage-and-translate.yml`
 - **added** `src-tauri/src/ai_provider/cancel.rs`
 - **added** `src-tauri/src/ai_provider/cancel.test.rs`
@@ -1395,6 +1419,9 @@
 - **changed** `src-tauri/src/tab_transfer.rs`
 - **changed** `src-tauri/src/tab_transfer.test.rs`
 - **added** `src-tauri/src/tab_transfer/drop_target.rs`
+- **added** `src-tauri/src/terminal_transcript/config.rs`
+- **added** `src-tauri/src/terminal_transcript/mod.rs`
+- **added** `src-tauri/src/terminal_transcript/tests.rs`
 - **added** `src-tauri/src/trusted_html/commands.rs`
 - **added** `src-tauri/src/trusted_html/commands.test.rs`
 - **added** `src-tauri/src/trusted_html/mod.rs`
@@ -1491,6 +1518,7 @@
 - **added** `src-tauri/src/workspace_validation.rs`
 - **changed** `src-tauri/tauri.conf.json`
 - **changed** `src-tauri/tauri.dev.conf.json`
+- **added** `src-tauri/tauri.macos-release.conf.json`
 - **added** `src-tauri/tauri.windows.conf.json`
 - **added** `src-tauri/tests/spike_sp1_dry_run_projection.rs`
 - **added** `src-tauri/tests/spike_sp3_edge_kind_registry.rs`
@@ -1716,8 +1744,10 @@
 - **added** `src/components/Editor/WorkflowPanel/workflowSnapshots.ts`
 - **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
+- **added** `src/components/Editor/cvIdleEndOfDocument.webkit.test.ts`
 - **added** `src/components/Editor/cvIdleViewportLock.test.ts`
 - **added** `src/components/Editor/cvIdleViewportLock.ts`
+- **added** `src/components/Editor/cvSizingScope.webkit.test.tsx`
 - **changed** `src/components/Editor/drop-zone.css`
 - **changed** `src/components/Editor/editor.css`
 - **changed** `src/components/Editor/heading-picker.css`
@@ -1727,6 +1757,8 @@
 - **changed** `src/components/Editor/sourcePendingNav.ts`
 - **changed** `src/components/Editor/tiptapEditorHelpers.test.ts`
 - **changed** `src/components/Editor/tiptapEditorHelpers.ts`
+- **added** `src/components/Editor/useContentVisibilityMode.test.ts`
+- **added** `src/components/Editor/useContentVisibilityMode.ts`
 - **changed** `src/components/Editor/useTiptapContentSync.ts`
 - **added** `src/components/Editor/useTiptapFlush.test.ts`
 - **changed** `src/components/Editor/useTiptapFlush.ts`
@@ -1896,10 +1928,13 @@
 - **changed** `src/components/Terminal/TerminalContextMenu.test.tsx`
 - **changed** `src/components/Terminal/TerminalContextMenu.tsx`
 - **changed** `src/components/Terminal/TerminalPanel.test.tsx`
+- **added** `src/components/Terminal/TerminalPanel.transcript.test.tsx`
 - **changed** `src/components/Terminal/TerminalPanel.tsx`
 - **changed** `src/components/Terminal/TerminalSearchBar.css`
 - **changed** `src/components/Terminal/TerminalSearchBar.test.tsx`
 - **changed** `src/components/Terminal/TerminalSearchBar.tsx`
+- **added** `src/components/Terminal/TerminalSessionsArea.test.tsx`
+- **added** `src/components/Terminal/TerminalSessionsArea.tsx`
 - **added** `src/components/Terminal/TerminalTabBar.a11y.test.tsx`
 - **changed** `src/components/Terminal/TerminalTabBar.css`
 - **added** `src/components/Terminal/TerminalTabBar.scope.test.tsx`
@@ -1907,6 +1942,12 @@
 - **changed** `src/components/Terminal/TerminalTabBar.tsx`
 - **added** `src/components/Terminal/TerminalTabRename.test.ts`
 - **added** `src/components/Terminal/TerminalTabRename.tsx`
+- **added** `src/components/Terminal/TerminalTranscript.test.tsx`
+- **added** `src/components/Terminal/TerminalTranscript.tsx`
+- **added** `src/components/Terminal/TranscriptMarkdown.test.tsx`
+- **added** `src/components/Terminal/TranscriptMarkdown.tsx`
+- **added** `src/components/Terminal/TranscriptMermaid.test.tsx`
+- **added** `src/components/Terminal/TranscriptMermaid.tsx`
 - **added** `src/components/Terminal/__tests__/serializeAddonDependency.test.ts`
 - **changed** `src/components/Terminal/__tests__/useTerminalPosition.test.ts`
 - **added** `src/components/Terminal/browserTier.smoke.webkit.test.ts`
@@ -1924,6 +1965,7 @@
 - **added** `src/components/Terminal/imeCharClass.test.ts`
 - **added** `src/components/Terminal/imeCharClass.ts`
 - **added** `src/components/Terminal/imeGateMachine.ts`
+- **added** `src/components/Terminal/realXterm.testUtils.ts`
 - **added** `src/components/Terminal/resolveBufferLine.test.ts`
 - **added** `src/components/Terminal/resolveBufferLine.ts`
 - **added** `src/components/Terminal/resolveCommit.test.ts`
@@ -1951,6 +1993,7 @@
 - **changed** `src/components/Terminal/spawnPty.test.ts`
 - **changed** `src/components/Terminal/spawnPty.ts`
 - **changed** `src/components/Terminal/terminal-panel.css`
+- **added** `src/components/Terminal/terminal-transcript.css`
 - **changed** `src/components/Terminal/terminalBell.test.ts`
 - **changed** `src/components/Terminal/terminalBell.ts`
 - **deleted** `src/components/Terminal/terminalGate.ts`
@@ -1975,6 +2018,9 @@
 - **added** `src/components/Terminal/terminalSessionReconcile.ts`
 - **changed** `src/components/Terminal/terminalSessionRegistry.test.ts`
 - **changed** `src/components/Terminal/terminalSessionRegistry.ts`
+- **added** `src/components/Terminal/terminalSessionReset.test.ts`
+- **added** `src/components/Terminal/terminalSessionReset.ts`
+- **added** `src/components/Terminal/terminalSessionReset.webkit.test.ts`
 - **changed** `src/components/Terminal/terminalSessionStoreSync.live.test.ts`
 - **added** `src/components/Terminal/terminalSessionStoreSync.railswitch.test.ts`
 - **changed** `src/components/Terminal/terminalSessionStoreSync.root.test.ts`
@@ -1984,11 +2030,17 @@
 - **changed** `src/components/Terminal/terminalSessionStoreSync.ts`
 - **changed** `src/components/Terminal/terminalSessionTypes.ts`
 - **added** `src/components/Terminal/terminalSettingsSync.ts`
+- **added** `src/components/Terminal/terminalShellExit.ts`
 - **changed** `src/components/Terminal/terminalSpawnEnv.test.ts`
 - **changed** `src/components/Terminal/terminalSpawnEnv.ts`
 - **added** `src/components/Terminal/terminalThemeId.test.ts`
 - **added** `src/components/Terminal/terminalThemeId.ts`
+- **added** `src/components/Terminal/terminalTranscriptLayout.webkit.test.tsx`
+- **added** `src/components/Terminal/transcriptMarkdownTree.test.ts`
+- **added** `src/components/Terminal/transcriptMarkdownTree.ts`
 - **changed** `src/components/Terminal/unwrapSelection.test.ts`
+- **added** `src/components/Terminal/useRenderedTranscript.test.tsx`
+- **added** `src/components/Terminal/useRenderedTranscript.ts`
 - **added** `src/components/Terminal/useTerminalAutoFit.test.ts`
 - **added** `src/components/Terminal/useTerminalAutoFit.ts`
 - **changed** `src/components/Terminal/useTerminalPosition.ts`
@@ -1998,9 +2050,16 @@
 - **changed** `src/components/Terminal/useTerminalSessions.ts`
 - **added** `src/components/Terminal/useTerminalSessionsInit.scope.test.ts`
 - **added** `src/components/Terminal/useTerminalSessionsInit.ts`
+- **added** `src/components/Terminal/useTerminalShellLifecycle.reset.test.ts`
 - **added** `src/components/Terminal/useTerminalShellLifecycle.scope.test.ts`
 - **changed** `src/components/Terminal/useTerminalShellLifecycle.test.ts`
 - **changed** `src/components/Terminal/useTerminalShellLifecycle.ts`
+- **added** `src/components/Terminal/useTerminalTranscript.test.tsx`
+- **added** `src/components/Terminal/useTerminalTranscript.ts`
+- **added** `src/components/Terminal/useTranscriptAutoOpen.test.tsx`
+- **added** `src/components/Terminal/useTranscriptAutoOpen.ts`
+- **added** `src/components/Terminal/useTranscriptConfiguration.test.tsx`
+- **added** `src/components/Terminal/useTranscriptConfiguration.ts`
 - **added** `src/components/Terminal/useVisibleTerminalSessions.ts`
 - **added** `src/components/Terminal/webglAtlasPageUpload.webkit.test.ts`
 - **added** `src/components/ThemedToaster.test.tsx`
@@ -3226,17 +3285,24 @@
 - **deleted** `src/plugins/inlineCodeBoundary/manifest.ts`
 - **changed** `src/plugins/inlineNodeEditing/__tests__/inlineNodeEditing.test.ts`
 - **deleted** `src/plugins/inlineNodeEditing/manifest.ts`
+- **added** `src/plugins/latex/MathInlineNodeView.deferred.test.ts`
 - **changed** `src/plugins/latex/MathInlineNodeView.test.ts`
 - **changed** `src/plugins/latex/MathInlineNodeView.ts`
 - **changed** `src/plugins/latex/__tests__/MathInlineNodeView.test.ts`
 - **added** `src/plugins/latex/displayMathTag.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.ts`
+- **added** `src/plugins/latex/inlineMathLayers.webkit.test.ts`
+- **added** `src/plugins/latex/inlineMathRenderCache.test.ts`
+- **added** `src/plugins/latex/inlineMathRenderCache.ts`
+- **added** `src/plugins/latex/katexFontPreload.test.ts`
+- **added** `src/plugins/latex/katexFontPreload.ts`
 - **changed** `src/plugins/latex/katexLoader.test.ts`
 - **changed** `src/plugins/latex/latex.css`
 - **changed** `src/plugins/latex/latexErrorParser.test.ts`
 - **changed** `src/plugins/latex/latexErrorParser.ts`
 - **deleted** `src/plugins/latex/manifest.ts`
+- **added** `src/plugins/latex/scheduleInlineMathRender.ts`
 - **changed** `src/plugins/latex/tiptapInlineMath.test.ts`
 - **changed** `src/plugins/latex/tiptapInlineMath.ts`
 - **changed** `src/plugins/linkCreatePopup/LinkCreatePopupView.ts`
@@ -3336,6 +3402,7 @@
 - **changed** `src/plugins/mermaid/mermaid.test.ts`
 - **changed** `src/plugins/mermaid/plugin.test.ts`
 - **changed** `src/plugins/mermaid/plugin.ts`
+- **added** `src/plugins/mermaid/strictRender.webkit.test.ts`
 - **changed** `src/plugins/mermaid/themeConfig.test.ts`
 - **changed** `src/plugins/mermaidPreview/MermaidPreviewView.test.ts`
 - **changed** `src/plugins/mermaidPreview/MermaidPreviewView.ts`
@@ -3399,6 +3466,8 @@
 - **added** `src/plugins/shared/blockTemplates.ts`
 - **changed** `src/plugins/shared/diagramExport.ts`
 - **changed** `src/plugins/shared/diagramThemeTokens.ts`
+- **added** `src/plugins/shared/editorScrollRoot.test.ts`
+- **added** `src/plugins/shared/editorScrollRoot.ts`
 - **added** `src/plugins/shared/fenceDelimiter.test.ts`
 - **added** `src/plugins/shared/fenceDelimiter.ts`
 - **added** `src/plugins/shared/fenceScanner.ts`
@@ -3424,11 +3493,17 @@
 - **changed** `src/plugins/shared/listHelpers.ts`
 - **changed** `src/plugins/shared/mediaSecurity.test.ts`
 - **changed** `src/plugins/shared/mediaSecurity.ts`
+- **added** `src/plugins/shared/nearViewport.prosemirror.test.ts`
+- **added** `src/plugins/shared/nearViewport.test.ts`
+- **added** `src/plugins/shared/nearViewport.ts`
 - **added** `src/plugins/shared/pasteSettings.test.ts`
 - **added** `src/plugins/shared/pasteSettings.ts`
 - **added** `src/plugins/shared/popupHostDom.test.ts`
 - **added** `src/plugins/shared/popupHostDom.ts`
 - **added** `src/plugins/shared/popupPorts.ts`
+- **added** `src/plugins/shared/renderMarks.ts`
+- **added** `src/plugins/shared/renderQueue.test.ts`
+- **added** `src/plugins/shared/renderQueue.ts`
 - **changed** `src/plugins/shared/sourceLineAttr.ts`
 - **changed** `src/plugins/shared/sourceLineNodes.ts`
 - **changed** `src/plugins/shared/types.test.ts`
@@ -3890,6 +3965,8 @@
 - **changed** `src/services/editor/readOnlyGuard.ts`
 - **added** `src/services/editor/runEditorAction.test.ts`
 - **added** `src/services/editor/runEditorAction.ts`
+- **added** `src/services/editor/scrollAnchor.test.ts`
+- **added** `src/services/editor/scrollAnchor.ts`
 - **added** `src/services/editor/scrollPosition.test.ts`
 - **added** `src/services/editor/scrollPosition.ts`
 - **changed** `src/services/editor/sourcePeek.test.ts`
@@ -4282,6 +4359,8 @@
 - **added** `src/services/terminal/terminalGate.focus.test.ts`
 - **renamed** `src/components/Terminal/terminalGate.test.ts` → `src/services/terminal/terminalGate.test.ts`
 - **added** `src/services/terminal/terminalGate.ts`
+- **added** `src/services/terminal/transcriptBinding.test.ts`
+- **added** `src/services/terminal/transcriptBinding.ts`
 - **added** `src/services/terminal/visibleTerminalSessions.ts`
 - **added** `src/services/theme/nativeTheme.test.ts`
 - **added** `src/services/theme/nativeTheme.ts`
@@ -4411,6 +4490,7 @@
 - **changed** `src/shell/appShellClassName.test.ts`
 - **added** `src/shell/barHeight.test.ts`
 - **added** `src/shell/bottomLaneLayout.webkit.test.tsx`
+- **added** `src/shell/panelPlacement.webkit.test.tsx`
 - **added** `src/shell/shellChrome.test.ts`
 - **added** `src/shell/shellChrome.ts`
 - **added** `src/shell/trafficLights.test.ts`
@@ -4665,6 +4745,9 @@
 - **added** `src/test/bindPluginRegistries.ts`
 - **added** `src/test/codePreviewTestUtils.ts`
 - **added** `src/test/coverageThresholdSources.test.ts`
+- **added** `src/test/cpuClock.measureGrowth.test.ts`
+- **added** `src/test/cpuClock.test.ts`
+- **added** `src/test/cpuClock.ts`
 - **added** `src/test/devProfileIsolation.test.ts`
 - **added** `src/test/editingFuzz.test.ts`
 - **added** `src/test/editorComposition.webkit.test.ts`
@@ -4672,8 +4755,10 @@
 - **added** `src/test/envInteger.ts`
 - **added** `src/test/externalCorpora.soak.test.ts`
 - **added** `src/test/externalFileChangesFixtures.ts`
+- **added** `src/test/fakeAnimationFrames.ts`
 - **added** `src/test/fakeDisk.test.ts`
 - **added** `src/test/fakeDisk.ts`
+- **added** `src/test/fakeIntersectionObserver.ts`
 - **added** `src/test/fixtures/commandErrorWire.json`
 - **renamed** `dev-docs/fixtures/gha-workflows/actions-checkout/test.yml` → `src/test/fixtures/gha-workflows/actions-checkout/test.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/actions-setup-node/versions.yml` → `src/test/fixtures/gha-workflows/actions-setup-node/versions.yml`
@@ -4927,6 +5012,11 @@
 - **added** `src/utils/markdownPipeline/__tests__/markEdgeWhitespace.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/mediaConverters.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/parser.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/findAndReplace.differential.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/findAndReplace.reference.json`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/fromMarkdownBuilds.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/listPreparation.differential.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/listPreparation.reference.json`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathological.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalCases.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalScaling.test.ts`
@@ -5126,6 +5216,8 @@
 - **changed** `src/utils/tableParser.test.ts`
 - **added** `src/utils/terminalSurface.test.ts`
 - **added** `src/utils/terminalSurface.ts`
+- **added** `src/utils/terminalTranscript.test.ts`
+- **added** `src/utils/terminalTranscript.ts`
 - **changed** `src/utils/textTransformations.test.ts`
 - **changed** `src/utils/textTransformations.ts`
 - **changed** `src/utils/tooltipWithShortcut.test.ts`
@@ -5906,8 +5998,10 @@
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/workflowSnapshots.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleEndOfDocument.webkit.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleViewportLock.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleViewportLock.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvSizingScope.webkit.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/drop-zone.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/editor.css`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/heading-picker.css`
@@ -5917,6 +6011,8 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/sourcePendingNav.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/tiptapEditorHelpers.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/tiptapEditorHelpers.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/useContentVisibilityMode.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/useContentVisibilityMode.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/useTiptapContentSync.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/useTiptapFlush.test.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/useTiptapFlush.ts`
@@ -5927,10 +6023,13 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalContextMenu.test.tsx`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalContextMenu.tsx`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalPanel.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TerminalPanel.transcript.test.tsx`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalPanel.tsx`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalSearchBar.css`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalSearchBar.test.tsx`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalSearchBar.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TerminalSessionsArea.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TerminalSessionsArea.tsx`
 - `terminal` (`defer`): **added** `src/components/Terminal/TerminalTabBar.a11y.test.tsx`
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalTabBar.css`
 - `terminal` (`defer`): **added** `src/components/Terminal/TerminalTabBar.scope.test.tsx`
@@ -5938,6 +6037,12 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/TerminalTabBar.tsx`
 - `terminal` (`defer`): **added** `src/components/Terminal/TerminalTabRename.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/TerminalTabRename.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TerminalTranscript.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TerminalTranscript.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TranscriptMarkdown.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TranscriptMarkdown.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TranscriptMermaid.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/TranscriptMermaid.tsx`
 - `terminal` (`defer`): **added** `src/components/Terminal/__tests__/serializeAddonDependency.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/__tests__/useTerminalPosition.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/browserTier.smoke.webkit.test.ts`
@@ -5955,6 +6060,7 @@
 - `terminal` (`defer`): **added** `src/components/Terminal/imeCharClass.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/imeCharClass.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/imeGateMachine.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/realXterm.testUtils.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/resolveBufferLine.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/resolveBufferLine.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/resolveCommit.test.ts`
@@ -5982,6 +6088,7 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/spawnPty.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/spawnPty.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminal-panel.css`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminal-transcript.css`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalBell.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalBell.ts`
 - `terminal` (`defer`): **deleted** `src/components/Terminal/terminalGate.ts`
@@ -6006,6 +6113,9 @@
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalSessionReconcile.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSessionRegistry.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSessionRegistry.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalSessionReset.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalSessionReset.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalSessionReset.webkit.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSessionStoreSync.live.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalSessionStoreSync.railswitch.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSessionStoreSync.root.test.ts`
@@ -6015,11 +6125,17 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSessionStoreSync.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSessionTypes.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalSettingsSync.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalShellExit.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSpawnEnv.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalSpawnEnv.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalThemeId.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalThemeId.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalTranscriptLayout.webkit.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/transcriptMarkdownTree.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/transcriptMarkdownTree.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/unwrapSelection.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/useRenderedTranscript.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/useRenderedTranscript.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useTerminalAutoFit.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useTerminalAutoFit.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalPosition.ts`
@@ -6029,9 +6145,16 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalSessions.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useTerminalSessionsInit.scope.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useTerminalSessionsInit.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTerminalShellLifecycle.reset.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useTerminalShellLifecycle.scope.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalShellLifecycle.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/useTerminalShellLifecycle.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTerminalTranscript.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTerminalTranscript.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTranscriptAutoOpen.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTranscriptAutoOpen.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTranscriptConfiguration.test.tsx`
+- `terminal` (`defer`): **added** `src/components/Terminal/useTranscriptConfiguration.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/useVisibleTerminalSessions.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/webglAtlasPageUpload.webkit.test.ts`
 - `mcp-contract` (`adapt`): **renamed** `src/hooks/mcpBridge/isValidMcpRequestRaw.test.ts` → `src/hooks/isValidMcpRequestRaw.test.ts`
@@ -6710,6 +6833,8 @@
 - **changed** `knip.json`
 - **deleted** `ledger.json`
 - **added** `patches/@xterm__addon-webgl@0.19.0.patch`
+- **added** `patches/mdast-util-find-and-replace@3.0.2.patch`
+- **added** `patches/mdast-util-from-markdown@2.0.3.patch`
 - **added** `patches/mdast-util-to-markdown@2.1.2.patch`
 - **added** `patches/micromark-extension-gfm-autolink-literal@2.1.0.patch`
 - **added** `patches/micromark@4.0.2.patch`
@@ -6791,11 +6916,14 @@
 - **added** `scripts/check-hooks-react-purity.mjs`
 - **added** `scripts/check-i18n-copy.test.ts`
 - **changed** `scripts/check-i18n-keys.ts`
+- **changed** `scripts/check-index-barrels.mjs`
 - **added** `scripts/check-ipc-contract.mjs`
 - **added** `scripts/check-ipc-contract.test.mjs`
 - **added** `scripts/check-keybinding-manifest.mjs`
 - **added** `scripts/check-keybinding-manifest.test.mjs`
 - **added** `scripts/check-knip-baseline.mjs`
+- **added** `scripts/check-macos-tcc-entitlements.test.mjs`
+- **added** `scripts/check-main-module-guards.test.mjs`
 - **added** `scripts/check-mcp-docs.mjs`
 - **added** `scripts/check-mcp-docs.test.mjs`
 - **added** `scripts/check-merge-drops.mjs`
@@ -6832,6 +6960,7 @@
 - **changed** `scripts/check-split-view-phase.sh`
 - **added** `scripts/check-tag-green.sh`
 - **added** `scripts/check-tag-green.test.mjs`
+- **changed** `scripts/check-tauri-versions.mjs`
 - **added** `scripts/check-terminal-edge-phase.sh`
 - **added** `scripts/check-terminal-edge-phase.test.mjs`
 - **changed** `scripts/check-terminal-gaps-phase.sh`
@@ -6867,6 +6996,7 @@
 - **added** `scripts/clean-dev.sh`
 - **added** `scripts/clean-dev.test.mjs`
 - **added** `scripts/command-error-baseline.json`
+- **changed** `scripts/compare-bench.mjs`
 - **added** `scripts/depcruise-sensitivity.test.mjs`
 - **added** `scripts/design-tokens-baseline.json`
 - **added** `scripts/dev-disk.mjs`
@@ -6919,6 +7049,9 @@
 - **added** `scripts/lib/featureOwnership.mjs`
 - **added** `scripts/lib/headerReferenceTargets.mjs`
 - **added** `scripts/lib/headerReferences.mjs`
+- **added** `scripts/lib/isMainModule.d.mts`
+- **added** `scripts/lib/isMainModule.mjs`
+- **added** `scripts/lib/isMainModule.test.mjs`
 - **added** `scripts/lib/keybindingFormat.mjs`
 - **added** `scripts/lib/keybindingFormat.test.mjs`
 - **added** `scripts/lib/packageScripts.mjs`
@@ -6946,6 +7079,7 @@
 - **added** `scripts/stryker-break-canary.test.mjs`
 - **changed** `scripts/tauri-wrapper.mjs`
 - **added** `scripts/tauri-wrapper.test.ts`
+- **added** `scripts/terminal-transcript-hook.test.mjs`
 - **added** `scripts/test-changed.mjs`
 - **added** `scripts/test-changed.test.mjs`
 - **added** `scripts/test-only-modules-baseline.json`
@@ -6955,6 +7089,7 @@
 - **added** `scripts/ui-consistency-baseline.json`
 - **added** `scripts/vendor-spec-corpus.d.mts`
 - **added** `scripts/vendor-spec-corpus.mjs`
+- **added** `scripts/verify-macos-bundle-entitlements.sh`
 - **added** `scripts/vitestReportVerdict.mjs`
 - **added** `scripts/vitestReportVerdict.test.mjs`
 - **added** `server/content/package.json`
@@ -7085,6 +7220,7 @@
 - **changed** `src-tauri/Cargo.lock`
 - **changed** `src-tauri/Cargo.toml`
 - **changed** `src-tauri/Info.plist`
+- **added** `src-tauri/app-entitlements.plist`
 - **changed** `src-tauri/binaries/.gitignore`
 - **changed** `src-tauri/build.rs`
 - **changed** `src-tauri/capabilities/default.json`
@@ -7184,8 +7320,19 @@
 - **changed** `src-tauri/locales/pt-BR.yml`
 - **changed** `src-tauri/locales/zh-CN.yml`
 - **changed** `src-tauri/locales/zh-TW.yml`
+- **added** `src-tauri/macos-l10n/de.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/en.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/es.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/fr.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/it.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/ja.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/ko.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/pt-BR.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/zh-Hans.lproj/InfoPlist.strings`
+- **added** `src-tauri/macos-l10n/zh-Hant.lproj/InfoPlist.strings`
 - **deleted** `src-tauri/mutants.toml`
 - **added** `src-tauri/resources/shell-integration/vmark.bash`
+- **added** `src-tauri/resources/terminal-transcript-hook.cjs`
 - **changed** `src-tauri/src/app_paths.rs`
 - **added** `src-tauri/src/app_plugins.rs`
 - **changed** `src-tauri/src/app_setup.rs`
@@ -7555,6 +7702,9 @@
 - **changed** `src-tauri/src/tab_transfer.rs`
 - **changed** `src-tauri/src/tab_transfer.test.rs`
 - **added** `src-tauri/src/tab_transfer/drop_target.rs`
+- **added** `src-tauri/src/terminal_transcript/config.rs`
+- **added** `src-tauri/src/terminal_transcript/mod.rs`
+- **added** `src-tauri/src/terminal_transcript/tests.rs`
 - **added** `src-tauri/src/trusted_html/commands.rs`
 - **added** `src-tauri/src/trusted_html/commands.test.rs`
 - **added** `src-tauri/src/trusted_html/mod.rs`
@@ -7585,6 +7735,7 @@
 - **added** `src-tauri/src/workspace_validation.rs`
 - **changed** `src-tauri/tauri.conf.json`
 - **changed** `src-tauri/tauri.dev.conf.json`
+- **added** `src-tauri/tauri.macos-release.conf.json`
 - **added** `src-tauri/tauri.windows.conf.json`
 - **added** `src-tauri/tests/spike_sp1_dry_run_projection.rs`
 - **added** `src-tauri/tests/spike_sp3_edge_kind_registry.rs`
@@ -8882,17 +9033,24 @@
 - **deleted** `src/plugins/inlineCodeBoundary/manifest.ts`
 - **changed** `src/plugins/inlineNodeEditing/__tests__/inlineNodeEditing.test.ts`
 - **deleted** `src/plugins/inlineNodeEditing/manifest.ts`
+- **added** `src/plugins/latex/MathInlineNodeView.deferred.test.ts`
 - **changed** `src/plugins/latex/MathInlineNodeView.test.ts`
 - **changed** `src/plugins/latex/MathInlineNodeView.ts`
 - **changed** `src/plugins/latex/__tests__/MathInlineNodeView.test.ts`
 - **added** `src/plugins/latex/displayMathTag.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.test.ts`
 - **added** `src/plugins/latex/inlineMathEditingRegistry.ts`
+- **added** `src/plugins/latex/inlineMathLayers.webkit.test.ts`
+- **added** `src/plugins/latex/inlineMathRenderCache.test.ts`
+- **added** `src/plugins/latex/inlineMathRenderCache.ts`
+- **added** `src/plugins/latex/katexFontPreload.test.ts`
+- **added** `src/plugins/latex/katexFontPreload.ts`
 - **changed** `src/plugins/latex/katexLoader.test.ts`
 - **changed** `src/plugins/latex/latex.css`
 - **changed** `src/plugins/latex/latexErrorParser.test.ts`
 - **changed** `src/plugins/latex/latexErrorParser.ts`
 - **deleted** `src/plugins/latex/manifest.ts`
+- **added** `src/plugins/latex/scheduleInlineMathRender.ts`
 - **changed** `src/plugins/latex/tiptapInlineMath.test.ts`
 - **changed** `src/plugins/latex/tiptapInlineMath.ts`
 - **changed** `src/plugins/linkCreatePopup/LinkCreatePopupView.ts`
@@ -8992,6 +9150,7 @@
 - **changed** `src/plugins/mermaid/mermaid.test.ts`
 - **changed** `src/plugins/mermaid/plugin.test.ts`
 - **changed** `src/plugins/mermaid/plugin.ts`
+- **added** `src/plugins/mermaid/strictRender.webkit.test.ts`
 - **changed** `src/plugins/mermaid/themeConfig.test.ts`
 - **changed** `src/plugins/mermaidPreview/MermaidPreviewView.test.ts`
 - **changed** `src/plugins/mermaidPreview/MermaidPreviewView.ts`
@@ -9055,6 +9214,8 @@
 - **added** `src/plugins/shared/blockTemplates.ts`
 - **changed** `src/plugins/shared/diagramExport.ts`
 - **changed** `src/plugins/shared/diagramThemeTokens.ts`
+- **added** `src/plugins/shared/editorScrollRoot.test.ts`
+- **added** `src/plugins/shared/editorScrollRoot.ts`
 - **added** `src/plugins/shared/fenceDelimiter.test.ts`
 - **added** `src/plugins/shared/fenceDelimiter.ts`
 - **added** `src/plugins/shared/fenceScanner.ts`
@@ -9080,11 +9241,17 @@
 - **changed** `src/plugins/shared/listHelpers.ts`
 - **changed** `src/plugins/shared/mediaSecurity.test.ts`
 - **changed** `src/plugins/shared/mediaSecurity.ts`
+- **added** `src/plugins/shared/nearViewport.prosemirror.test.ts`
+- **added** `src/plugins/shared/nearViewport.test.ts`
+- **added** `src/plugins/shared/nearViewport.ts`
 - **added** `src/plugins/shared/pasteSettings.test.ts`
 - **added** `src/plugins/shared/pasteSettings.ts`
 - **added** `src/plugins/shared/popupHostDom.test.ts`
 - **added** `src/plugins/shared/popupHostDom.ts`
 - **added** `src/plugins/shared/popupPorts.ts`
+- **added** `src/plugins/shared/renderMarks.ts`
+- **added** `src/plugins/shared/renderQueue.test.ts`
+- **added** `src/plugins/shared/renderQueue.ts`
 - **changed** `src/plugins/shared/sourceLineAttr.ts`
 - **changed** `src/plugins/shared/sourceLineNodes.ts`
 - **changed** `src/plugins/shared/types.test.ts`
@@ -9480,6 +9647,8 @@
 - **changed** `src/services/editor/readOnlyGuard.ts`
 - **added** `src/services/editor/runEditorAction.test.ts`
 - **added** `src/services/editor/runEditorAction.ts`
+- **added** `src/services/editor/scrollAnchor.test.ts`
+- **added** `src/services/editor/scrollAnchor.ts`
 - **added** `src/services/editor/scrollPosition.test.ts`
 - **added** `src/services/editor/scrollPosition.ts`
 - **changed** `src/services/editor/sourcePeek.test.ts`
@@ -9783,6 +9952,8 @@
 - **added** `src/services/terminal/terminalFocus.ts`
 - **added** `src/services/terminal/terminalGate.focus.test.ts`
 - **added** `src/services/terminal/terminalGate.ts`
+- **added** `src/services/terminal/transcriptBinding.test.ts`
+- **added** `src/services/terminal/transcriptBinding.ts`
 - **added** `src/services/terminal/visibleTerminalSessions.ts`
 - **added** `src/services/trustedHtml/trustedHtmlBridge.test.ts`
 - **added** `src/services/trustedHtml/trustedHtmlBridge.ts`
@@ -9910,6 +10081,7 @@
 - **changed** `src/shell/appShellClassName.test.ts`
 - **added** `src/shell/barHeight.test.ts`
 - **added** `src/shell/bottomLaneLayout.webkit.test.tsx`
+- **added** `src/shell/panelPlacement.webkit.test.tsx`
 - **added** `src/shell/shellChrome.test.ts`
 - **added** `src/shell/shellChrome.ts`
 - **added** `src/shell/trafficLights.test.ts`
@@ -10148,6 +10320,9 @@
 - **added** `src/test/bindPluginRegistries.ts`
 - **added** `src/test/codePreviewTestUtils.ts`
 - **added** `src/test/coverageThresholdSources.test.ts`
+- **added** `src/test/cpuClock.measureGrowth.test.ts`
+- **added** `src/test/cpuClock.test.ts`
+- **added** `src/test/cpuClock.ts`
 - **added** `src/test/devProfileIsolation.test.ts`
 - **added** `src/test/editingFuzz.test.ts`
 - **added** `src/test/editorComposition.webkit.test.ts`
@@ -10155,8 +10330,10 @@
 - **added** `src/test/envInteger.ts`
 - **added** `src/test/externalCorpora.soak.test.ts`
 - **added** `src/test/externalFileChangesFixtures.ts`
+- **added** `src/test/fakeAnimationFrames.ts`
 - **added** `src/test/fakeDisk.test.ts`
 - **added** `src/test/fakeDisk.ts`
+- **added** `src/test/fakeIntersectionObserver.ts`
 - **added** `src/test/fixtures/commandErrorWire.json`
 - **renamed** `dev-docs/fixtures/gha-workflows/actions-checkout/test.yml` → `src/test/fixtures/gha-workflows/actions-checkout/test.yml`
 - **renamed** `dev-docs/fixtures/gha-workflows/actions-setup-node/versions.yml` → `src/test/fixtures/gha-workflows/actions-setup-node/versions.yml`
@@ -10381,6 +10558,11 @@
 - **added** `src/utils/markdownPipeline/__tests__/markEdgeWhitespace.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/mediaConverters.test.ts`
 - **changed** `src/utils/markdownPipeline/__tests__/parser.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/findAndReplace.differential.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/findAndReplace.reference.json`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/fromMarkdownBuilds.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/listPreparation.differential.test.ts`
+- **added** `src/utils/markdownPipeline/__tests__/pathological/listPreparation.reference.json`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathological.test.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalCases.ts`
 - **added** `src/utils/markdownPipeline/__tests__/pathological/pathologicalScaling.test.ts`
@@ -10580,6 +10762,8 @@
 - **changed** `src/utils/tableParser.test.ts`
 - **added** `src/utils/terminalSurface.test.ts`
 - **added** `src/utils/terminalSurface.ts`
+- **added** `src/utils/terminalTranscript.test.ts`
+- **added** `src/utils/terminalTranscript.ts`
 - **changed** `src/utils/textTransformations.test.ts`
 - **changed** `src/utils/textTransformations.ts`
 - **changed** `src/utils/tooltipWithShortcut.test.ts`

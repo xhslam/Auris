@@ -1,0 +1,16 @@
+{
+  "upstream": "https://github.com/xiaolai/vmark/commit/662d73d46",
+  "versions": {
+    "mdast-util-from-markdown": "2.0.3",
+    "mdast-util-find-and-replace": "3.0.2",
+    "micromark-extension-gfm-autolink-literal": "2.1.0",
+    "markdown-it": "14.3.1"
+  },
+  "files": {
+    "mdast-util-from-markdown/lib/index.js": "295abafaca0f554327010bd22dcc60dcaa1e17b5ce52477e86ab894fb61eeb98",
+    "mdast-util-from-markdown/dev/lib/index.js": "dfec95d9e3adf961bcedc374b3b5f5662a9d78bae39533fc3aef7ad6ca2fbcb7",
+    "mdast-util-find-and-replace/lib/index.js": "e27f304bd5ac413fae0de8d114f2159219ccedfbb517e3ee2bba577a84a35b97",
+    "micromark-extension-gfm-autolink-literal/lib/syntax.js": "b72e3fdd0cddc3036c2fdd4dbb1b2d93a6cd558e7dc8c88c5cf24be10a1fe693",
+    "micromark-extension-gfm-autolink-literal/dev/lib/syntax.js": "5a46cc9b963010933ef436520812bc807fb56092c288bff44d1349b4dabb9b66"
+  }
+}

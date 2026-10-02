@@ -175,6 +175,7 @@ const {
   createReleaseTagPreparer,
 } = require("./release-tag-preparer.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
+const { createTerminalTranscriptService } = require("./terminal-transcript-service.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 const {
   collectMarkdownOpenPaths,
@@ -284,6 +285,7 @@ let videoLibraryRepositoryPath = null;
 let vaultWatcher = null;
 let vaultMutationChain = Promise.resolve();
 let terminalSessionManager = null;
+let terminalTranscriptService = null;
 let notesRecoveryStore = null;
 let terminalSessionUnsubscribers = [];
 let voiceEngineRuntime = null;
@@ -1719,12 +1721,24 @@ function sendTerminalEvent(channel, payload) {
   mainWindow.webContents.send(channel, payload);
 }
 
+function getTerminalTranscriptService() {
+  if (!terminalTranscriptService) {
+    terminalTranscriptService = createTerminalTranscriptService({
+      directory: path.join(app.getPath("userData"), "terminal-transcripts"),
+      homeDirectory: app.getPath("home"),
+    });
+  }
+  return terminalTranscriptService;
+}
+
 function getTerminalSessionManager() {
   if (terminalSessionManager) {
     return terminalSessionManager;
   }
 
   terminalSessionManager = createTerminalSessionManager({
+    sessionEnvironment: (sessionId) => getTerminalTranscriptService().sessionEnvironment(sessionId),
+    onSessionRemoved: (sessionId) => getTerminalTranscriptService().forget(sessionId),
     cwdExistsSync: (candidate) => {
       // Defensive existence check: if the cwd (typically a configured vault
       // path that may have moved between machines) is gone, the manager will
@@ -4020,6 +4034,21 @@ function registerDesktopHandlers() {
     requireTrustedDesktopEvent(event);
     getTerminalSessionManager().kill(requireTerminalSessionId(sessionId));
     persistTerminalRecovery();
+  });
+
+  ipcMain.handle("shadowing:terminal:transcript:status", async (event) => {
+    requireTrustedDesktopEvent(event);
+    return { enabled: getTerminalTranscriptService().isEnabled() };
+  });
+  ipcMain.handle("shadowing:terminal:transcript:configure", async (event, enabled) => {
+    requireTrustedDesktopEvent(event);
+    return getTerminalTranscriptService().configure(enabled);
+  });
+  ipcMain.handle("shadowing:terminal:transcript:read", async (event, sessionId, revision) => {
+    requireTrustedDesktopEvent(event);
+    const id = requireTerminalSessionId(sessionId);
+    if (revision !== undefined && (typeof revision !== "string" || !/^[a-f0-9]{64}$/.test(revision))) throw new Error("Invalid transcript revision.");
+    return getTerminalTranscriptService().read(id, revision);
   });
 
   ipcMain.handle("shadowing:plugins:list", async () => {

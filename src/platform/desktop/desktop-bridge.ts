@@ -212,6 +212,12 @@ export type DesktopTerminalExitEvent = {
 };
 
 export type DesktopTerminalBridge = {
+  transcriptStatus?: () => Promise<{ enabled: boolean }>;
+  configureTranscript?: (enabled: boolean) => Promise<{ enabled: boolean }>;
+  readTranscript?: (sessionId: string, revision?: string) => Promise<{
+    revision: string;
+    messages: Array<{ id: string; text: string }> | null;
+  } | null>;
   create: (
     input: DesktopTerminalSessionInput,
   ) => Promise<DesktopTerminalSessionRecord>;
@@ -297,7 +303,7 @@ export type DesktopNotesRecoveryBridge = {
   captureDraft: (
     draft: Omit<DesktopNotesRecoveryDraft, "capturedAt">,
   ) => Promise<boolean>;
-  clearDraft: (path: string, vaultRoot: string | null) => Promise<void>;
+  clearDraft: (path: string, vaultRoot: string | null, expectedRawSource?: string) => Promise<void>;
   captureWorkspace: (
     vaultRoot: string | null,
     workspace: DesktopNotesHotExitWorkspace,

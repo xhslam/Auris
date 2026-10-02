@@ -67,6 +67,15 @@ describe("durable notes recovery store", () => {
     expect(names.some((name) => name.includes(".tmp"))).toBe(false);
   });
 
+  it("does not clear a newer draft when an older save finishes", async () => {
+    const { store } = await createStore();
+    await store.captureDraft({ path: "a.md", rawSource: "new edit", vaultRoot: "/vault" });
+    await store.clearDraft("a.md", "/vault", "older saved edit");
+    expect(await store.listDrafts("/vault")).toEqual([expect.objectContaining({ rawSource: "new edit" })]);
+    await store.clearDraft("a.md", "/vault", "new edit");
+    expect(await store.listDrafts("/vault")).toEqual([]);
+  });
+
   it("persists the disk baseline and falls back to the previous valid draft snapshot", async () => {
     const { baseDirectory, store } = await createStore();
     await store.captureDraft({

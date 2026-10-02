@@ -6,6 +6,8 @@ import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { NEW_NOTE_BODY_PLACEHOLDER } from "@/features/notes/documents/note-editing-source";
 import { buildMoveEntryPlan } from "@/features/notes/documents/move-entry-plan";
 import { buildRenameNotePlan } from "@/features/notes/documents/rename-note-plan";
+import { safeWriteVaultFile } from "@/features/notes/vault/vault-safe-write";
+import { recordNotesHistoryVersion } from "@/features/notes/persistence/notes-recovery-store";
 import {
   buildWikiLinkNoteSource,
   planWikiLinkNavigation,
@@ -43,6 +45,11 @@ type UseNotesActionsInput = {
   clearLocalDocumentState: (paths: string[]) => void;
   clearPendingDerivation: (path: string) => void;
   clearPendingSave: (path: string) => void;
+  runDocumentMutation: (paths: string[], run: () => Promise<boolean>) => Promise<boolean>;
+  reconcileDocumentRename: (input: {
+    path: string; nextPath: string; nextTitle?: string; documents: NoteDocument[];
+    persistedSources: Map<string, string>;
+  }) => Promise<void>;
   client: NotesRuntimeClient;
   desktopBridge: DesktopBridge | null;
   desktopCommands: DesktopCommandRecord[];
@@ -99,6 +106,8 @@ export function useNotesActions(input: UseNotesActionsInput) {
     clearLocalDocumentState,
     clearPendingDerivation,
     clearPendingSave,
+    runDocumentMutation,
+    reconcileDocumentRename,
     client,
     desktopBridge,
     desktopCommands,
@@ -249,46 +258,66 @@ export function useNotesActions(input: UseNotesActionsInput) {
   // different existing note, and rewrites every wiki link that pointed at it.
   const handleRenameNoteToTitle = useCallback(
     async (path: string, nextTitle: string): Promise<boolean> => {
-      const allDocuments = (await vaultStore.rebuildIndex()).documents;
-      const plan = buildRenameNotePlan(allDocuments, { nextTitle, path });
-
-      // Refuse to rename onto an existing different note — fs.rename would
-      // silently overwrite (and destroy) that file.
-      if (
-        plan.nextPath !== path &&
-        allDocuments.some(
-          (d) => d.path.toLowerCase() === plan.nextPath.toLowerCase(),
-        )
-      ) {
-        setErrorMessage(NOTES_UI_COPY.errors.renameNoteCollision);
-        return false;
-      }
-
       try {
-        clearPendingSave(path);
-        clearPendingDerivation(path);
-        plan.writes.forEach((w) => clearPendingSave(w.path));
-        plan.writes.forEach((w) => clearPendingDerivation(w.path));
-
-        if (plan.nextPath !== path) {
-          invalidateSaveTarget(path);
-          await client.renameEntry(path, plan.nextPath);
+        const diskDocuments = (await vaultStore.rebuildIndex()).documents;
+        const previewDocuments = [...new Map([...diskDocuments, ...documents].map((doc) => [doc.path, doc])).values()];
+        const preview = buildRenameNotePlan(previewDocuments, { path, nextTitle });
+        if (preview.nextPath !== path && previewDocuments.some((doc) => doc.path.toLowerCase() === preview.nextPath.toLowerCase())) {
+          setErrorMessage(NOTES_UI_COPY.errors.renameNoteCollision);
+          return false;
         }
-
-        await Promise.all(
-          plan.writes.map((w) => client.writeFile(w.path, w.rawSource)),
-        );
-
-        clearLocalDocumentState([path, ...plan.writes.map((w) => w.path)]);
-        await refreshSnapshot({ eagerPaths: [plan.nextPath] });
-
-        setWorkspace((current) =>
-          openWorkspacePath(
-            renameWorkspacePath(current, path, plan.nextPath),
-            plan.nextPath,
-          ),
-        );
-        return plan.nextPath !== path;
+        const affectedPaths = [path, preview.nextPath, ...preview.writes.map((write) => write.path === preview.nextPath ? path : write.path)];
+        return await runDocumentMutation(affectedPaths, async () => {
+          // Rebuild after draining saves: the first index can contain only the
+          // disk placeholder while the editor holds the entire unsaved body.
+          const allDocuments = (await vaultStore.rebuildIndex()).documents;
+          const original = allDocuments.find((doc) => doc.path === path);
+          if (!original) throw new Error("原文件已不存在，已保留草稿，请先保存或恢复笔记。");
+          const plan = buildRenameNotePlan(allDocuments, { nextTitle, path });
+          if (plan.nextPath !== path && allDocuments.some((doc) => doc.path.toLowerCase() === plan.nextPath.toLowerCase())) {
+            setErrorMessage(NOTES_UI_COPY.errors.renameNoteCollision);
+            return false;
+          }
+          // Verify every planned baseline before moving or rewriting anything.
+          for (const write of plan.writes) {
+            const sourcePath = write.path === plan.nextPath ? path : write.path;
+            const expected = allDocuments.find((doc) => doc.path === sourcePath)?.rawSource;
+            if (await client.readFile(sourcePath) !== expected) {
+              throw new Error("文件内容已变化，已停止重命名并保留草稿，请刷新后重试。");
+            }
+          }
+          const persistedSources = new Map(plan.writes.map((write) => [write.path,
+            allDocuments.find((doc) => doc.path === (write.path === plan.nextPath ? path : write.path))!.rawSource]));
+          let moved = false;
+          let wrote = false;
+          try {
+            if (plan.nextPath !== path) {
+              invalidateSaveTarget(path);
+              await client.renameEntry(path, plan.nextPath);
+              moved = true;
+            }
+            for (const write of plan.writes) {
+              const expectedRawSource = persistedSources.get(write.path)!;
+              await recordNotesHistoryVersion({ path: write.path, rawSource: expectedRawSource, vaultRoot: client.rootPath });
+              const saved = await safeWriteVaultFile(client, { path: write.path,
+                expectedRawSource, nextRawSource: write.rawSource });
+              if (saved.status === "conflict") throw new Error("文件内容已变化，已停止改写并保留草稿，请检查冲突。");
+              persistedSources.set(write.path, write.rawSource);
+              wrote = true;
+              await recordNotesHistoryVersion({ path: write.path, rawSource: write.rawSource, vaultRoot: client.rootPath });
+            }
+            return moved;
+          } finally {
+            if (moved || wrote) {
+              // VMark's path reconciliation keeps the live document. Clearing
+              // it would discard edits that arrived while rename IO awaited.
+              const reconciliation = reconcileDocumentRename({ path, nextPath: plan.nextPath, nextTitle, documents: allDocuments, persistedSources });
+              setWorkspace((current) => renameWorkspacePath(current, path, plan.nextPath));
+              try { await reconciliation; }
+              finally { await refreshSnapshot({ eagerPaths: [plan.nextPath] }); }
+            }
+          }
+        });
       } catch (error) {
         setErrorMessage(
           error instanceof Error ? error.message : NOTES_UI_COPY.errors.renameNote,
@@ -297,16 +326,42 @@ export function useNotesActions(input: UseNotesActionsInput) {
       }
     },
     [
-      clearLocalDocumentState,
-      clearPendingDerivation,
-      clearPendingSave,
       client,
+      documents,
+      runDocumentMutation,
+      reconcileDocumentRename,
       refreshSnapshot,
       setErrorMessage,
       setWorkspace,
       vaultStore,
     ],
   );
+
+  const relocateEntry = useCallback(async (path: string, nextPath: string, move: boolean) => {
+    const initial = await vaultStore.rebuildIndex();
+    const affectedPaths = [...new Set([...initial.documents, ...documents]
+      .filter((doc) => doc.path === path || doc.path.startsWith(`${path}/`)).map((doc) => doc.path))];
+    return runDocumentMutation([...affectedPaths, ...affectedPaths.map((old) => nextPath + old.slice(path.length))], async () => {
+      const latest = await vaultStore.rebuildIndex();
+      if (latest.entries.some((entry) => entry.path.toLowerCase() === nextPath.toLowerCase())) {
+        throw new Error(NOTES_UI_COPY.errors.moveEntryCollision);
+      }
+      const affected = latest.documents.filter((doc) => doc.path === path || doc.path.startsWith(`${path}/`));
+      const persistedSources = new Map<string, string>();
+      for (const doc of affected) {
+        if (await client.readFile(doc.path) !== doc.rawSource) throw new Error("文件内容已变化，已停止移动并保留草稿。");
+        persistedSources.set(nextPath + doc.path.slice(path.length), doc.rawSource);
+      }
+      affected.forEach((doc) => invalidateSaveTarget(doc.path));
+      if (move) await client.moveEntry(path, nextPath);
+      else await client.renameEntry(path, nextPath);
+      const reconciliation = reconcileDocumentRename({ path, nextPath, documents: latest.documents, persistedSources });
+      setWorkspace((current) => renameWorkspacePath(current, path, nextPath));
+      try { await reconciliation; }
+      finally { await refreshSnapshot({ eagerPaths: [...persistedSources.keys()] }); }
+      return true;
+    });
+  }, [client, documents, reconcileDocumentRename, refreshSnapshot, runDocumentMutation, setWorkspace, vaultStore]);
 
   // ── Rename any path (wiki-link aware for markdown) ────────────────────────
   const handleRenamePath = useCallback(async (
@@ -319,7 +374,7 @@ export function useNotesActions(input: UseNotesActionsInput) {
       const doc = documents.find((d) => d.path === path);
       const suggestedTitle = doc?.parsed.title ?? doc?.basename ?? path;
       const nextTitle = (await promptFn(NOTES_UI_COPY.dialogs.renameNote, suggestedTitle))?.trim();
-      if (!nextTitle || nextTitle === suggestedTitle) return;
+      if (!nextTitle) return;
 
       await handleRenameNoteToTitle(path, nextTitle);
     } else {
@@ -332,10 +387,8 @@ export function useNotesActions(input: UseNotesActionsInput) {
       const nextPath = [...segments.slice(0, -1), nextName].join("/");
 
       try {
-        invalidateSaveTarget(path);
-        await client.renameEntry(path, nextPath);
-        await refreshSnapshot({ eagerPaths: [nextPath] });
-        setWorkspace((current) => renameWorkspacePath(current, path, nextPath));
+        if (/[/\\\0]/.test(nextName) || nextName === "." || nextName === "..") throw new Error("请输入文件或文件夹名称，不要包含路径。");
+        await relocateEntry(path, nextPath, false);
       } catch (error) {
         setErrorMessage(
           error instanceof Error ? error.message : "Failed to rename",
@@ -343,13 +396,11 @@ export function useNotesActions(input: UseNotesActionsInput) {
       }
     }
   }, [
-    client,
     documents,
     handleRenameNoteToTitle,
+    relocateEntry,
     promptFn,
-    refreshSnapshot,
     setErrorMessage,
-    setWorkspace,
   ]);
 
   // ── Move a file/folder into another folder (drag & drop) ─────────────────
@@ -380,19 +431,14 @@ export function useNotesActions(input: UseNotesActionsInput) {
       }
 
       try {
-        await client.moveEntry(sourcePath, plan.nextPath);
-        await refreshSnapshot({ eagerPaths: [plan.nextPath] });
-        setWorkspace((current) =>
-          renameWorkspacePath(current, sourcePath, plan.nextPath),
-        );
-        setErrorMessage(null);
+        if (await relocateEntry(sourcePath, plan.nextPath, true)) setErrorMessage(null);
       } catch (error) {
         setErrorMessage(
           error instanceof Error ? error.message : NOTES_UI_COPY.errors.moveEntry,
         );
       }
     },
-    [client, refreshSnapshot, setErrorMessage, setWorkspace, vaultStore],
+    [relocateEntry, setErrorMessage, vaultStore],
   );
 
   const handleCopyPath = useCallback(async (path: string) => {

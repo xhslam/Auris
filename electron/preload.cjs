@@ -395,9 +395,10 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
         action: "capture-draft",
         draft,
       }),
-    clearDraft: (path, vaultRoot) =>
+    clearDraft: (path, vaultRoot, expectedRawSource) =>
       invoke(NOTES_RECOVERY_COMMAND_CHANNEL, {
         action: "clear-draft",
+        expectedRawSource,
         path,
         vaultRoot,
       }),
@@ -472,6 +473,9 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     stop: () => invoke("shadowing:voice-engine:stop"),
   },
   terminal: {
+    transcriptStatus: () => invoke("shadowing:terminal:transcript:status"),
+    configureTranscript: (enabled) => invoke("shadowing:terminal:transcript:configure", enabled),
+    readTranscript: (sessionId, revision) => invoke("shadowing:terminal:transcript:read", sessionId, revision),
     create: (input) => invoke("shadowing:terminal:create", input),
     kill: (sessionId) => invoke("shadowing:terminal:kill", sessionId),
     list: () => invoke("shadowing:terminal:list"),

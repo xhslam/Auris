@@ -5,10 +5,12 @@ import {
   useEffect,
   useRef,
   useState,
+  useId,
   type MouseEvent,
 } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesTerminalSessions } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
+import { NotesTerminalTranscript } from "./terminal/notes-terminal-transcript";
 import type {
   DesktopCommandRecord,
   DesktopTerminalBridge,
@@ -81,6 +83,14 @@ export function NotesTerminalPanel({
     return () => cancelAnimationFrame(timer);
   }, [autoFocus, focusActiveSession]);
   const contextMenuRef = useRef<HTMLDivElement | null>(null);
+  const transcriptRegionId = useId();
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const transcriptToggle = terminalBridge?.readTranscript && terminalBridge.configureTranscript && terminalBridge.transcriptStatus ? (
+    <button type="button" aria-controls={transcriptRegionId} aria-expanded={transcriptOpen}
+      aria-label="显示 Agent 执行记录" onClick={() => setTranscriptOpen((open) => !open)}>
+      执行记录
+    </button>
+  ) : null;
   const [contextMenu, setContextMenu] =
     useState<TerminalContextMenuState | null>(null);
 
@@ -143,6 +153,7 @@ export function NotesTerminalPanel({
         </button>
       </div>
       <div className="notes-v2__terminal-session-actions">
+        {transcriptToggle}
         <button
           aria-label={NOTES_UI_COPY.panels.terminal.restartSession}
           className="notes-v2__terminal-dock-button"
@@ -231,6 +242,7 @@ export function NotesTerminalPanel({
             </div>
 
             <div className="notes-v2__terminal-actions">
+              {transcriptToggle}
               <button onClick={() => restartActiveSession()} type="button">
                 {NOTES_UI_COPY.panels.terminal.restartSession}
               </button>
@@ -262,6 +274,7 @@ export function NotesTerminalPanel({
 
           <div
             className="notes-v2__terminal-surface"
+            data-transcript-open={transcriptOpen ? "true" : "false"}
             onContextMenu={handleTerminalContextMenu}
             onMouseDown={() => focusActiveSession()}
           >
@@ -270,6 +283,7 @@ export function NotesTerminalPanel({
               data-testid="notes-terminal-host"
               ref={hostRef}
             />
+            {transcriptOpen ? <NotesTerminalTranscript bridge={terminalBridge} sessionId={activeSessionId} id={transcriptRegionId} /> : null}
           </div>
           {contextMenu ? (
             <div

@@ -1,6 +1,6 @@
 {
   "name": "auris",
-  "version": "1.0.12",
+  "version": "1.0.16",
   "private": true,
   "main": "electron/main.cjs",
   "description": "Auris — language learning through listening and shadowing.",
@@ -50,10 +50,12 @@
     "desktop:release:check": "node scripts/publish-desktop-release.cjs --check",
     "desktop:release:local": "node scripts/publish-desktop-release.cjs",
     "desktop:release": "node scripts/prepare-desktop-release.cjs",
-    "postinstall": "node scripts/copy-pdf-worker.cjs && patch-package --error-on-fail",
+    "postinstall": "node scripts/copy-pdf-worker.cjs && patch-package --error-on-fail && node scripts/verify-markdown-patches.cjs",
     "quality:desktop-ipc": "node scripts/verify-desktop-ipc-contract.cjs",
     "quality:singleton-deps": "node --test scripts/check-singleton-deps.test.mjs && node scripts/check-singleton-deps.mjs",
-    "quality:feature-ledger": "node scripts/verify-feature-ledger.cjs"
+    "quality:feature-ledger": "node scripts/verify-feature-ledger.cjs",
+    "prebuild": "node scripts/verify-markdown-patches.cjs",
+    "quality:markdown-patches": "node scripts/verify-markdown-patches.cjs"
   },
   "keywords": [
     "english",
@@ -88,7 +90,7 @@
     "immer": "^11.1.4",
     "katex": "^0.16.45",
     "mammoth": "^1.12.0",
-    "markdown-it": "^14.1.1",
+    "markdown-it": "14.3.1",
     "mermaid": "^11.15.0",
     "next": "^16.1.7",
     "openai": "^6.32.0",

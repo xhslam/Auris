@@ -5,6 +5,7 @@ import { useNotesDocuments } from "@/features/notes/workbench/use-notes-document
 import { createWorkspaceState } from "@/features/notes/workspace/workspace-store";
 import type { NotesRuntimeClient } from "@/features/notes/workbench/use-notes-runtime";
 import type { VaultSnapshot } from "@/features/notes/vault/vault-types";
+import * as recoveryStore from "@/features/notes/persistence/notes-recovery-store";
 import { resetNotesRecoveryMigrationForTests } from "@/features/notes/persistence/notes-recovery-store";
 
 const NOTE_PATH = "notes/daily.md";
@@ -64,6 +65,52 @@ describe("useNotesDocuments save integrity", () => {
     window.localStorage.clear();
     window.shadowingDesktop = undefined;
     resetNotesRecoveryMigrationForTests();
+  });
+
+  it("keeps edits arriving while saved-draft cleanup is awaiting IO", async () => {
+    let diskSource = ORIGINAL_SOURCE;
+    const client = createClient({ readFile: vi.fn(async () => diskSource), writeFile: vi.fn(async (_path, source) => { diskSource = source; }) });
+    const snapshot = createSnapshot();
+    const workspace = createWorkspace();
+    const refreshSnapshot = vi.fn(async () => createSnapshot(diskSource));
+    const setWorkspace = vi.fn();
+    const setErrorMessage = vi.fn();
+    const { result } = renderHook(() => useNotesDocuments({ client, snapshot, workspace,
+      refreshSnapshot, searchQuery: "", setErrorMessage, setWorkspace }));
+    let release!: () => void;
+    let entered!: () => void;
+    const started = new Promise<void>((resolve) => { entered = resolve; });
+    const originalClear = recoveryStore.clearNotesRecoveryDraft;
+    const spy = vi.spyOn(recoveryStore, "clearNotesRecoveryDraft").mockImplementationOnce(async (...args) => {
+      entered(); await new Promise<void>((resolve) => { release = resolve; }); await originalClear(...args);
+    });
+    try {
+      act(() => result.current.handleDocumentChange(NOTE_PATH, "# Daily\n\nFirst edit"));
+      let saving!: ReturnType<typeof result.current.handleSaveDocument>;
+      await act(async () => { saving = result.current.handleSaveDocument(NOTE_PATH); await started; });
+      act(() => result.current.handleDocumentChange(NOTE_PATH, "# Daily\n\nNewest edit"));
+      await act(async () => { release(); await saving; });
+      expect(result.current.dirtyPaths[NOTE_PATH]).toBe(true);
+      await act(async () => { await result.current.handleSaveDocument(NOTE_PATH); });
+      expect(diskSource).toContain("Newest edit");
+    } finally { spy.mockRestore(); }
+  });
+
+  it("flushes the latest recovery window when navigating away before autosave", async () => {
+    const client = createClient({ readFile: vi.fn(async () => ORIGINAL_SOURCE), writeFile: vi.fn(async () => undefined) });
+    const snapshot = createSnapshot();
+    const workspace = createWorkspace();
+    const refreshSnapshot = vi.fn(async () => snapshot);
+    const setWorkspace = vi.fn();
+    const setErrorMessage = vi.fn();
+    const { result, unmount } = renderHook(() => useNotesDocuments({ client, snapshot, workspace,
+      refreshSnapshot, searchQuery: "", setErrorMessage, setWorkspace }));
+    act(() => result.current.handleDocumentChange(NOTE_PATH, "# Daily\n\nFirst keystroke"));
+    act(() => result.current.handleDocumentChange(NOTE_PATH, "# Daily\n\nComplete newest body"));
+    unmount();
+    expect(await recoveryStore.listNotesRecoveryDrafts("C:/vault")).toEqual([
+      expect.objectContaining({ rawSource: "# Daily\n\nComplete newest body" }),
+    ]);
   });
 
   it("revalidates the latest disk version before applying a conflict decision", async () => {
@@ -217,6 +264,29 @@ describe("useNotesDocuments save integrity", () => {
     expect(writeFile).not.toHaveBeenCalled();
   });
 
+  it("waits for the initial vault snapshot before treating a recovery path as missing", async () => {
+    const source = "# Daily\n\nComplete recovered body";
+    window.localStorage.setItem("auris.notes.hot-exit.v1", JSON.stringify([{
+      path: NOTE_PATH, rawSource: source, baseRawSource: source,
+      capturedAt: "2026-10-01T16:00:00.000Z", schemaVersion: 2, vaultRoot: "C:/vault",
+    }]));
+    const ready = createSnapshot(source);
+    const loading: VaultSnapshot = { ...ready, documents: [], entries: [], rootPath: null,
+      generatedAt: new Date(0).toISOString() };
+    const client = createClient({ readFile: vi.fn(async () => source), writeFile: vi.fn(async () => undefined) });
+    const { result, rerender } = renderHook(({ snapshot }) => useNotesDocuments({
+      client, snapshot, workspace: createWorkspace(), searchQuery: "",
+      refreshSnapshot: vi.fn(async () => ready), setErrorMessage: vi.fn(), setWorkspace: vi.fn(),
+    }), { initialProps: { snapshot: loading } });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(result.current.dirtyPaths[NOTE_PATH]).not.toBe(true);
+    expect(result.current.documents).toEqual([]);
+    rerender({ snapshot: ready });
+    await waitFor(() => expect(result.current.activeDocument?.rawSource).toBe(source));
+    expect(result.current.dirtyPaths[NOTE_PATH]).not.toBe(true);
+    expect(client.writeFile).not.toHaveBeenCalled();
+  });
+
   it("defers recovery classification when a lazy preload fails", async () => {
     const localSource = "# Daily\n\nRecovered edit";
     const externalSource = "# Daily\n\nExternal during restart";
@@ -235,7 +305,7 @@ describe("useNotesDocuments save integrity", () => {
     );
     const fullSnapshot = createSnapshot(externalSource);
     const lazySnapshot = { ...fullSnapshot, documents: [] };
-    const ensureDocuments = vi.fn(async () => null);
+    const ensureDocuments = vi.fn(async (): Promise<VaultSnapshot | null> => null);
     const client = createClient({
       readFile: vi.fn(async () => externalSource),
       writeFile: vi.fn(async () => undefined),
@@ -475,5 +545,21 @@ describe("useNotesDocuments save integrity", () => {
     expect(result.current.activeDocument?.rawSource).toBe(
       "# Daily\n\nNewer edit",
     );
+  });
+
+  it("does not disable autosave when an existing dirty file is absent only from the lazy document cache", async () => {
+    let disk = ORIGINAL_SOURCE;
+    const client = createClient({
+      readFile: vi.fn(async () => disk),
+      writeFile: vi.fn(async (_path, source) => { disk = source; }),
+    });
+    const ready = createSnapshot();
+    const { result, rerender } = renderHook(({ snapshot }) => useNotesDocuments({
+      client, snapshot, workspace: createWorkspace(), searchQuery: "",
+      refreshSnapshot: vi.fn(async () => createSnapshot(disk)), setErrorMessage: vi.fn(), setWorkspace: vi.fn(),
+    }), { initialProps: { snapshot: ready } });
+    act(() => result.current.handleDocumentChange(NOTE_PATH, "# Daily\n\nLatest edit"));
+    rerender({ snapshot: { ...ready, documents: [] } });
+    await waitFor(() => expect(client.writeFile).toHaveBeenCalledWith(NOTE_PATH, "# Daily\n\nLatest edit"), { timeout: 3000 });
   });
 });

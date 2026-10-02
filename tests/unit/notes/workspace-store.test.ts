@@ -27,6 +27,13 @@ describe("workspace-store", () => {
     expect(state.rightSidebarMode).toBe("properties");
   });
 
+  it("deduplicates old and new aliases when reconciling a rename", () => {
+    const state = { ...createWorkspaceState(), activePath: "old.md", openTabs: ["old.md", "new.md"],
+      pinnedTabs: ["new.md", "old.md"], recentFiles: ["old.md", "new.md"] };
+    expect(renameWorkspacePath(state, "old.md", "new.md")).toMatchObject({ activePath: "new.md",
+      openTabs: ["new.md"], pinnedTabs: ["new.md"], recentFiles: ["new.md"] });
+  });
+
   it("opens and closes tabs without mutating the original workspace state", () => {
     const initialState = createWorkspaceState();
     const openedState = openWorkspacePath(initialState, "notes/daily.md");

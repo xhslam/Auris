@@ -45,6 +45,12 @@ Phase handoffs:
 
 ## Upstream capability review
 
+- VMark v0.9.90 (`662d73d46`):
+  `../vmark-sync/implementation-status-2026-10-01.md`. Selective review of
+  linear Markdown dependency patches, the directly adapted pure render queue,
+  terminal transcript hooks/preview and macOS terminal permissions. Upstream ISC
+  notice is also shipped in desktop resources. Historical mapping comparison
+  commits remain unchanged until their individual domains are re-verified.
 - VMark v0.9.31 (`981afc01`): `feature-gap-report-v0.9.31.md`. Functional and
   technical gap report against this baseline. Items 5-8 of its difference
   matrix (Workspace Rail, knowledge-base graph, Genies, auto-update) are the

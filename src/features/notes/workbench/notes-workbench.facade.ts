@@ -116,6 +116,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     handleReloadWriteConflict,
     clearPendingDerivation,
     clearPendingSave,
+    runDocumentMutation,
+    reconcileDocumentRename,
     dirtyPaths,
     documents,
     handleDocumentChange,
@@ -267,6 +269,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     clearLocalDocumentState,
     clearPendingDerivation,
     clearPendingSave,
+    runDocumentMutation,
+    reconcileDocumentRename,
     client,
     desktopBridge,
     desktopCommands,
@@ -330,6 +334,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
   const handleDocumentChangeWithEditTracking = useCallback(
     (path: string, rawSource: string) => {
       editedSinceOpenRef.current.add(path);
+      // Retry a failed title sync on a later edit, without a render retry loop.
+      lastAttemptedTitleSyncRef.current = null;
       handleDocumentChange(path, rawSource);
     },
     [handleDocumentChange],

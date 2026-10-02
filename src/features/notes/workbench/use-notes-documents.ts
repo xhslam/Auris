@@ -13,6 +13,7 @@ import {
 } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { createNoteDocument } from "@/features/notes/documents/document-repository";
+import { buildRenameNotePlan } from "@/features/notes/documents/rename-note-plan";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import { searchDocuments } from "@/features/notes/documents/document-search";
@@ -189,6 +190,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
   // reporting an "external editor conflict" while the user was simply typing.
   const saveChainRef =
     useRef<Map<string, Promise<NotesPersistenceResult>>>(new Map());
+  const mutationPathsRef = useRef(new Set<string>());
   const backlinksTimerRef = useRef<number | null>(null);
   const liveDocumentsRef = useRef<LiveNoteDocuments>({});
   // The resume target (?resumeNoteId=…) must only seed the *initial* active
@@ -347,11 +349,19 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
         window.clearTimeout(timerId),
       );
       recoveryCaptureTimers.clear();
+      // Leaving Notes cancels autosave/derivation timers, but must durably
+      // capture the LAST input in the recovery window before discarding it.
+      recoveryPendingDrafts.forEach((draft) => {
+        void captureNotesRecoveryDraft(draft).then((captured) => {
+          if (captured === false) setErrorMessage(NOTES_UI_COPY.errors.recovery);
+        }).catch(() => setErrorMessage(NOTES_UI_COPY.errors.recovery));
+      });
       recoveryPendingDrafts.clear();
     };
-  }, []);
+  }, [setErrorMessage]);
 
   useEffect(() => {
+    if (snapshot.rootPath !== client.rootPath || snapshot.generatedAt === new Date(0).toISOString()) return;
     const currentDirtyPaths = dirtyPathsRef.current;
 
     snapshot.documents.forEach((document) => {
@@ -369,6 +379,11 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       }
 
       const isDirty = currentDirtyPaths[document.path] === true;
+      // A successful read proves presence even when an earlier snapshot was
+      // missing or unloaded; this must not leave autosave permanently disabled.
+      if (existing.isMissing) {
+        saveMetaRef.current.set(document.path, { ...existing, isMissing: false });
+      }
 
       if (!isDirty) {
         saveMetaRef.current.set(document.path, {
@@ -420,7 +435,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     });
 
     const snapshotPaths = new Set(
-      snapshot.documents.map((document) => document.path),
+      snapshot.entries.filter((entry) => entry.kind === "file").map((entry) => entry.path),
     );
 
     saveMetaRef.current.forEach((meta, path) => {
@@ -433,7 +448,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
         isMissing: true,
       });
     });
-  }, [dirtyPaths, snapshot.documents]);
+  }, [client.rootPath, dirtyPaths, snapshot.documents, snapshot.entries, snapshot.generatedAt, snapshot.rootPath]);
 
   const scheduleDerivedBacklinksRefresh = useCallback(
     (nextLiveDocuments: LiveNoteDocuments) => {
@@ -592,37 +607,22 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
             savedContent: result.normalizedSource,
           });
 
-          const latestLocalSource =
-            liveDocumentsRef.current[path]?.rawSource ?? rawSource;
-          const hasNewerLocalSource =
-            dirtyPathsRef.current[path] === true &&
-            latestLocalSource !== rawSource;
-
-          dirtyPathsRef.current = {
-            ...dirtyPathsRef.current,
-          };
-
-          if (hasNewerLocalSource) {
-            dirtyPathsRef.current[path] = true;
-          } else {
-            delete dirtyPathsRef.current[path];
-            await clearNotesRecoveryDraft(path, client.rootPath).catch(
-              () => undefined,
-            );
+          // Cleanup also awaits disk IO. A new edit can arrive while it is
+          // running, so only clear the source actually saved and re-check the
+          // live buffer AFTER that await before clearing its dirty flag.
+          const hasNewerSource = () => dirtyPathsRef.current[path] === true &&
+            (liveDocumentsRef.current[path]?.rawSource ?? rawSource) !== rawSource;
+          if (!hasNewerSource()) {
+            await clearNotesRecoveryDraft(path, client.rootPath, rawSource).catch(() => undefined);
           }
-
-          setDirtyPaths((current) =>
-            hasNewerLocalSource
-              ? {
-                  ...current,
-                  [path]: true,
-                }
-              : (() => {
-                  const next = { ...current };
-                  delete next[path];
-                  return next;
-                })(),
-          );
+          if (!isCurrentSaveTarget(saveClaim)) {
+            return { persistedSource: result.normalizedSource, status: "saved" };
+          }
+          const hasNewerLocalSource = hasNewerSource();
+          dirtyPathsRef.current = { ...dirtyPathsRef.current };
+          if (hasNewerLocalSource) dirtyPathsRef.current[path] = true;
+          else delete dirtyPathsRef.current[path];
+          setDirtyPaths({ ...dirtyPathsRef.current });
 
           void refreshSnapshot({
             showLoading: false,
@@ -715,6 +715,10 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       const pathSet = new Set(paths);
       pathSet.forEach((path) => {
         clearPendingDerivation(path);
+        const recoveryTimer = recoveryCaptureTimerRef.current.get(path);
+        if (recoveryTimer) window.clearTimeout(recoveryTimer);
+        recoveryCaptureTimerRef.current.delete(path);
+        recoveryPendingDraftRef.current.delete(path);
         void clearNotesRecoveryDraft(path, client.rootPath);
         saveBaselineRef.current.delete(path);
         saveMetaRef.current.delete(path);
@@ -750,7 +754,9 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       }
 
       const capturedSource = draft.rawSource;
-      void captureNotesRecoveryDraft(draft).catch(() => {
+      void captureNotesRecoveryDraft(draft).then((captured) => {
+        if (captured === false) throw new Error(NOTES_UI_COPY.errors.recovery);
+      }).catch(() => {
         setErrorMessage(NOTES_UI_COPY.errors.recovery);
       });
       const timerId = window.setTimeout(() => {
@@ -758,7 +764,9 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
         const pendingDraft = recoveryPendingDraftRef.current.get(draft.path);
         recoveryPendingDraftRef.current.delete(draft.path);
         if (pendingDraft && pendingDraft.rawSource !== capturedSource) {
-          void captureNotesRecoveryDraft(pendingDraft).catch(() => {
+          void captureNotesRecoveryDraft(pendingDraft).then((captured) => {
+            if (captured === false) throw new Error(NOTES_UI_COPY.errors.recovery);
+          }).catch(() => {
             setErrorMessage(NOTES_UI_COPY.errors.recovery);
           });
         }
@@ -833,10 +841,18 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
   }, [client.rootPath]);
 
   useEffect(() => {
+    // An empty initial snapshot is not evidence that a file is missing. The
+    // runtime learns the vault root before its asynchronous listing completes.
+    // Classifying recovery here used to latch isMissing and disable autosave
+    // even when the next snapshot contained the exact recovered file.
+    if (
+      snapshot.rootPath !== client.rootPath ||
+      snapshot.generatedAt === new Date(0).toISOString()
+    ) return;
     let cancelled = false;
     void listNotesRecoveryDrafts(client.rootPath)
       .then(async (drafts) => {
-        if (cancelled) return;
+        if (cancelled || snapshot.rootPath !== client.rootPath) return;
         const loadedPaths = new Set(
           snapshot.documents.map((document) => document.path),
         );
@@ -868,8 +884,11 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
             availableDocuments,
             draft.path,
           );
+          // Presence comes from the listing; an unloaded/failed read is not a
+          // missing file. Keep its recovery entry until a real read is ready.
+          if (!diskDocument && entryPaths.has(draft.path)) return;
           if (diskDocument?.rawSource === draft.rawSource) {
-            void clearNotesRecoveryDraft(draft.path, client.rootPath);
+            void clearNotesRecoveryDraft(draft.path, client.rootPath, draft.rawSource);
             return;
           }
 
@@ -951,6 +970,8 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     setWorkspace,
     snapshot.documents,
     snapshot.entries,
+    snapshot.generatedAt,
+    snapshot.rootPath,
   ]);
 
   const persistDirtyDocument = useCallback(
@@ -958,6 +979,9 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       path: string,
       saveType: NotesSaveType,
     ): Promise<NotesPersistenceResult> => {
+      if (mutationPathsRef.current.has(path)) {
+        return { message: "笔记正在重命名，请稍后保存。", status: "failed" };
+      }
       const document =
         liveDocumentsRef.current[path] ??
         findDocumentByPath(documentsRef.current, path);
@@ -984,6 +1008,93 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     (path: string) => persistDirtyDocument(path, "manual"),
     [persistDirtyDocument],
   );
+
+  // A rename must share the save queue and disk baseline, rather than deleting
+  // queue tracking while its writes are still running. Edits remain enabled;
+  // reconciliation below carries edits made during IO to the new identity.
+  const runDocumentMutation = useCallback(async (
+    paths: string[], run: () => Promise<boolean>,
+  ): Promise<boolean> => {
+    const targets = [...new Set(paths)];
+    if (targets.some((path) => mutationPathsRef.current.has(path))) return false;
+    targets.forEach((path) => mutationPathsRef.current.add(path));
+    try {
+      for (const path of targets) {
+        const pending = saveChainRef.current.get(path);
+        if (pending && (await pending).status !== "saved") return false;
+        if (!dirtyPathsRef.current[path]) continue;
+        const document = liveDocumentsRef.current[path];
+        if (!document || (await saveDocumentNow(path, document.rawSource, "manual")).status !== "saved") return false;
+        if (dirtyPathsRef.current[path]) {
+          setErrorMessage("正文仍在编辑，已保留草稿，请停止输入后重试重命名。");
+          return false;
+        }
+      }
+      return await run();
+    } finally {
+      targets.forEach((path) => mutationPathsRef.current.delete(path));
+      setDirtyPaths((current) => ({ ...current }));
+    }
+  }, [saveDocumentNow, setErrorMessage]);
+
+  const reconcileDocumentRename = useCallback(async (input: {
+    path: string; nextPath: string; nextTitle?: string;
+    documents: NoteDocument[];
+    persistedSources: Map<string, string>;
+  }) => {
+    const currentDocuments = input.documents.map((doc) => liveDocumentsRef.current[doc.path] ?? doc);
+    const writes = input.nextTitle !== undefined
+      ? buildRenameNotePlan(currentDocuments, { path: input.path, nextTitle: input.nextTitle }).writes
+      : currentDocuments.filter((doc) => doc.path === input.path || doc.path.startsWith(`${input.path}/`))
+        .map((doc) => ({ path: input.nextPath + doc.path.slice(input.path.length), rawSource: doc.rawSource }));
+    const recoveryUpdates: Promise<unknown>[] = [];
+    const nextLive = { ...liveDocumentsRef.current };
+    const nextDirty = { ...dirtyPathsRef.current };
+    for (const write of writes) {
+      const oldPath = input.nextTitle !== undefined
+        ? (write.path === input.nextPath ? input.path : write.path)
+        : input.path + write.path.slice(input.nextPath.length);
+      const oldRawSource = currentDocuments.find((doc) => doc.path === oldPath)?.rawSource;
+      clearPendingDerivation(oldPath);
+      const timer = recoveryCaptureTimerRef.current.get(oldPath);
+      if (timer) window.clearTimeout(timer);
+      recoveryCaptureTimerRef.current.delete(oldPath);
+      recoveryPendingDraftRef.current.delete(oldPath);
+      const baseline = input.persistedSources.get(write.path);
+      if (baseline === undefined) continue;
+      const currentMeta = saveMetaRef.current.get(oldPath);
+      delete nextLive[oldPath];
+      delete nextDirty[oldPath];
+      saveBaselineRef.current.delete(oldPath);
+      saveMetaRef.current.delete(oldPath);
+      nextLive[write.path] = createNoteDocument({ path: write.path, rawSource: write.rawSource, mtime: null });
+      saveBaselineRef.current.set(write.path, baseline);
+      saveMetaRef.current.set(write.path, { isDivergent: false, isMissing: false,
+        lastAutoSave: currentMeta?.lastAutoSave ?? null, lastDiskContent: baseline, savedContent: baseline });
+      rememberSelfWrittenContent(selfWriteHistoryRef.current, write.path, baseline);
+      if (write.rawSource !== baseline) {
+        nextDirty[write.path] = true;
+        // Capture the new identity before removing the old recovery entry.
+        recoveryUpdates.push(captureNotesRecoveryDraft({ path: write.path, rawSource: write.rawSource,
+          baseRawSource: baseline, vaultRoot: client.rootPath }).then((captured) => {
+          if (captured === false) throw new Error(NOTES_UI_COPY.errors.recovery);
+          if (oldPath !== write.path) return clearNotesRecoveryDraft(oldPath, client.rootPath, oldRawSource);
+        }));
+      } else {
+        recoveryUpdates.push(clearNotesRecoveryDraft(oldPath, client.rootPath, oldRawSource));
+        if (oldPath !== write.path) recoveryUpdates.push(clearNotesRecoveryDraft(write.path, client.rootPath, write.rawSource));
+      }
+    }
+    liveDocumentsRef.current = nextLive;
+    dirtyPathsRef.current = nextDirty;
+    setLiveDocuments(nextLive);
+    setDirtyPaths(nextDirty);
+    const results = await Promise.allSettled(recoveryUpdates);
+    if (results.some((result) => result.status === "rejected")) {
+      setErrorMessage(NOTES_UI_COPY.errors.recovery);
+      throw new Error(NOTES_UI_COPY.errors.recovery);
+    }
+  }, [clearPendingDerivation, client.rootPath, setErrorMessage]);
 
   const handleSaveActiveDocument = useCallback(async () => {
     if (!workspace.activePath) {
@@ -1171,6 +1282,8 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     clearLocalDocumentState,
     clearPendingDerivation,
     clearPendingSave,
+    runDocumentMutation,
+    reconcileDocumentRename,
     dirtyPaths,
     documents,
     handleDocumentChange,

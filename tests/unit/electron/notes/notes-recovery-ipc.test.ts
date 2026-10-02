@@ -79,6 +79,13 @@ describe("notes recovery IPC", () => {
     });
   });
 
+  it("passes a conditional cleanup source to the atomic recovery queue", async () => {
+    const fixture = createFixture();
+    await fixture.invoke({ action: "clear-draft", path: "a.md", vaultRoot: "/vault", expectedRawSource: "saved version" });
+    expect(fixture.store.clearDraft).toHaveBeenCalledWith("a.md", "/vault", "saved version");
+    await expect(fixture.invoke({ action: "clear-draft", path: "a.md", expectedRawSource: 3 })).rejects.toThrow("must be a string");
+  });
+
   it("rejects an untrusted sender before reading recovery data", async () => {
     const fixture = createFixture();
     fixture.requireTrustedSender.mockImplementation(() => {

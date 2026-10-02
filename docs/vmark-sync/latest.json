@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "241a25302e35b6a142aa16a7eba531cbf2046a0e",
+  "comparedCommit": "662d73d46d2ed6294d087ad1ced30223384de170",
   "summary": {
-    "changed": 2320,
-    "added": 2590,
+    "changed": 2323,
+    "added": 2679,
     "deleted": 515,
     "renamed": 108,
     "missingAurisTargets": 0,
     "staleMappings": 12,
     "mappedUpstreamChanges": 171,
-    "domainCandidates": 714,
-    "unmappedUpstreamChanges": 4648
+    "domainCandidates": 745,
+    "unmappedUpstreamChanges": 4709
   },
   "upstreamChanges": [
     {
@@ -1444,6 +1444,14 @@
       "status": "added"
     },
     {
+      "path": "patches/mdast-util-find-and-replace@3.0.2.patch",
+      "status": "added"
+    },
+    {
+      "path": "patches/mdast-util-from-markdown@2.0.3.patch",
+      "status": "added"
+    },
+    {
       "path": "patches/mdast-util-to-markdown@2.1.2.patch",
       "status": "added"
     },
@@ -1776,6 +1784,10 @@
       "status": "changed"
     },
     {
+      "path": "scripts/check-index-barrels.mjs",
+      "status": "changed"
+    },
+    {
       "path": "scripts/check-ipc-contract.mjs",
       "status": "added"
     },
@@ -1793,6 +1805,14 @@
     },
     {
       "path": "scripts/check-knip-baseline.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-macos-tcc-entitlements.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-main-module-guards.test.mjs",
       "status": "added"
     },
     {
@@ -1940,6 +1960,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-tauri-versions.mjs",
+      "status": "changed"
+    },
+    {
       "path": "scripts/check-terminal-edge-phase.sh",
       "status": "added"
     },
@@ -2078,6 +2102,10 @@
     {
       "path": "scripts/command-error-baseline.json",
       "status": "added"
+    },
+    {
+      "path": "scripts/compare-bench.mjs",
+      "status": "changed"
     },
     {
       "path": "scripts/depcruise-sensitivity.test.mjs",
@@ -2288,6 +2316,18 @@
       "status": "added"
     },
     {
+      "path": "scripts/lib/isMainModule.d.mts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/isMainModule.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/isMainModule.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/lib/keybindingFormat.mjs",
       "status": "added"
     },
@@ -2396,6 +2436,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/terminal-transcript-hook.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/test-changed.mjs",
       "status": "added"
     },
@@ -2429,6 +2473,10 @@
     },
     {
       "path": "scripts/vendor-spec-corpus.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/verify-macos-bundle-entitlements.sh",
       "status": "added"
     },
     {
@@ -3060,6 +3108,10 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/app-entitlements.plist",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/binaries/.gitignore",
       "status": "changed"
     },
@@ -3456,6 +3508,46 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/macos-l10n/de.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/en.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/es.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/fr.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/it.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/ja.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/ko.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/pt-BR.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/zh-Hans.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/zh-Hant.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/mutants.toml",
       "status": "deleted"
     },
@@ -3465,6 +3557,10 @@
     },
     {
       "path": "src-tauri/resources/shell-integration/vmark.bash",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/resources/terminal-transcript-hook.cjs",
       "status": "added"
     },
     {
@@ -5568,6 +5664,18 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/terminal_transcript/config.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/terminal_transcript/mod.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/terminal_transcript/tests.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/trusted_html/commands.rs",
       "status": "added"
     },
@@ -5950,6 +6058,10 @@
     {
       "path": "src-tauri/tauri.dev.conf.json",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/tauri.macos-release.conf.json",
+      "status": "added"
     },
     {
       "path": "src-tauri/tauri.windows.conf.json",
@@ -6853,11 +6965,19 @@
       "status": "added"
     },
     {
+      "path": "src/components/Editor/cvIdleEndOfDocument.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/cvIdleViewportLock.test.ts",
       "status": "added"
     },
     {
       "path": "src/components/Editor/cvIdleViewportLock.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/cvSizingScope.webkit.test.tsx",
       "status": "added"
     },
     {
@@ -6895,6 +7015,14 @@
     {
       "path": "src/components/Editor/tiptapEditorHelpers.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Editor/useContentVisibilityMode.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/useContentVisibilityMode.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Editor/useTiptapContentSync.ts",
@@ -7573,6 +7701,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/TerminalPanel.transcript.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/TerminalPanel.tsx",
       "status": "changed"
     },
@@ -7587,6 +7719,14 @@
     {
       "path": "src/components/Terminal/TerminalSearchBar.tsx",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/TerminalSessionsArea.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TerminalSessionsArea.tsx",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/TerminalTabBar.a11y.test.tsx",
@@ -7614,6 +7754,30 @@
     },
     {
       "path": "src/components/Terminal/TerminalTabRename.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TerminalTranscript.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TerminalTranscript.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TranscriptMarkdown.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TranscriptMarkdown.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TranscriptMermaid.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/TranscriptMermaid.tsx",
       "status": "added"
     },
     {
@@ -7682,6 +7846,10 @@
     },
     {
       "path": "src/components/Terminal/imeGateMachine.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/realXterm.testUtils.ts",
       "status": "added"
     },
     {
@@ -7793,6 +7961,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/terminal-transcript.css",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/terminalBell.test.ts",
       "status": "changed"
     },
@@ -7889,6 +8061,18 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/terminalSessionReset.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionReset.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/terminalSessionReset.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/terminalSessionStoreSync.live.test.ts",
       "status": "changed"
     },
@@ -7925,6 +8109,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Terminal/terminalShellExit.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/terminalSpawnEnv.test.ts",
       "status": "changed"
     },
@@ -7941,8 +8129,28 @@
       "status": "added"
     },
     {
+      "path": "src/components/Terminal/terminalTranscriptLayout.webkit.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/transcriptMarkdownTree.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/transcriptMarkdownTree.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/unwrapSelection.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/useRenderedTranscript.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useRenderedTranscript.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/useTerminalAutoFit.test.ts",
@@ -7981,6 +8189,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Terminal/useTerminalShellLifecycle.reset.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/useTerminalShellLifecycle.scope.test.ts",
       "status": "added"
     },
@@ -7991,6 +8203,30 @@
     {
       "path": "src/components/Terminal/useTerminalShellLifecycle.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalTranscript.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTerminalTranscript.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTranscriptAutoOpen.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTranscriptAutoOpen.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTranscriptConfiguration.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/useTranscriptConfiguration.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/useVisibleTerminalSessions.ts",
@@ -12906,6 +13142,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/latex/MathInlineNodeView.deferred.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/latex/MathInlineNodeView.test.ts",
       "status": "changed"
     },
@@ -12930,6 +13170,26 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/latex/inlineMathLayers.webkit.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/inlineMathRenderCache.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/inlineMathRenderCache.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/katexFontPreload.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/katexFontPreload.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/latex/katexLoader.test.ts",
       "status": "changed"
     },
@@ -12948,6 +13208,10 @@
     {
       "path": "src/plugins/latex/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/latex/scheduleInlineMathRender.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/latex/tiptapInlineMath.test.ts",
@@ -13346,6 +13610,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/mermaid/strictRender.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/mermaid/themeConfig.test.ts",
       "status": "changed"
     },
@@ -13598,6 +13866,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/shared/editorScrollRoot.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/editorScrollRoot.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/shared/fenceDelimiter.test.ts",
       "status": "added"
     },
@@ -13698,6 +13974,18 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/shared/nearViewport.prosemirror.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/nearViewport.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/nearViewport.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/shared/pasteSettings.test.ts",
       "status": "added"
     },
@@ -13715,6 +14003,18 @@
     },
     {
       "path": "src/plugins/shared/popupPorts.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/renderMarks.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/renderQueue.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/renderQueue.ts",
       "status": "added"
     },
     {
@@ -15565,6 +15865,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/editor/scrollAnchor.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/editor/scrollAnchor.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/editor/scrollPosition.test.ts",
       "status": "added"
     },
@@ -17162,6 +17470,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/terminal/transcriptBinding.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/transcriptBinding.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/terminal/visibleTerminalSessions.ts",
       "status": "added"
     },
@@ -17680,6 +17996,10 @@
     },
     {
       "path": "src/shell/bottomLaneLayout.webkit.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/shell/panelPlacement.webkit.test.tsx",
       "status": "added"
     },
     {
@@ -18703,6 +19023,18 @@
       "status": "added"
     },
     {
+      "path": "src/test/cpuClock.measureGrowth.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/cpuClock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/cpuClock.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/devProfileIsolation.test.ts",
       "status": "added"
     },
@@ -18731,11 +19063,19 @@
       "status": "added"
     },
     {
+      "path": "src/test/fakeAnimationFrames.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/fakeDisk.test.ts",
       "status": "added"
     },
     {
       "path": "src/test/fakeDisk.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/fakeIntersectionObserver.ts",
       "status": "added"
     },
     {
@@ -19772,6 +20112,26 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/findAndReplace.differential.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/findAndReplace.reference.json",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/fromMarkdownBuilds.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/listPreparation.differential.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/listPreparation.reference.json",
+      "status": "added"
+    },
+    {
       "path": "src/utils/markdownPipeline/__tests__/pathological/pathological.test.ts",
       "status": "added"
     },
@@ -20565,6 +20925,14 @@
     },
     {
       "path": "src/utils/terminalSurface.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/terminalTranscript.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/terminalTranscript.ts",
       "status": "added"
     },
     {
@@ -25174,11 +25542,19 @@
           "status": "added"
         },
         {
+          "path": "src/components/Editor/cvIdleEndOfDocument.webkit.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/cvIdleViewportLock.test.ts",
           "status": "added"
         },
         {
           "path": "src/components/Editor/cvIdleViewportLock.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/cvSizingScope.webkit.test.tsx",
           "status": "added"
         },
         {
@@ -25216,6 +25592,14 @@
         {
           "path": "src/components/Editor/tiptapEditorHelpers.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Editor/useContentVisibilityMode.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Editor/useContentVisibilityMode.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Editor/useTiptapContentSync.ts",
@@ -26578,6 +26962,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/TerminalPanel.transcript.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/TerminalPanel.tsx",
           "status": "changed"
         },
@@ -26592,6 +26980,14 @@
         {
           "path": "src/components/Terminal/TerminalSearchBar.tsx",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/TerminalSessionsArea.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TerminalSessionsArea.tsx",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/TerminalTabBar.a11y.test.tsx",
@@ -26619,6 +27015,30 @@
         },
         {
           "path": "src/components/Terminal/TerminalTabRename.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TerminalTranscript.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TerminalTranscript.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TranscriptMarkdown.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TranscriptMarkdown.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TranscriptMermaid.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/TranscriptMermaid.tsx",
           "status": "added"
         },
         {
@@ -26687,6 +27107,10 @@
         },
         {
           "path": "src/components/Terminal/imeGateMachine.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/realXterm.testUtils.ts",
           "status": "added"
         },
         {
@@ -26798,6 +27222,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/terminal-transcript.css",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/terminalBell.test.ts",
           "status": "changed"
         },
@@ -26894,6 +27322,18 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/terminalSessionReset.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/terminalSessionReset.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/terminalSessionReset.webkit.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/terminalSessionStoreSync.live.test.ts",
           "status": "changed"
         },
@@ -26930,6 +27370,10 @@
           "status": "added"
         },
         {
+          "path": "src/components/Terminal/terminalShellExit.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/terminalSpawnEnv.test.ts",
           "status": "changed"
         },
@@ -26946,8 +27390,28 @@
           "status": "added"
         },
         {
+          "path": "src/components/Terminal/terminalTranscriptLayout.webkit.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/transcriptMarkdownTree.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/transcriptMarkdownTree.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/unwrapSelection.test.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/useRenderedTranscript.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useRenderedTranscript.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/useTerminalAutoFit.test.ts",
@@ -26986,6 +27450,10 @@
           "status": "added"
         },
         {
+          "path": "src/components/Terminal/useTerminalShellLifecycle.reset.test.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/useTerminalShellLifecycle.scope.test.ts",
           "status": "added"
         },
@@ -26996,6 +27464,30 @@
         {
           "path": "src/components/Terminal/useTerminalShellLifecycle.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/useTerminalTranscript.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTerminalTranscript.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTranscriptAutoOpen.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTranscriptAutoOpen.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTranscriptConfiguration.test.tsx",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/useTranscriptConfiguration.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/useVisibleTerminalSessions.ts",
@@ -29320,6 +29812,14 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/cvIdleEndOfDocument.webkit.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/cvIdleViewportLock.test.ts",
         "status": "added"
       },
@@ -29329,6 +29829,14 @@
     {
       "change": {
         "path": "src/components/Editor/cvIdleViewportLock.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/cvSizingScope.webkit.test.tsx",
         "status": "added"
       },
       "decision": "adapt",
@@ -29402,6 +29910,22 @@
       "change": {
         "path": "src/components/Editor/tiptapEditorHelpers.ts",
         "status": "changed"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/useContentVisibilityMode.test.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/useContentVisibilityMode.ts",
+        "status": "added"
       },
       "decision": "adapt",
       "domainId": "editor-infrastructure"
@@ -29488,6 +30012,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/TerminalPanel.transcript.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/TerminalPanel.tsx",
         "status": "changed"
       },
@@ -29514,6 +30046,22 @@
       "change": {
         "path": "src/components/Terminal/TerminalSearchBar.tsx",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TerminalSessionsArea.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TerminalSessionsArea.tsx",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -29569,6 +30117,54 @@
     {
       "change": {
         "path": "src/components/Terminal/TerminalTabRename.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TerminalTranscript.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TerminalTranscript.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TranscriptMarkdown.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TranscriptMarkdown.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TranscriptMermaid.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/TranscriptMermaid.tsx",
         "status": "added"
       },
       "decision": "defer",
@@ -29705,6 +30301,14 @@
     {
       "change": {
         "path": "src/components/Terminal/imeGateMachine.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/realXterm.testUtils.ts",
         "status": "added"
       },
       "decision": "defer",
@@ -29928,6 +30532,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminal-transcript.css",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalBell.test.ts",
         "status": "changed"
       },
@@ -30120,6 +30732,30 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminalSessionReset.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/terminalSessionReset.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/terminalSessionReset.webkit.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalSessionStoreSync.live.test.ts",
         "status": "changed"
       },
@@ -30192,6 +30828,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminalShellExit.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalSpawnEnv.test.ts",
         "status": "changed"
       },
@@ -30224,8 +30868,48 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminalTranscriptLayout.webkit.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/transcriptMarkdownTree.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/transcriptMarkdownTree.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/unwrapSelection.test.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useRenderedTranscript.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useRenderedTranscript.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -30304,6 +30988,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/useTerminalShellLifecycle.reset.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/useTerminalShellLifecycle.scope.test.ts",
         "status": "added"
       },
@@ -30322,6 +31014,54 @@
       "change": {
         "path": "src/components/Terminal/useTerminalShellLifecycle.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTerminalTranscript.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTerminalTranscript.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTranscriptAutoOpen.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTranscriptAutoOpen.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTranscriptConfiguration.test.tsx",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/useTranscriptConfiguration.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -34331,6 +35071,14 @@
       "status": "added"
     },
     {
+      "path": "patches/mdast-util-find-and-replace@3.0.2.patch",
+      "status": "added"
+    },
+    {
+      "path": "patches/mdast-util-from-markdown@2.0.3.patch",
+      "status": "added"
+    },
+    {
       "path": "patches/mdast-util-to-markdown@2.1.2.patch",
       "status": "added"
     },
@@ -34655,6 +35403,10 @@
       "status": "changed"
     },
     {
+      "path": "scripts/check-index-barrels.mjs",
+      "status": "changed"
+    },
+    {
       "path": "scripts/check-ipc-contract.mjs",
       "status": "added"
     },
@@ -34672,6 +35424,14 @@
     },
     {
       "path": "scripts/check-knip-baseline.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-macos-tcc-entitlements.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-main-module-guards.test.mjs",
       "status": "added"
     },
     {
@@ -34819,6 +35579,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-tauri-versions.mjs",
+      "status": "changed"
+    },
+    {
       "path": "scripts/check-terminal-edge-phase.sh",
       "status": "added"
     },
@@ -34957,6 +35721,10 @@
     {
       "path": "scripts/command-error-baseline.json",
       "status": "added"
+    },
+    {
+      "path": "scripts/compare-bench.mjs",
+      "status": "changed"
     },
     {
       "path": "scripts/depcruise-sensitivity.test.mjs",
@@ -35167,6 +35935,18 @@
       "status": "added"
     },
     {
+      "path": "scripts/lib/isMainModule.d.mts",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/isMainModule.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/lib/isMainModule.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/lib/keybindingFormat.mjs",
       "status": "added"
     },
@@ -35275,6 +36055,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/terminal-transcript-hook.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/test-changed.mjs",
       "status": "added"
     },
@@ -35308,6 +36092,10 @@
     },
     {
       "path": "scripts/vendor-spec-corpus.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/verify-macos-bundle-entitlements.sh",
       "status": "added"
     },
     {
@@ -35863,6 +36651,10 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/app-entitlements.plist",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/binaries/.gitignore",
       "status": "changed"
     },
@@ -36259,11 +37051,55 @@
       "status": "changed"
     },
     {
+      "path": "src-tauri/macos-l10n/de.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/en.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/es.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/fr.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/it.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/ja.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/ko.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/pt-BR.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/zh-Hans.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/macos-l10n/zh-Hant.lproj/InfoPlist.strings",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/mutants.toml",
       "status": "deleted"
     },
     {
       "path": "src-tauri/resources/shell-integration/vmark.bash",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/resources/terminal-transcript-hook.cjs",
       "status": "added"
     },
     {
@@ -37743,6 +38579,18 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/terminal_transcript/config.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/terminal_transcript/mod.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/terminal_transcript/tests.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/trusted_html/commands.rs",
       "status": "added"
     },
@@ -37861,6 +38709,10 @@
     {
       "path": "src-tauri/tauri.dev.conf.json",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/tauri.macos-release.conf.json",
+      "status": "added"
     },
     {
       "path": "src-tauri/tauri.windows.conf.json",
@@ -43051,6 +43903,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/latex/MathInlineNodeView.deferred.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/latex/MathInlineNodeView.test.ts",
       "status": "changed"
     },
@@ -43075,6 +43931,26 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/latex/inlineMathLayers.webkit.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/inlineMathRenderCache.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/inlineMathRenderCache.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/katexFontPreload.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/latex/katexFontPreload.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/latex/katexLoader.test.ts",
       "status": "changed"
     },
@@ -43093,6 +43969,10 @@
     {
       "path": "src/plugins/latex/manifest.ts",
       "status": "deleted"
+    },
+    {
+      "path": "src/plugins/latex/scheduleInlineMathRender.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/latex/tiptapInlineMath.test.ts",
@@ -43491,6 +44371,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/mermaid/strictRender.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/mermaid/themeConfig.test.ts",
       "status": "changed"
     },
@@ -43743,6 +44627,14 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/shared/editorScrollRoot.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/editorScrollRoot.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/shared/fenceDelimiter.test.ts",
       "status": "added"
     },
@@ -43843,6 +44735,18 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/shared/nearViewport.prosemirror.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/nearViewport.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/nearViewport.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/shared/pasteSettings.test.ts",
       "status": "added"
     },
@@ -43860,6 +44764,18 @@
     },
     {
       "path": "src/plugins/shared/popupPorts.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/renderMarks.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/renderQueue.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/renderQueue.ts",
       "status": "added"
     },
     {
@@ -45444,6 +46360,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/editor/scrollAnchor.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/editor/scrollAnchor.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/editor/scrollPosition.test.ts",
       "status": "added"
     },
@@ -46670,6 +47594,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/terminal/transcriptBinding.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/terminal/transcriptBinding.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/terminal/visibleTerminalSessions.ts",
       "status": "added"
     },
@@ -47180,6 +48112,10 @@
     },
     {
       "path": "src/shell/bottomLaneLayout.webkit.test.tsx",
+      "status": "added"
+    },
+    {
+      "path": "src/shell/panelPlacement.webkit.test.tsx",
       "status": "added"
     },
     {
@@ -48139,6 +49075,18 @@
       "status": "added"
     },
     {
+      "path": "src/test/cpuClock.measureGrowth.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/cpuClock.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/cpuClock.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/devProfileIsolation.test.ts",
       "status": "added"
     },
@@ -48167,11 +49115,19 @@
       "status": "added"
     },
     {
+      "path": "src/test/fakeAnimationFrames.ts",
+      "status": "added"
+    },
+    {
       "path": "src/test/fakeDisk.test.ts",
       "status": "added"
     },
     {
       "path": "src/test/fakeDisk.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/test/fakeIntersectionObserver.ts",
       "status": "added"
     },
     {
@@ -49092,6 +50048,26 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/findAndReplace.differential.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/findAndReplace.reference.json",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/fromMarkdownBuilds.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/listPreparation.differential.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/markdownPipeline/__tests__/pathological/listPreparation.reference.json",
+      "status": "added"
+    },
+    {
       "path": "src/utils/markdownPipeline/__tests__/pathological/pathological.test.ts",
       "status": "added"
     },
@@ -49885,6 +50861,14 @@
     },
     {
       "path": "src/utils/terminalSurface.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/terminalTranscript.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/utils/terminalTranscript.ts",
       "status": "added"
     },
     {

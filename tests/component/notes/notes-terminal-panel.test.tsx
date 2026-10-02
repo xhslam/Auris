@@ -553,6 +553,19 @@ describe("NotesTerminalPanel", () => {
     );
   });
 
+  it("queues input while the backend is restoring instead of losing the first command", async () => {
+    const terminal = createTerminalBridge();
+    const deferred = createDeferredCreateResult();
+    terminal.bridge.resume = vi.fn(() => deferred.promise);
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    expect(terminalInputListeners).toHaveLength(1);
+    await act(async () => { terminalInputListeners[0]("echo FIRST\r"); });
+    expect(terminal.bridge.write).not.toHaveBeenCalled();
+    await act(async () => { deferred.resolve("notes-term-1"); });
+    await waitFor(() => expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-1", "echo FIRST\r"));
+  });
+
   it("keeps reconnecting cleanly across repeated terminal exits", async () => {
     const terminal = createTerminalBridge();
 

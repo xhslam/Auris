@@ -39,6 +39,8 @@ files:
 # electron-builder skips nested directories named node_modules inside a
 # generic extraResources copy; name them explicitly so Next standalone works.
 extraResources:
+  - from: docs/vmark-port/UPSTREAM-LICENSE.txt
+    to: licenses/vmark-ISC.txt
   - from: .next/standalone
     to: standalone
     filter:
@@ -59,6 +61,12 @@ asarUnpack:
   - "**/node_modules/@homebridge/node-pty-prebuilt-multiarch/**"
   - "**/*.node"
 mac:
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.inherit.plist
+  extendInfo:
+    NSMicrophoneUsageDescription: 允许你在 Auris 中主动运行的录音功能或终端工具请求使用麦克风。
+    NSCameraUsageDescription: 允许你在 Auris 终端中主动运行的工具请求使用摄像头。
+    NSAppleEventsUsageDescription: 允许你在 Auris 终端中主动运行的 osascript 等工具请求控制其他应用。
   icon: assets/app-icon.icns
   category: public.app-category.education
   fileAssociations:
@@ -79,6 +87,7 @@ mac:
   # 不固定为 ad-hoc identity，否则 macOS 无法就地安装更新。
   hardenedRuntime: false
   gatekeeperAssess: false
+afterSign: scripts/verify-macos-terminal-permissions.cjs
 dmg:
   title: Auris
 win:

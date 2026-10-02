@@ -3,6 +3,10 @@
 本项目自 2026-06 起仅维护桌面端（Electron）。  
 Web 端（登录、注册、计费等）已于 2026-06 移除，请勿恢复。
 
+## VMark 源码对照与复用纪律
+
+根据用户 2026-10-01 的要求，持续对齐时遵循“不重复造轮子”：在实现相关功能前、关键改动后及回归异常时，主动对照固定版本的 VMark 源码。先核查 Auris 已有实现，能直接复用的纯逻辑优先复用；需要 Electron 适配时保留行为与边界，注明上游路径、提交、许可及差异。摘要和版本号不能替代源码与运行证据；不将未验证的历史映射批量标记为已对齐。
+
 ---
 
 ## Agent 修改范围
@@ -385,3 +389,30 @@ Auris 不复制 Tauri 特有的跨窗口待下载对象同步（Electron 的 `au
 参考仓库 `vmark-upstream/` 更新至 `v0.9.87`（`241a25302e35b6a142aa16a7eba531cbf2046a0e`），并刷新 `docs/vmark-sync/latest.json` / `latest.md`。核查确认 Auris 使用受影响的 GFM autolink micromark 版本，因此通过 `patch-package` 在完整 `npm ci` 后对其开发与默认导出同时应用上游正向缓存修复。Notes 共用 Markdown 入口新增同线列表/引用深度扫描与 1,000 层上限；超限时富文本导入拒绝、阅读输出安全转义源码、来源链接扫描返回 `null`，不改写笔记。npm lockfile v3 增加 CodeMirror/Lezer、ProseMirror、React 共 12 个核心包的物理单例 CI 门禁。Electron 没有 VMark 的 WebKitGTK `blob:tauri` 链路，Notes 未用 `content-visibility` 虚拟化，也没有同构 HTML Trusted 预览和 SplitPane，故这些实现未照搬。
 
 验证：全新 `npm ci` 补丁成功，Notes 定向 58 项与门禁自测 4 项通过；`npm run lint` 0 error（20 项其他文件 warning），`npm run build` 成功，`git diff --check` 通过。全仓 `tsc --noEmit` 有 142 项错误，但本轮改动路径无错误。打包核查曾发现旧 Webpack 缓存仍输出补丁前代码；移走 `.next` 后重新构建，确认服务端和客户端 chunk 均含修复，并新增 `postbuild` 产物门禁防止重现。按用户后续要求递增版本至 `1.0.12`，完成 macOS arm64 辅助程序、Next 生产构建、独立运行时装配及本地应用打包；ad-hoc 签名与严格校验通过。`/Applications/Auris.app` 已替换并启动，`/` 与 `/notes` 均返回 200，旧版保存在 `/Applications/Auris.app.backup-1.0.11-before-vmark-0987`。适用性、反例与余留边界见 `docs/vmark-sync/implementation-status-2026-09-29.md`。
+
+
+## Engineering trajectory: VMark v0.9.90 源码复用与可验证性能边界（2026-10-01）
+
+本轮固定对照 `662d73d46d2ed6294d087ad1ced30223384de170`，确认其本身是版本合并，功能来自此前提交。Auris 递增为 1.0.13：适配上游两个 mdast 线性补丁，固定 markdown-it 14.3.1，增加安装/构建前文件哈希与构建后 bundle 标记门禁；直接复用上游纯 TypeScript renderQueue，再适配 Notes 真实滚动容器、取消与每帧八项上限。终端沿用既有 PTY/会话/IPC 信任边界，新增显式开启的 Claude/Codex SessionStart hook 与助手文本预览，受限读取 CLI JSONL 尾部，切换/隐藏/停用取消旧结果。macOS 声明麦克风、摄像头、Apple Events 用途及主应用权限，并以 afterSign 验收真实签名；helper 保持最小权限。回归另修复异步 resume 完成前 onData 尚未绑定导致的首段输入丢失，继续使用已有 pendingInput 队列。
+
+197 份原版 AST 夹具在开发/生产解析器中语义一致；性能采样三组指数约 0.96/1.23/1.00，二次控制组约 2.00。137 个文件、1160 项回归通过，ESLint 0 errors、20 项既有 warning；干净 npm ci、生产构建、IPC、singleton、隐私审计及 packaged sidecar smoke 通过。实际隔离桌面包打开 /notes 的 1200 个公式，初始 1163 个待渲染、滚动后末尾呈现；真实 PTY 与测试记录表格通过。bundle 门禁曾拒绝旧缓存，签名门禁曾拒绝缺失隐私 entitlement 的包，均修正后重验。全仓 TypeScript 仍有 250 项错误（108 项为已有 release 备份、其余位于未修改源码/测试），修改路径无报告错误。
+
+macOS arm64 DMG/ZIP 已生成，本地 ad-hoc 签名权限与 strict codesign 验收通过；没有替换 /Applications/Auris.app、改写真实 CLI 配置、提交/推送或发布。真实 CLI、系统权限弹窗及 Windows 仍未验证，记录预览尚不渲染 Mermaid 图形。依据用户“不重复造轮子”的要求，项目顶部新增源码对照纪律；历史映射未批量标记完成。详见 docs/vmark-sync/implementation-status-2026-10-01.md。
+
+### 本机安装补充（2026-10-02）
+
+用户授权本地打包替换后，已正常退出旧应用并安装、启动 1.0.13。安装验收发现 `--dir` 后接 `--prepackaged` 会跳过更新源文件生成；改用完整 `electron-builder --mac --publish never --config.mac.identity=-`，重新生成带 app-update.yml 的签名 App、DMG 与 ZIP。安装版本、strict codesign、隐私权限和已安装 sidecar smoke 通过，主窗口成功加载，首页与 /notes HTTP 200。远端更新检查仍返回 404，不能声明自动更新可用。旧版 1.0.12 的备份后来发现位于废纸篓，已另复制到 release/backups/Auris-1.0.12-before-vmark-0990-20261002.app；未改动用户数据或发布远端。
+## Engineering trajectory: 笔记正文恢复与重命名 / Vault 启动时序完整性（2026-10-02）
+
+用户报告更新 Codex CLI 配置后正文消失。现场磁盘仅剩标题；从旧文件名的热退出记录找到完整原文，用户确认后备份现场、正常退出应用并恢复到现有文件名，195 行 / 11,993 字节。复核 MCP 安装调用链未发现直接笔记写入，按钮点击与覆盖之间的因果仍未完整证明。
+
+回归复现重命名用旧磁盘正文清空未保存草稿、保存失败仍移动文件、IO 途中编辑丢失。共用 Notes workbench 现在等待保存队列、先持久化最新正文再重建重命名计划，检查碰撞和磁盘基线，保留历史版本，并按 VMark v0.9.90 的 path reconciliation 思路迁移 live buffer、磁盘基线与恢复草稿。实机又发现初始 lazy load 绕过刷新队列，提前发布空目录快照并永久锁住 missing 状态；Vault 按需加载现复用既有刷新队列，首次读取必经真实目录清单，缺失判定采用 entries，已知存在但未加载的文件延后恢复分类，实际读到文件后解除 missing。
+
+最终 Notes 回归 131 文件 / 1,091 项、MCP 配置 22 项通过；定向 ESLint、diff、生产构建、Markdown 产物门禁、装配隐私审计和签名检查通过。全仓 TypeScript 保留 247 项既有错误，本轮修改文件无错误。1.0.14 已本地安装；冷启动和设置页往返都显示完整正文、习题 10 与“已保存”，磁盘原文哈希不变，受影响恢复草稿正常清除。旧包、现场和恢复副本保存在忽略的 release 目录。未提交、推送或发布远端；详情见 docs/notes-recovery-rename-integrity-2026-10-02.md。
+
+
+## Engineering trajectory: 旧笔记路径与离开页面时的草稿完整性复查（2026-10-02）
+
+事故前完整恢复快照的正文标题已为中文，但恢复键仍为 study-note-202.md，证实标题和物理路径/恢复身份曾不同步；不能据此否认用户已改名。四项独立失败回归覆盖 recovery window 卸载丢最后输入、保存清理等待期间误清新 dirty 状态、按路径清除旧保存时误删新草稿、重命名在 Notes 卸载后完成但新工作区身份不持久化。修复沿用原有保存队列与主进程原子恢复存储：卸载先捕获最新 pending draft、清理后重新验证实时输入、clearDraft 增加可选原文条件并在串行队列内比较、workspace setter 直接持久化并保护延迟加载与跨 vault 回调。
+
+文件/目录移动及目录改名复用 runDocumentMutation 和 live/recovery 身份迁移；所有 dirty 子文档先保存，失败停止，IO 等待期间的新输入随路径迁移。相同中文标题可修复默认文件名，后续编辑允许重试失败的自动名称同步，路径别名去重。对照 VMark 固定 662d73d46 的 renameFile/applyPathReconciliation，没有重做编辑器或存储框架。134 文件、1,132 项回归通过，定向 lint、语法、diff 与桌面 IPC 合约通过；全仓 tsc 仍有 247 项既有错误，修改文件无错误。详细依据和边界见 docs/notes-recovery-rename-integrity-2026-10-02.md。原文恢复副本保留，未修改真实笔记正文，未提交、推送或发布 Release。

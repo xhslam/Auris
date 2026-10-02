@@ -535,11 +535,12 @@ function createNotesRecoveryStore({
         return true;
       });
     },
-    clearDraft(documentPath, vaultRoot) {
+    clearDraft(documentPath, vaultRoot, expectedRawSource) {
       return mutate(async () => {
         const drafts = (await readDrafts()).filter(
           (draft) =>
-            draft.path !== documentPath || draft.vaultRoot !== vaultRoot,
+            draft.path !== documentPath || draft.vaultRoot !== vaultRoot ||
+            (expectedRawSource !== undefined && draft.rawSource !== expectedRawSource),
         );
         await writeAtomicJson({
           backupPath: recoveryBackupPath,

@@ -100,17 +100,19 @@ export async function captureNotesRecoveryDraft(
 export async function clearNotesRecoveryDraft(
   path: string,
   vaultRoot: string | null,
+  expectedRawSource?: string,
 ) {
   const bridge = getBridge();
   if (bridge) {
     await ensureLegacyMigration(bridge);
-    await bridge.clearDraft(path, vaultRoot);
+    await bridge.clearDraft(path, vaultRoot, expectedRawSource);
     return;
   }
   writeArray(
     RECOVERY_KEY,
     readArray<NotesRecoveryDraft>(RECOVERY_KEY).filter(
-      (entry) => !(entry.path === path && sameWorkspace(entry, vaultRoot)),
+      (entry) => !(entry.path === path && sameWorkspace(entry, vaultRoot) &&
+        (expectedRawSource === undefined || entry.rawSource === expectedRawSource)),
     ),
   );
 }

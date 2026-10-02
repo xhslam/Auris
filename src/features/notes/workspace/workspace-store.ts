@@ -183,13 +183,9 @@ export function renameWorkspacePath(
       fromPath,
       toPath,
     ),
-    openTabs: state.openTabs.map((path) => replacePath(path, fromPath, toPath)),
-    pinnedTabs: state.pinnedTabs.map((path) =>
-      replacePath(path, fromPath, toPath),
-    ),
-    recentFiles: state.recentFiles.map((path) =>
-      replacePath(path, fromPath, toPath),
-    ),
+    openTabs: [...new Set(state.openTabs.map((path) => replacePath(path, fromPath, toPath)))],
+    pinnedTabs: [...new Set(state.pinnedTabs.map((path) => replacePath(path, fromPath, toPath)))],
+    recentFiles: [...new Set(state.recentFiles.map((path) => replacePath(path, fromPath, toPath)))],
   };
 }
 

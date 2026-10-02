@@ -1,10 +1,11 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useWorkspacePersistence } from "@/components/notes-v2/use-workspace-persistence";
+import * as recoveryStore from "@/features/notes/persistence/notes-recovery-store";
 import { createWorkspaceState } from "@/features/notes/workspace/workspace-store";
-import { saveWorkspaceState } from "@/features/notes/workspace/workspace-storage";
+import { loadWorkspaceState, saveWorkspaceState } from "@/features/notes/workspace/workspace-storage";
 
 function WorkspaceModeButton() {
   const [workspace] = useWorkspacePersistence();
@@ -116,6 +117,41 @@ describe("useWorkspacePersistence", () => {
       "/vault-b",
       expect.objectContaining({ activePath: "/vault-a/active.md" }),
     );
+  });
+
+  it("persists a completed rename even after leaving Notes", async () => {
+    saveWorkspaceState(window.localStorage, { ...createWorkspaceState(), activePath: "old.md", openTabs: ["old.md"] });
+    const { result, unmount } = renderHook(() => useWorkspacePersistence("/vault"));
+    await waitFor(() => expect(result.current[0].activePath).toBe("old.md"));
+    const completeRename = result.current[1];
+    unmount();
+    act(() => completeRename((current) => ({ ...current, activePath: "new.md", openTabs: ["new.md"] })));
+    expect(loadWorkspaceState(window.localStorage).activePath).toBe("new.md");
+  });
+
+  it("retains navigation requested before slow workspace hydration finishes", async () => {
+    let release!: () => void;
+    const spy = vi.spyOn(recoveryStore, "loadNotesHotExitWorkspace").mockImplementationOnce(async () => {
+      await new Promise<void>((resolve) => { release = resolve; });
+      return null;
+    });
+    try {
+      const { result } = renderHook(() => useWorkspacePersistence("/vault"));
+      act(() => result.current[1]((current) => ({ ...current, activePath: "chosen.md", openTabs: ["chosen.md"] })));
+      await act(async () => { release(); });
+      expect(result.current[0].activePath).toBe("chosen.md");
+      expect(loadWorkspaceState(window.localStorage).activePath).toBe("chosen.md");
+    } finally { spy.mockRestore(); }
+  });
+
+  it("ignores an old vault callback after switching to a different vault", async () => {
+    const { result, rerender } = renderHook(({ root }) => useWorkspacePersistence(root), { initialProps: { root: "/a" } });
+    await waitFor(() => expect(window.localStorage.getItem("auris.notes.hot-exit.workspaces.v2")).toContain("/a"));
+    const oldCallback = result.current[1];
+    rerender({ root: "/b" });
+    await waitFor(() => expect(window.localStorage.getItem("auris.notes.hot-exit.workspaces.v2")).toContain("/b"));
+    act(() => oldCallback((current) => ({ ...current, activePath: "wrong-vault.md" })));
+    expect(loadWorkspaceState(window.localStorage).activePath).not.toBe("wrong-vault.md");
   });
 
   it("keeps render output independent from stored workspace state before hydration", () => {
