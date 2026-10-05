@@ -555,6 +555,20 @@ function copyClosureToElectron(projectRoot, closure, outputDirectory) {
     try {
       fs.renameSync(staging, paths.electronNodeModules);
     } catch (error) {
+      // A Windows file-lock fallback may have copied only part of the new tree.
+      // Remove that partial copy before restoring the old complete closure.
+      if (previousMoved && fs.existsSync(paths.electronNodeModules)) {
+        try {
+          fs.rmSync(paths.electronNodeModules, {
+            recursive: true, force: true, maxRetries: 5, retryDelay: 500,
+          });
+        } catch (cleanupError) {
+          throw new RuntimeDepsError(
+            "PARTIAL_CLOSURE_RETAINED",
+            `New runtime closure is incomplete; previous complete closure retained at ${backup}: ${cleanupError.message}`,
+          );
+        }
+      }
       if (previousMoved && !fs.existsSync(paths.electronNodeModules)) {
         fs.renameSync(backup, paths.electronNodeModules);
         previousMoved = false;
@@ -575,7 +589,8 @@ function copyClosureToElectron(projectRoot, closure, outputDirectory) {
       if (!fs.existsSync(paths.electronNodeModules)) {
         fs.renameSync(backup, paths.electronNodeModules);
       } else {
-        fs.rmSync(backup, { recursive: true, force: false });
+        // Do not delete the previous closure if a partial new copy survived.
+        console.warn(`[assemble-electron-runtime-deps] old closure retained at ${backup}`);
       }
     }
   }

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
 const assembler =
@@ -144,6 +144,28 @@ function writePackage(
 }
 
 describe("assemble-electron-runtime-deps fixtures", () => {
+  it("restores the old closure if a Windows fallback leaves an incomplete target", () => {
+    const root = makeTempProject();
+    writePackage(root, "node_modules/test-pkg", { name: "test-pkg", version: "2.0.0" });
+    const oldClosure = path.join(root, "electron", "node_modules");
+    fs.mkdirSync(oldClosure, { recursive: true });
+    fs.writeFileSync(path.join(oldClosure, "old-complete-marker"), "old");
+    const closure = buildDependencyClosure({ projectRoot: root, roots: ["test-pkg"] });
+    const originalRename = fs.renameSync.bind(fs);
+    const spy = vi.spyOn(fs, "renameSync").mockImplementation((from, to) => {
+      if (String(from).includes(".runtime-node-modules-stage-") && String(to) === oldClosure) {
+        fs.mkdirSync(oldClosure, { recursive: true });
+        fs.writeFileSync(path.join(oldClosure, "partial-new-marker"), "partial");
+        throw Object.assign(new Error("simulated copy failure"), { code: "EIO" });
+      }
+      return originalRename(from, to);
+    });
+    try {
+      expect(() => copyClosureToElectron(root, closure)).toThrow("simulated copy failure");
+      expect(fs.readFileSync(path.join(oldClosure, "old-complete-marker"), "utf8")).toBe("old");
+      expect(fs.existsSync(path.join(oldClosure, "partial-new-marker"))).toBe(false);
+    } finally { spy.mockRestore(); }
+  });
   it("resolves scoped packages through ancestor node_modules", () => {
     const root = makeTempProject();
     writePackage(root, "node_modules/@scope/pkg", {

@@ -18,6 +18,11 @@ on:
       - "scripts/verify-markdown-patches.cjs"
       - "scripts/markdown-patch-contract.json"
       - "scripts/verify-macos-terminal-permissions.cjs"
+      - "scripts/assemble-electron-runtime-deps.cjs"
+      - "scripts/local-update-win*.cjs"
+      - "scripts/local-update-win.test.mjs"
+      - "tests/unit/electron/electron-runtime-deps.test.ts"
+      - "docs/windows-local-update.md"
       - "src/components/notes-v2/**"
       - "src/features/notes/**"
       - "src/platform/notes/**"
@@ -51,6 +56,11 @@ on:
       - "scripts/verify-markdown-patches.cjs"
       - "scripts/markdown-patch-contract.json"
       - "scripts/verify-macos-terminal-permissions.cjs"
+      - "scripts/assemble-electron-runtime-deps.cjs"
+      - "scripts/local-update-win*.cjs"
+      - "scripts/local-update-win.test.mjs"
+      - "tests/unit/electron/electron-runtime-deps.test.ts"
+      - "docs/windows-local-update.md"
       - "src/components/notes-v2/**"
       - "src/features/notes/**"
       - "src/platform/notes/**"
@@ -87,6 +97,11 @@ jobs:
 
       - name: MCP health check
         run: npm run mcp:notes -- --health-check
+
+      - name: Local Windows updater gates and rollback contract
+        run: |
+          npm run quality:local-update-win
+          npx vitest run tests/unit/electron/electron-runtime-deps.test.ts -t 'restores the old closure'
 
       - name: Unit and component notes tests
         run: >
