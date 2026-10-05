@@ -31,3 +31,7 @@
 - 通过源码桌面 launcher、当前生产构建和隔离临时用户目录打开 `/notes`；computer use 打开实际终端，精确粘贴 `printf 'AURIS_TERMINAL_%s\n' CI_OK` 并执行，截图确认独立输出 `AURIS_TERMINAL_CI_OK`。临时笔记正文不变，测试实例关闭且临时目录清理。
 
 本轮未修改 Electron main/preload、用户真实笔记、安装包版本或 GitHub Release。远端 Ubuntu 验收以修复提交触发的新 Notes Actions 运行结果为准；原失败运行是不可变历史记录。
+
+## 远端验收结果
+
+修复提交 `50f518fb181b82f7d73e34d445cf94b4c9f1b498` 已推送 main。Ubuntu Notes [运行 #20](https://github.com/xhslam/Auris/actions/runs/37281656064/job/111670894748) 完成且结论为 success；computer use 刷新 GitHub 页面确认 completed successfully，全部步骤通过。150 个文件 / 1620 项测试全部通过，终端组件 24 项通过。原失败运行无需重跑或删除，作为修复前证据保留。

@@ -436,3 +436,5 @@ macOS arm64 DMG/ZIP 已生成，本地 ad-hoc 签名权限与 strict codesign �
 用户提供 GitHub Actions #37274124097 后，通过 computer use 查看失败注解并核查完整日志，确认 checkout/安装成功，唯一失败为 pipe 终端输入测试。受控组件回归在 prime write 或恢复队列 write 期间注入输入，旧源码 3 项稳定失败：React updater 延后发布 running 状态，输入回调把新命令放进已经消费过的 starting 队列。最小修复在 `markSession` 同步 patch ref，再用纯 updater 更新 React 状态；保留已有 IPC、queue、pipe/PTy normalization。固定对照 VMark `2d3903cb2` 的 terminalSessionInputWiring/useTerminalShellLifecycle，即时 session entry 与 Tauri API 边界分开处理。
 
 终端组件 24 项、扩大后的 Notes CI 150 文件 / 1620 项通过；lint 0 errors / 20 warnings、MCP health、singleton、生产构建与 Markdown 产物门禁通过。全仓 tsc 保留 248 项错误，修改 hook/test 无错误。源码桌面端独立临时 profile 实际打开 /notes，computer use 在真实 shell 执行 printf 并确认 AURIS_TERMINAL_CI_OK；临时笔记未改写，测试实例和 profile 已清理。Notes workflow 扩展至完整 Notes/VMark 回归，并加入 VMark 测试触发路径。未改 main/preload 或真实用户数据，未重打包、递增版本或发布；远端 Ubuntu 结果以本次修复提交的 Actions 为准。详见 `docs/notes/2026-10-05-terminal-startup-ci-repair.md`。
+
+远端验收补充：修复提交 `50f518fb181b82f7d73e34d445cf94b4c9f1b498` 已推送 main，Ubuntu Notes Actions #37281656064 / job #111670894748 success；computer use 确认页面 completed successfully，150 文件 / 1620 项通过。后续记录提交仅更新文档，不改已验收源码。
