@@ -1,0 +1,90 @@
+{
+  "timestamp": "2026-10-04T19:45:54.518326+08:00",
+  "upstreamCommit": "2d3903cb2887a7c6a7a8df7b814f14b745bc2415",
+  "aurisVersion": "1.0.17",
+  "checks": [
+    {
+      "command": "npx vitest run tests/unit/notes tests/component/notes tests/unit/vmark",
+      "exitCode": 0,
+      "filesPassed": 145,
+      "testsPassed": 1548
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 20
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exitCode": 2,
+      "errors": 248,
+      "changedProductionAndNewTestPathsInErrorList": false,
+      "taskStartFullBaselineCaptured": false
+    },
+    {
+      "command": "npm run quality:singleton-deps",
+      "exitCode": 0,
+      "selfTestsPassed": 4,
+      "singletonDependencies": 12
+    },
+    {
+      "command": "node tests/electron/notes-inert-html-smoke.cjs",
+      "exitCode": 0,
+      "checksPassed": 4,
+      "liveDocumentPositiveControl": true
+    },
+    {
+      "command": "npm run desktop:island:build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run desktop:assemble",
+      "exitCode": 0
+    },
+    {
+      "command": "npx electron-builder --mac --publish never --config.mac.identity=-",
+      "exitCode": 0
+    },
+    {
+      "command": "codesign --verify --deep --strict /Applications/Auris.app",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/verify-macos-terminal-permissions.cjs release/mac-arm64/Auris.app --require-signature",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run desktop:privacy:audit",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/electron/notes-rich-fidelity-smoke.cjs --app /Applications/Auris.app",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/electron/packaged-mcp-sidecar-smoke.cjs --app /Applications/Auris.app",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Selective applicability review; not all 632 commits or 3383 files certified aligned",
+    "12 historical manifest mappings remain stale",
+    "No Windows/Linux installed smoke",
+    "No commit, push, tag, public GitHub Release or notarization performed",
+    "Automatic GitHub update source returned HTTP 404 after normal launch"
+  ],
+  "artifacts": [
+    "release/Auris-1.0.17-arm64.dmg",
+    "release/Auris-1.0.17-arm64-mac.zip"
+  ],
+  "installedApplication": "/Applications/Auris.app"
+}

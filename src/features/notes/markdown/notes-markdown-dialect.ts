@@ -5,6 +5,7 @@ import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import type { Plugin } from "unified";
 import { remarkInlineFastPaths } from "./fast-paths/remark-inline-fast-paths";
+import { buildProbeOpaqueMask as buildOpaqueMask } from "./notes-math-opaque-ranges";
 import { assertNotesMarkdownNestingSafe } from "./notes-markdown-nesting";
 
 type MathDelimiterKind = "display" | "inline";
@@ -16,103 +17,6 @@ export type MathDelimiterSpan = {
   start: number;
 };
 
-const CODE_FENCE = /^ {0,3}(`{3,}|~{3,})/u;
-const URL = /\b(?:https?:\/\/|ftp:\/\/|mailto:|www\.)[^\s<>]+/giu;
-
-function markRange(mask: Uint8Array, start: number, end: number) {
-  mask.fill(1, Math.max(0, start), Math.min(mask.length, end));
-}
-
-function buildOpaqueMask(markdown: string) {
-  const mask = new Uint8Array(markdown.length);
-  let fence: { character: string; size: number } | null = null;
-  let lineStart = 0;
-
-  while (lineStart <= markdown.length) {
-    const newline = markdown.indexOf("\n", lineStart);
-    const lineEnd = newline < 0 ? markdown.length : newline;
-    const line = markdown.slice(lineStart, lineEnd);
-    const fenceMatch = CODE_FENCE.exec(line);
-    const indentedCode = !fence && /^(?: {4}|\t)/u.test(line);
-
-    if (fence) {
-      markRange(mask, lineStart, newline < 0 ? lineEnd : lineEnd + 1);
-      if (
-        fenceMatch &&
-        fenceMatch[1][0] === fence.character &&
-        fenceMatch[1].length >= fence.size &&
-        /^[ \t]*\r?$/u.test(line.slice(fenceMatch[0].length))
-      ) {
-        fence = null;
-      }
-    } else if (fenceMatch) {
-      const info = line.slice(fenceMatch[0].length);
-      const invalidBacktickFence =
-        fenceMatch[1][0] === "`" && info.includes("`");
-
-      if (!invalidBacktickFence) {
-        fence = {
-          character: fenceMatch[1][0],
-          size: fenceMatch[1].length,
-        };
-        markRange(mask, lineStart, newline < 0 ? lineEnd : lineEnd + 1);
-      }
-    } else if (indentedCode) {
-      markRange(mask, lineStart, newline < 0 ? lineEnd : lineEnd + 1);
-    }
-
-    if (newline < 0) break;
-    lineStart = newline + 1;
-  }
-
-  // Inline code spans are opaque even when they contain math-looking text.
-  for (let index = 0; index < markdown.length; index += 1) {
-    if (mask[index] || markdown[index] !== "`") continue;
-
-    let runEnd = index + 1;
-    while (markdown[runEnd] === "`") runEnd += 1;
-    const run = markdown.slice(index, runEnd);
-    const close = markdown.indexOf(run, runEnd);
-
-    if (close >= 0) {
-      markRange(mask, index, close + run.length);
-      index = close + run.length - 1;
-    } else {
-      index = runEnd - 1;
-    }
-  }
-
-  // Literal URLs and Markdown link destinations are not prose math contexts.
-  for (const match of markdown.matchAll(URL)) {
-    markRange(mask, match.index, match.index + match[0].length);
-  }
-
-  for (let index = 0; index < markdown.length - 1; index += 1) {
-    if (mask[index] || markdown[index] !== "]" || markdown[index + 1] !== "(") {
-      continue;
-    }
-
-    let cursor = index + 2;
-    let depth = 1;
-    while (cursor < markdown.length && depth > 0 && markdown[cursor] !== "\n") {
-      if (markdown[cursor] === "(" && !isEscaped(markdown, cursor)) depth += 1;
-      if (markdown[cursor] === ")" && !isEscaped(markdown, cursor)) depth -= 1;
-      cursor += 1;
-    }
-
-    if (depth === 0) markRange(mask, index + 2, cursor - 1);
-  }
-
-  return mask;
-}
-
-function isEscaped(text: string, index: number) {
-  let backslashes = 0;
-  for (let cursor = index - 1; cursor >= 0 && text[cursor] === "\\"; cursor -= 1) {
-    backslashes += 1;
-  }
-  return backslashes % 2 === 1;
-}
 
 function lineStartAt(text: string, index: number) {
   return text.lastIndexOf("\n", index - 1) + 1;
@@ -259,47 +163,96 @@ export function findCompatibleMathDelimiterSpans(
   return spans;
 }
 
-/**
- * Clean up common NotebookLM / AI export math quirks:
- * 1. Double backslashes on LaTeX macros/delimiters: \\frac -> \frac, \\gamma -> \gamma, etc.
- * 2. Double-escaped line-breaks in arrays/matrices: \\\\ -> \\
- * 3. Markdown-escaped brackets inside math: \[ -> [, \] -> ] (preserving \left[ and \right])
- * 4. Subscripts with markdown-escaped underscore: \_{...} -> _{...}
- * 5. Unescaped percent signs in math: % -> \% (avoids LaTeX comment swallowing remainder)
- */
+/** Normalize export escapes only inside an already recognized math span. */
 export function sanitizeMathContent(content: string): string {
   let cleaned = content.trim();
-
-  // 1. Unescape double backslashes before LaTeX macro names, symbols or delimiters:
-  // e.g. \\gamma -> \gamma, \\frac -> \frac, \\{ -> \{, \\} -> \}, \\| -> \|, \\approx -> \approx
-  cleaned = cleaned.replace(/\\\\([a-zA-Z]+|\{|\}|\||,|:|;|!)/gu, "\\$1");
-
-  // 2. Double-escaped line-breaks in arrays/matrices: \\\\ followed by space/newline -> \\
-  cleaned = cleaned.replace(/\\\\(?:\s|$)/gu, "\\\\ ");
-
-  // 3. Unescape Markdown-escaped brackets inside math: \[ -> [, \] -> ]
-  // Preserving \left[ and \right], \bigl[, \bigr], etc.
-  cleaned = cleaned.replace(
-    /(?<!\\(?:left|right|bigl|Bigl|biggl|Biggl|bigr|Bigr|biggr|Biggr))\s*\\\[/gu,
-    "[",
-  );
-  cleaned = cleaned.replace(
-    /(?<!\\(?:left|right|bigl|Bigl|biggl|Biggl|bigr|Bigr|biggr|Biggr))\s*\\\]/gu,
-    "]",
-  );
-
-  // 4. Subscripts with markdown-escaped underscore: \_{...} -> _{...}
-  cleaned = cleaned.replace(/\\_\{/gu, "_{");
-
-  // 5. Unescaped percent signs in math: % -> \%
+  // Runs before TeX commands are export/Markdown escapes. Row separators and
+  // row spacing (\\[4pt]) are different syntax and must retain two slashes.
+  cleaned = cleaned.replace(/\\{2,}([a-zA-Z]+|\{|\}|\||,|:|;|!)/gu, "\\$1");
+  cleaned = cleaned.replace(/\\{4,}(?=\s|$)/gu, "\\\\");
+  cleaned = cleaned.replace(/\\{2,}_|\\_(?=\{)/gu, "_");
+  cleaned = cleaned.replace(/(?<!\\)\\([\[\]])(?!\d+(?:pt|em|ex|mm|cm|in)\])/gu, "$1");
+  // Entity decoding is intentionally local to math; ordinary prose/code/HTML
+  // keeps its original spelling and no markup is injected into the document.
+  cleaned = cleaned.replace(/&(?:gt|lt|amp|quot|apos|#(\d+)|#x([\da-f]+));/giu,
+    (entity, decimal: string | undefined, hex: string | undefined) => {
+      if (decimal || hex) {
+        const point = Number.parseInt(decimal ?? hex!, decimal ? 10 : 16);
+        return point > 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff)
+          ? String.fromCodePoint(point) : entity;
+      }
+      return ({ "&gt;": ">", "&lt;": "<", "&amp;": "&", "&quot;": '"', "&apos;": "'" } as Record<string, string>)[entity.toLowerCase()] ?? entity;
+    });
   cleaned = cleaned.replace(/(?<!\\)%/gu, "\\%");
-
   return cleaned;
 }
 
-/** Convert compatible one- to three-backslash AI delimiters to canonical `$` math. */
+/** Dollar math in pasted text and legacy escaped exports. Currency stays text. */
+export function findDollarMathDelimiterSpans(markdown: string): MathDelimiterSpan[] {
+  if (!markdown.includes("$")) return [];
+  const mask = buildOpaqueMask(markdown);
+  const spans: MathDelimiterSpan[] = [];
+  // Pair equal dollar runs within one logical paragraph. A dead opener never
+  // searches beyond a blank line or an opaque range.
+  const runs: Array<{ start: number; end: number; slashes: number }> = [];
+  for (let i = 0; i < markdown.length; i += 1) {
+    if (markdown[i] !== "$" || mask[i]) continue;
+    const start = i;
+    while (markdown[i + 1] === "$") i += 1;
+    let slashStart = start;
+    while (slashStart > 0 && markdown[slashStart - 1] === "\\") slashStart -= 1;
+    // Escaped single dollars are TeX/prose content, never delimiters. Keep
+    // doubled escaped dollars as candidates for a damaged export only.
+    if (i + 1 - start === 1 && (start - slashStart) % 2) continue;
+    runs.push({ start, end: i + 1, slashes: start - slashStart });
+  }
+  for (let i = 0; i < runs.length; i += 1) {
+    const open = runs[i];
+    const width = open.end - open.start;
+    if (open.slashes && (width !== 2 || open.slashes < 2)) continue;
+    const close = runs[i + 1];
+    if (!close || close.end - close.start !== width) continue;
+    const raw = markdown.slice(open.end, close.start);
+    if (!raw.trim() || containsBlankLine(raw) || mask.subarray(open.end, close.start).some(Boolean)) continue;
+    const exportEscapes = /\\{2,}[a-zA-Z]|\\+_/u.test(raw);
+    if (open.slashes && !exportEscapes) continue;
+    if (close.slashes % 2 && !(width === 2 && exportEscapes)) continue;
+    if (width === 1 && (/^\s|\s$/u.test(raw) || raw.includes("\n"))) continue;
+    // An exported closer can have backslashes attached to the delimiter.
+    // Strip these only alongside the independent evidence of export escapes.
+    const content = sanitizeMathContent(width === 2 && exportEscapes ? raw.replace(/\\+$/u, "") : raw);
+    spans.push({ start: open.start - open.slashes, end: close.end, content,
+      kind: width === 2 ? "display" : "inline" });
+    i += 1;
+  }
+  return spans;
+}
+
+/** Shared recognized spans for rich paste; never inspect code or link targets. */
+export function findNotesMathDelimiterSpans(markdown: string): MathDelimiterSpan[] {
+  const candidates = [...findCompatibleMathDelimiterSpans(markdown), ...findDollarMathDelimiterSpans(markdown)]
+    .sort((a, b) => a.start - b.start || b.end - a.end);
+  const spans: MathDelimiterSpan[] = [];
+  for (const span of candidates) {
+    if (!spans.length || span.start >= spans[spans.length - 1].end) spans.push(span);
+  }
+  return spans;
+}
+
+/** Normalize compatible AI delimiters and damaged dollar exports to canonical math. */
 export function normalizeNotesMathDelimiters(markdown: string) {
-  const spans = findCompatibleMathDelimiterSpans(markdown);
+  const spans = findNotesMathDelimiterSpans(markdown).filter(span => {
+    // Standard dollar math already has parser-authoritative block/container
+    // semantics. Only rewrite dollar exports when their escaping is damaged.
+    const raw = markdown.slice(span.start, span.end);
+    const width = /^\$+/u.exec(raw)?.[0].length ?? 0;
+    const damagedSingleLineDollar = width > 0 && !raw.includes("\n") &&
+      raw.slice(width, -width) !== span.content;
+    return (!raw.startsWith("$") && !/^\\+\$/u.test(raw)) ||
+      damagedSingleLineDollar ||
+      (span.kind === "inline" && span.content.includes("$")) ||
+      /^\\+\$\$/u.test(raw) || /\\+\$\$$/u.test(raw);
+  });
   if (spans.length === 0) return markdown;
 
   const result: string[] = [];
@@ -333,6 +286,7 @@ export function normalizeNotesMathDelimiters(markdown: string) {
 
 type MdastNode = {
   children?: MdastNode[];
+  data?: { hChildren?: MdastNode[] };
   type: string;
   value?: string;
 };
@@ -358,6 +312,14 @@ const remarkValidateNotesMath: Plugin = function () {
           typeof child.value === "string"
         ) {
           child.value = sanitizeMathContent(child.value);
+          // remark-math creates HAST text during parsing. remark-rehype uses
+          // that cached text, so update it together with the MDAST value.
+          const html = [...(child.data?.hChildren ?? [])];
+          while (html.length) {
+            const node = html.pop()!;
+            if (node.type === "text") node.value = child.value;
+            if (node.children) html.push(...node.children);
+          }
         }
         if (child.children) stack.push(child);
         return child;

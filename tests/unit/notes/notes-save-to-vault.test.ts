@@ -119,6 +119,31 @@ describe("notes save to vault", () => {
     expect(hasPendingNoteSave("Inbox/Daily.md")).toBe(false);
   });
 
+  it("retains an existing UTF-8 BOM after rich editing drops the invisible prefix", async () => {
+    const client = createClient("\uFEFF# Before");
+    const result = await saveNoteToVault(client, {
+      expectedRawSource: "\uFEFF# Before",
+      path: "BOM.md",
+      rawSource: "# After",
+      saveType: "manual",
+    });
+    expect(result.normalizedSource).toBe("\uFEFF# After");
+    expect(client.writeFile).toHaveBeenCalledWith("BOM.md", "\uFEFF# After");
+  });
+
+  it("keeps BOM-prefixed frontmatter opaque without duplicating the prefix", async () => {
+    const client = createClient("");
+    const source = '\uFEFF---\ntitle: 中文API\n---\n正文API\n';
+    const result = await saveNoteToVault(client, {
+      expectedRawSource: "",
+      path: "BOM.md",
+      rawSource: source,
+      saveType: "auto",
+    });
+    expect(result.normalizedSource).toBe(source.replace("正文API", "正文 API"));
+    expect([...result.normalizedSource].filter(char => char === "\uFEFF")).toHaveLength(1);
+  });
+
   it("repairs split surrogate entities in markdown content on save", async () => {
     const client = createClient("");
     const sourceWithBrokenSurrogate = "**word\\***&#xD83D;\uDE42word";

@@ -1,0 +1,9 @@
+{
+  "aurisSourceVersion": "1.0.16",
+  "electronVersion": "41.2.0",
+  "origin": "http://127.0.0.1:3028",
+  "freshWorkspaceDevServer": true,
+  "notesHttpStatus": 200,
+  "notesVisible": true,
+  "isolatedUserData": true
+}

@@ -1,3 +1,5 @@
+// Source: VMark src/lib/cjkFormatter/rules/cleanup.ts
+// Commit: 2d3903cb2887a7c6a7a8df7b814f14b745bc2415; ISC (docs/vmark-port/UPSTREAM-LICENSE.txt).
 /**
  * Group 5 — Cleanup rules (consecutive punctuation limits, trailing spaces).
  *
@@ -33,7 +35,7 @@ export function limitConsecutivePunctuation(
  * a line in the enclosing document — a protected region follows it on the same
  * line. Its trailing spaces are ordinary inter-word spaces, not end-of-line
  * junk, and deleting them is what turned `使用 \`printf\` 函数` into
- * `使用\`printf\` 函数` (WI-CJKF2.1).
+ * `使用\`printf\` 函数`.
  */
 export function removeTrailingSpaces(
   text: string,

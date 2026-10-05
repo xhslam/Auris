@@ -1,0 +1,25 @@
+{
+  "installedPath": "/Applications/Auris.app",
+  "previousVersion": "1.0.16",
+  "installedVersion": "1.0.17",
+  "backupPath": "/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.16-before-vmark-0992-20261004-194128.app",
+  "signatureVerified": true,
+  "timestamp": "2026-10-04T19:41:32.707058+08:00",
+  "launchVerified": true,
+  "normalLaunch": {
+    "mainPid": 68985,
+    "readyToShow": true,
+    "loadedUrl": "http://127.0.0.1:3000/",
+    "notesHttpStatus": 200
+  },
+  "installedEditorSmokePassed": true,
+  "installedSidecarSmokePassed": true,
+  "signatureType": "ad-hoc; not Developer ID/notarized",
+  "automaticUpdate": {
+    "status": "failed",
+    "httpStatus": 404,
+    "source": "https://github.com/xhslam/auris/releases.atom",
+    "localInstallationAffected": false
+  },
+  "verificationTimestamp": "2026-10-04T19:45:54.518326+08:00"
+}

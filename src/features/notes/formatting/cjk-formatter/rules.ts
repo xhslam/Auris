@@ -1,3 +1,5 @@
+// Source: VMark src/lib/cjkFormatter/rules.ts
+// Commit: 2d3903cb2887a7c6a7a8df7b814f14b745bc2415; ISC (docs/vmark-port/UPSTREAM-LICENSE.txt).
 /**
  * CJK Text Formatting Rules — barrel.
  *

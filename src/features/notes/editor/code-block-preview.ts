@@ -25,7 +25,8 @@ export function renderMathMarkup(text: string, displayMode: boolean) {
 }
 
 export function normalizeLanguage(value: unknown) {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
+  // ProseMirror params holds the complete fence info string, including meta.
+  return typeof value === "string" ? value.trim().split(/\s/u)[0].toLowerCase() : "";
 }
 
 const SAFE_DATA_IMAGE_PATTERN =

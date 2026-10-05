@@ -33,8 +33,15 @@ export async function saveNoteToVault(
   },
 ): Promise<SaveNoteToVaultResult> {
   const isMarkdown = getFormatDescriptor(input.path).id === "markdown";
+  // Node's UTF-8 reader preserves U+FEFF; rich editors do not. Restore the
+  // disk convention at the shared writer, while scanning BOM-free Markdown
+  // so frontmatter remains protected. VMark normalizeSaveContent, 2d3903cb2.
+  const hasBom = input.rawSource.startsWith("\uFEFF") || input.expectedRawSource?.startsWith("\uFEFF");
+  const markdownSource = input.rawSource.startsWith("\uFEFF")
+    ? input.rawSource.slice(1)
+    : input.rawSource;
   const normalizedSource = isMarkdown
-    ? repairSplitSurrogateEntities(normalizeCjkSpacing(input.rawSource))
+    ? `${hasBom ? "\uFEFF" : ""}${repairSplitSurrogateEntities(normalizeCjkSpacing(markdownSource))}`
     : input.rawSource;
   const saveToken = registerPendingNoteSave(input.path, normalizedSource);
 

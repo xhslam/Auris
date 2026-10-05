@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-10-04T19:45:54.518326+08:00",
+  "installedRichEditor": {
+    "appPath": "/Applications/Auris.app",
+    "appVersion": "1.0.17",
+    "notesOpened": true,
+    "actualRichEditSaved": true,
+    "codeMetadataPreserved": true,
+    "looseListPreserved": true,
+    "mermaidWithMetadataRendered": true,
+    "temporaryNoteOnly": true,
+    "isolatedUserData": true
+  },
+  "installedSidecar": {
+    "browserState": {
+      "targets": []
+    },
+    "moduleProbe": {
+      "ok": true,
+      "nia": "completed",
+      "browser": "cancelled"
+    },
+    "niaStatus": "completed",
+    "notesState": {
+      "active_tab_id": null,
+      "capabilities": {
+        "document": [
+          "read",
+          "write"
+        ],
+        "selection": [
+          "get",
+          "set"
+        ],
+        "workspace": [
+          "new",
+          "open",
+          "save",
+          "close",
+          "switch_tab"
+        ]
+      },
+      "tabs": [],
+      "vault": {
+        "configured": false
+      }
+    },
+    "ok": true,
+    "tools": [
+      "auris_browser",
+      "auris_browser_read",
+      "auris_document",
+      "auris_selection",
+      "auris_session",
+      "auris_workflow",
+      "auris_workspace"
+    ],
+    "workflowStatus": "completed"
+  }
+}

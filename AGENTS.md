@@ -416,3 +416,16 @@ macOS arm64 DMG/ZIP 已生成，本地 ad-hoc 签名权限与 strict codesign �
 事故前完整恢复快照的正文标题已为中文，但恢复键仍为 study-note-202.md，证实标题和物理路径/恢复身份曾不同步；不能据此否认用户已改名。四项独立失败回归覆盖 recovery window 卸载丢最后输入、保存清理等待期间误清新 dirty 状态、按路径清除旧保存时误删新草稿、重命名在 Notes 卸载后完成但新工作区身份不持久化。修复沿用原有保存队列与主进程原子恢复存储：卸载先捕获最新 pending draft、清理后重新验证实时输入、clearDraft 增加可选原文条件并在串行队列内比较、workspace setter 直接持久化并保护延迟加载与跨 vault 回调。
 
 文件/目录移动及目录改名复用 runDocumentMutation 和 live/recovery 身份迁移；所有 dirty 子文档先保存，失败停止，IO 等待期间的新输入随路径迁移。相同中文标题可修复默认文件名，后续编辑允许重试失败的自动名称同步，路径别名去重。对照 VMark 固定 662d73d46 的 renameFile/applyPathReconciliation，没有重做编辑器或存储框架。134 文件、1,132 项回归通过，定向 lint、语法、diff 与桌面 IPC 合约通过；全仓 tsc 仍有 247 项既有错误，修改文件无错误。详细依据和边界见 docs/notes-recovery-rename-integrity-2026-10-02.md。原文恢复副本保留，未修改真实笔记正文，未提交、推送或发布 Release。
+
+## Engineering trajectory: VMark v0.9.91 增量适用性与源码编辑连续性（2026-10-02）
+
+固定比较 `662d73d46d2ed6294d087ad1ced30223384de170` 至 `fa785a7008999bc2077889a9faaca0175f122cee`，参考镜像已快进，累计差异报告已刷新。实际增量为脚注弹窗修复、版本元数据与 Codex hook 元数据清理。Auris 当前没有上游脚注 popup/store，因此没有同构抢焦点缺陷可移植；标记预览与显式弹窗编辑仍是功能差异，不能宣称完全对齐。本轮未引入新弹窗框架。
+
+新增真实 CodeMirror 源码编辑行为回归 10 项，覆盖中文/RTL、正文/续行/标记、主副选区、悬停后选择、离开后的焦点及继续编辑结果；配合多光标、Markdown 链接、混合渲染与 VMark 审计测试共 6 文件、77 项通过。定向 ESLint 与 diff 检查通过；没有生产源码改动，未做构建/桌面 UI 手测、版本递增、安装替换、提交或推送。历史 12 项映射仍待复核；详见 `docs/vmark-sync/implementation-status-2026-10-02.md` 与逐文件增量 JSON。
+
+
+## Engineering trajectory: VMark v0.9.92 选择性同步与本机安装（2026-10-04）
+
+固定对照 `fa785a7008999bc2077889a9faaca0175f122cee` 至 `2d3903cb2887a7c6a7a8df7b814f14b745bc2415`（632 commits / 3383 files），参考镜像快进，保留 12 项未复核历史映射。直接复用 30 份上游 CJK 源码/类型适配，补齐线性扫描、Unicode script、技术子串和段落边界；保留 Auris 设置默认值与平台适配。富文本桥保留完整 code fence info、列表 tight/order 和末尾/连续 hard-break；预览只取首个语言 token。Markdown HTML 导入使用独立惰性文档；Vault writer 恢复 BOM 并保留 frontmatter 保护；MCP workspace.save 等待既有保存队列成功后返回实际落盘 revision，拒绝失败、冲突、无 writer 及已关闭文档的虚假确认。未修改主进程、预加载或真实用户笔记。既有本地数学修复保留并纳入回归与安装。
+
+145 文件 / 1548 项回归通过；全仓 lint 0 errors / 20 warnings；生产构建、singleton 依赖、隐私审计、签名权限与惰性解析实机检查通过。全仓 tsc 248 项错误，本轮修改路径未报错；未取得任务开始前的完整基线，不宣称全仓 0 new errors。用户明确要求同步后打包安装：版本递增至 1.0.17，ad-hoc 签名 macOS arm64 包已安装 `/Applications/Auris.app`，旧 1.0.16 保存在 `release/backups/Auris-1.0.16-before-vmark-0992-20261004-194128.app`。安装后真实临时笔记编辑保存、metadata/松列表/Mermaid 及 MCP sidecar smoke 通过；正常用户应用已启动，/notes HTTP 200。启动自动更新源返回 404，记录而未扩展修改。未提交、推送、打标签或发布 Release；脚注、跨窗口退出及全部上游审计领域未声称完成。详见 `docs/vmark-sync/implementation-status-2026-10-04.md` 及 provenance/verification/installation JSON。

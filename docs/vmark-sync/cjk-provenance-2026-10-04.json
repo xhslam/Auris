@@ -1,0 +1,288 @@
+{
+  "upstreamCommit": "2d3903cb2887a7c6a7a8df7b814f14b745bc2415",
+  "license": "ISC",
+  "licenseFile": "docs/vmark-port/UPSTREAM-LICENSE.txt",
+  "files": [
+    {
+      "upstreamPath": "src/lib/cjkFormatter/characterReferences.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/characterReferences.ts",
+      "upstreamSha256": "c7c69fdb1bc3741bf41a54be98f25e24b767fd2cd2144b7923b492031baa2ad0",
+      "aurisSha256": "513b3d1f2ec73e95257afa9c9a0e58f24f224401ef0c4c3fb24e0049a00c392b",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/contextualQuotes.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/contextualQuotes.ts",
+      "upstreamSha256": "99e2bc3123a8891c9558e78229af64291335d5fc6fb81189a4a81f8930942e08",
+      "aurisSha256": "eb1af096bce8a684fec92184b6e02ab9d3700dcd5cd6eb07047d455e6a84dee8",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/fencedCode.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/fencedCode.ts",
+      "upstreamSha256": "136838087c467bc9c0713c9881a4002d68076e40c197caa8ced3f7dce9904701",
+      "aurisSha256": "993770258471eeaea97c44661c65f8e73f9711c018c655de00c7c788e2daed19",
+      "adaptations": [
+        "source attribution header",
+        "local shared scanner import"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/formatter.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/formatter.ts",
+      "upstreamSha256": "23f5cb0d05533b51474f372b82b7daeed074cced217db598009e676d681bf4c1",
+      "aurisSha256": "b4826aee2ee537753fc774dda48b99380295e5113d6367595e3c5ad95cf31c87",
+      "adaptations": [
+        "source attribution header",
+        "local warning adapter",
+        "keep protected formatSelection/formatFile aliases"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/formatterTables.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/formatterTables.ts",
+      "upstreamSha256": "a1c3372fc17890eba96f72e37a4fa4f228120061aed2e714fd53222864668af0",
+      "aurisSha256": "ea70ba64edca681f93cfefffe6e6c13dc860be82f67e5b3a3373761deebedab4",
+      "adaptations": [
+        "source attribution header",
+        "existing local splitTableCells adapter"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/index.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/index.ts",
+      "upstreamSha256": "3488fe85a9755e00a7c905d92618a235b411277f2ec8addc81f377d3c3453e9e",
+      "aurisSha256": "4a92c7c2fc5045d389f84fadb58d297c78212852287be755d127fb965d1027ef",
+      "adaptations": [
+        "source attribution header",
+        "keep Auris compatibility aliases"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/inlineSpanScanners.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/inlineSpanScanners.ts",
+      "upstreamSha256": "c04688f0539c0e38d0934c645204ff775917d6ef309fe0597e3132694b4d24fd",
+      "aurisSha256": "d58db4b6479bb8e6dcf73cc18658efcc85ac955e0f64e0e7b774e9d8a0dae4b0",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/integrity.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/integrity.ts",
+      "upstreamSha256": "5aea550a114157952eb24686c723345d3813e18c2083d70de65885cc60828598",
+      "aurisSha256": "ea7c86627c6eb70b0cc59379bf3c8b4edb5d5b6eb42e80b199d671e69f20ab4a",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/latinSpanScanner.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/latinSpanScanner.ts",
+      "upstreamSha256": "e6201b2c6800462a3fdfe948c33f878e116314d43f93506118ea1b46ffc8d68b",
+      "aurisSha256": "7c35bd0f33afbeb08ffb8fc7535a9e0cbe17a7d747c7f9e9db1b31555e34917c",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/markdownParser.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/markdownParser.ts",
+      "upstreamSha256": "2927a39edc187cb405816f440908391ab3f2e5ac47de405e40682434fdce17f0",
+      "aurisSha256": "e279d30d343fc81174f0cf63bedb3c0d7e145f5f85857cdba9864d17aada98ca",
+      "adaptations": [
+        "source attribution header",
+        "remove extra EOF blank line"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/markdownParserBlocks.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/markdownParserBlocks.ts",
+      "upstreamSha256": "f7020d29b6e2c436c0b13cc1115948bf7ad416b55721bc105eb1e83fdf97ef28",
+      "aurisSha256": "5831b8b38faaeb96a4e7158a794a71c5a0f412d2aacaf5d13982f03bfa6d37e6",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/markdownParserInline.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/markdownParserInline.ts",
+      "upstreamSha256": "8c5a985127e554f6be1eae9778cf365442188ad4966642df2e77183b81bcb6ae",
+      "aurisSha256": "ff8279c55a2e92fb882b96edcccf2ab269316bd002ff13797c07c47b261e540c",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/paragraphBreaks.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/paragraphBreaks.ts",
+      "upstreamSha256": "0ca2f36e0a2e84ab063ae45a65777aab0b927957fef98167fb5be58e11834ba7",
+      "aurisSha256": "8de9fda75d8baa41fea784800b9a5b11ff6618480f91f864c11553121130cc9e",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/protectedRegionSearch.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/protectedRegionSearch.ts",
+      "upstreamSha256": "7664adda2412ba57d37ad0658944e18e59c3057c2c7da7da86032ceebba0657b",
+      "aurisSha256": "5ecd3c9936b2d13c1c87624b09d4247ba10322ce9135351378d87bd996bb8ef2",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/quoteClassification.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/quoteClassification.ts",
+      "upstreamSha256": "c21695632fa07c494039657db15cd56067d7821e914ecff2fc1584b4d9e78f5c",
+      "aurisSha256": "8e85e3f58d0eaa3b0a40ca5dc0697caf4bd6429b3779d10c6476bfbaa46603d4",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/quotePairing.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/quotePairing.ts",
+      "upstreamSha256": "5396554a58f804d6ff7b9dd648f00927fa3f80382b0e936d60756c8f04f32d5d",
+      "aurisSha256": "474d908770b2477f3aca19aa55cbeaa80777a87931d80561b4295e4ebfb4cd85",
+      "adaptations": [
+        "source attribution header",
+        "compatibility re-export of applyContextualQuotes"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/quoteToggle.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/quoteToggle.ts",
+      "upstreamSha256": "f241fd1b2489e9fe88c2a9a64a6b05b0cdc0af9c4f76675418c90002beae0a90",
+      "aurisSha256": "ebaa0e99571197c8aacb64627aabbdf6388769800465edea3a5eba499f1bcf73",
+      "adaptations": [
+        "source attribution header",
+        "QuoteStyle from Auris settings"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/applyRules.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/applyRules.ts",
+      "upstreamSha256": "89b07046b02e3a887416f3cf1041742ea6f30afe2d2173c517de8b468e6b6677",
+      "aurisSha256": "411e93fed88704a8aeae108b5ca01496a653d78b3499eb277f1d28fe9901952a",
+      "adaptations": [
+        "source attribution header",
+        "local warning adapter"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/cleanup.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/cleanup.ts",
+      "upstreamSha256": "c7d2b895c654e61e9c041bc95747a2f4bca1d29cace5e7558360689ded9cb835",
+      "aurisSha256": "d19ed7acaf74604ae1d817d0fcc340915bdcab841b898431462ce2eab45e0632",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/dashesQuotes.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/dashesQuotes.ts",
+      "upstreamSha256": "f570ef110bd4e79cc7e2f743fb868eb0b140e189def4f020bc54e2620212fcb5",
+      "aurisSha256": "81cb33abb3da827b9ed93b132a2a8d3b22febee9ad8d61cb21349021205b1cac",
+      "adaptations": [
+        "source attribution header",
+        "QuoteStyle from Auris settings"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/fullwidth.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/fullwidth.ts",
+      "upstreamSha256": "e549384fbb31adf04604497929f246011498748a0af080cee3b7be35db31355b",
+      "aurisSha256": "eed1949e7a946ce6c3fbd4780a89f0d8220382ba57ce6e110a6ff8b3284f5794",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/script.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/script.ts",
+      "upstreamSha256": "59e5aa49f5577e7dc7f2c55b47b19e5d5c45aabc5aae06e109ef2aa7104e0017",
+      "aurisSha256": "96b5a28184621148b079d9bdb5371e3bc63ecc98d70b84398cd3ef0bc4449b10",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/shared.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/shared.ts",
+      "upstreamSha256": "53f248368f0dc57493b98b33af796fea7e927a8b376e39dbe35826629434d6d5",
+      "aurisSha256": "e8ea0e4c0d7b5b8b832007aa6633dc5b2b6dc5e399335a3a4df6feefe465cc44",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/spacing.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/spacing.ts",
+      "upstreamSha256": "6d7cdd97ff639ca8f9bdeeefb3ebbd933d98b9dc720562da500af436a3c6e19e",
+      "aurisSha256": "401ed977091a9fa7a8b881022facee6801fd7d27084f73c792b967058e968494",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules/universal.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules/universal.ts",
+      "upstreamSha256": "c5d774d914eb9026d1a57ac6803d3a9b67319df87ae598d343bc8b46e3697a82",
+      "aurisSha256": "592b2725fa2ba82bde76a306639a4b47a6c290da60ff7953dc5079bc8230d18b",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/rules.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/rules.ts",
+      "upstreamSha256": "b54eb40c4d97b0d19a9aa4fcc8bea0715d270cefc31874a2945d6f47bc9fbf31",
+      "aurisSha256": "dafa43be403e1147d636276d12ae6ed3fa4552cfe9b116a2069ba88fb559ace1",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/segments.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/segments.ts",
+      "upstreamSha256": "b4cfd394bdb615fe85d552b7be20f2a4e54a33905057aa8c21d943fcf5d01132",
+      "aurisSha256": "22f0c545d2dc82c00d5bbce3ff2576a8539b93a0c5b651ea3d5579c8608f7ab8",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/technicalSubspans.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/technicalSubspans.ts",
+      "upstreamSha256": "a5d6a5ddcb8766af4aa2533060715c215ab3a643df6c84e73ce267dd9c8daf64",
+      "aurisSha256": "92f3991a0c6ac0191b66c841ebf8ce7c927a7505ce7de681d514d0ce9650a809",
+      "adaptations": [
+        "source attribution header"
+      ]
+    },
+    {
+      "upstreamPath": "src/lib/cjkFormatter/types.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/types.ts",
+      "upstreamSha256": "df56f3381b49175fef5b34e73751aed18108ad9c9479714021302159b4d4dddc",
+      "aurisSha256": "6ca524e4f2ca50ab537b8204c56e4cb5ba2efb33a313f79aea4ec3d7102e628e",
+      "adaptations": [
+        "keep Auris settings/defaults adapter",
+        "add linkLabel and character_reference contracts"
+      ]
+    },
+    {
+      "upstreamPath": "src/utils/markdownPipeline/fencedCodeBlocks.ts",
+      "aurisPath": "src/features/notes/formatting/cjk-formatter/fencedCodeBlocks.ts",
+      "upstreamSha256": "bb37f5f92bba124839d851984a52b314af3c88cae79325a3f028e4f4134d7c7a",
+      "aurisSha256": "ca1c6032a5173c0527d5b91d00d73052c8e1940e976806da23fbcfd51952a352",
+      "adaptations": [
+        "source attribution header"
+      ]
+    }
+  ]
+}

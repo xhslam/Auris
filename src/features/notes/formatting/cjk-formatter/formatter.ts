@@ -1,3 +1,5 @@
+// Source: VMark src/lib/cjkFormatter/formatter.ts
+// Commit: 2d3903cb2887a7c6a7a8df7b814f14b745bc2415; ISC (docs/vmark-port/UPSTREAM-LICENSE.txt).
 /**
  * Main CJK Text Formatter
  *
@@ -12,7 +14,7 @@
  *   - File-level formatting includes trailing whitespace and newline cleanup
  *   - There is ONE entry point. A selection is a slice of the document, so it
  *     needs the same protection a file does; the separate unprotected
- *     `formatSelection` was deleted (WI-CJKF1.1) after it was found rewriting
+ *     `formatSelection` was deleted after it was found rewriting
  *     fenced code and YAML frontmatter on a plain select-all.
  *   - Post-format integrity check compares the document's CONTENT SKELETON;
  *     returns the original text on mismatch (defense-in-depth), and the caller
@@ -49,7 +51,7 @@ function formatMarkdownWithoutTables(
    * this, which scanned the identical string a second time — half the
    * region work in a document with no tables, and region scanning is the
    * dominant cost on a large one. The table path cannot reuse them: it passes
-   * SLICES, whose offsets do not match (WI-CJKF7.3).
+   * SLICES, whose offsets do not match.
    */
   precomputedRegions?: ProtectedRegion[]
 ): string {
@@ -63,11 +65,14 @@ function formatMarkdownWithoutTables(
     ...segment,
     // The segment's own line edges override the caller's: a segment boundary
     // is not a line boundary, and the line-anchored rules are wrong without
-    // that distinction (WI-CJKF2.1).
+    // that distinction.
     text: applyRules(segment.text, config, {
       ...options,
       startsAtLineStart: segment.startsAtLineStart,
       endsAtLineEnd: segment.endsAtLineEnd,
+      // Per segment, never inherited: only this segment can begin with the
+      // `)` of the link to its left.
+      linkLabel: segment.linkLabel,
     }),
   }));
   return reconstructText(text, formattedSegments, protectedRegions);
@@ -77,7 +82,7 @@ function formatMarkdownWithoutTables(
  * What a format run did, for callers that need to tell a REFUSAL apart from
  * "nothing needed changing".
  *
- * Both return the input text, and before WI-CJKF6.2 nothing could distinguish
+ * Both return the input text, and originally nothing could distinguish
  * them: a failed integrity check logged to the log file and the user saw the
  * accelerator do nothing at all.
  */
@@ -133,7 +138,7 @@ export function formatMarkdownChecked(
   }
 
   // Final cleanup: trim trailing whitespace, then put the document's single
-  // final newline back (WI-CJKF2.4). Trailing backslashes are kept — a literal
+  // final newline back. Trailing backslashes are kept — a literal
   // backslash at EOF (e.g. a Windows path) is legitimate content, and a
   // hard-break backslash at EOF is harmless.
   //
@@ -144,9 +149,14 @@ export function formatMarkdownChecked(
   // convention so a CRLF file does not silently acquire a lone LF, and an
   // all-whitespace document stays empty rather than being handed a newline it
   // never had.
-  const trailingNewline = /(\r?\n)[\s]*$/.exec(out)?.[1] ?? "";
-  out = out.trimEnd();
-  if (out.length > 0) out += trailingNewline;
+  //
+  // The terminator is looked for in the trimmed-off tail only. Searching the
+  // whole text for "a line break followed by nothing but whitespace" retried
+  // from every line break in the document, and each try read to the end of
+  // its whitespace run — the square of a long run of blank lines.
+  const trimmed = out.trimEnd();
+  const trailingNewline = /\r?\n/.exec(out.slice(trimmed.length))?.[0] ?? "";
+  out = trimmed.length > 0 ? trimmed + trailingNewline : trimmed;
 
   // Integrity check: verify structural patterns survived formatting.
   // If any pattern count changed, the parser has a bug — return original text.

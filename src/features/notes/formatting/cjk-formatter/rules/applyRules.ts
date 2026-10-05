@@ -1,3 +1,5 @@
+// Source: VMark src/lib/cjkFormatter/rules/applyRules.ts
+// Commit: 2d3903cb2887a7c6a7a8df7b814f14b745bc2415; ISC (docs/vmark-port/UPSTREAM-LICENSE.txt).
 /**
  * applyRules — dispatcher that runs enabled CJK rules in the correct order.
  *
@@ -11,7 +13,7 @@
 
 import type { CJKFormattingSettings, FormatOptions } from "../types";
 import { cjkFmtWarn } from "../internal-deps";
-import { applyContextualQuotes } from "../quotePairing";
+import { applyContextualQuotes } from "../contextualQuotes";
 import { containsCJK } from "./shared";
 import { normalizeEllipsis, collapseNewlines } from "./universal";
 import {
@@ -76,7 +78,7 @@ export function applyRules(
     }
     prev = next;
   }
-  // Audit 20260804-F7: the cap used to be a SILENT truncation — a document
+  // The cap used to be a SILENT truncation — a document
   // that needed a ninth pass came back not-quite-normalized and the next
   // "Format CJK File" edited it again, which is precisely the non-idempotence
   // the fixed-point loop exists to prevent. The result is still returned (it
@@ -170,7 +172,7 @@ function applyRulesOnce(
     }
     // Note: cjk_parenthesis_spacing must run BEFORE fullwidth_parentheses
     if (config.cjkParenthesisSpacing) {
-      text = addCJKParenthesisSpacing(text);
+      text = addCJKParenthesisSpacing(text, options);
     }
     // Now convert remaining () to （） in CJK context
     if (config.fullwidthParentheses) {

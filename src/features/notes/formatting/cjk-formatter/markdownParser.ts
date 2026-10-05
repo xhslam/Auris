@@ -1,3 +1,5 @@
+// Source: VMark src/lib/cjkFormatter/markdownParser.ts
+// Commit: 2d3903cb2887a7c6a7a8df7b814f14b745bc2415; ISC (docs/vmark-port/UPSTREAM-LICENSE.txt).
 /**
  * Markdown Protected Region Scanner
  *
@@ -8,11 +10,19 @@
  * Key decisions:
  *   - Detection order matters: fenced code blocks first, then inline code,
  *     then images (before links to avoid URL-only protection on images),
- *     then link URLs, HTML tags, wiki links, footnotes, math, indented code
+ *     then link URLs, HTML tags, character references, wiki links, footnotes,
+ *     math, indented code
+ *   - HTML CHARACTER REFERENCES are protected (#1382). A reference is
+ *     punctuation wrapped around text, so any rule that rewrites punctuation
+ *     can reach its terminating `;` — and the fullwidth rule did, turning
+ *     `&#x5176;实` into `&#x5176；实`, which parses as literal text and is
+ *     escaped on the next save. Reachable without the user typing an entity,
+ *     because the WYSIWYG serializer emits one at a strong/emphasis delimiter
+ *     boundary. See characterReferences.ts for why the match is shape-based
  *   - Frontmatter covers BOTH delimiters, `---` (YAML) and `+++` (TOML)
  *   - An UNCLOSED fence claims the rest of the document, as CommonMark says;
  *     a document being edited is unterminated most of the time
- *   - Each regex checks isInsideRegion before adding, so nested constructs
+ *   - Each detector checks a region lookup before adding, so nested constructs
  *     (e.g., inline code inside a fenced block) are not double-protected
  *   - Link URLs protect only the URL part [text](URL), not the display text,
  *     so CJK in link text is still formatted
@@ -27,6 +37,7 @@
  *     callers can rely on sorted, strictly non-overlapping regions
  *
  * @coordinates-with formatter.ts — calls findProtectedRegions before formatting
+ * @coordinates-with fencedCode.ts — the fenced-code detector
  * @coordinates-with segments.ts — segment extraction/reconstruction over these regions
  * @coordinates-with rules.ts — formatting rules operate only on non-protected segments
  * @module lib/cjkFormatter/markdownParser
@@ -34,6 +45,9 @@
 
 import type { ProtectedRegion, ProtectedRegionOptions } from "./types";
 import { detectLineOrientedRegions } from "./markdownParserBlocks";
+import { detectInlineSpanRegions } from "./markdownParserInline";
+import { createRegionLookup } from "./protectedRegionSearch";
+import { findFencedCodeRegions } from "./fencedCode";
 
 /**
  * Find all protected regions in markdown text.
@@ -48,7 +62,7 @@ export function findProtectedRegions(
   // 1. Frontmatter (must be at start of document).
   //    Both delimiters: YAML `---` and TOML `+++`. TOML was missing, so a Hugo
   //    post's `title = "中文"` lost its straight quotes to smart-quote
-  //    conversion and stopped parsing (WI-CJKF2.3). The empty-block form
+  //    conversion and stopped parsing. The empty-block form
   //    (`+++\n+++`) is legal and has no body, hence the `*` alternative.
   const frontmatterMatch = text.match(
     /^(---|\+\+\+)\r?\n(?:[\s\S]*?\r?\n)?\1(?=\r?\n|$)/
@@ -64,10 +78,11 @@ export function findProtectedRegions(
   // 1b. Thematic breaks (horizontal rules): ---, ***, ___ on their own line
   // Must be 3+ of same char, optionally with spaces between, on its own line
   const thematicBreakRegex = /^[ \t]*([-*_])(?:[ \t]*\1){2,}[ \t]*$/gm;
+  const insideFrontmatter = createRegionLookup(regions);
   let thematicMatch;
   while ((thematicMatch = thematicBreakRegex.exec(text)) !== null) {
     // Skip if this is part of frontmatter (already protected)
-    if (!isInsideRegion(thematicMatch.index, regions)) {
+    if (!insideFrontmatter(thematicMatch.index)) {
       regions.push({
         start: thematicMatch.index,
         end: thematicMatch.index + thematicMatch[0].length,
@@ -76,177 +91,16 @@ export function findProtectedRegions(
     }
   }
 
-  // 2. Fenced code blocks (``` or ~~~), paired first.
-  //    Up to three spaces of indentation is a legal fence; four is indented
-  //    code, which detector 12 owns.
-  //
-  //    The closer must be AT LEAST as long as the opener (CommonMark), which
-  //    needs the fence CHARACTER captured separately from the run: `\2` pins
-  //    the opener's exact length and `\3*` allows more of the same character
-  //    after it. Matching `\2` alone — as this did — refuses a legal
-  //    ```` ``` ````-opened block closed by four backticks, and the block then
-  //    falls through to the unclosed-fence rule below and swallows the rest of
-  //    the document.
-  const fencedCodeRegex =
-    /^([ ]{0,3})((`|~)\3{2,})([^\n]*)\n([\s\S]*?)^[ ]{0,3}\2\3*[ \t]*$/gm;
-  let match;
-  while ((match = fencedCodeRegex.exec(text)) !== null) {
-    regions.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      type: "fenced_code",
-    });
-  }
+  // 2. Fenced code blocks (``` or ~~~), in one pass over the lines. An
+  //    unclosed fence claims the rest of the document; see
+  //    fencedCode.ts for the closing rule.
+  regions.push(...findFencedCodeRegions(text));
 
-  // 2b. An UNCLOSED fence claims the rest of the document (WI-CJKF2.2).
-  //     CommonMark closes an unterminated fence at end of input, and a document
-  //     being edited is unterminated most of the time — so without this, the
-  //     SAFE entry point rewrote the code the user was in the middle of typing:
-  //     `s = {'中文key': 1}` came back as `s = {‘中文 key’: 1}`, a broken Python
-  //     string literal. Detected on the ORIGINAL text and skipped when already
-  //     inside a paired fence, so a closed block's interior cannot re-open one.
-  const fenceOpenerRegex = /^[ ]{0,3}(`{3,}|~{3,})[^\n]*$/gm;
-  let opener;
-  while ((opener = fenceOpenerRegex.exec(text)) !== null) {
-    if (isInsideRegion(opener.index, regions)) continue;
-    regions.push({
-      start: opener.index,
-      end: text.length,
-      type: "fenced_code",
-    });
-    break;
-  }
-
-  // 3. Inline code (backticks, handling escaped and multiple backticks)
-  // Match `code` or ``code with ` inside`` etc.
-  const inlineCodeRegex = /(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/g;
-  while ((match = inlineCodeRegex.exec(text)) !== null) {
-    // Skip if inside a fenced code block
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "inline_code",
-      });
-    }
-  }
-
-  // 4. Images: ![alt](url) or ![alt](url "title")
-  const imageRegex = /!\[[^\]]*\]\([^)]+\)/g;
-  while ((match = imageRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "image",
-      });
-    }
-  }
-
-  // 5. Link URLs: [text](url) - protect only the URL part
-  const linkRegex = /\[([^\]]*)\]\(([^)]+)\)/g;
-  while ((match = linkRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      // Calculate the position of the URL part (after ](
-      const urlStart = match.index + match[1].length + 3; // [text](
-      const urlEnd = match.index + match[0].length - 1; // before )
-      regions.push({
-        start: urlStart,
-        end: urlEnd,
-        type: "link_url",
-      });
-    }
-  }
-
-  // 6. HTML tags (including self-closing and with attributes)
-  const htmlTagRegex = /<[a-zA-Z][^>]*>|<\/[a-zA-Z][^>]*>/g;
-  while ((match = htmlTagRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "html_tag",
-      });
-    }
-  }
-
-  // 7. Wiki links: [[target]] or [[target|display]]
-  const wikiLinkRegex = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g;
-  while ((match = wikiLinkRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "wiki_link",
-      });
-    }
-  }
-
-  // 8. Footnote definitions: [^1]: content (protect the marker, not content)
-  // Must be detected BEFORE references so [^1]: doesn't get split
-  const footnoteDefRegex = /^\[\^[^\]]+\]:/gm;
-  while ((match = footnoteDefRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "footnote_def",
-      });
-    }
-  }
-
-  // 9. Footnote references: [^1], [^note], etc.
-  const footnoteRefRegex = /\[\^[^\]]+\]/g;
-  while ((match = footnoteRefRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "footnote_ref",
-      });
-    }
-  }
-
-  // 10. Math blocks: $$...$$  (display math)
-  const mathBlockRegex = /\$\$[\s\S]*?\$\$/g;
-  while ((match = mathBlockRegex.exec(text)) !== null) {
-    if (!isInsideRegion(match.index, regions)) {
-      regions.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: "math_block",
-      });
-    }
-  }
-
-  // 11. Inline math: $...$ (but not $$, and not escaped \$).
-  //
-  //     The padding rule is micromark's, and it is the whole reason this is
-  //     not a naive `\$[^$\n]+\$` (WI-CJKF4.1): content may be padded with one
-  //     space on BOTH sides, but one-sided padding is not math at all. Without
-  //     it, `价格是 $100 和 $200 元` and `cost $5, tax $1` were "protected" —
-  //     which skipped the CJK rules inside them AND made the space in front of
-  //     the span a segment edge, so it was eaten as trailing whitespace.
-  //
-  //     `mathRegionParity.test.ts` checks a corpus against `parseMarkdown`
-  //     itself, so this cannot drift away from what VMark renders.
-  const mathInlineRegex = /(?<![\\$])\$(?!\$)([^$\n]+)\$(?!\$)/g;
-  while ((match = mathInlineRegex.exec(text)) !== null) {
-    if (isInsideRegion(match.index, regions)) continue;
-    const content = match[1];
-    const paddedLeft = /^[ \t]/.test(content);
-    const paddedRight = /[ \t]$/.test(content);
-    if (paddedLeft !== paddedRight) continue;
-    // An all-whitespace run is padding with nothing to pad.
-    if (paddedLeft && content.trim() === "") continue;
-    // A trailing backslash would escape the closing delimiter.
-    if (content.endsWith("\\")) continue;
-    regions.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      type: "math_inline",
-    });
-  }
+  // Detectors 3-11 are the inline SPAN detectors; they live in
+  // ./markdownParserInline.ts and append to `regions` in place, because
+  // these detectors are order-dependent and each reads what the previous
+  // ones claimed.
+  detectInlineSpanRegions(text, regions);
 
   // Detectors 12 (indented code) and 13 (reference sections) are the two
   // line-oriented ones; they live in ./markdownParserBlocks.ts and append to
@@ -274,11 +128,4 @@ export function findProtectedRegions(
   }
 
   return merged;
-}
-
-/**
- * Check if a position is inside any of the given regions.
- */
-function isInsideRegion(pos: number, regions: ProtectedRegion[]): boolean {
-  return regions.some((r) => pos >= r.start && pos < r.end);
 }

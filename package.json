@@ -1,6 +1,6 @@
 {
   "name": "auris",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": true,
   "main": "electron/main.cjs",
   "description": "Auris — language learning through listening and shadowing.",
@@ -141,6 +141,7 @@
     "electron-builder": "^26.15.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.7",
+    "fast-check": "4.10.2",
     "jsdom": "^29.0.0",
     "patch-package": "8.0.1",
     "playwright": "^1.58.2",

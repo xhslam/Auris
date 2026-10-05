@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-02",
+  "repository": "https://github.com/xiaolai/vmark",
+  "fromCommit": "662d73d46d2ed6294d087ad1ced30223384de170",
+  "toCommit": "fa785a7008999bc2077889a9faaca0175f122cee",
+  "license": "ISC",
+  "incrementalFiles": [
+    {
+      "upstreamPath": ".codex/hooks.json",
+      "assessment": "not-applicable",
+      "reason": "Only upstream bridge metadata was removed; actual hook definitions are unchanged. Auris has no tracked .codex/hooks.json."
+    },
+    {
+      "upstreamPath": "package.json",
+      "assessment": "upstream-version-metadata-only",
+      "reason": "VMark app, MCP and Tauri versions changed to 0.9.91. Auris has its own Electron package version; no runtime fix in this file."
+    },
+    {
+      "upstreamPath": "server/mcp/package.json",
+      "assessment": "upstream-version-metadata-only",
+      "reason": "VMark app, MCP and Tauri versions changed to 0.9.91. Auris has its own Electron package version; no runtime fix in this file."
+    },
+    {
+      "upstreamPath": "server/mcp/src/cli.ts",
+      "assessment": "upstream-version-metadata-only",
+      "reason": "VMark app, MCP and Tauri versions changed to 0.9.91. Auris has its own Electron package version; no runtime fix in this file."
+    },
+    {
+      "upstreamPath": "src-tauri/Cargo.lock",
+      "assessment": "upstream-version-metadata-only",
+      "reason": "VMark app, MCP and Tauri versions changed to 0.9.91. Auris has its own Electron package version; no runtime fix in this file."
+    },
+    {
+      "upstreamPath": "src-tauri/Cargo.toml",
+      "assessment": "upstream-version-metadata-only",
+      "reason": "VMark app, MCP and Tauri versions changed to 0.9.91. Auris has its own Electron package version; no runtime fix in this file."
+    },
+    {
+      "upstreamPath": "src-tauri/tauri.conf.json",
+      "assessment": "upstream-version-metadata-only",
+      "reason": "VMark app, MCP and Tauri versions changed to 0.9.91. Auris has its own Electron package version; no runtime fix in this file."
+    },
+    {
+      "upstreamPath": "src/plugins/sourceFootnotePopup/SourceFootnotePopupView.ts",
+      "assessment": "behavior-verified-existing-source-editor; popup-feature-gap",
+      "reason": "Auris does not register a footnote popup. Existing raw source editing retains focus and selections; popup trigger limits and explicit autofocus remain unimplemented."
+    },
+    {
+      "upstreamPath": "src/plugins/sourceFootnotePopup/sourceFootnoteEditing.test.ts",
+      "assessment": "behavior-verified-existing-source-editor; popup-feature-gap",
+      "reason": "Auris does not register a footnote popup. Existing raw source editing retains focus and selections; popup trigger limits and explicit autofocus remain unimplemented."
+    },
+    {
+      "upstreamPath": "src/plugins/sourceFootnotePopup/sourceFootnotePopupPlugin.test.ts",
+      "assessment": "behavior-verified-existing-source-editor; popup-feature-gap",
+      "reason": "Auris does not register a footnote popup. Existing raw source editing retains focus and selections; popup trigger limits and explicit autofocus remain unimplemented."
+    },
+    {
+      "upstreamPath": "src/plugins/sourceFootnotePopup/sourceFootnotePopupPlugin.ts",
+      "assessment": "behavior-verified-existing-source-editor; popup-feature-gap",
+      "reason": "Auris does not register a footnote popup. Existing raw source editing retains focus and selections; popup trigger limits and explicit autofocus remain unimplemented."
+    }
+  ],
+  "aurisProductionSourceChanged": false,
+  "evidence": {
+    "command": "npx vitest run tests/unit/notes/source-footnote-editing.test.ts tests/unit/notes/editor-multicursor.test.ts tests/unit/notes/markdown-link-source-interaction.test.ts tests/unit/vmark tests/unit/notes/editor-mixed-rendering.test.tsx",
+    "filesPassed": 6,
+    "testsPassed": 77,
+    "newRegressionTests": 10,
+    "testPath": "tests/unit/notes/source-footnote-editing.test.ts",
+    "targetedEslintPassed": true,
+    "gitDiffCheckPassed": true
+  },
+  "limitations": [
+    "No footnote popup or explicit popup autofocus parity",
+    "Synthetic click/mousemove and selection transactions in jsdom, not native drag-selection or Electron UI verification",
+    "No build, application replacement, version bump, commit, push or release",
+    "12 historical provenance mappings remain stale; this is an incremental review only"
+  ]
+}

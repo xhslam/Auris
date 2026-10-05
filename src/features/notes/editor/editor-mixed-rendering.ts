@@ -27,7 +27,7 @@ import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
 } from "@/features/notes/documents/wiki-link-navigation";
-import { findCompatibleMathDelimiterSpans } from "@/features/notes/markdown/notes-markdown-dialect";
+import { findNotesMathDelimiterSpans } from "@/features/notes/markdown/notes-markdown-dialect";
 
 const HEADING_PATTERN = /^(#{1,6})\s+/;
 const TASK_PATTERN = /^(\s*)([-*+])\s+\[([ xX])\](\s*)/;
@@ -414,26 +414,6 @@ function addMathDecoration(
   );
 }
 
-function isEscapedDollar(text: string, index: number) {
-  let backslashCount = 0;
-
-  for (let cursor = index - 1; cursor >= 0 && text[cursor] === "\\"; cursor -= 1) {
-    backslashCount += 1;
-  }
-
-  return backslashCount % 2 === 1;
-}
-
-function isInlineMathSpan(text: string, from: number, to: number) {
-  const body = text.slice(from + 1, to);
-
-  if (!body.trim() || /^\s|\s$/.test(body)) {
-    return false;
-  }
-
-  return true;
-}
-
 type InlineSpan = {
   decoration: Decoration;
   from: number;
@@ -446,7 +426,7 @@ function collectInlineMathSpans(line: {
 }): InlineSpan[] {
   const spans: InlineSpan[] = [];
 
-  for (const span of findCompatibleMathDelimiterSpans(line.text)) {
+  for (const span of findNotesMathDelimiterSpans(line.text)) {
     spans.push({
       decoration: Decoration.replace({
         widget: new MathInlinePreviewWidget({
@@ -457,70 +437,6 @@ function collectInlineMathSpans(line: {
       from: line.from + span.start,
       to: line.from + span.end,
     });
-  }
-
-  let searchStart = 0;
-
-  while (searchStart < line.text.length) {
-    const open = line.text.indexOf("$", searchStart);
-
-    if (open < 0) {
-      break;
-    }
-
-    if (line.text[open + 1] === "$" || isEscapedDollar(line.text, open)) {
-      searchStart = open + 1;
-      continue;
-    }
-
-    let close = -1;
-    let cursor = open + 1;
-
-    while (cursor < line.text.length) {
-      const candidate = line.text.indexOf("$", cursor);
-
-      if (candidate < 0) {
-        break;
-      }
-
-      if (
-        line.text[candidate + 1] === "$" ||
-        isEscapedDollar(line.text, candidate)
-      ) {
-        cursor = candidate + 1;
-        continue;
-      }
-
-      if (!isInlineMathSpan(line.text, open, candidate)) {
-        cursor = candidate + 1;
-        continue;
-      }
-
-      close = candidate;
-      break;
-    }
-
-    if (close < 0) {
-      searchStart = open + 1;
-      continue;
-    }
-
-    const mathText = line.text.slice(open + 1, close).trim();
-
-    spans.push({
-      decoration: Decoration.replace({
-        widget: new MathInlinePreviewWidget({
-          text: mathText,
-        }),
-      }),
-      from: line.from + open,
-      to: line.from + close + 1,
-    });
-
-    searchStart = close + 1;
-    if (searchStart <= open) {
-      searchStart = open + 1;
-    }
   }
 
   return spans;

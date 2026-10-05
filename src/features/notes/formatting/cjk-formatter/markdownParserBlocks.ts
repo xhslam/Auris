@@ -1,3 +1,5 @@
+// Source: VMark src/lib/cjkFormatter/markdownParserBlocks.ts
+// Commit: 2d3903cb2887a7c6a7a8df7b814f14b745bc2415; ISC (docs/vmark-port/UPSTREAM-LICENSE.txt).
 /**
  * The two LINE-ORIENTED protected-region detectors.
  *
@@ -15,11 +17,7 @@
  */
 
 import type { ProtectedRegion, ProtectedRegionOptions } from "./types";
-
-/** Whether `pos` falls inside any region collected so far. */
-function isInsideRegion(pos: number, regions: ProtectedRegion[]): boolean {
-  return regions.some((r) => pos >= r.start && pos < r.end);
-}
+import { createRegionLookup } from "./protectedRegionSearch";
 
 /** Detectors 12 and 13, appended to `regions` in their established order. */
 export function detectLineOrientedRegions(
@@ -31,6 +29,7 @@ export function detectLineOrientedRegions(
   // This is tricky - we look for lines starting with 4+ spaces
   // that aren't list continuations
   const lines = text.split("\n");
+  const insideEarlierRegion = createRegionLookup(regions);
   let pos = 0;
   let inIndentedBlock = false;
   let blockStart = 0;
@@ -40,7 +39,7 @@ export function detectLineOrientedRegions(
     const isIndented = /^( {4}|\t)/.test(line) && line.trim().length > 0;
     const isBlankLine = line.trim().length === 0;
 
-    if (isIndented && !isInsideRegion(pos, regions)) {
+    if (isIndented && !insideEarlierRegion(pos)) {
       if (!inIndentedBlock) {
         // Check previous non-blank line - if it's a list item, this is continuation
         let prevNonBlank = i - 1;
@@ -86,9 +85,10 @@ export function detectLineOrientedRegions(
   if (options.skipReferenceSections) {
     const refHeadingRegex = /^## (?:References|Further Reading)[ \t]*$/gm;
     const nextH2Regex = /^## /gm;
+    const insideRegion = createRegionLookup(regions);
     let refMatch;
     while ((refMatch = refHeadingRegex.exec(text)) !== null) {
-      if (isInsideRegion(refMatch.index, regions)) continue;
+      if (insideRegion(refMatch.index)) continue;
       // Find the next ## heading after this one
       nextH2Regex.lastIndex = refMatch.index + refMatch[0].length;
       const nextHeading = nextH2Regex.exec(text);

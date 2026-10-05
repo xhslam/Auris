@@ -9,6 +9,8 @@ export interface FormatOptions {
   preserveTwoSpaceHardBreaks?: boolean;
   startsAtLineStart?: boolean;
   endsAtLineEnd?: boolean;
+  /** Visible label of the link whose closing parenthesis begins this segment. */
+  linkLabel?: string | undefined;
 }
 
 export type { CJKFormattingSettings, QuoteStyle };
@@ -32,7 +34,8 @@ export interface ProtectedRegion {
     | "math_block"
     | "math_inline"
     | "thematic_break"
-    | "reference_section";
+    | "reference_section"
+    | "character_reference";
 }
 
 export interface ProtectedRegionOptions {

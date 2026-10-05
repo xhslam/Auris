@@ -123,6 +123,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     handleDocumentChange,
     handleSaveActiveDocument,
     handleSaveAllDocuments,
+    handleSaveDocument,
     writeConflict,
     searchResults,
   } = useNotesDocuments({
@@ -610,6 +611,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
           documents: documentsRef.current,
           onDocumentChange: handleDocumentChangeWithEditTracking,
           onPendingEdit: handlePendingMcpEdit,
+          onSaveDocument: handleSaveDocument,
           setWorkspace,
           workspace: workspaceRef.current,
         });
@@ -628,7 +630,7 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
       isDisposed = true;
       unsubscribe();
     };
-  }, [client.rootPath, client.writeFile, desktopBridge?.notesMcp, handleDocumentChangeWithEditTracking, handlePendingMcpEdit, setErrorMessage, setWorkspace]);
+  }, [client.rootPath, client.writeFile, desktopBridge?.notesMcp, handleDocumentChangeWithEditTracking, handlePendingMcpEdit, handleSaveDocument, setErrorMessage, setWorkspace]);
 
   const commandPaletteItems = useMemo(
     () =>

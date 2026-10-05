@@ -31,6 +31,7 @@ type WorkspaceContext = {
   dirtyPaths: Record<string, boolean>;
   onDocumentChange?: (path: string, rawSource: string) => void;
   onPendingEdit?: NotesMcpPendingEditHandler;
+  onSaveDocument?: (path: string) => Promise<{ status: string; persistedSource?: string }>;
   setWorkspace: (update: (current: NotesWorkspaceState) => NotesWorkspaceState) => void;
   workspace: NotesWorkspaceState;
 };
@@ -197,10 +198,20 @@ export function executeNotesMcpWorkspaceRequest(
 
   if (data.action === "save") {
     const document = getDocument(context, data.tab_id);
-    return {
-      revision: createNotesMcpRevision(document.rawSource),
-      tab_id: document.path,
-    };
+    // Like VMark saveToPathForMcp (2d3903cb2, ISC), acknowledge the shared
+    // persistence pipeline, not a revision computed from an unsaved capture.
+    if (!context.workspace.openTabs.includes(document.path)) {
+      throwMcpError("INVALID_TAB", "The requested Auris note tab is not open.");
+    }
+    if (!context.onSaveDocument) {
+      throwMcpError("NOTES_UNAVAILABLE", "The Auris note save pipeline is not ready.");
+    }
+    return context.onSaveDocument(document.path).then(result => {
+      if (result.status !== "saved" || typeof result.persistedSource !== "string") {
+        throwMcpError(result.status === "conflict" ? "STALE" : "NOTES_UNAVAILABLE", "The Auris note could not be saved.");
+      }
+      return { revision: createNotesMcpRevision(result.persistedSource), tab_id: document.path };
+    });
   }
 
   if (data.action === "close") {

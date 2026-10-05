@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { executeNotesMcpWorkspaceRequest } from "@/features/notes/workbench/notes-mcp-workspace-handler";
+import { createNotesMcpRevision } from "@/features/notes/workbench/notes-mcp-contract";
 import type { NotesMcpPendingEditHandler } from "@/features/notes/workbench/notes-mcp-edit-review";
 import { createWorkspaceState, openWorkspacePath } from "@/features/notes/workspace/workspace-store";
 
@@ -275,28 +276,84 @@ describe("notes MCP workspace handler", () => {
     expect(setWorkspace).toHaveBeenCalledOnce();
   });
 
-  it("opens an existing vault note and reports its revision when saving", () => {
+  it("opens an existing vault note and reports the persisted revision after saving", async () => {
     const setWorkspace = vi.fn();
     const context = {
       client: { rootPath: "/vault" },
       documents: [{ path: "Inbox/Existing.md", rawSource: "# Existing" }],
       dirtyPaths: {},
+      onSaveDocument: vi.fn(async () => ({ status: "saved", persistedSource: "# Existing" })),
       setWorkspace,
       workspace: createWorkspaceState(),
     };
 
     expect(
       executeNotesMcpWorkspaceRequest(
-        { method: "notes.mcp.workspace", params: { action: "open", path: "Inbox/Existing.md" } },
+      { method: "notes.mcp.workspace", params: { action: "open", path: "Inbox/Existing.md" } },
         context,
       ),
     ).toEqual({ tab_id: "Inbox/Existing.md" });
-    expect(
+    context.workspace = openWorkspacePath(context.workspace, "Inbox/Existing.md");
+    expect(await
       executeNotesMcpWorkspaceRequest(
         { method: "notes.mcp.workspace", params: { action: "save", tab_id: "Inbox/Existing.md" } },
         context,
       ),
     ).toMatchObject({ tab_id: "Inbox/Existing.md", revision: expect.any(String) });
+    expect(context.onSaveDocument).toHaveBeenCalledWith("Inbox/Existing.md");
+  });
+
+  it("does not acknowledge a save before the shared writer finishes", async () => {
+    let finish!: (value: { status: string; persistedSource: string }) => void;
+    const writing = new Promise<{ status: string; persistedSource: string }>(resolve => { finish = resolve; });
+    const onSaveDocument = vi.fn(() => writing);
+    const context = {
+      client: { rootPath: "/vault" },
+      documents: [{ path: "Daily.md", rawSource: "# stale capture" }],
+      dirtyPaths: { "Daily.md": true },
+      onSaveDocument,
+      setWorkspace: vi.fn(),
+      workspace: openWorkspacePath(createWorkspaceState(), "Daily.md"),
+    };
+    let acknowledged = false;
+    const pending = Promise.resolve(executeNotesMcpWorkspaceRequest(
+      { method: "notes.mcp.workspace", params: { action: "save", tab_id: "Daily.md" } }, context,
+    )).then(result => { acknowledged = true; return result; });
+    await Promise.resolve();
+    expect(onSaveDocument).toHaveBeenCalledWith("Daily.md");
+    expect(acknowledged).toBe(false);
+    finish({ status: "saved", persistedSource: "# actual normalized bytes" });
+    expect(await pending).toMatchObject({ revision: createNotesMcpRevision("# actual normalized bytes") });
+  });
+
+  it.each(["conflict", "failed", "missing"])("refuses to acknowledge a %s save", async status => {
+    const context = {
+      client: { rootPath: "/vault" },
+      documents: [{ path: "Daily.md", rawSource: "# text" }],
+      dirtyPaths: { "Daily.md": true },
+      onSaveDocument: vi.fn(async () => ({ status })),
+      setWorkspace: vi.fn(),
+      workspace: openWorkspacePath(createWorkspaceState(), "Daily.md"),
+    };
+    await expect((async () => await executeNotesMcpWorkspaceRequest(
+      { method: "notes.mcp.workspace", params: { action: "save", tab_id: "Daily.md" } }, context,
+    ))()).rejects.toThrow(status === "conflict" ? /STALE/ : /NOTES_UNAVAILABLE/);
+  });
+
+  it("does not write a cached document whose tab is closed", () => {
+    const onSaveDocument = vi.fn();
+    expect(() => executeNotesMcpWorkspaceRequest(
+      { method: "notes.mcp.workspace", params: { action: "save", tab_id: "Closed.md" } },
+      { client: { rootPath: "/vault" }, documents: [{ path: "Closed.md", rawSource: "# discarded" }], dirtyPaths: {}, onSaveDocument, setWorkspace: vi.fn(), workspace: createWorkspaceState() },
+    )).toThrow(/INVALID_TAB/);
+    expect(onSaveDocument).not.toHaveBeenCalled();
+  });
+
+  it("refuses to save when the pipeline is unavailable", () => {
+    expect(() => executeNotesMcpWorkspaceRequest(
+      { method: "notes.mcp.workspace", params: { action: "save", tab_id: "Daily.md" } },
+      { client: { rootPath: "/vault" }, documents: [{ path: "Daily.md", rawSource: "# text" }], dirtyPaths: {}, setWorkspace: vi.fn(), workspace: openWorkspacePath(createWorkspaceState(), "Daily.md") },
+    )).toThrow(/NOTES_UNAVAILABLE/);
   });
 
   it("creates a new vault-relative Markdown note without overwriting an existing document", async () => {

@@ -42,6 +42,17 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("notes mixed rendering", () => {
+  it("uses the shared dollar/export dialect and protects code in mixed preview", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const doc = ["Paragraph", String.raw`公式 \\$$G\\\_c = \\\\frac{1}{s}\\\\$$，行内 $K$`, "`$K$` costs $100 and $200"].join("\n");
+    const view = new EditorView({ parent: host, state: EditorState.create({ doc, extensions: [notesMixedRendering] }) });
+    expect(host.querySelectorAll(".notes-v2__cm-inline-math-preview")).toHaveLength(2);
+    expect(host.querySelector(".katex-error")).toBeNull();
+    expect(host.querySelector(".notes-v2__cm-inline-math-preview--display")).not.toBeNull();
+    view.destroy();
+    host.remove();
+  });
   it("keeps the extracted title and every body Markdown marker visible in source mode", () => {
     const { container } = render(
       <NotesEditorPane

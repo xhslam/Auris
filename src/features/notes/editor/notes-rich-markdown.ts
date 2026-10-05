@@ -19,6 +19,7 @@ import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
+import { createInertNotesHtmlContainer } from "./notes-inert-html";
 import {
   getWikiLinkLabel,
   parseWikiLinkTarget,
@@ -26,7 +27,7 @@ import {
 import { renderMathMarkup } from "@/features/notes/editor/code-block-preview";
 import {
   createNotesMarkdownProcessor,
-  findCompatibleMathDelimiterSpans,
+  findNotesMathDelimiterSpans,
   normalizeNotesMathDelimiters,
 } from "@/features/notes/markdown/notes-markdown-dialect";
 import {
@@ -136,9 +137,46 @@ function mathElement(tagName: "div" | "span", property: string, value: string) {
   };
 }
 
+/** Keep AST-only information through Auris's MDAST → HTML → ProseMirror bridge.
+ * Reference: VMark markdownPipeline/parser/serializer, 2d3903cb2, ISC.
+ */
+function remarkRichEditorMetadata() {
+  type MarkdownNode = {
+    type: string;
+    lang?: string | null;
+    meta?: string | null;
+    spread?: boolean;
+    children?: MarkdownNode[];
+    data?: { hProperties?: Record<string, unknown> };
+  };
+  return (tree: MarkdownNode) => {
+    const visit = (node: MarkdownNode) => {
+      if (node.type === "code" || node.type === "list") {
+        node.data ??= {};
+        node.data.hProperties ??= {};
+        if (node.type === "code") {
+          node.data.hProperties.dataNotesCodeParams = [node.lang, node.meta].filter(Boolean).join(" ");
+        } else {
+          node.data.hProperties.dataNotesListTight = String(!node.spread && !node.children?.some(child => child.spread));
+        }
+      }
+      node.children?.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
 const richMarkdownPipeline = createNotesMarkdownProcessor()
+  .use(remarkRichEditorMetadata)
   .use(remarkRehype, {
     handlers: {
+      // A paragraph-final/consecutive hard break requires inline HTML to
+      // survive CommonMark. Other raw HTML keeps the existing import policy.
+      html(_state, node) {
+        if (/^<br\s*\/?\s*>$/iu.test(node.value)) {
+          return { type: "element", tagName: "br", properties: {}, children: [] };
+        }
+      },
       inlineMath(_state, node) {
         return mathElement(
           "span",
@@ -302,7 +340,7 @@ const codeBlockNodeSpec: NodeSpec = {
         const languageMatch = className.match(/(?:^|\s)language-([^\s]+)/);
 
         return {
-          params: languageMatch?.[1] ?? "",
+          params: code?.getAttribute("data-notes-code-params") ?? languageMatch?.[1] ?? "",
         };
       },
       preserveWhitespace: "full" as const,
@@ -312,7 +350,8 @@ const codeBlockNodeSpec: NodeSpec = {
   toDOM(node: ProseMirrorNode) {
     const attrs = node.attrs.params
       ? {
-          class: `language-${node.attrs.params}`,
+          class: `language-${String(node.attrs.params).split(/\s/u)[0]}`,
+          "data-notes-code-params": node.attrs.params,
         }
       : {};
 
@@ -328,7 +367,31 @@ const codeBlockNodeSpec: NodeSpec = {
 };
 
 const baseNodes = basicSchema.spec.nodes.update("code_block", codeBlockNodeSpec);
-const listNodes = addListNodes(baseNodes, "paragraph block*", "block");
+const listNodes = ["bullet_list", "ordered_list"].reduce((nodes, name) => {
+  const spec = nodes.get(name)!;
+  const ordered = name === "ordered_list";
+  return nodes.update(name, {
+    ...spec,
+    attrs: { ...spec.attrs, tight: { default: true } },
+    parseDOM: [{
+      tag: ordered ? "ol" : "ul",
+      getAttrs(dom: HTMLElement) {
+        return {
+          ...(ordered ? { order: Number(dom.getAttribute("start") ?? 1) } : {}),
+          tight: dom.hasAttribute("data-notes-list-tight")
+            ? dom.getAttribute("data-notes-list-tight") === "true"
+            : !Array.from(dom.children).some(child => Array.from(child.children).some(block => block.tagName === "P")),
+        };
+      },
+    }],
+    toDOM(node): DOMOutputSpec {
+      return [ordered ? "ol" : "ul", {
+        ...(ordered && node.attrs.order !== 1 ? { start: node.attrs.order } : {}),
+        "data-notes-list-tight": String(node.attrs.tight),
+      }, 0];
+    },
+  });
+}, addListNodes(baseNodes, "paragraph block*", "block"));
 // Block atom whose NodeView renders a live heading navigator.
 const tableOfContentsNodeSpec: NodeSpec = {
   atom: true,
@@ -437,6 +500,15 @@ function serializeTable(node: ProseMirrorNode) {
 export const notesRichMarkdownSerializer = new MarkdownSerializer(
   {
     ...defaultMarkdownSerializer.nodes,
+    hard_break(state, node, parent, index) {
+      // Backslash at paragraph end is literal text; a blank line ends the
+      // paragraph. Explicit br keeps both final and consecutive break nodes.
+      if (index === parent.childCount - 1 || parent.child(index + 1).type === node.type) {
+        state.write("<br>");
+      } else {
+        defaultMarkdownSerializer.nodes.hard_break(state, node, parent, index);
+      }
+    },
     table(nodeSerializerState, node) {
       nodeSerializerState.write(serializeTable(node));
       nodeSerializerState.closeBlock(node);
@@ -455,11 +527,20 @@ export const notesRichMarkdownSerializer = new MarkdownSerializer(
       state.write(`[[${token}]]`);
     },
     math_block(state, node) {
-      state.write(`$$\n${node.attrs.content as string}\n$$`);
+      const content = node.attrs.content as string;
+      const longest = Math.max(1, ...content.split("\n").map(line => /^\s*(\$+)\s*$/u.exec(line)?.[1].length ?? 0));
+      const fence = "$".repeat(longest + 1);
+      state.write(`${fence}\n`);
+      state.text(content, false);
+      state.write("\n");
+      state.write(fence);
       state.closeBlock(node);
     },
     math_inline(state, node) {
-      state.write(`$${node.attrs.content as string}$`);
+      const content = node.attrs.content as string;
+      const longest = Math.max(0, ...(content.match(/\$+/gu) ?? []).map(run => run.length));
+      const fence = "$".repeat(longest + 1);
+      state.write(`${fence}${content}${fence}`);
     },
     toc(state, node) {
       state.write("[TOC]");
@@ -529,9 +610,7 @@ function parsePastedMathInTextRun(
   schema: Schema,
 ) {
   const source = textNodes.map((node) => node.text ?? "").join("");
-  const spans = findCompatibleMathDelimiterSpans(source).filter(
-    (span) => span.kind === "inline",
-  );
+  const spans = findNotesMathDelimiterSpans(source);
 
   if (spans.length === 0 || !schema.nodes.math_inline) return null;
 
@@ -568,10 +647,10 @@ function parsePastedMathInTextRun(
   for (const span of spans) {
     appendText(cursor, span.start);
     result.push(
-      schema.nodes.math_inline.create(
+      schema.nodes[span.kind === "display" ? "math_block" : "math_inline"].create(
         { content: span.content },
         null,
-        marksAt(span.start),
+        span.kind === "inline" ? marksAt(span.start) : [],
       ),
     );
     cursor = span.end;
@@ -617,11 +696,9 @@ function transformPastedMathFragment(
       continue;
     }
 
-    const transformed = child.isLeaf
-      ? child
-      : transformPastedMathNode(child, schema);
-    nodes.push(transformed);
-    changed ||= transformed !== child;
+    const transformed = child.isLeaf ? [child] : transformPastedMathNode(child, schema);
+    nodes.push(...transformed);
+    changed ||= transformed.length !== 1 || transformed[0] !== child;
     index += 1;
   }
 
@@ -631,21 +708,46 @@ function transformPastedMathFragment(
 function transformPastedMathNode(
   node: ProseMirrorNode,
   schema: Schema,
-): ProseMirrorNode {
-  if (node.isLeaf || node.type.spec.code) return node;
+): ProseMirrorNode[] {
+  if (node.isLeaf || node.type.spec.code) return [node];
   const content = transformPastedMathFragment(node.content, schema);
-  return content === node.content ? node : node.copy(content);
+  if (content === node.content) return [node];
+  if (!node.isTextblock) return [node.copy(content)];
+  const blocks: ProseMirrorNode[] = [];
+  let inline: ProseMirrorNode[] = [];
+  const flush = () => {
+    if (inline.length) blocks.push(node.copy(Fragment.fromArray(inline)));
+    inline = [];
+  };
+  content.forEach(child => {
+    if (child.type.name === "math_block") { flush(); blocks.push(child); }
+    else inline.push(child);
+  });
+  flush();
+  return blocks;
 }
 
-/** Parse pasted inline math delimiters inside rich Notes. */
+/** Import formula atoms before pasted prose can acquire Markdown escapes. */
 export function createNotesRichMathPastePlugin(schema: Schema) {
   return new Plugin({
     props: {
+      clipboardTextParser(text, $context) {
+        // Pasting inside code must remain literal. For plain Markdown paste,
+        // import the entire structure rather than serializing TeX as prose.
+        try {
+          if ($context.parent.type.spec.code || text.length > NOTES_RICH_PARSER_LIMITS.maxCharacters) return null as unknown as Slice;
+          assertNotesMarkdownNestingSafe(text);
+          if (!findNotesMathDelimiterSpans(text).length) return null as unknown as Slice;
+          return Slice.maxOpen(parseNotesRichMarkdown(text, { throwOnRefusal: true }).content);
+        } catch {
+          return null as unknown as Slice;
+        }
+      },
       transformPasted(slice) {
         const content = transformPastedMathFragment(slice.content, schema);
-        return content === slice.content
-          ? slice
-          : new Slice(content, slice.openStart, slice.openEnd);
+        if (content === slice.content) return slice;
+        const maxOpen = Slice.maxOpen(content);
+        return new Slice(content, Math.min(slice.openStart, maxOpen.openStart), Math.min(slice.openEnd, maxOpen.openEnd));
       },
     },
   });
@@ -719,10 +821,9 @@ export function parseNotesRichMarkdown(
 
   try {
     assertNotesMarkdownNestingSafe(source);
-    const container = document.createElement("div");
-    container.innerHTML = String(
+    const container = createInertNotesHtmlContainer(String(
       richMarkdownPipeline.processSync(normalizeNotesMathDelimiters(source)),
-    );
+    ));
     return DOMParser.fromSchema(notesRichEditorSchema).parse(container);
   } catch (error) {
     if (options?.throwOnRefusal) {

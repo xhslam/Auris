@@ -1217,10 +1217,8 @@ describe("convertToCJKCornerQuotes", () => {
       expect(convertToCJKCornerQuotes(`${OQ}什么？${CQ}`)).toBe("「什么？」");
     });
 
-    // NOTE: CJK Extension A (U+3400-U+4DBF) is NOT detected by this function
-    // Only basic CJK Unified Ideographs (U+4E00-U+9FFF) are detected
-    it("does NOT convert CJK Extension A characters (limitation)", () => {
-      expect(convertToCJKCornerQuotes(`${OQ}㐀㐁${CQ}`)).toBe(`${OQ}㐀㐁${CQ}`);
+    it("converts CJK Extension A characters using the shared script contract", () => {
+      expect(convertToCJKCornerQuotes(`${OQ}㐀㐁${CQ}`)).toBe("「㐀㐁」");
     });
 
     it("converts when Extension A is mixed with basic CJK", () => {
