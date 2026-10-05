@@ -172,12 +172,12 @@ function createTerminalBridge(
   };
 }
 
-function createDeferredCreateResult() {
+function createDeferredCreateResult(backend: "pipe" | "pty" = "pty") {
   let resolve: ((sessionId: string) => void) | null = null;
 
   return {
     promise: new Promise<{
-      backend: "pty";
+      backend: "pipe" | "pty";
       cols: number;
       cwd: string | null;
       id: string;
@@ -186,7 +186,7 @@ function createDeferredCreateResult() {
     }>((nextResolve) => {
       resolve = (sessionId: string) =>
         nextResolve({
-          backend: "pty",
+          backend,
           cols: 80,
           cwd: "C:\\vault",
           id: sessionId,
@@ -547,10 +547,40 @@ describe("NotesTerminalPanel", () => {
       terminalInputListeners[0]?.("echo READY\r");
     });
 
-    expect(terminal.bridge.write).toHaveBeenCalledWith(
+    await waitFor(() => expect(terminal.bridge.write).toHaveBeenCalledWith(
       "notes-term-1",
       "echo READY\n",
-    );
+    ));
+  });
+
+  it("writes input arriving after pipe startup drains its queue but before React commits", async () => {
+    const terminal = createTerminalBridge("pipe");
+    terminal.bridge.write = vi.fn(async (_sessionId, data) => {
+      if (data === "\n") terminalInputListeners[0]?.("echo READY\r");
+    });
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+
+    await waitFor(() => expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-1", "echo READY\n"));
+    expect(terminal.bridge.write).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["pipe", "pty"] as const)("writes new input while draining restored %s input", async (backend) => {
+    const terminal = createTerminalBridge(backend);
+    const deferred = createDeferredCreateResult(backend);
+    terminal.bridge.resume = vi.fn(() => deferred.promise);
+    const first = backend === "pipe" ? "echo FIRST\n" : "echo FIRST\r";
+    const next = backend === "pipe" ? "echo NEXT\n" : "echo NEXT\r";
+    terminal.bridge.write = vi.fn(async (_sessionId, data) => {
+      if (data === first) terminalInputListeners[0]?.("echo NEXT\r");
+    });
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    await act(async () => { terminalInputListeners[0]?.("echo FIRST\r"); });
+    expect(terminal.bridge.write).not.toHaveBeenCalled();
+
+    await act(async () => { deferred.resolve("notes-term-1"); });
+    await waitFor(() => expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-1", next));
+    expect(vi.mocked(terminal.bridge.write).mock.calls).toEqual([["notes-term-1", first], ["notes-term-1", next]]);
   });
 
   it("queues input while the backend is restoring instead of losing the first command", async () => {

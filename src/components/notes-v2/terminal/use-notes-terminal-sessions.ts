@@ -512,11 +512,11 @@ export function useNotesTerminalSessions({
 
   const markSession = useCallback(
     (sessionId: string, patch: Partial<NotesTerminalSession>) => {
-      setSessions((current) => {
-        const nextSessions = patchSessions(current, sessionId, patch);
-        sessionsRef.current = nextSessions;
-        return nextSessions;
-      });
+      // Input callbacks can run before React commits this state update.
+      // Publish the backend/status transition before draining pending input;
+      // otherwise a fresh command can enter the already-drained start queue.
+      sessionsRef.current = patchSessions(sessionsRef.current, sessionId, patch);
+      setSessions((current) => patchSessions(current, sessionId, patch));
     },
     [],
   );

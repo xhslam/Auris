@@ -23,6 +23,7 @@ on:
       - "src/platform/notes/**"
       - "tests/component/notes/**"
       - "tests/unit/notes/**"
+      - "tests/unit/vmark/**"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
@@ -55,6 +56,7 @@ on:
       - "src/platform/notes/**"
       - "tests/component/notes/**"
       - "tests/unit/notes/**"
+      - "tests/unit/vmark/**"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
@@ -89,23 +91,11 @@ jobs:
       - name: Unit and component notes tests
         run: >
           npm test --
-          tests/unit/notes/notes-mcp-request-handler.test.ts
-          tests/unit/notes/notes-mcp-workspace-handler.test.ts
-          tests/unit/notes/notes-mcp-contract.test.ts
-          tests/unit/notes/notes-markdown-nesting.test.ts
-          tests/unit/notes/markdown-linear-dependencies.test.ts
-          tests/unit/notes/notes-math-render-scheduler.test.ts
+          tests/unit/notes/
+          tests/component/notes/
+          tests/unit/vmark/
           tests/unit/electron/terminal-session-manager.test.ts
           tests/unit/electron/terminal-transcript-service.test.ts
           tests/unit/electron/macos-terminal-permissions.test.ts
-          tests/component/notes/notes-math-node-view.test.tsx
-          tests/component/notes/notes-terminal-transcript.test.tsx
-          tests/component/notes/notes-terminal-panel.test.tsx
-          tests/unit/notes/vault-safe-write.test.ts
-          tests/unit/notes/vault-write-conflict.test.ts
-          tests/unit/notes/workspace-store.test.ts
           tests/unit/electron/auris-notes-mcp-server.test.ts
           tests/unit/electron/notes-mcp-bridge.test.ts
-          tests/component/notes/notes-workbench.test.tsx
-          tests/component/notes/notes-rich-editor-sync.test.tsx
-          tests/component/notes/notes-file-tree.test.tsx

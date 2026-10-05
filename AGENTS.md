@@ -429,3 +429,10 @@ macOS arm64 DMG/ZIP 已生成，本地 ad-hoc 签名权限与 strict codesign �
 固定对照 `fa785a7008999bc2077889a9faaca0175f122cee` 至 `2d3903cb2887a7c6a7a8df7b814f14b745bc2415`（632 commits / 3383 files），参考镜像快进，保留 12 项未复核历史映射。直接复用 30 份上游 CJK 源码/类型适配，补齐线性扫描、Unicode script、技术子串和段落边界；保留 Auris 设置默认值与平台适配。富文本桥保留完整 code fence info、列表 tight/order 和末尾/连续 hard-break；预览只取首个语言 token。Markdown HTML 导入使用独立惰性文档；Vault writer 恢复 BOM 并保留 frontmatter 保护；MCP workspace.save 等待既有保存队列成功后返回实际落盘 revision，拒绝失败、冲突、无 writer 及已关闭文档的虚假确认。未修改主进程、预加载或真实用户笔记。既有本地数学修复保留并纳入回归与安装。
 
 145 文件 / 1548 项回归通过；全仓 lint 0 errors / 20 warnings；生产构建、singleton 依赖、隐私审计、签名权限与惰性解析实机检查通过。全仓 tsc 248 项错误，本轮修改路径未报错；未取得任务开始前的完整基线，不宣称全仓 0 new errors。用户明确要求同步后打包安装：版本递增至 1.0.17，ad-hoc 签名 macOS arm64 包已安装 `/Applications/Auris.app`，旧 1.0.16 保存在 `release/backups/Auris-1.0.16-before-vmark-0992-20261004-194128.app`。安装后真实临时笔记编辑保存、metadata/松列表/Mermaid 及 MCP sidecar smoke 通过；正常用户应用已启动，/notes HTTP 200。启动自动更新源返回 404，记录而未扩展修改。未提交、推送、打标签或发布 Release；脚注、跨窗口退出及全部上游审计领域未声称完成。详见 `docs/vmark-sync/implementation-status-2026-10-04.md` 及 provenance/verification/installation JSON。
+
+
+## Engineering trajectory: Notes CI 终端启动输入竞态修复（2026-10-05）
+
+用户提供 GitHub Actions #37274124097 后，通过 computer use 查看失败注解并核查完整日志，确认 checkout/安装成功，唯一失败为 pipe 终端输入测试。受控组件回归在 prime write 或恢复队列 write 期间注入输入，旧源码 3 项稳定失败：React updater 延后发布 running 状态，输入回调把新命令放进已经消费过的 starting 队列。最小修复在 `markSession` 同步 patch ref，再用纯 updater 更新 React 状态；保留已有 IPC、queue、pipe/PTy normalization。固定对照 VMark `2d3903cb2` 的 terminalSessionInputWiring/useTerminalShellLifecycle，即时 session entry 与 Tauri API 边界分开处理。
+
+终端组件 24 项、扩大后的 Notes CI 150 文件 / 1620 项通过；lint 0 errors / 20 warnings、MCP health、singleton、生产构建与 Markdown 产物门禁通过。全仓 tsc 保留 248 项错误，修改 hook/test 无错误。源码桌面端独立临时 profile 实际打开 /notes，computer use 在真实 shell 执行 printf 并确认 AURIS_TERMINAL_CI_OK；临时笔记未改写，测试实例和 profile 已清理。Notes workflow 扩展至完整 Notes/VMark 回归，并加入 VMark 测试触发路径。未改 main/preload 或真实用户数据，未重打包、递增版本或发布；远端 Ubuntu 结果以本次修复提交的 Actions 为准。详见 `docs/notes/2026-10-05-terminal-startup-ci-repair.md`。
