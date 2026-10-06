@@ -7,6 +7,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const { spawnSync, spawn } = require("node:child_process");
 const { setTimeout: wait } = require("node:timers/promises");
+const { createUpdateTiming, withUpdateTiming } = require("./local-update-win-timing.cjs");
 
 const root = path.resolve(__dirname, "..");
 const release = path.join(root, "release");
@@ -15,6 +16,16 @@ let appDir = path.join(process.env.LOCALAPPDATA || "", "Programs", "Auris");
 let appExe = path.join(appDir, "Auris.exe");
 const userData = path.join(process.env.APPDATA || "", "Auris");
 function hash(file) { return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"); }
+function updaterSnapshot() {
+  const timingFile = path.join(__dirname, "local-update-win-timing.cjs");
+  return { updater: hash(__filename), timing: fs.existsSync(timingFile) ? hash(timingFile) : null };
+}
+const loadedUpdaterSnapshot = updaterSnapshot();
+function assertUpdaterSnapshot(loaded, current) {
+  if (loaded.updater !== current.updater || loaded.timing !== current.timing) {
+    fail("Updater code changed during source sync; rerun the updater before building or installing. The App was not modified");
+  }
+}
 function verifiedNormalizedBytes(bytes, expected) {
   if (crypto.createHash("sha256").update(bytes).digest("hex") === expected) return bytes;
   const normalized = Buffer.from(bytes.toString("utf8").replace(/\r\n/gu, "\n"));
@@ -209,17 +220,27 @@ function buildEnvironment(output) {
   return { ...process.env, AURIS_LOCAL_UPDATE_PROJECT: root, AURIS_LOCAL_UPDATE_OUTPUT: output,
     NODE_OPTIONS: `--require=${path.join(root, "scripts", "local-update-win-locks.cjs")}` };
 }
-function packageApp(version) {
+function localBuilderArgs(output) {
+  // Local installation uses NSIS, not the portable ZIP. Keep release targets
+  // in electron-builder.yml unchanged and scope this optimization to this call.
+  return ["--win", "nsis", "--x64", "--config.npmRebuild=false", "--publish", "never", `--config.directories.output=${output}`];
+}
+function assertInstaller(installer) {
+  if (!fs.existsSync(installer) || fs.statSync(installer).size < 1000000) fail("NSIS installer missing or unexpectedly small");
+}
+function packageApp(version, timing) {
   const output = path.join(release, `.local-update-${version}-${Date.now()}`);
   const env = buildEnvironment(output);
   console.log("[update] assembling verified Windows runtime closure");
-  npm(["run", "desktop:assemble:win"], { env, timeout: 1200000 });
+  timing.sync("runtime-assembly-and-privacy-audit", () => npm(["run", "desktop:assemble:win"], { env, timeout: 1200000 }));
   const builder = path.join(root, "node_modules", "electron-builder", "out", "cli", "cli.js");
-  run(process.execPath, [builder, "--win", "--config.npmRebuild=false", "--publish", "never", `--config.directories.output=${output}`], { env, timeout: 1800000 });
+  timing.sync("nsis-packaging", () => run(process.execPath, [builder, ...localBuilderArgs(output)], { env, timeout: 1800000 }));
   const unpacked = path.join(output, "win-unpacked");
   const installer = path.join(output, `Auris-${version}-win-x64.exe`);
-  if (!fs.existsSync(installer) || fs.statSync(installer).size < 1000000) fail("NSIS installer missing or unexpectedly small");
-  verifyApp(unpacked, version);
+  timing.sync("packaged-app-validation", () => {
+    assertInstaller(installer);
+    verifyApp(unpacked, version);
+  });
   return { output, unpacked, installer };
 }
 function verifyApp(directory, version) {
@@ -277,20 +298,28 @@ function treeSummary(directory, includeContent = false) {
   visit(directory);
   return JSON.stringify(entries);
 }
-function backupInstall(version) {
+function backupInstall(version, timing) {
   const backup = path.join(release, "backups", `windows-before-${version}-${Date.now()}`);
-  fs.mkdirSync(path.dirname(backup), { recursive: true });
-  fs.mkdirSync(backup);
+  timing.sync("backup-directory", () => {
+    fs.mkdirSync(path.dirname(backup), { recursive: true });
+    fs.mkdirSync(backup);
+  });
   for (const [name, source] of [["installed-app", appDir], ["user-data", userData]]) {
-    if (!fs.existsSync(source)) continue;
-    const target = path.join(backup, name);
-    fs.cpSync(source, target, { recursive: true, force: false, errorOnExist: true });
-    if (treeSummary(source, name === "user-data") !== treeSummary(target, name === "user-data")) fail(`Backup content or inventory differs: ${name}`);
+    timing.sync(`backup-${name}`, () => {
+      if (!fs.existsSync(source)) return;
+      const target = path.join(backup, name);
+      fs.cpSync(source, target, { recursive: true, force: false, errorOnExist: true });
+      if (treeSummary(source, name === "user-data") !== treeSummary(target, name === "user-data")) fail(`Backup content or inventory differs: ${name}`);
+      if (name === "installed-app") {
+        for (const file of ["Auris.exe", "resources/app.asar"]) {
+          if (fs.existsSync(path.join(appDir, file)) && hash(path.join(appDir, file)) !== hash(path.join(target, file))) fail(`Backup verification failed: ${file}`);
+        }
+      }
+    });
   }
-  for (const file of ["Auris.exe", "resources/app.asar"]) {
-    if (fs.existsSync(path.join(appDir, file)) && hash(path.join(appDir, file)) !== hash(path.join(backup, "installed-app", file))) fail(`Backup verification failed: ${file}`);
-  }
-  fs.writeFileSync(path.join(backup, "backup-info.json"), JSON.stringify({ versionBefore: installedVersion(), targetVersion: version, createdAt: new Date().toISOString() }, null, 2) + "\n");
+  timing.sync("backup-metadata", () => {
+    fs.writeFileSync(path.join(backup, "backup-info.json"), JSON.stringify({ versionBefore: installedVersion(), targetVersion: version, createdAt: new Date().toISOString() }, null, 2) + "\n");
+  });
   return backup;
 }
 function copyArtifact(source, destination) {
@@ -300,66 +329,104 @@ function copyArtifact(source, destination) {
   if (hash(source) !== hash(destination)) fail(`Artifact copy check failed: ${destination}`);
 }
 async function update({ checkOnly = false } = {}) {
-  assertIdentity({ allowDirty: checkOnly });
-  const latest = currentRemote();
-  const local = git("rev-parse", "HEAD");
-  const version = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
-  const installed = installedVersion();
+  const timing = createUpdateTiming({ checkOnly, reportDir: path.join(release, "local-update-reports") });
+  return withUpdateTiming(timing, () => updateFlow({ checkOnly, timing }));
+}
+async function updateFlow({ checkOnly, timing }) {
+  timing.sync("environment-and-install-location", () => assertIdentity({ allowDirty: checkOnly }));
+  const latest = timing.sync("github-main", currentRemote);
+  const { local, version, installed } = timing.sync("local-state", () => ({
+    local: git("rev-parse", "HEAD"),
+    version: JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version,
+    installed: installedVersion(),
+  }));
+  timing.context({ sha: latest, version });
   console.log(`[update] GitHub main ${latest.slice(0, 8)}; local ${local.slice(0, 8)}; installed ${installed || "none"}; source ${version}`);
-  if (checkOnly && git("status", "--porcelain", "--untracked-files=no")) console.warn("[update] check only: tracked changes would block an actual update");
-  // Check must not claim readiness when our branch is already ahead of the
-  // exact fetched GitHub head; apply would otherwise fail at ff-only merge.
-  if (local !== latest && git("rev-parse", "origin/main") === latest &&
-    run("git", ["merge-base", "--is-ancestor", "HEAD", "origin/main"], { allowFailure: true }).status !== 0) {
-    fail("Local main contains unpublished or divergent commits; integrate them before updating");
-  }
-  const ci = ciForSha(latest);
+  timing.sync("tracked-and-branch-state", () => {
+    if (checkOnly && git("status", "--porcelain", "--untracked-files=no")) console.warn("[update] check only: tracked changes would block an actual update");
+    // Check must not claim readiness when our branch is already ahead of the
+    // exact fetched GitHub head; apply would otherwise fail at ff-only merge.
+    if (local !== latest && git("rev-parse", "origin/main") === latest &&
+      run("git", ["merge-base", "--is-ancestor", "HEAD", "origin/main"], { allowFailure: true }).status !== 0) {
+      fail("Local main contains unpublished or divergent commits; integrate them before updating");
+    }
+  });
+  const ci = timing.sync("notes-ci", () => ciForSha(latest));
+  timing.context({ ciRunId: ci.runId, ciTestedSha: ci.testedSha, docsOnly: ci.docsOnly });
   console.log(`[update] CI gate passed: run ${ci.runId} (${ci.testedSha.slice(0, 8)}${ci.docsOnly ? " + verified Markdown-only suffix" : ""})`);
-  if (checkOnly) { console.log("[update] check only: no files, repository or App changed"); return; }
-  if (local !== latest) {
-    git("fetch", "--prune", "origin", "main");
-    if (git("rev-parse", "origin/main") !== latest) fail("GitHub main moved while checking; rerun the updater");
-    run("git", ["merge-base", "--is-ancestor", "HEAD", "origin/main"]);
-    git("merge", "--ff-only", "origin/main");
+  if (checkOnly) {
+    timing.context({ outcome: "checked" });
+    console.log("[update] check only: no files, repository or App changed");
+    return;
   }
-  if (git("rev-parse", "HEAD") !== latest) fail("Local source SHA does not match GitHub main");
-  const targetVersion = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
-  if (!/^\d+\.\d+\.\d+$/u.test(targetVersion)) fail("Invalid release version");
+  const targetVersion = timing.sync("source-fast-forward", () => {
+    if (local !== latest) {
+      git("fetch", "--prune", "origin", "main");
+      if (git("rev-parse", "origin/main") !== latest) fail("GitHub main moved while checking; rerun the updater");
+      run("git", ["merge-base", "--is-ancestor", "HEAD", "origin/main"]);
+      git("merge", "--ff-only", "origin/main");
+    }
+    if (git("rev-parse", "HEAD") !== latest) fail("Local source SHA does not match GitHub main");
+    // Do not run an old in-memory control flow while testing new on-disk code.
+    // A normal rerun loads the synchronized updater and its timing helper.
+    assertUpdaterSnapshot(loadedUpdaterSnapshot, updaterSnapshot());
+    const target = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
+    if (!/^\d+\.\d+\.\d+$/u.test(target)) fail("Invalid release version");
+    return target;
+  });
+  timing.context({ version: targetVersion });
   const receiptFile = path.join(release, ".local-update-install-state.json");
-  let receipt = {};
-  try { receipt = JSON.parse(fs.readFileSync(receiptFile, "utf8")); } catch {}
-  if (canSkipInstall(receipt, latest, targetVersion, installed, currentInstallHashes())) {
-    console.log("[update] installed binary hashes match the prior verified SHA; no build/install needed"); return;
+  const skip = timing.sync("installed-hashes-and-receipt", () => {
+    let receipt = {};
+    try { receipt = JSON.parse(fs.readFileSync(receiptFile, "utf8")); } catch {}
+    return canSkipInstall(receipt, latest, targetVersion, installed, currentInstallHashes());
+  });
+  if (skip) {
+    timing.context({ outcome: "already-verified" });
+    console.log("[update] installed binary hashes match the prior verified SHA; no build/install needed");
+    return;
   }
-  if (installed && compareVersions(targetVersion, installed) < 0) fail(`Refusing downgrade from ${installed} to ${targetVersion}`);
-  assertNotRunning();
-  ensureDependencies();
-  node("scripts/local-update-win.test.mjs");
-  ensureTests(latest);
-  ensureBuild();
-  const artifact = packageApp(targetVersion);
-  await smoke(artifact.unpacked, artifact.output);
+  timing.sync("prebuild-safety", () => {
+    if (installed && compareVersions(targetVersion, installed) < 0) fail(`Refusing downgrade from ${installed} to ${targetVersion}`);
+    assertNotRunning();
+    fs.mkdirSync(release, { recursive: true });
+  });
+  timing.sync("dependencies-install-and-verify", ensureDependencies);
+  timing.sync("updater-contract-tests", () => node("scripts/local-update-win.test.mjs"));
+  timing.sync("windows-regression", () => ensureTests(latest));
+  timing.sync("production-build", ensureBuild);
+  const artifact = packageApp(targetVersion, timing);
+  await timing.async("preinstall-isolated-routes", () => smoke(artifact.unpacked, artifact.output));
   // Immutable per-attempt delivery: a different commit with the same version cannot
   // collide with, overwrite, or silently reuse an older installer.
-  const deliveryDir = path.join(release, "local-artifacts", latest, path.basename(artifact.output));
-  fs.mkdirSync(deliveryDir, { recursive: true });
-  const delivery = path.join(deliveryDir, path.basename(artifact.installer));
-  copyArtifact(artifact.installer, delivery);
-  const zip = path.join(artifact.output, `Auris-${targetVersion}-win-x64.zip`);
-  if (fs.existsSync(zip)) copyArtifact(zip, path.join(deliveryDir, path.basename(zip)));
-  if (currentRemote() !== latest) fail("GitHub main advanced during packaging; leave old installation unchanged and rerun");
-  const backup = backupInstall(targetVersion);
+  const delivery = timing.sync("save-installer-artifact", () => {
+    const deliveryDir = path.join(release, "local-artifacts", latest, path.basename(artifact.output));
+    fs.mkdirSync(deliveryDir, { recursive: true });
+    const destination = path.join(deliveryDir, path.basename(artifact.installer));
+    copyArtifact(artifact.installer, destination);
+    return destination;
+  });
+  timing.sync("prebackup-safety", () => {
+    if (currentRemote() !== latest) fail("GitHub main advanced during packaging; leave old installation unchanged and rerun");
+    assertNotRunning();
+  });
+  const backup = backupInstall(targetVersion, timing);
   console.log(`[update] verified backup: ${backup}`);
-  assertNotRunning();
+  timing.sync("preinstall-not-running", assertNotRunning);
   try {
-    run(delivery, ["/S", `/D=${appDir}`], { timeout: 600000 });
-    if (installedVersion() !== targetVersion) fail("Installer exited but installed version is wrong");
-    verifyApp(appDir, targetVersion);
-    for (const file of ["Auris.exe", "resources/app.asar", "resources/standalone/.next/BUILD_ID"]) {
-      if (hash(path.join(appDir, file)) !== hash(path.join(artifact.unpacked, file))) fail(`Installed artifact mismatch: ${file}`);
-    }
-    await smoke(appDir, path.join(artifact.output, "installed-smoke"));
-    fs.writeFileSync(receiptFile, JSON.stringify({ sha: latest, version: targetVersion, ...currentInstallHashes(), verifiedAt: new Date().toISOString(), backup }, null, 2) + "\n");
+    timing.sync("nsis-install", () => run(delivery, ["/S", `/D=${appDir}`], { timeout: 600000 }));
+    timing.sync("installed-version-sidecar-and-hashes", () => {
+      if (installedVersion() !== targetVersion) fail("Installer exited but installed version is wrong");
+      verifyApp(appDir, targetVersion);
+      for (const file of ["Auris.exe", "resources/app.asar", "resources/standalone/.next/BUILD_ID"]) {
+        if (hash(path.join(appDir, file)) !== hash(path.join(artifact.unpacked, file))) fail(`Installed artifact mismatch: ${file}`);
+      }
+    });
+    await timing.async("postinstall-isolated-routes", () => smoke(appDir, path.join(artifact.output, "installed-smoke")));
+    timing.sync("installed-hashes-and-save-receipt", () => {
+      fs.writeFileSync(receiptFile, JSON.stringify({ sha: latest, version: targetVersion, ...currentInstallHashes(), verifiedAt: new Date().toISOString(), backup }, null, 2) + "\n");
+    });
+    timing.context({ outcome: "installed-and-verified" });
     console.log(`[update] installed ${targetVersion} and verified; installer ${delivery}; backup ${backup}`);
   } catch (error) {
     console.error(`[update] Installation verification failed. Backup retained: ${backup}. Do not retry blindly; inspect/restore the App before another update.`);
@@ -369,4 +436,4 @@ async function update({ checkOnly = false } = {}) {
 if (require.main === module) {
   update({ checkOnly: process.argv.includes("--check") }).catch(error => { console.error(`[local-update] ${error.message}`); process.exitCode = 1; });
 }
-module.exports = { update, evaluateCiRuns, evaluateDocsOnlyCiProvenance, ciForSha, canSkipInstall, compareVersions, verifiedNormalizedBytes, dependenciesMatchLock, normalizeVerifiedPatchLineEndings, assertNotRunning, verifyApp, hash };
+module.exports = { update, evaluateCiRuns, evaluateDocsOnlyCiProvenance, ciForSha, canSkipInstall, compareVersions, verifiedNormalizedBytes, dependenciesMatchLock, normalizeVerifiedPatchLineEndings, assertNotRunning, verifyApp, hash, localBuilderArgs, assertInstaller, assertUpdaterSnapshot };
