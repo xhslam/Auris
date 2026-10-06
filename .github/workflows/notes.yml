@@ -1,6 +1,7 @@
 name: Notes
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/notes.yml"
@@ -12,6 +13,9 @@ on:
       - "electron-builder.yml"
       - "build/entitlements.mac*.plist"
       - "src/platform/desktop/desktop-bridge.ts"
+      - "src/app/review/**"
+      - "src/components/review/**"
+      - "src/features/output-review/**"
       - "tests/unit/electron/terminal-*.test.ts"
       - "tests/unit/electron/macos-terminal-permissions.test.ts"
       - "tests/fixtures/notes/**"
@@ -27,8 +31,11 @@ on:
       - "src/features/notes/**"
       - "src/platform/notes/**"
       - "tests/component/notes/**"
+      - "tests/component/review/**"
       - "tests/unit/notes/**"
+      - "tests/unit/output-review/**"
       - "tests/unit/vmark/**"
+      - "tests/e2e/review-home.spec.ts"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
@@ -50,6 +57,9 @@ on:
       - "electron-builder.yml"
       - "build/entitlements.mac*.plist"
       - "src/platform/desktop/desktop-bridge.ts"
+      - "src/app/review/**"
+      - "src/components/review/**"
+      - "src/features/output-review/**"
       - "tests/unit/electron/terminal-*.test.ts"
       - "tests/unit/electron/macos-terminal-permissions.test.ts"
       - "tests/fixtures/notes/**"
@@ -65,8 +75,11 @@ on:
       - "src/features/notes/**"
       - "src/platform/notes/**"
       - "tests/component/notes/**"
+      - "tests/component/review/**"
       - "tests/unit/notes/**"
+      - "tests/unit/output-review/**"
       - "tests/unit/vmark/**"
+      - "tests/e2e/review-home.spec.ts"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
@@ -108,6 +121,8 @@ jobs:
           npm test --
           tests/unit/notes/
           tests/component/notes/
+          tests/component/review/
+          tests/unit/output-review/
           tests/unit/vmark/
           tests/unit/electron/terminal-session-manager.test.ts
           tests/unit/electron/terminal-transcript-service.test.ts
