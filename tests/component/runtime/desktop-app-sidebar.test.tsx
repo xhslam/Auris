@@ -54,7 +54,7 @@ describe("DesktopAppSidebar", () => {
   });
 
   it("renders a compact navigation rail with brand and optional expand toggle", () => {
-    render(<DesktopAppSidebar activeNavId="home" activeWorkspace="home" isVisible />);
+    render(<DesktopAppSidebar activeNavId="review" activeWorkspace="home" isVisible />);
 
     const sidebar = screen.getByLabelText("App navigation");
 
@@ -84,6 +84,12 @@ describe("DesktopAppSidebar", () => {
     expect(niaLink.querySelector(".desktop-app-sidebar__glyph")).not.toBeNull();
   });
 
+  it("maps the persisted home workspace to the Review entry", () => {
+    render(<DesktopAppSidebar activeWorkspace="home" isVisible />);
+    expect(screen.getByRole("link", { name: "每日回顾" })).toHaveAttribute("data-active", "true");
+    expect(screen.getByRole("link", { name: "每日回顾" })).toHaveAttribute("href", "/");
+  });
+
   it("marks the rail as hidden without removing the navigation targets from the DOM", () => {
     const { container } = render(
       <DesktopAppSidebar activeNavId="notes" activeWorkspace="notes" isVisible={false} />,
@@ -103,7 +109,7 @@ describe("DesktopAppSidebar", () => {
   it("keeps the persistent home rail accessible while visually collapsed", () => {
     const { container } = render(
       <DesktopAppSidebar
-        activeNavId="home"
+        activeNavId="review"
         activeWorkspace="home"
         isPersistentRail
         isVisible={false}
@@ -114,17 +120,19 @@ describe("DesktopAppSidebar", () => {
 
     expect(sidebar).toHaveAttribute("data-visible", "false");
     expect(sidebar).not.toHaveAttribute("aria-hidden");
-    expect(screen.getByLabelText("首页")).toHaveAttribute("href", "/");
+    expect(screen.queryByLabelText("首页")).not.toBeInTheDocument();
     expect(screen.getByLabelText("本地笔记")).toHaveAttribute("href", "/notes");
     expect(screen.getByLabelText("灵感闪念")).toHaveAttribute("href", "/flash");
-    expect(screen.getByLabelText("每日回顾")).toHaveAttribute("href", "/review");
+    expect(screen.getByLabelText("每日回顾")).toHaveAttribute("href", "/");
+    expect(sidebar.querySelector('.desktop-app-sidebar__link')).toBe(screen.getByLabelText("每日回顾"));
+    expect(sidebar.querySelectorAll('.desktop-app-sidebar__link[data-active="true"]')).toHaveLength(1);
     expect(screen.getByLabelText("阅读精选")).toHaveAttribute("href", "/reading");
   });
 
   it("keeps persistent rail nav links even when the home sidebar receives visible state", () => {
     const { container } = render(
       <DesktopAppSidebar
-        activeNavId="home"
+        activeNavId="review"
         activeWorkspace="home"
         isPersistentRail
         isVisible
@@ -134,7 +142,7 @@ describe("DesktopAppSidebar", () => {
     expect(container.querySelector(".desktop-app-sidebar__sections")).toBeInTheDocument();
     expect(container.querySelector("[data-testid='desktop-sidebar-expand-zone']")).toBeNull();
     expect(screen.queryByText("今天的节奏")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("首页")).toBeInTheDocument();
+    expect(screen.queryByLabelText("首页")).not.toBeInTheDocument();
     expect(screen.getByLabelText("本地笔记")).toBeInTheDocument();
     expect(screen.getByLabelText("灵感闪念")).toBeInTheDocument();
     expect(screen.getByLabelText("每日回顾")).toBeInTheDocument();
@@ -177,7 +185,7 @@ describe("DesktopAppSidebar", () => {
 
     render(
       <DesktopAppSidebar
-        activeNavId="home"
+        activeNavId="review"
         activeWorkspace="home"
         isExpanded={false}
         isPersistentRail
@@ -268,7 +276,7 @@ describe("DesktopAppSidebar", () => {
 
     render(
       <DesktopAppSidebar
-        activeNavId="home"
+        activeNavId="review"
         activeWorkspace="home"
         isVisible
         onNavigate={onNavigate}
@@ -282,7 +290,7 @@ describe("DesktopAppSidebar", () => {
   });
 
   it("prefetches a destination when the user hovers a nav link", () => {
-    render(<DesktopAppSidebar activeNavId="home" activeWorkspace="home" isVisible />);
+    render(<DesktopAppSidebar activeNavId="review" activeWorkspace="home" isVisible />);
 
     const videoLink = getVideoLink();
 
@@ -299,7 +307,7 @@ describe("DesktopAppSidebar", () => {
 
     render(
       <DesktopAppSidebar
-        activeNavId="home"
+        activeNavId="review"
         activeWorkspace="home"
         isVisible
         onNavigate={onNavigate}
@@ -342,7 +350,7 @@ describe("DesktopAppSidebar", () => {
 
     render(
       <DesktopAppSidebar
-        activeNavId="home"
+        activeNavId="review"
         activeWorkspace="home"
         isVisible
         onNavigate={onNavigate}

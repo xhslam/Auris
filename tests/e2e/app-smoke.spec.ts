@@ -356,31 +356,18 @@ test("login page renders", async ({ page }) => {
   await expect(page.locator('button[type="submit"]')).toBeVisible();
 });
 
-test("desktop home renders and exposes knowledge workspace links", async ({ page }) => {
+test("desktop Review home renders and exposes workspace links", async ({ page }) => {
   await installDesktopBridge(page);
   await page.goto("/");
 
-  await expect(page.locator("main.auris-home")).toBeVisible();
-  await expect(
-    page.getByRole("heading", {
-      name: "Home",
-    }),
-  ).toBeVisible();
-  const home = page.getByRole("main");
-  await expect(home.getByRole("heading", { name: "Auris" })).toBeVisible();
-  await expect(home.getByText("Pinned", { exact: true })).toBeVisible();
-  await expect(home.getByText("近 12 周使用时长", { exact: true })).toBeVisible();
-  await expect(home.getByText("今日继续", { exact: true })).toBeVisible();
-  await expect(home.getByText("待读与未消化", { exact: true })).toBeVisible();
-  await expect(
-    home.locator(".auris-home__section-label").filter({ hasText: "最近沉淀" }),
-  ).toBeVisible();
-  await expect(home.getByRole("button", { exact: true, name: "记录闪念" })).toBeVisible();
-  await expect(home.getByRole("button", { name: "打开今日回顾" })).toBeVisible();
-  await expect(home.getByTestId("home-resume-card").getByText("Desktop Study Log")).toBeVisible();
-  await expect(home.getByRole("button", { name: "总结当前材料" })).toBeVisible();
-  await expect(home.getByRole("button", { name: "解释难点" })).toBeVisible();
-  await expect(home.getByRole("button", { name: "生成复习问题" })).toBeVisible();
+  await expect(page.locator("main.output-review-page")).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "输出复习视图" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "添加知识点", exact: true }).first()).toBeVisible();
+  const rail = page.getByRole("complementary", { name: "App navigation" });
+  await expect(rail.getByRole("link", { name: "每日回顾" })).toHaveAttribute("href", "/");
+  await expect(rail.getByRole("link", { name: "每日回顾" })).toHaveAttribute("data-active", "true");
+  await expect(rail.getByRole("link", { name: "本地笔记" })).toHaveAttribute("href", "/notes");
+  await expect(rail.getByRole("link", { name: "灵感闪念" })).toHaveAttribute("href", "/flash");
 });
 
 test("community and settings routes render desktop platform pages", async ({ page }) => {
@@ -466,19 +453,14 @@ test("desktop assessment history survives reload from bridge-backed local storag
   await expect(page.getByText("Desktop pronunciation feedback")).toBeVisible();
 });
 
-test("demo login state survives a reload", async ({ page }) => {
-  await page.goto("/login");
-
-  await page.locator('input[name="account"]').fill("13800138000");
-  await page.locator('input[name="password"]').fill("password123");
-  await page.locator('button[type="submit"]').click();
-
-  await expect(page).toHaveURL(/\/$/);
-  await page.reload();
+test("Review remains the default homepage after a reload", async ({ page }) => {
+  await installDesktopBridge(page);
   await page.goto("/");
+  await expect(page.locator("main.output-review-page")).toBeVisible();
+  await page.reload();
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator("main.auris-home")).toBeVisible();
+  await expect(page.locator("main.output-review-page")).toBeVisible();
 });
 
 test("desktop notes command button opens the command palette", async ({ page }) => {

@@ -1,0 +1,44 @@
+{
+  "previousVersion": "1.0.17",
+  "backupPath": "/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.17-before-review-home-20261006-162131.app",
+  "installedPath": "/Applications/Auris.app",
+  "timestamp": "2026-10-06T16:21:33.593738+08:00",
+  "appAsarSha256": "fc0c3b276aa922979cb55938fed8cd318391267f17d6a5b525b526b3f477cb61",
+  "installedVersion": "1.0.17",
+  "installedAt": "2026-10-06T16:26:19.020081+08:00",
+  "signatureVerified": true,
+  "normalLaunchRequestedAt": "2026-10-06T16:26:49.442357+08:00",
+  "normalLaunchVerified": true,
+  "normalLaunchEvidence": [
+    "[2026-10-06T08:26:50.923Z] createMainWindow:ready-to-show",
+    "[2026-10-06T08:26:50.966Z] createMainWindow:loaded http://127.0.0.1:3000/"
+  ],
+  "signatureType": "ad-hoc local build",
+  "packagePrivacyVerified": true,
+  "installedElectronSmoke": {
+    "installedPackage": true,
+    "origin": "http://127.0.0.1:3000",
+    "actualElectron": true,
+    "legacyTaskCopied": true,
+    "originalDataUnchanged": true,
+    "niaPendingCount": [
+      1,
+      0
+    ],
+    "routes": [
+      "/reading",
+      "/video",
+      "/notes",
+      "/"
+    ]
+  },
+  "packagedMcpSmoke": {
+    "ok": true,
+    "niaStatus": "completed",
+    "workflowStatus": "completed",
+    "toolCount": 7,
+    "notesNavigationRequired": true
+  },
+  "userDataReset": false,
+  "releasePublished": false
+}

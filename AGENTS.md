@@ -48,7 +48,7 @@ Web 端（登录、注册、计费等）已于 2026-06 移除，请勿恢复。
 
 | 路由 | 组件 | 说明 |
 |---|---|---|
-| `/` | `DesktopHomeShell` | 首页 |
+| `/` | `ReviewPageClient` | Review 默认首页 |
 | `/video` | `DesktopVideoLibraryShell` | 视频库 |
 | `/notes` | `NotesPageClient` | 笔记工作台 |
 
@@ -438,3 +438,25 @@ macOS arm64 DMG/ZIP 已生成，本地 ad-hoc 签名权限与 strict codesign �
 终端组件 24 项、扩大后的 Notes CI 150 文件 / 1620 项通过；lint 0 errors / 20 warnings、MCP health、singleton、生产构建与 Markdown 产物门禁通过。全仓 tsc 保留 248 项错误，修改 hook/test 无错误。源码桌面端独立临时 profile 实际打开 /notes，computer use 在真实 shell 执行 printf 并确认 AURIS_TERMINAL_CI_OK；临时笔记未改写，测试实例和 profile 已清理。Notes workflow 扩展至完整 Notes/VMark 回归，并加入 VMark 测试触发路径。未改 main/preload 或真实用户数据，未重打包、递增版本或发布；远端 Ubuntu 结果以本次修复提交的 Actions 为准。详见 `docs/notes/2026-10-05-terminal-startup-ci-repair.md`。
 
 远端验收补充：修复提交 `50f518fb181b82f7d73e34d445cf94b4c9f1b498` 已推送 main，Ubuntu Notes Actions #37281656064 / job #111670894748 success；computer use 确认页面 completed successfully，150 文件 / 1620 项通过。后续记录提交仅更新文档，不改已验收源码。
+
+## Engineering trajectory: 删除旧首页并将 Review 设为默认入口（2026-10-06）
+
+用户要求删除原首页，将 Review 放到首页位置。根路由现在直接复用现有 ReviewPageClient；侧栏首项使用原 Review 图标与「每日回顾」名称，地址为 `/`，删除旧 Home 与重复 Review 项。旧 `/review` 保留查询参数后重定向到根路由，兼容 Electron 提醒、知识点详情和添加意图；灵感闪念的复习操作直接跳转首页。删除旧首页 shell、整个首页组件目录及个人操作系统界面，保留用户数据以及被 Nia、续读/视频和灵动岛使用的共享模块。历史首页备份排除出 TypeScript 编译。对照固定 VMark `2d3903cb2` 的根路由源码，没有复制不适用的 Tauri 路由或重做复习业务。
+
+验证：10 个定向 Vitest 文件、134 项通过；首页迁移、导航与六主题 Playwright 8 项通过；全仓 lint 0 errors / 19 warnings；生产构建及 Markdown 产物门禁通过；全仓 TypeScript 改前/改后均 248 项既有错误，没有新增错误位置及错误码。独立临时 profile 的真实 Electron 默认打开 Review，桥接、唯一首项高亮、添加知识点和 Notes 往返通过；测试实例与临时数据已清理。未替换已安装包、递增版本、提交或推送。详见 docs/review-home-migration-2026-10-06.md。
+
+## Engineering trajectory: 旧首页 CSS 与历史备份清理（2026-10-06）
+
+用户进一步授权删除上一轮遗留 CSS 与历史首页备份。本次删除 globals.css / auris-redesign.css 中 224 个旧首页选择器（163 条专属规则、10 条混合规则中的首页选择器），并通过 PostCSS 解析比对确认其他 2,635 条规则的选择器、声明及顺序保持一致。删除 docs/homepage-backups/ 的 14 个文件、空首页目录及不再需要的 TypeScript 排除项；更新共享布局测试和旧首页 smoke 断言。仍被 Nia、续读和灵动岛消费的共享模块保持可用。
+
+验证：12 个定向 Vitest 文件 / 145 项、12 项 Playwright、生产构建及 Markdown 门禁通过；全仓 lint 0 errors / 18 warnings；全仓 TypeScript 改前/改后均 248 项既有错误，未增加错误位置或错误码。真实隔离 Electron 默认 Review、添加知识点和 Notes 往返通过。未替换已安装包、递增版本、提交或推送；最终范围与依据见 docs/review-home-migration-2026-10-06.md。
+
+## Engineering trajectory: 旧首页共享功能拆分与任务存储迁移（2026-10-06）
+
+用户确认按续读/续播归属、Nia 直接 Review 统计、灵动岛独立任务存储方案实施。阅读恢复模块移到 features/reading，视频恢复模块移到 features/video，保留原 localStorage 键、事件及行为；与 Git HEAD 旧实现文本对比确认逻辑原样复用。Nia 用新的 useOutputReviewMetrics 直接订阅 Review，不再为待办计数加载阅读、视频或笔记摘要。灵动岛改用独立 version 1 任务存储；新键缺失时从 auris:home:v1 的 plans 复制任务，保留旧原文及任务身份/时间戳，新状态（包括空状态）优先。迁移失败可继续读取旧任务，完成意图写入失败不确认并允许原 actionId 重试。删除 features/home、features/home-learning、个人操作系统解析器及失效测试，接续已有旧样式/备份清理。内部 home workspace 标识保留供 Review 根入口使用。
+
+验证：相关功能回归 24 文件 / 192 项，外壳/主题/布局 6 文件 / 96 项，入口与导航 Playwright 6 项全部通过；lint 0 errors / 18 warnings，TypeScript 改前/改后均 248 项既有错误，无新增文件/错误码；生产构建和 Markdown 产物门禁通过。真实 Electron 独立 profile 自动复制旧任务，旧原文和阅读/视频位置不变，Nia 复习完成计数由 1 更新为 0，阅读/视频/Notes/根页面均正常打开。复核 VMark 固定 2d3903cb2 的 settingsStore/migrations 与 persistedListMerge 原始对象验证/新值优先语义，没有复制不适用的 Zustand 存储框架。未改 main/preload、Vault 工厂或真实用户数据，未打包安装、递增版本、提交、推送或发布。详细边界见 docs/review-home-migration-2026-10-06.md。
+
+## Engineering trajectory: Review 首页版本替换本地应用（2026-10-06）
+
+用户明确要求替换本地 App。完成原生灵动岛 helper 构建、standalone/runtime 组装与 arm64 本地打包（ad-hoc 签名、publish never），备份旧应用至 release/backups/Auris-1.0.17-before-review-home-20261006-162131.app，再替换 /Applications/Auris.app，版本保持 1.0.17。构建包和安装包深度签名验证、隐私审计及终端 entitlements 验证通过；安装 app.asar 与构建产物 checksum 一致。原 MCP smoke 停在 Review 时 Notes session 超时，按 Notes facade 只在工作区挂载的实际前提，在临时测试副本先进入 Notes 后，Notes/Browser MCP 与 Nia/Browser workflow 均通过，临时脚本已删除。安装位置真实 Electron 独立 profile 验证默认 Review、阅读/视频/Notes、任务迁移、旧原文/进度保留和 Nia 1→0 更新通过；最终正常用户应用已启动并加载根路由，保留运行。未清空真实用户数据、递增版本、提交、推送或发布。证据见 docs/review-home-installation-2026-10-06.json。

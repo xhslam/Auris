@@ -8,9 +8,9 @@ import { __resetNiaStandaloneStoreForTests } from "@/features/nia/nia-standalone
 import { __resetNiaTaskStoreForTests } from "@/features/nia/nia-task-store";
 import { loadNiaCompanionScale } from "@/features/nia/nia-companion-scale";
 
-vi.mock("@/features/home-learning/use-home-learning-summary", () => ({
-  useHomeLearningSummary: () => ({
-    review: { actionableCount: 0, status: "ready" },
+vi.mock("@/features/output-review/use-output-review-metrics", () => ({
+  useOutputReviewMetrics: () => ({
+    metrics: { dueTodayCount: 0, overdueCount: 0 }, status: "ready",
   }),
 }));
 

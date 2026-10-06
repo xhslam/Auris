@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef } from "react";
 import { buildDesktopIslandContentSnapshot } from "@/features/desktop-island/desktop-island-projection";
 import type { DesktopIslandRendererIntent } from "@/features/desktop-island/desktop-island.types";
 import {
-  HOME_STORAGE_EVENT,
-  HOME_STORAGE_KEY,
-  readHomeData,
-  writeHomeData,
-} from "@/features/home/home-store";
+  DESKTOP_ISLAND_TASKS_EVENT,
+  DESKTOP_ISLAND_TASKS_KEY,
+  readDesktopIslandTaskState,
+  writeDesktopIslandTaskState,
+} from "@/features/desktop-island/desktop-island-task-store";
 import { EMPTY_OUTPUT_REVIEW_STATE } from "@/features/output-review/output-review-model";
 import {
   OUTPUT_REVIEW_STORAGE_EVENT,
@@ -36,7 +36,7 @@ export function DesktopIslandSyncHost() {
     const reviewResult = readOutputReviewStateResult(window.localStorage);
     const reviewState = reviewResult.state ?? EMPTY_OUTPUT_REVIEW_STATE;
     const snapshot = buildDesktopIslandContentSnapshot(
-      readHomeData(window.localStorage),
+      readDesktopIslandTaskState(window.localStorage),
       reviewState,
     );
     await island.syncSnapshot(snapshot);
@@ -49,12 +49,12 @@ export function DesktopIslandSyncHost() {
 
     try {
       if (intent.name === "set-task-done") {
-        const current = readHomeData(window.localStorage);
-        const task = current.plans.find((item) => item.id === intent.taskId);
+        const current = readDesktopIslandTaskState(window.localStorage);
+        const task = current.tasks.find((item) => item.id === intent.taskId);
         if (task && task.done !== intent.done) {
-          writeHomeData(window.localStorage, {
+          writeDesktopIslandTaskState(window.localStorage, {
             ...current,
-            plans: current.plans.map((item) => item.id === intent.taskId
+            tasks: current.tasks.map((item) => item.id === intent.taskId
               ? { ...item, done: intent.done, updatedAt: new Date().toISOString() }
               : item),
           });
@@ -83,12 +83,12 @@ export function DesktopIslandSyncHost() {
 
     const refresh = () => void syncSnapshot().catch(() => undefined);
     const onStorage = (event: StorageEvent) => {
-      if (event.key === HOME_STORAGE_KEY || event.key === OUTPUT_REVIEW_STORAGE_KEY) refresh();
+      if (event.key === DESKTOP_ISLAND_TASKS_KEY || event.key === OUTPUT_REVIEW_STORAGE_KEY) refresh();
     };
     const onVisibility = () => {
       if (document.visibilityState === "visible") refresh();
     };
-    window.addEventListener(HOME_STORAGE_EVENT, refresh);
+    window.addEventListener(DESKTOP_ISLAND_TASKS_EVENT, refresh);
     window.addEventListener(OUTPUT_REVIEW_STORAGE_EVENT, refresh);
     window.addEventListener("focus", refresh);
     window.addEventListener("storage", onStorage);
@@ -102,7 +102,7 @@ export function DesktopIslandSyncHost() {
     return () => {
       unsubscribe();
       window.clearTimeout(midnightTimer);
-      window.removeEventListener(HOME_STORAGE_EVENT, refresh);
+      window.removeEventListener(DESKTOP_ISLAND_TASKS_EVENT, refresh);
       window.removeEventListener(OUTPUT_REVIEW_STORAGE_EVENT, refresh);
       window.removeEventListener("focus", refresh);
       window.removeEventListener("storage", onStorage);

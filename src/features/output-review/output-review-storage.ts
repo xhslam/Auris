@@ -12,7 +12,7 @@ export type OutputReviewReadResult =
   | { status: "invalid" | "unavailable"; state: null };
 
 /**
- * 在保留既有空状态兜底行为的同时，向首页暴露可判别的读取结果。
+ * 在保留既有空状态兜底行为的同时，提供可判别的读取结果。
  * 缺失键是第一次使用；损坏或不兼容的数据不能伪装成 0 条复习记录。
  */
 export function readOutputReviewStateResult(storage: Storage | null): OutputReviewReadResult {

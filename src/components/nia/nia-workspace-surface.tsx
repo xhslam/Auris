@@ -31,7 +31,7 @@ import {
   loadNiaCompanionScale,
   saveNiaCompanionScale,
 } from "@/features/nia/nia-companion-scale";
-import { useHomeLearningSummary } from "@/features/home-learning/use-home-learning-summary";
+import { useOutputReviewMetrics } from "@/features/output-review/use-output-review-metrics";
 import { useNiaSession } from "@/features/nia/use-nia-session";
 import { isNiaTurnEagerness, type NiaTurnEagerness } from "@/features/nia/nia-realtime-protocol";
 
@@ -186,10 +186,10 @@ export function NiaWorkspaceSurface() {
   const [copiedAll, setCopiedAll] = useState(false);
   const detailRequest = useRef(0);
 
-  const summary = useHomeLearningSummary();
+  const review = useOutputReviewMetrics();
   const activeCard = contextCards.find((card) => card.id === activeContextCardId) ?? null;
   const tools = listNiaToolsForContext(activeCard);
-  const reviewCount = summary.review.status === "ready" ? summary.review.actionableCount : 0;
+  const reviewCount = review.metrics ? review.metrics.dueTodayCount + review.metrics.overdueCount : 0;
   const companionState = companion.state ?? "resting";
 
   const loadConversationDetail = useCallback((conversationId: string) => {

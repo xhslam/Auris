@@ -86,23 +86,6 @@ function shouldUseNativeLinkBehavior(event: MouseEvent<HTMLAnchorElement>) {
 
 function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
   switch (itemId) {
-    case "home":
-      return (
-        <svg
-          aria-hidden="true"
-          className="desktop-app-sidebar__glyph"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M5 10.5 12 5l7 5.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-3V20H6a1 1 0 0 1-1-1v-8.5Z"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.8"
-          />
-        </svg>
-      );
     case "video":
       return (
         <svg
@@ -413,7 +396,7 @@ export function DesktopAppSidebar({
   isPersistentRail = false,
 }: DesktopAppSidebarProps) {
   const pathname = usePathname();
-  const resolvedActiveId = activeNavId ?? activeWorkspace;
+  const resolvedActiveId = activeNavId ?? (activeWorkspace === "home" ? "review" : activeWorkspace);
   const isReadingRoute =
     resolvedActiveId === "reading" ||
     pathname === "/reading" ||

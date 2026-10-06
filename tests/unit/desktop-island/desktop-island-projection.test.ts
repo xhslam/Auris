@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildDesktopIslandContentSnapshot,
 } from "@/features/desktop-island/desktop-island-projection";
-import { createDefaultHomeData } from "@/features/home/home-store";
+import { createEmptyDesktopIslandTaskState } from "@/features/desktop-island/desktop-island-task-store";
 import type { OutputReviewState } from "@/features/output-review/output-review-model";
 
 const now = new Date("2026-08-26T10:00:00+08:00");
@@ -47,15 +47,15 @@ function reviewState(): OutputReviewState {
 
 describe("buildDesktopIslandContentSnapshot", () => {
   it("projects bounded task and actionable review content", () => {
-    const home = createDefaultHomeData(now);
-    home.plans = [
+    const tasks = createEmptyDesktopIslandTaskState();
+    tasks.tasks = [
       { id: "task-1", title: "整理考研阅读笔记", done: true, createdAt: now.toISOString(), updatedAt: now.toISOString() },
       { id: "task-2", title: "完成 10 道数学真题", done: false, createdAt: now.toISOString(), updatedAt: now.toISOString() },
       { id: "task-3", title: "复盘今天的错题", done: false, createdAt: now.toISOString(), updatedAt: now.toISOString() },
       { id: "task-4", title: "不应投影的第四项", done: false, createdAt: now.toISOString(), updatedAt: now.toISOString() },
     ];
 
-    const snapshot = buildDesktopIslandContentSnapshot(home, reviewState(), now);
+    const snapshot = buildDesktopIslandContentSnapshot(tasks, reviewState(), now);
 
     expect(snapshot.tasks).toMatchObject({ completed: 1, remaining: 3, total: 4, progressPercent: 25 });
     expect(snapshot.tasks.items.map((item) => item.id)).toEqual(["task-1", "task-2", "task-3"]);
@@ -77,7 +77,7 @@ describe("buildDesktopIslandContentSnapshot", () => {
     state.cycles[0].events[0].currentPlannedDate = "2026-08-27";
     state.cycles[0].events[0].originalPlannedDate = "2026-08-27";
 
-    const snapshot = buildDesktopIslandContentSnapshot(createDefaultHomeData(now), state, now);
+    const snapshot = buildDesktopIslandContentSnapshot(createEmptyDesktopIslandTaskState(), state, now);
 
     expect(snapshot.review.actionableCount).toBe(0);
     expect(snapshot.review.items).toEqual([]);

@@ -147,9 +147,23 @@ function setVideoDuration(video: HTMLVideoElement, duration: number) {
 }
 
 describe("DesktopVideoDetailShell", () => {
+  beforeEach(() => localStorage.clear());
+
   afterEach(() => {
     Reflect.deleteProperty(window, "shadowingDesktop");
     vi.unstubAllGlobals();
+  });
+
+  it("restores existing playback progress after the resume module moves", async () => {
+    localStorage.setItem("auris.video.resume.v1", JSON.stringify({
+      version: 1, videoId: "video-lesson-one", currentTimeSeconds: 123,
+      lastOpenedAt: "2026-10-05T01:00:00Z", completedAt: null,
+    }));
+    mountWithBridge();
+    await waitFor(() => expect(document.querySelector("video")).not.toBeNull());
+    const video = getRenderedVideo();
+    setVideoDuration(video, 600);
+    expect(video.currentTime).toBe(123);
   });
 
   it("defaults to a clean watch workspace and opens the bilingual practice panel on demand", async () => {

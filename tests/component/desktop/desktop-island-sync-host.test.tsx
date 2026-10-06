@@ -1,7 +1,7 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DesktopIslandSyncHost } from "@/components/desktop/desktop-island-sync-host";
-import { HOME_STORAGE_KEY, createDefaultHomeData } from "@/features/home/home-store";
+import { DESKTOP_ISLAND_TASKS_KEY, createEmptyDesktopIslandTaskState } from "@/features/desktop-island/desktop-island-task-store";
 import type { DesktopIslandRendererIntent } from "@/features/desktop-island/desktop-island.types";
 
 const island = {
@@ -35,15 +35,16 @@ describe("DesktopIslandSyncHost", () => {
   });
 
   it("syncs local task state and applies a replay-safe completion intent", async () => {
-    const home = createDefaultHomeData(new Date("2026-08-26T10:00:00+08:00"));
-    home.plans = [{
+    const tasks = createEmptyDesktopIslandTaskState();
+    tasks.tasks = [{
       createdAt: "2026-08-26T02:00:00.000Z",
       done: false,
       id: "task-1",
       title: "整理阅读笔记",
       updatedAt: "2026-08-26T02:00:00.000Z",
     }];
-    localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(home));
+    const legacy = JSON.stringify({ plans: tasks.tasks, quote: { text: "原每日一句" } });
+    localStorage.setItem("auris:home:v1", legacy);
 
     render(<DesktopIslandSyncHost />);
     await waitFor(() => expect(island.syncSnapshot).toHaveBeenCalled());
@@ -63,7 +64,32 @@ describe("DesktopIslandSyncHost", () => {
     });
 
     await waitFor(() => expect(island.acknowledgeIntent).toHaveBeenCalledWith("intent-1"));
-    const persisted = JSON.parse(localStorage.getItem(HOME_STORAGE_KEY) || "null");
-    expect(persisted.plans[0].done).toBe(true);
+    const persisted = JSON.parse(localStorage.getItem(DESKTOP_ISLAND_TASKS_KEY) || "null");
+    expect(persisted.tasks[0].done).toBe(true);
+    expect(localStorage.getItem("auris:home:v1")).toBe(legacy);
+    await act(async () => {
+      island.listener?.({ actionId: "intent-1", done: true, name: "set-task-done", taskId: "task-1" });
+    });
+    expect(island.acknowledgeIntent).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a failed task write unacknowledged and allows retrying the same intent", async () => {
+    localStorage.setItem(DESKTOP_ISLAND_TASKS_KEY, JSON.stringify({ version: 1, tasks: [{
+      id: "task-1", title: "任务", done: false, createdAt: "2026-10-06", updatedAt: "2026-10-06",
+    }] }));
+    render(<DesktopIslandSyncHost />);
+    await waitFor(() => expect(island.syncSnapshot).toHaveBeenCalled());
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
+    const intent = { actionId: "retry-1", done: true, name: "set-task-done", taskId: "task-1" } as const;
+    try {
+      await act(async () => { island.listener?.(intent); });
+      expect(island.acknowledgeIntent).not.toHaveBeenCalled();
+      expect(JSON.parse(localStorage.getItem(DESKTOP_ISLAND_TASKS_KEY)!).tasks[0].done).toBe(false);
+    } finally {
+      write.mockRestore();
+    }
+    await act(async () => { island.listener?.(intent); });
+    await waitFor(() => expect(island.acknowledgeIntent).toHaveBeenCalledWith("retry-1"));
+    expect(JSON.parse(localStorage.getItem(DESKTOP_ISLAND_TASKS_KEY)!).tasks[0].done).toBe(true);
   });
 });

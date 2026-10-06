@@ -1,4 +1,10 @@
-import type { VideoResumeState } from "@/features/home-learning/home-learning.types";
+export type VideoResumeState = {
+  version: 1;
+  videoId: string;
+  currentTimeSeconds: number;
+  lastOpenedAt: string;
+  completedAt: string | null;
+};
 
 export const VIDEO_RESUME_STORAGE_KEY = "auris.video.resume.v1";
 export const VIDEO_RESUME_CHANGED_EVENT = "auris:video-resume-changed";

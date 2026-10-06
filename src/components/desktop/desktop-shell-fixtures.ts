@@ -57,11 +57,11 @@ export const DESKTOP_NAV_GROUP_LABELS: Record<DesktopNavGroupId, string> = {
 
 export const DESKTOP_NAV_ITEMS: DesktopNavItem[] = [
   {
-    description: "今日知识工作台",
+    description: "每日回顾与间隔复习",
     group: "primary",
     href: "/",
-    id: "home",
-    label: "首页",
+    id: "review",
+    label: "每日回顾",
     runtimeWorkspace: "home",
   },
   {
@@ -78,13 +78,6 @@ export const DESKTOP_NAV_ITEMS: DesktopNavItem[] = [
     href: "/flash",
     id: "flash",
     label: "灵感闪念",
-  },
-  {
-    description: "每日回顾与间隔复习",
-    group: "primary",
-    href: "/review",
-    id: "review",
-    label: "每日回顾",
   },
   {
     description: "陪你学习、对话与回顾",
@@ -116,94 +109,6 @@ export const DESKTOP_NAV_ITEMS: DesktopNavItem[] = [
     href: "/settings",
     id: "settings",
     label: "系统设置",
-  },
-];
-
-export const HOME_COURSE_CARDS: DesktopShowcaseCard[] = [
-  {
-    accent: "linear-gradient(135deg, #df6b65, #2f3248)",
-    id: "course-ai-talk",
-    subtitle: "How to talk with AI",
-    title: "How to talk with AI",
-    tone: "cover",
-  },
-  {
-    accent: "linear-gradient(135deg, #dff0ff, #6eb3d3)",
-    id: "course-conversation-101",
-    subtitle: "Conversation 101",
-    title: "Conversation 101: Universal...",
-    tone: "cover",
-  },
-  {
-    accent: "linear-gradient(135deg, #ffffff, #76b3dc)",
-    id: "course-master-english",
-    subtitle: "General themes",
-    title: "Master English Conversation in 1...",
-    tone: "cover",
-  },
-];
-
-export const HOME_AUDIO_CARDS: DesktopShowcaseCard[] = [
-  {
-    accent: "#b8564f",
-    id: "audio-turning-handicap",
-    locale: "en-US",
-    title: "Turning Handicap Into Valuable Asset",
-    tone: "audio",
-  },
-  {
-    accent: "#51a6e3",
-    id: "audio-model-architecture",
-    locale: "en-US",
-    title: "Overview of the Model Architecture",
-    tone: "audio",
-  },
-  {
-    accent: "#ff7a2f",
-    id: "audio-tortoises",
-    locale: "en-US",
-    title: "Ancestral Tortoises Adapted Creating...",
-    tone: "audio",
-  },
-  {
-    accent: "#cfb49a",
-    id: "audio-lebanese",
-    locale: "en-US",
-    title: "Choosing Lebanese Restaurant Over...",
-    tone: "audio",
-  },
-  {
-    accent: "#6f7c49",
-    id: "audio-smell",
-    locale: "en-US",
-    title: "Human Sense of Smell Feebleness",
-    tone: "audio",
-  },
-  {
-    accent: "#5b3852",
-    id: "audio-1000-hours",
-    locale: "en-US",
-    title: "1000 小时day 14",
-    tone: "audio",
-  },
-];
-
-export const HOME_VIDEO_CARDS: DesktopShowcaseCard[] = [
-  {
-    accent: "linear-gradient(135deg, #1a1622, #493d69)",
-    id: "video-night-shadowing",
-    locale: "en-US",
-    note: "添加的视频",
-    title: "Street Interview Night Practice",
-    tone: "video",
-  },
-  {
-    accent: "linear-gradient(135deg, #2a2a2a, #6f6f6f)",
-    id: "video-daily-expression",
-    locale: "en-US",
-    note: "添加的视频",
-    title: "Daily Expression Capture",
-    tone: "video",
   },
 ];
 

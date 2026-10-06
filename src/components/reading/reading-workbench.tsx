@@ -20,8 +20,8 @@ import { saveReadingProgressFor } from "@/features/reading/reading-library-store
 import {
   rememberReadingResume,
   readReadingResume,
-} from "@/features/home-learning/reading-resume-store";
-import type { ReadingResumePosition } from "@/features/home-learning/home-learning.types";
+} from "@/features/reading/reading-resume-store";
+import type { ReadingResumePosition } from "@/features/reading/reading-resume-store";
 import { loadReadingSourceNotes } from "@/features/reading/reading-source-note";
 import { loadReadingPdfBytes } from "@/features/reading/reading-pdf-store";
 import { FloatingWordCard } from "@/components/workspace/floating-word-card";
@@ -242,7 +242,7 @@ export function ReadingWorkbench({
     setPdfProgress(selectedSource.progress || 0);
   }, [selectedSource.id, selectedSource.progress]);
 
-  // 只为真实打开的用户来源保存恢复定位，内置示例不会成为首页“最近阅读”。
+  // 只为真实打开的用户来源保存恢复定位，内置示例不写入用户续读记录。
   useEffect(() => {
     if (!isUserSource) {
       setResumePosition({ kind: "unknown" });

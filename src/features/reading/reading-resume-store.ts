@@ -1,7 +1,14 @@
-import type {
-  ReadingResumePosition,
-  ReadingResumeState,
-} from "@/features/home-learning/home-learning.types";
+export type ReadingResumePosition =
+  | { kind: "paragraph"; paragraphId: string }
+  | { kind: "pdf"; page: number }
+  | { kind: "unknown" };
+
+export type ReadingResumeState = {
+  version: 1;
+  sourceId: string;
+  lastOpenedAt: string;
+  position: ReadingResumePosition;
+};
 
 export const READING_RESUME_STORAGE_KEY = "auris.reading.resume.v1";
 export const READING_RESUME_CHANGED_EVENT = "auris:reading-resume-changed";

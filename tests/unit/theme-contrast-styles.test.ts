@@ -7,10 +7,6 @@ const redesignCss = readFileSync(
   path.join(process.cwd(), "src/styles/auris-redesign.css"),
   "utf-8",
 );
-const homeCss = readFileSync(
-  path.join(process.cwd(), "src/components/home/home-v3.css"),
-  "utf-8",
-);
 const readingLibraryCss = readFileSync(
   path.join(process.cwd(), "src/components/reading/reading-library.css"),
   "utf-8",
@@ -108,21 +104,6 @@ describe("application theme contrast", () => {
 
     for (const token of ["--notes-text", "--notes-ink", "--notes-muted"]) {
       expectAa(background, variable(body, token), `${theme} Notes ${token}`);
-    }
-  });
-
-  it.each(THEMES)("keeps %s home labels at WCAG AA", (theme) => {
-    const body = ruleBody(homeCss, `.desktop-app-shell[data-app-theme="${theme}"] .home-v3`);
-    const background = variable(body, "--home-v3-bg");
-
-    for (const token of [
-      "--home-v3-text",
-      "--home-v3-soft",
-      "--home-v3-muted",
-      "--home-v3-faint",
-      "--home-v3-gold",
-    ]) {
-      expectAa(background, variable(body, token), `${theme} home ${token}`);
     }
   });
 

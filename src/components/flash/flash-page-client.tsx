@@ -250,7 +250,7 @@ export function FlashPageClient() {
 
           <div className="flash-workspace__related">
             <p>继续整理</p>
-            <button onClick={() => router.push("/review")} type="button">
+            <button onClick={() => router.push("/")} type="button">
               <ClockCounterClockwise size={18} /><span>每日回顾</span>
             </button>
             <button onClick={() => router.push("/notes")} type="button">

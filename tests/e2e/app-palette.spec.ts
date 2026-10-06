@@ -3,8 +3,6 @@ import { expect, test } from "@playwright/test";
 const themes = ["white", "paper", "mint", "sepia", "night", "solarized"];
 const routes = ["/", "/notes", "/flash", "/review", "/reading", "/video", "/browser", "/settings", "/nia", "/focus", "/assessment"];
 const localAccents: Record<string, string> = {
-  ".auris-demo-home": "--home-v3-gold",
-  ".home-v3": "--home-v3-gold",
   ".flash-workspace": "--flash-accent",
   ".output-review-page": "--review-accent",
   ".reading-library": "--reading-accent",

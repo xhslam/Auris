@@ -103,6 +103,18 @@ describe("ReadingWorkbench", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("restores an existing user paragraph position after the resume module moves", async () => {
+    const source = createPersistedReadingSource();
+    source.paragraphs.push({ ...source.paragraphs[0], id: "resume-paragraph-2", order: 2, english: "Resume this paragraph." });
+    localStorage.setItem("auris.reading.resume.v1", JSON.stringify({
+      version: 1, sourceId: source.id, lastOpenedAt: "2026-10-05T01:00:00Z",
+      position: { kind: "paragraph", paragraphId: "resume-paragraph-2" },
+    }));
+    const { container } = render(<ReadingWorkbench notesStorage={null} initialSourceId={source.id} sessionSources={[source]} />);
+    await waitFor(() => expect(container.querySelector('[data-paragraph-id="resume-paragraph-2"]')).toHaveAttribute("data-active", "true"));
+    expect(JSON.parse(localStorage.getItem("auris.reading.resume.v1")!).position.paragraphId).toBe("resume-paragraph-2");
+  });
+
   it("cycles language view across bilingual Chinese-only and English-only layouts", async () => {
     const user = userEvent.setup();
 

@@ -18,14 +18,6 @@ import {
 } from "@/features/notes/workbench/notes-reading-theme";
 
 const globalsCss = readFileSync(path.join(process.cwd(), "src", "app", "globals.css"), "utf8");
-const homeCss = readFileSync(
-  path.join(process.cwd(), "src", "components", "home", "home-demo-workbench.css"),
-  "utf8",
-);
-const homeV3Css = readFileSync(
-  path.join(process.cwd(), "src", "components", "home", "home-v3.css"),
-  "utf8",
-);
 const readingCss = readFileSync(
   path.join(process.cwd(), "src", "components", "reading", "reading-library.css"),
   "utf8",
@@ -78,16 +70,9 @@ describe("application theme contract", () => {
     expect(screen.getByTestId("theme")).toHaveTextContent("solarized");
   });
 
-  it.each(APP_THEME_IDS)("provides %s tokens to shell, Notes, home, life stage, reading, and nia", (theme) => {
+  it.each(APP_THEME_IDS)("provides %s tokens to shell, Notes, reading, and nia", (theme) => {
     expect(hasRule(globalsCss, `.desktop-app-shell[data-app-theme="${theme}"]`)).toBe(true);
     expect(hasRule(globalsCss, `.desktop-app-frame .notes-v2[data-notes-theme="${theme}"]`)).toBe(true);
-    expect(
-      hasRule(
-        homeCss,
-        `.desktop-app-shell[data-app-theme="${theme}"] .auris-demo-home[data-system-color-scheme] .demo-widget--life`,
-      ),
-    ).toBe(true);
-    expect(hasRule(homeV3Css, `.desktop-app-shell[data-app-theme="${theme}"] .home-v3`)).toBe(true);
     expect(hasRule(readingCss, `.desktop-app-shell[data-app-theme="${theme}"] .reading-library`)).toBe(true);
     expect(hasRule(niaCss, `.desktop-app-shell[data-app-theme="${theme}"] .nia-workspace`)).toBe(true);
   });

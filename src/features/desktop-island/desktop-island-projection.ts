@@ -1,4 +1,4 @@
-import type { HomeData } from "@/features/home/home-store";
+import type { DesktopIslandTaskState } from "@/features/desktop-island/desktop-island-task-store";
 import {
   STAGE_LABELS,
   getDashboardMetrics,
@@ -43,13 +43,13 @@ function projectReviewItem(
 }
 
 export function buildDesktopIslandContentSnapshot(
-  homeData: HomeData,
+  taskState: DesktopIslandTaskState,
   reviewState: OutputReviewState,
   now = new Date(),
 ): DesktopIslandContentSnapshot {
   const dateKey = toLocalDateKey(now);
-  const completed = homeData.plans.filter((item) => item.done).length;
-  const total = homeData.plans.length;
+  const completed = taskState.tasks.filter((item) => item.done).length;
+  const total = taskState.tasks.length;
   const queue = getReviewQueue(reviewState, dateKey).filter(
     (item) => item.urgency !== "upcoming",
   );
@@ -71,7 +71,7 @@ export function buildDesktopIslandContentSnapshot(
     },
     tasks: {
       completed,
-      items: homeData.plans.slice(0, MAX_PROJECTED_TASKS).map((item) => ({
+      items: taskState.tasks.slice(0, MAX_PROJECTED_TASKS).map((item) => ({
         done: item.done,
         id: item.id,
         title: compactText(item.title, "未命名任务"),

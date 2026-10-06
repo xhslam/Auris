@@ -1,26 +1,18 @@
-import { ReviewPageClient } from "@/components/review/review-page-client";
+import { redirect } from "next/navigation";
 
 type ReviewPageProps = {
-  searchParams?: Promise<{
-    intent?: string | string[];
-    knowledgePointId?: string | string[];
-  }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function firstString(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
+// Keep reminder links and bookmarked knowledge points working after Review moves home.
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const intent = firstString(resolvedSearchParams?.intent);
-  const rawKnowledgePointId = firstString(resolvedSearchParams?.knowledgePointId);
-  const knowledgePointId = rawKnowledgePointId?.trim().slice(0, 128) || null;
-
-  return (
-    <ReviewPageClient
-      initialIntent={intent === "create-knowledge-point" ? intent : null}
-      initialKnowledgePointId={knowledgePointId}
-    />
-  );
+  const resolved = searchParams ? await searchParams : undefined;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    for (const entry of Array.isArray(value) ? value : value === undefined ? [] : [value]) {
+      query.append(key, entry);
+    }
+  }
+  const suffix = query.toString();
+  redirect(suffix ? `/?${suffix}` : "/");
 }

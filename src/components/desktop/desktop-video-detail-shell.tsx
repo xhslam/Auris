@@ -36,7 +36,7 @@ import {
   readVideoResume,
   rememberVideoResume,
   touchVideoResume,
-} from "@/features/home-learning/video-resume-store";
+} from "@/features/video/video-resume-store";
 import { EnglishPracticePanel } from "@/components/video/english-practice/english-practice-panel";
 import "@/components/desktop/desktop-video-detail-shell.css";
 

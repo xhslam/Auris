@@ -312,8 +312,8 @@ test("keeps the standalone home rail at the same dimensions as the app rail", as
 
   await expect(rail).toBeVisible();
   await expect(page.getByTestId("desktop-sidebar-expand-zone")).toHaveCount(0);
-  await expect(home.getByLabel("工作区")).toBeVisible();
-  await expect(home.getByLabel("今日任务")).toBeVisible();
+  await expect(home.getByRole("navigation", { name: "输出复习视图" })).toBeVisible();
+  await expect(home.getByRole("button", { name: "添加知识点", exact: true }).first()).toBeVisible();
 
   const metrics = await page.evaluate(() => {
     const railElement = document.querySelector(".desktop-app-sidebar");
@@ -337,10 +337,9 @@ test("keeps the standalone home rail at the same dimensions as the app rail", as
   });
 
   await expect(firstButton).toBeVisible();
-  expect(metrics.railWidth).toBeGreaterThanOrEqual(54);
-  expect(metrics.railWidth).toBeLessThanOrEqual(58);
-  expect(metrics.buttonWidth).toBe(36);
-  expect(metrics.buttonHeight).toBe(36);
+  expect(metrics.railWidth).toBe(30);
+  expect(metrics.buttonWidth).toBe(28);
+  expect(metrics.buttonHeight).toBe(28);
 });
 
 test("routes home rail actions to app workspaces", async ({ page }) => {
@@ -353,7 +352,8 @@ test("routes home rail actions to app workspaces", async ({ page }) => {
 
   await page.goto("/");
   await rail.getByRole("link", { name: "每日回顾" }).click();
-  await page.waitForURL("**/review");
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("navigation", { name: "输出复习视图" })).toBeVisible();
 });
 
 test("keeps compact sidebar controls stable at home-rail dimensions", async ({
