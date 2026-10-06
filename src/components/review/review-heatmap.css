@@ -771,31 +771,7 @@
 }
 
 /* ==========================================================================
-   10. Quick link from calendar
-   ========================================================================== */
-.output-review-calendar-heatmap-link {
-  background: var(--app-fill, var(--auris-surface));
-  border: 1px solid var(--app-line, var(--auris-line));
-  border-radius: 999px;
-  color: var(--app-muted, var(--auris-text-muted));
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 600;
-  min-height: 28px;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all .14s ease;
-}
-
-.output-review-calendar-heatmap-link:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-/* ==========================================================================
-   11. Responsive Breakpoints
+   10. Responsive Breakpoints
    ========================================================================== */
 /* Keep the overview content together; short windows can scroll to insights. */
 .review-heatmap-body { gap: 12px; overflow-y: auto; }
@@ -839,5 +815,4 @@
   .review-heatmap-section { gap: 6px; }
 }
 
-.output-review-page__container:has(.review-heatmap-view) { padding-left: 64px !important; }
 .review-insights-card__trigger .review-insights-card__label { font-size: 13px; }

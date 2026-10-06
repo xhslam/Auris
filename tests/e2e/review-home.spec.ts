@@ -45,3 +45,59 @@ test("legacy create links open the existing project-first flow on the homepage",
   await expect(page.getByRole("form", { name: "新建项目" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "新建学习项目" })).toBeVisible();
 });
+
+for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 720 }]) {
+  test(`Review shares the heatmap header at ${viewport.width}×${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
+    const navigation = page.getByRole("navigation", { name: "输出复习视图" });
+    await expect(navigation.getByRole("button")).toHaveCount(4);
+    await expect(navigation.getByRole("button", { name: "日历", exact: true })).toHaveCount(0);
+    for (const theme of ["white", "paper", "mint", "sepia", "night", "solarized"]) {
+      await page.evaluate((value) => {
+        localStorage.setItem("auris.notes.reading-theme", value);
+        window.dispatchEvent(new CustomEvent("auris:app-theme", { detail: value }));
+      }, theme);
+      await expect(page.locator(".desktop-app-shell")).toHaveAttribute("data-app-theme", theme);
+      await navigation.getByRole("button", { name: "复盘热力图", exact: true }).click();
+      const header = page.locator(".output-review-navigation");
+      const measure = () => header.evaluate((element) => {
+        const bounds = (node: Element) => {
+          const { x, y, width, height } = node.getBoundingClientRect();
+          return { x, y, width, height };
+        };
+        const tabs = Array.from(element.querySelectorAll("nav button"));
+        const firstStyle = getComputedStyle(tabs[0]);
+        const add = element.querySelector(".output-review-add")!;
+        const addStyle = getComputedStyle(add);
+        return {
+          header: bounds(element), tabs: tabs.map(bounds), add: bounds(add),
+          font: firstStyle.font, addBackground: addStyle.backgroundColor,
+          addRadius: addStyle.borderRadius, line: getComputedStyle(element).borderBottom,
+          inset: getComputedStyle(element.parentElement!).paddingLeft,
+        };
+      });
+      const heatmapHeader = await measure();
+      expect(heatmapHeader.inset).toBe("64px");
+      for (const label of ["今天", "全部", "项目", "复盘热力图"]) {
+        await navigation.getByRole("button", { name: label, exact: true }).click();
+        // Active font weight can change tab text width; positions of the header,
+        // first tab and primary action must stay fixed across views.
+        const current = await measure();
+        expect(current.header).toEqual(heatmapHeader.header);
+        expect(current.add).toEqual(heatmapHeader.add);
+        expect(current.tabs[0].x).toBe(heatmapHeader.tabs[0].x);
+        expect(current.tabs[0].y).toBe(heatmapHeader.tabs[0].y);
+        expect(current.addBackground).toBe(heatmapHeader.addBackground);
+        expect(current.addRadius).toBe(heatmapHeader.addRadius);
+        expect(current.line).toBe(heatmapHeader.line);
+        await expect(navigation.locator('[aria-current="page"]')).toHaveCount(1);
+        const add = header.getByRole("button", { name: "添加知识点", exact: true });
+        await add.click();
+        await expect(page.getByRole("form", { name: "添加知识点" })).toBeVisible();
+        await page.getByRole("button", { name: "取消", exact: true }).click();
+      }
+    }
+  });
+}

@@ -1,0 +1,69 @@
+{
+  "previousVersion": "1.0.17",
+  "backupPath": "/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.17-before-review-header-20261006-165545.app",
+  "previousAppAsarSha256": "fc0c3b276aa922979cb55938fed8cd318391267f17d6a5b525b526b3f477cb61",
+  "installedPath": "/Applications/Auris.app",
+  "backupVerified": true,
+  "userDataReset": false,
+  "releasePublished": false,
+  "installedVersion": "1.0.17",
+  "installedAt": "2026-10-06T16:58:59.059657+08:00",
+  "signatureVerified": true,
+  "signatureType": "ad-hoc local build",
+  "appAsarSha256": "fc0c3b276aa922979cb55938fed8cd318391267f17d6a5b525b526b3f477cb61",
+  "packagePrivacyVerified": true,
+  "installedElectronSmoke": {
+    "installedPackage": true,
+    "isolatedProfile": true,
+    "origin": "http://127.0.0.1:3000",
+    "calendarRemoved": true,
+    "allFourHeadersEqual": true,
+    "addWorksInAllViews": true,
+    "rects": [
+      {
+        "view": "复盘热力图",
+        "rect": {
+          "x": 116,
+          "y": 10,
+          "width": 1252,
+          "height": 52
+        }
+      },
+      {
+        "view": "今天",
+        "rect": {
+          "x": 116,
+          "y": 10,
+          "width": 1252,
+          "height": 52
+        }
+      },
+      {
+        "view": "全部",
+        "rect": {
+          "x": 116,
+          "y": 10,
+          "width": 1252,
+          "height": 52
+        }
+      },
+      {
+        "view": "项目",
+        "rect": {
+          "x": 116,
+          "y": 10,
+          "width": 1252,
+          "height": 52
+        }
+      }
+    ]
+  },
+  "installedRendererCssMatchesBuild": true,
+  "compiledCalendarStylesAbsent": true,
+  "compiledSharedHeatmapInsetVerified": true,
+  "normalLaunchVerified": true,
+  "normalLaunchEvidence": [
+    "[2026-10-06T09:00:15.952Z] createMainWindow:loaded http://127.0.0.1:3000/",
+    "[2026-10-06T09:00:15.952Z] createMainWindow:loaded http://127.0.0.1:3000/"
+  ]
+}

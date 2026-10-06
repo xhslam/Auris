@@ -64,8 +64,7 @@ describe("output review page", () => {
     expect(screen.getByRole("heading", { name: "全部知识点" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^项目$/ }));
     expect(screen.getByRole("heading", { name: "项目" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /^日历$/ }));
-    expect(screen.getByText("显示当前调整后的计划。")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^日历$/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
   });
 
@@ -128,7 +127,7 @@ describe("output review page", () => {
     } finally { clock.mockRestore(); }
   });
 
-  it("navigates through all, projects, and calendar app workspace views seamlessly", async () => {
+  it("navigates through all, projects, and heatmap app workspace views seamlessly", async () => {
     let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "计算机网络", description: "TCP/IP协议族" });
     state = createKnowledgePoint(state, {
       projectId: state.projects[0].id,
@@ -161,10 +160,11 @@ describe("output review page", () => {
     await user.click(screen.getByRole("button", { name: "← 返回项目" }));
     expect(screen.getByRole("region", { name: "项目列表" })).toBeInTheDocument();
 
-    // 3. 日历视图 (CalendarView) - 左右分栏
-    await user.click(screen.getByRole("button", { name: /^日历$/ }));
-    expect(screen.getByRole("region", { name: "日历视图" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "选定日期复习安排" })).toBeInTheDocument();
+    // 3. 热力图保留，日历入口和界面移除
+    await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
+    expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^日历$/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "日历视图" })).not.toBeInTheDocument();
 
     // 4. 洞察视图已移除
     expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
@@ -247,18 +247,20 @@ describe("output review page", () => {
     expect(screen.getByLabelText("知识点详情：大数定律与中心极限定理")).toBeInTheDocument();
   });
 
-  it("can switch from calendar view directly to the heatmap view", async () => {
+  it("keeps one shared navigation and add action across the four remaining views", async () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
-
-    await user.click(screen.getByRole("button", { name: /^日历$/ }));
-    expect(screen.getByRole("region", { name: "日历视图" })).toBeInTheDocument();
-
-    const heatmapLink = screen.getByRole("button", { name: "年度复盘热力图 →" });
-    expect(heatmapLink).toBeInTheDocument();
-    await user.click(heatmapLink);
-
-    expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
+    const navigation = screen.getByRole("navigation", { name: "输出复习视图" });
+    const labels = ["今天", "全部", "项目", "复盘热力图"];
+    expect(within(navigation).getAllByRole("button").map((button) => button.textContent)).toEqual(labels);
+    for (const label of labels) {
+      const button = within(navigation).getByRole("button", { name: label });
+      await user.click(button);
+      expect(screen.getByRole("navigation", { name: "输出复习视图" })).toBe(navigation);
+      expect(button).toHaveAttribute("aria-current", "page");
+      expect(navigation.querySelectorAll('[data-active="true"]')).toHaveLength(1);
+      expect(within(navigation.parentElement!).getByRole("button", { name: "添加知识点" })).toBeInTheDocument();
+    }
   });
 
   it("displays empty state when no reviews are completed yet", async () => {

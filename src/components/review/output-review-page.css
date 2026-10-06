@@ -144,7 +144,8 @@
   max-width: 100% !important;
   margin: 0 !important;
   box-sizing: border-box !important;
-  padding: 10px clamp(16px, 2.5vw, 32px) 12px !important;
+  /* Reuse the heatmap inset in every Review view, including the shared header. */
+  padding: 10px clamp(16px, 2.5vw, 32px) 12px 64px !important;
   display: grid !important;
   grid-template-rows: auto minmax(0, 1fr) !important;
   flex: 1 1 0 !important;
@@ -677,235 +678,6 @@
   padding: 3px 8px;
 }
 
-/* Calendar Workspace */
-.output-review-calendar-workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
-  gap: 12px;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-.output-review-calendar-pane {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  gap: 8px;
-}
-.output-review-calendar-header {
-  align-items: center;
-  display: flex;
-  gap: 14px;
-  justify-content: space-between;
-  margin-bottom: 0;
-  flex-shrink: 0;
-  min-height: 36px;
-}
-.output-review-calendar-header h2 {
-  color: var(--app-ink, var(--auris-text));
-  font-family: var(--auris-font-serif);
-  font-size: 19px;
-  font-weight: 600;
-  margin: 0;
-}
-.output-review-calendar-header p {
-  color: var(--app-muted, var(--auris-text-muted));
-  font-size: 11px;
-  margin: 2px 0 0;
-}
-.output-review-calendar-controls {
-  display: flex;
-  gap: 4px;
-}
-.output-review-calendar-controls button {
-  background: var(--app-fill, var(--auris-surface));
-  border: 1px solid var(--app-line, var(--auris-line));
-  border-radius: 8px;
-  color: var(--app-text-soft, var(--auris-text-secondary));
-  cursor: pointer;
-  min-height: 30px;
-  min-width: 30px;
-  padding: 0 10px;
-  font-size: 12px;
-  transition: all .14s ease;
-}
-.output-review-calendar-controls button:hover {
-  border-color: var(--accent-28);
-  color: var(--app-text, var(--auris-text));
-}
-.output-review-calendar {
-  background: var(--app-fill, var(--auris-surface));
-  border: 1px solid var(--app-line, var(--auris-line));
-  border-radius: 14px;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 28px repeat(6, 1fr);
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-}
-.output-review-calendar__weekday {
-  color: var(--app-muted, var(--auris-text-muted));
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid var(--app-line-soft, var(--auris-line));
-}
-.output-review-calendar button {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-top: 1px solid var(--app-line-soft, var(--auris-line));
-  color: var(--app-muted, var(--auris-text-muted));
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-height: 0;
-  height: 100%;
-  padding: 5px 4px;
-  transition: background-color .12s ease;
-}
-.output-review-calendar button:not(:nth-of-type(7n + 1)) {
-  border-left: 1px solid var(--app-line-soft, var(--auris-line));
-}
-.output-review-calendar button:hover {
-  background: var(--app-fill-strong, var(--auris-surface-soft));
-}
-.output-review-calendar button[data-current-month="true"] {
-  color: var(--app-text, var(--auris-text-secondary));
-}
-.output-review-calendar button[data-selected="true"] {
-  background: var(--accent-10);
-  box-shadow: inset 0 0 0 1.5px var(--accent);
-}
-.output-review-calendar button[data-today="true"] > span {
-  align-items: center;
-  background: var(--accent);
-  border-radius: 50%;
-  color: var(--accent-ink, #18140b);
-  display: flex;
-  height: 20px;
-  justify-content: center;
-  width: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.output-review-calendar button b {
-  background: var(--accent-10);
-  border-radius: 999px;
-  color: var(--accent);
-  font-size: 9px;
-  min-width: 17px;
-  padding: 1px 4px;
-}
-
-/* Calendar Day Schedule Panel */
-.output-review-calendar-day {
-  background: var(--app-fill, var(--auris-surface));
-  border: 1px solid var(--app-line, var(--auris-line));
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-top: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-.output-review-calendar-day__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--app-line-soft, var(--auris-line));
-  flex-shrink: 0;
-}
-.output-review-calendar-day__header h3 {
-  color: var(--app-ink, var(--auris-text));
-  font-family: var(--auris-font-serif);
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-}
-.output-review-calendar-day__header span {
-  background: var(--accent-10);
-  border-radius: 999px;
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 7px;
-}
-.output-review-calendar-day__content {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
-  margin-top: 8px;
-  scrollbar-width: none;
-}
-.output-review-calendar-day__list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.output-review-calendar-day__list button {
-  align-items: center;
-  background: var(--review-elevated);
-  border: 1px solid var(--app-line, var(--auris-line));
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  min-height: 48px;
-  padding: 9px 12px;
-  text-align: left;
-  width: 100%;
-  transition: all .14s ease;
-}
-.output-review-calendar-day__list button:hover {
-  background: var(--app-fill-strong, var(--auris-surface-soft));
-  border-color: var(--accent);
-  transform: translateX(2px);
-}
-.output-review-calendar-day__list button > span {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  min-width: 0;
-}
-.output-review-calendar-day__list button b {
-  background: var(--accent-10);
-  border-radius: 999px;
-  color: var(--accent);
-  font-size: 9px;
-  padding: 2px 6px;
-  flex-shrink: 0;
-}
-.output-review-calendar-day__list button strong {
-  color: var(--app-ink, var(--auris-text));
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.output-review-calendar-day__list button small {
-  align-items: center;
-  color: var(--app-muted, var(--auris-text-muted));
-  display: flex;
-  font-size: 10px;
-  gap: 5px;
-  flex-shrink: 0;
-}
-.output-review-calendar-day__content > p {
-  color: var(--app-muted, var(--auris-text-muted));
-  font-size: 12px;
-  padding: 48px 0;
-  text-align: center;
-}
-
 .output-review-overlay { align-items: center; background: rgba(0, 0, 0, .7); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 100; }
 .output-review-modal { background: var(--app-surface, #111112); border: 1px solid var(--app-line, var(--auris-line)); border-radius: 18px; box-shadow: 0 28px 80px rgba(0,0,0,.42); max-height: min(800px, calc(100vh - 42px)); overflow-y: auto; padding: 23px; width: min(510px, 100%); }
 .output-review-modal__header { align-items: flex-start; display: flex; justify-content: space-between; margin-bottom: 22px; }
@@ -993,14 +765,10 @@
   .output-review-workbench { grid-template-columns: 1fr; }
   .output-review-followups { padding-top: 2px; }
   .output-review-followups__list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .output-review-calendar-workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 900px) {
-  .output-review-page__container { padding: 8px clamp(12px, 2vw, 20px) 10px !important; }
+  .output-review-page__container { padding: 8px clamp(12px, 2vw, 20px) 10px 64px !important; }
   .output-review-overview { gap: 22px; padding: 24px; }
   .output-review-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .output-review-card__body { grid-template-columns: 1fr; }
@@ -1009,7 +777,7 @@
 }
 
 @media (max-width: 680px) {
-  .output-review-page__container { padding: 6px 10px 8px !important; }
+  .output-review-page__container { padding: 6px 10px 8px 64px !important; }
   .output-review-navigation { gap: 8px; margin-bottom: 0 !important; }
   .output-review-add { min-height: 32px; padding: 0; width: 32px; }
   .output-review-add span { display: none; }
@@ -1045,7 +813,6 @@
   .output-review-modal { border-bottom-left-radius: 0; border-bottom-right-radius: 0; max-height: 91vh; width: 100%; }
   .output-review-detail { border-left: 0; max-width: none; padding: 21px 17px; }
   .output-review-overlay--confirm { align-items: center; padding: 20px; }
-  .output-review-calendar-day button > span { align-items: flex-start; flex-direction: column; gap: 3px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

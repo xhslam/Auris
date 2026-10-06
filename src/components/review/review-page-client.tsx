@@ -24,25 +24,17 @@ import {
 import { readOutputReviewState, writeOutputReviewState } from "@/features/output-review/output-review-storage";
 import "@/components/review/output-review-page.css";
 
-type ReviewView = "today" | "all" | "projects" | "calendar" | "heatmap";
+type ReviewView = "today" | "all" | "projects" | "heatmap";
 type ConfirmAction =
   | { kind: "complete"; knowledgePointId: string }
   | { kind: "restart" | "master" | "archive" | "delete"; knowledgePointId: string };
 
 const VIEW_LABELS: Record<ReviewView, string> = {
-  today: "今天", all: "全部", projects: "项目", calendar: "日历", heatmap: "复盘热力图",
+  today: "今天", all: "全部", projects: "项目", heatmap: "复盘热力图",
 };
-const dateLongFormatter = new Intl.DateTimeFormat("zh-CN", {
-  year: "numeric", month: "long", day: "numeric", weekday: "long",
-});
 const timestampFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
 });
-
-function dateFromKey(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
-  return new Date(year ?? 0, (month ?? 1) - 1, day ?? 1, 12);
-}
 
 function cloneEmptyState(): OutputReviewState {
   return { ...EMPTY_OUTPUT_REVIEW_STATE, projects: [], knowledgePoints: [], cycles: [] };
@@ -155,15 +147,14 @@ export function ReviewPageClient({
                 </button>
               ))}
             </nav>
-            <button className="output-review-primary output-review-add" onClick={() => setFormPoint("new")} type="button"><PlusIcon size={15} /><span>添加知识点</span></button>
+            <button aria-label="添加知识点" className="output-review-primary output-review-add" onClick={() => setFormPoint("new")} type="button"><PlusIcon size={15} /><span>添加知识点</span></button>
           </div>
 
           {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
             : view === "today" ? <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}><TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} onShowHeatmap={() => setView("heatmap")} queue={queue} /></ReviewWheelWorkspace>
               : view === "all" ? <AllView onOpen={setDetailId} state={state} />
                 : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
-                  : view === "calendar" ? <CalendarView onOpen={setDetailId} onSwitchToHeatmap={() => setView("heatmap")} state={state} today={today} />
-                    : <ReviewHeatmap onGoToToday={() => setView("today")} onOpen={setDetailId} state={state} today={today} />}
+                  : <ReviewHeatmap onGoToToday={() => setView("today")} onOpen={setDetailId} state={state} today={today} />}
         </div>
 
         {formPoint ? <KnowledgePointForm
@@ -408,104 +399,6 @@ function ProjectsView({ state, onAddProject, onOpen }: { state: OutputReviewStat
             </button>
           </div>
         ) : null}
-      </div>
-    </section>
-  );
-}
-
-function CalendarView({
-  state,
-  today,
-  onOpen,
-  onSwitchToHeatmap,
-}: {
-  state: OutputReviewState;
-  today: string;
-  onOpen: (id: string) => void;
-  onSwitchToHeatmap?: () => void;
-}) {
-  const [month, setMonth] = useState(() => { const value = new Date(); return new Date(value.getFullYear(), value.getMonth(), 1, 12); });
-  const [selectedDate, setSelectedDate] = useState(today);
-  const entries = useMemo(() => state.cycles.filter((cycle) => cycle.isCurrent).flatMap((cycle) => cycle.events.map((event) => ({ event, point: state.knowledgePoints.find((point) => point.id === cycle.knowledgePointId) })).filter((entry) => entry.point && entry.point.status !== "archived" && entry.event.status !== "skipped")), [state]);
-  const counts = entries.reduce<Record<string, number>>((result, entry) => { result[entry.event.currentPlannedDate] = (result[entry.event.currentPlannedDate] ?? 0) + 1; return result; }, {});
-  const first = new Date(month.getFullYear(), month.getMonth(), 1, 12); first.setDate(first.getDate() - first.getDay());
-  const days = Array.from({ length: 42 }, (_, index) => { const date = new Date(first); date.setDate(first.getDate() + index); return date; });
-  const selectedEntries = entries.filter((entry) => entry.event.currentPlannedDate === selectedDate);
-  return (
-    <section className="output-review-view output-review-view--calendar" aria-label="日历视图">
-      <div className="output-review-calendar-workspace">
-        <div className="output-review-calendar-pane">
-          <div className="output-review-calendar-header">
-            <div>
-              <h2>{month.getFullYear()} 年 {month.getMonth() + 1} 月</h2>
-              <p>显示当前调整后的计划。</p>
-            </div>
-            <div className="output-review-calendar-controls">
-              {onSwitchToHeatmap ? (
-                <button
-                  className="output-review-calendar-heatmap-link"
-                  onClick={onSwitchToHeatmap}
-                  type="button"
-                >
-                  年度复盘热力图 →
-                </button>
-              ) : null}
-              <button aria-label="上个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1, 12))} type="button">←</button>
-              <button onClick={() => { const now = new Date(); setMonth(new Date(now.getFullYear(), now.getMonth(), 1, 12)); setSelectedDate(today); }} type="button">今天</button>
-              <button aria-label="下个月" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1, 12))} type="button">→</button>
-            </div>
-          </div>
-          <div className="output-review-calendar">
-            {["日", "一", "二", "三", "四", "五", "六"].map((weekday) => (
-              <span className="output-review-calendar__weekday" key={weekday}>{weekday}</span>
-            ))}
-            {days.map((date) => {
-              const key = toLocalDateKey(date);
-              const count = counts[key] ?? 0;
-              return (
-                <button
-                  aria-label={`${key}${count ? `，${count} 项复习` : "，没有复习"}`}
-                  data-current-month={date.getMonth() === month.getMonth()}
-                  data-selected={selectedDate === key}
-                  data-today={today === key}
-                  key={key}
-                  onClick={() => setSelectedDate(key)}
-                  type="button"
-                >
-                  <span>{date.getDate()}</span>
-                  {count ? <b>{count}</b> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <section className="output-review-calendar-day" aria-label="选定日期复习安排">
-          <div className="output-review-calendar-day__header">
-            <h3>{dateLongFormatter.format(dateFromKey(selectedDate))}</h3>
-            <span>{selectedEntries.length} 项</span>
-          </div>
-          <div className="output-review-calendar-day__content">
-            {selectedEntries.length ? (
-              <div className="output-review-calendar-day__list">
-                {selectedEntries.map(({ point, event }) => point ? (
-                  <button key={event.id} onClick={() => onOpen(point.id)} type="button">
-                    <span>
-                      <b>{STAGE_LABELS[event.stage]}</b>
-                      <strong>{point.title}</strong>
-                    </span>
-                    <small>
-                      {event.status === "completed" ? "已完成" : event.currentPlannedDate < today ? "已逾期" : "待完成"}
-                      <ChevronRightIcon size={15} />
-                    </small>
-                  </button>
-                ) : null)}
-              </div>
-            ) : (
-              <p>这一天没有安排输出复习。</p>
-            )}
-          </div>
-        </section>
       </div>
     </section>
   );
