@@ -2,6 +2,10 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NotesPageClient } from "@/components/notes-v2/notes-page-client";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
+import {
+  createNotesFolderNavigateEvent,
+  readLastNotesFolder,
+} from "@/components/notes-v2/notes-navigation";
 import { NEW_NOTE_BODY_PLACEHOLDER } from "@/features/notes/documents/note-editing-source";
 import { clearAllPendingNoteSaves } from "@/features/notes/workbench/notes-pending-saves";
 import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
@@ -247,7 +251,7 @@ describe("NotesPageClient", () => {
     vi.useRealTimers();
   });
 
-  it("starts on the welcome page and enters the selected folder browser", async () => {
+  it("returns from a folder to the welcome page via 起点 and can reopen the folder and its notes", async () => {
     render(<NotesPageClient />);
 
     await act(async () => {
@@ -265,6 +269,30 @@ describe("NotesPageClient", () => {
 
     expect(screen.getByRole("heading", { name: "English Vault" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "打开笔记 Rhythm Drill" })).toBeInTheDocument();
+
+    const folder = readLastNotesFolder();
+    expect(folder?.path).toBe("C:/vault");
+    const tools = screen.getByRole("button", { name: "起点" }).parentElement!;
+    expect(Array.from(tools.children).map((child) => child.textContent)).toEqual([
+      "搜索", "起点", expect.stringContaining("最近修改"), "",
+    ]);
+
+    fireEvent.click(screen.getByRole("button", { name: "起点" }));
+    expect(screen.getByTestId("notes-page-frame")).toHaveAttribute("data-entry-view", "landing");
+    expect(screen.getByRole("button", { name: /打开文件夹/ })).toBeInTheDocument();
+    expect(readLastNotesFolder()).toEqual(folder);
+
+    await act(async () => {
+      window.dispatchEvent(createNotesFolderNavigateEvent(folder!));
+      await vi.runAllTimersAsync();
+    });
+    expect(screen.getByTestId("notes-page-frame")).toHaveAttribute("data-entry-view", "folder");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "打开笔记 Rhythm Drill" }));
+      await vi.runAllTimersAsync();
+    });
+    expect(screen.getByTestId("notes-page-frame")).toHaveAttribute("data-entry-view", "note");
+    expect(screen.getByText(/Repeat the rhythm phrase/)).toBeInTheDocument();
   });
 
   it("loads every vault note before presenting the relationship graph", async () => {

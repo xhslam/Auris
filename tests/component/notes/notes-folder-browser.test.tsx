@@ -67,6 +67,7 @@ function renderBrowser(overrides: Partial<ComponentProps<typeof NotesFolderBrows
       onCreateNote={onCreateNote}
       onEnsureDocuments={onEnsureDocuments}
       onOpenNote={onOpenNote}
+      onReturnToLanding={vi.fn()}
       theme="mint"
       {...overrides}
     />,

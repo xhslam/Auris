@@ -426,6 +426,11 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
     setLocation({ type: "folder", folder });
   }, []);
 
+  const handleReturnToLanding = useCallback(() => {
+    setActiveExternalFileId(null);
+    setLocation({ type: "landing" });
+  }, []);
+
   const openNote = useCallback(
     (path: string, folder = activeFolder) => {
       setActiveExternalFileId(null);
@@ -834,6 +839,7 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
             onCreateNote={handleCreateInFolder}
             onEnsureDocuments={workbench.ensureGraphDocuments}
             onOpenNote={(path) => openNote(path, location.folder)}
+            onReturnToLanding={handleReturnToLanding}
             theme={theme}
           />
         ) : (

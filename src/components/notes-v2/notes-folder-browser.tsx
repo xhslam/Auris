@@ -4,6 +4,7 @@ import {
   FilePlus,
   FileText,
   FolderSimple,
+  House,
   List,
   MagnifyingGlass,
   SortAscending,
@@ -30,6 +31,7 @@ type NotesFolderBrowserProps = {
   onCreateNote: () => void;
   onEnsureDocuments: () => Promise<void>;
   onOpenNote: (path: string) => void;
+  onReturnToLanding: () => void;
   theme: string;
 };
 
@@ -242,6 +244,7 @@ export function NotesFolderBrowser({
   onCreateNote,
   onEnsureDocuments,
   onOpenNote,
+  onReturnToLanding,
   theme,
 }: NotesFolderBrowserProps) {
   const [viewMode, setViewMode] = useState<NotesBrowserView>("grid");
@@ -342,6 +345,15 @@ export function NotesFolderBrowser({
                 <span>搜索</span>
               </button>
             )}
+            <button
+              className="notes-folder-browser__tool-button"
+              onClick={onReturnToLanding}
+              title="返回笔记起点"
+              type="button"
+            >
+              <House aria-hidden="true" size={17} />
+              <span>起点</span>
+            </button>
             <label className="notes-folder-browser__sort">
               <SortAscending aria-hidden="true" size={17} />
               <span className="notes-folder-browser__sr-only">排序方式</span>
