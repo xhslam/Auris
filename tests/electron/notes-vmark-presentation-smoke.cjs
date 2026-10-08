@@ -478,14 +478,14 @@ async function main() {
       await page.waitForFunction(() => document.querySelector('.notes-v2__terminal-tab[aria-selected="true"]')?.getAttribute("data-status") === "running");
       await runTerminalCommand(page, "printf 'AURIS_SECOND_SESSION_OK\\n'");
       await waitForTerminalText(page, "AURIS_SECOND_SESSION_OK");
-      await page.getByRole("tab", { name: "Terminal 1", exact: true }).click();
+      await page.locator(".notes-v2__terminal-tab").nth(0).click();
       await waitForTerminalText(page, "AURIS_REOPEN_INPUT_OK");
       evidence.firstSessionPreserved = await page.locator(".xterm-rows:visible").first().textContent();
       assert(!evidence.firstSessionPreserved.includes("AURIS_SECOND_SESSION_OK"), "Each terminal session must retain its own screen buffer");
-      await page.getByRole("tab", { name: "Terminal 2", exact: true }).click();
+      await page.locator(".notes-v2__terminal-tab").nth(1).click();
       await waitForTerminalText(page, "AURIS_SECOND_SESSION_OK");
       evidence.sessionSwitchPreservesBuffers = true;
-      await page.getByRole("tab", { name: "Terminal 1", exact: true }).click();
+      await page.locator(".notes-v2__terminal-tab").nth(0).click();
 
       evidence.themes = [];
       for (const theme of ["white", "paper", "mint", "sepia", "night", "solarized"]) {

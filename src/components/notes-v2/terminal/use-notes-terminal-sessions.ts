@@ -10,8 +10,12 @@ import {
 } from "@/features/appearance/app-theme";
 import { buildNotesTerminalTheme } from "./notes-terminal-theme";
 import { verifiedMonoStack } from "./verified-terminal-mono-stack";
+import { loadNotesTerminalRuntime } from "./notes-terminal-runtime";
+import { clampTerminalFontSize, createNotesTerminalKeyHandler, DEFAULT_TERMINAL_FONT_SIZE, loadTerminalFontSize, preferredTerminalFontStack, TERMINAL_FONT_SIZE_STORAGE } from "./notes-terminal-options";
 import type {
   DesktopTerminalBridge,
+  DesktopTerminalDataEvent,
+  DesktopTerminalExitEvent,
   DesktopTerminalSessionRecord,
 } from "@/platform/desktop/desktop-bridge";
 import {
@@ -33,6 +37,7 @@ export type NotesTerminalSession = {
   id: string;
   isAlive: boolean;
   label: string;
+  programTitle?: string;
   shell: string | null;
   status: SessionStatus;
   workspaceInstanceId: string | null;
@@ -43,6 +48,12 @@ type TerminalEntry = {
   fitAddon: FitAddon;
   searchAddon: SearchAddon;
   terminal: Terminal;
+  outputReady: boolean;
+  outputSequence: number | null;
+  exitWritten: boolean;
+  fitFrame: number | null;
+  resizeTimer: ReturnType<typeof setTimeout> | null;
+  lastResize: string | null;
 };
 
 type UseNotesTerminalSessionsInput = {
@@ -51,6 +62,7 @@ type UseNotesTerminalSessionsInput = {
   terminalBridge?: DesktopTerminalBridge | null;
   visible?: boolean;
   workspaceInstanceId?: string | null;
+  onSearch?: () => void;
 };
 
 function getThemeScope(element?: Element | null) {
@@ -154,7 +166,7 @@ function getTerminalTheme(scopeElement?: Element | null) {
     scopeElement,
   );
   const foreground = readOpaqueThemeColor(
-    ["--notes-text"],
+    ["--notes-terminal-fg", "--notes-text"],
     NOTES_TEXT_FALLBACK,
     scopeElement,
   );
@@ -165,8 +177,8 @@ function getTerminalTheme(scopeElement?: Element | null) {
 function getTerminalFontFamily(scopeElement?: Element | null) {
   const family = ["--notes-editor-font-mono", "--auris-font-mono", "--font-mono"]
     .map((name) => readThemeToken(name, "", scopeElement))
-    .find(Boolean) ?? "Cascadia Code, JetBrains Mono, SFMono-Regular, monospace";
-  return verifiedMonoStack(family);
+    .find(Boolean) ?? "";
+  return verifiedMonoStack(preferredTerminalFontStack(family));
 }
 
 function createSessionLabel(sessions: NotesTerminalSession[]) {
@@ -312,6 +324,7 @@ export function useNotesTerminalSessions({
   visible = true,
   terminalBridge = null,
   workspaceInstanceId = null,
+  onSearch,
 }: UseNotesTerminalSessionsInput) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const entriesRef = useRef<Map<string, TerminalEntry>>(new Map());
@@ -327,6 +340,14 @@ export function useNotesTerminalSessions({
   const pasteHandlerRef = useRef<() => void>(() => {});
   const copyHandlerRef = useRef<() => void>(() => {});
   const pendingInputRef = useRef<Map<string, string[]>>(new Map());
+  const pendingOutputRef = useRef<Map<string, DesktopTerminalDataEvent[]>>(new Map());
+  const snapshotsRef = useRef<Map<string, DesktopTerminalSessionRecord>>(new Map());
+  const focusIntentRef = useRef<{ sessionId: string; element: Element | null } | null>(null);
+  const pendingExitRef = useRef<Map<string, DesktopTerminalExitEvent>>(new Map());
+  const fontSizeRef = useRef(loadTerminalFontSize());
+  const searchHandlerRef = useRef(onSearch);
+  searchHandlerRef.current = onSearch;
+  const activatedScopesRef = useRef(new Set<string>());
   const sessionsRef = useRef<NotesTerminalSession[]>([]);
   const nextSessionIdRef = useRef(1);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -361,6 +382,8 @@ export function useNotesTerminalSessions({
     }
 
     setHasLoadedBackendSessions(false);
+    // Fetch renderer code alongside list/restore, not after that round trip.
+    void loadNotesTerminalRuntime().catch(() => undefined);
     void terminalBridge
       .list()
       .then((records) => {
@@ -374,6 +397,7 @@ export function useNotesTerminalSessions({
         }, 1);
 
         nextSessionIdRef.current = Math.max(nextSessionIdRef.current, nextIndex);
+        for (const record of records) snapshotsRef.current.set(record.id, record);
         setSessions((current) =>
           current.length ? current : restoreTerminalSessions(records),
         );
@@ -430,14 +454,27 @@ export function useNotesTerminalSessions({
         return;
       }
 
-      requestAnimationFrame(() => {
-        if (!visibleRef.current || activeSessionIdRef.current !== sessionId) return;
+      if (entry.fitFrame !== null) return;
+      entry.fitFrame = requestAnimationFrame(() => {
+        entry.fitFrame = null;
+        if (!visibleRef.current || activeSessionIdRef.current !== sessionId || !entry.container.isConnected) return;
         try {
           entry.fitAddon.fit();
-          void terminalBridge.resize(sessionId, {
-            cols: entry.terminal.cols || DEFAULT_COLS,
-            rows: entry.terminal.rows || DEFAULT_ROWS,
-          });
+          const cols = entry.terminal.cols || DEFAULT_COLS;
+          const rows = entry.terminal.rows || DEFAULT_ROWS;
+          const sizeKey = `${cols}x${rows}`;
+          if (entry.resizeTimer !== null) { clearTimeout(entry.resizeTimer); entry.resizeTimer = null; }
+          if (!entry.outputReady || entry.lastResize === sizeKey) return;
+          // VMark's resize debounce: fit the screen this frame, send only the
+          // final geometry after a drag, and never resize a hidden/inactive PTY.
+          entry.resizeTimer = setTimeout(() => {
+            entry.resizeTimer = null;
+            if (!visibleRef.current || activeSessionIdRef.current !== sessionId || entriesRef.current.get(sessionId) !== entry) return;
+            entry.lastResize = sizeKey;
+            void terminalBridge.resize(sessionId, { cols, rows }).catch(() => {
+              entry.lastResize = null;
+            });
+          }, 100);
         } catch {
           // Hidden terminals cannot always be measured.
         }
@@ -447,14 +484,26 @@ export function useNotesTerminalSessions({
   );
 
   const showActiveSession = useCallback(
-    (sessionId: string | null) => {
+    (sessionId: string | null, fromCompletion = false) => {
+      if (fromCompletion && sessionId !== activeSessionIdRef.current) return;
       entriesRef.current.forEach((entry, id) => {
         entry.container.style.display = id === sessionId ? "block" : "none";
+        entry.container.dataset.active = id === sessionId ? "true" : "false";
       });
 
       if (sessionId && visibleRef.current) {
         fitSession(sessionId);
-        entriesRef.current.get(sessionId)?.terminal.focus();
+        const entry = entriesRef.current.get(sessionId);
+        if (!fromCompletion) {
+          focusIntentRef.current = { sessionId, element: document.activeElement };
+          entry?.terminal.focus();
+          focusIntentRef.current.element = document.activeElement;
+        } else {
+          const intent = focusIntentRef.current;
+          // Async completion is not a new focus request. A search field or
+          // another control that the user chose owns its subsequent input.
+          if (intent?.sessionId === sessionId && intent.element === document.activeElement && !document.activeElement?.closest(".notes-v2__terminal-search")) entry?.terminal.focus();
+        }
       }
     },
     [fitSession],
@@ -486,11 +535,13 @@ export function useNotesTerminalSessions({
 
   const disposeEntry = useCallback((sessionId: string) => {
     const entry = entriesRef.current.get(sessionId);
+    pendingOutputRef.current.delete(sessionId);
+    pendingExitRef.current.delete(sessionId);
+    snapshotsRef.current.delete(sessionId);
+    if (!entry) return;
 
-    if (!entry) {
-      return;
-    }
-
+    if (entry.fitFrame !== null) cancelAnimationFrame(entry.fitFrame);
+    if (entry.resizeTimer !== null) clearTimeout(entry.resizeTimer);
     entry.terminal.dispose();
     entry.container.remove();
     entriesRef.current.delete(sessionId);
@@ -625,22 +676,13 @@ export function useNotesTerminalSessions({
       const container = document.createElement("div");
       container.className = "notes-v2__terminal-xterm";
       container.style.display = session.id === activeSessionIdRef.current ? "block" : "none";
+      container.dataset.active = session.id === activeSessionIdRef.current ? "true" : "false";
       hostRef.current.appendChild(container);
 
       try {
         const [
-          { Terminal },
-          { FitAddon },
-          { SearchAddon },
-          { WebLinksAddon },
-          { Unicode11Addon },
-        ] = await Promise.all([
-          import("@xterm/xterm"),
-          import("@xterm/addon-fit"),
-          import("@xterm/addon-search"),
-          import("@xterm/addon-web-links"),
-          import("@xterm/addon-unicode11"),
-        ]);
+          { Terminal }, { FitAddon }, { SearchAddon }, { WebLinksAddon }, { Unicode11Addon },
+        ] = await loadNotesTerminalRuntime();
 
         if (!isSessionActive(session.id) || !container.isConnected) {
           container.remove();
@@ -656,7 +698,9 @@ export function useNotesTerminalSessions({
           minimumContrastRatio: 4.5,
           drawBoldTextInBrightColors: getTerminalThemeId(container) !== "solarized",
           fontFamily: getTerminalFontFamily(container),
-          fontSize: 13,
+          fontSize: fontSizeRef.current,
+          fontWeight: "normal",
+          fontWeightBold: "bold",
           lineHeight: 1.2,
           scrollback: 5000,
           theme: getTerminalTheme(container),
@@ -688,36 +732,28 @@ export function useNotesTerminalSessions({
         // so we intercept the common paste/copy chords and route them through
         // the native clipboard bridge. Returning false tells xterm to swallow
         // the key so it does not also send raw bytes to the shell.
-        terminal.attachCustomKeyEventHandler((event) => {
-          if (event.type !== "keydown") {
-            return true;
-          }
-
-          const key = event.key.toLowerCase();
-          const primaryModifier = event.ctrlKey || event.metaKey;
-
-          // Paste: Ctrl+V / Cmd+V, and Shift+Insert.
-          if (primaryModifier && key === "v") {
-            event.preventDefault();
-            pasteHandlerRef.current();
-            return false;
-          }
-          if (event.shiftKey && key === "insert") {
-            event.preventDefault();
-            pasteHandlerRef.current();
-            return false;
-          }
-
-          // Copy: only hijack Ctrl+C / Cmd+C when there is an active selection,
-          // otherwise let Ctrl+C through as SIGINT so the user can still
-          // interrupt a running command.
-          if (primaryModifier && key === "c" && terminal.hasSelection()) {
-            event.preventDefault();
-            copyHandlerRef.current();
-            return false;
-          }
-
-          return true;
+        terminal.attachCustomKeyEventHandler(createNotesTerminalKeyHandler({
+          hasSelection: () => terminal.hasSelection(),
+          copy: () => copyHandlerRef.current(),
+          paste: () => pasteHandlerRef.current(),
+          clear: () => { terminal.clear(); terminal.scrollToBottom(); },
+          selectAll: () => terminal.selectAll(),
+          search: () => searchHandlerRef.current?.(),
+          zoom: (delta) => {
+            fontSizeRef.current = delta === null ? DEFAULT_TERMINAL_FONT_SIZE : clampTerminalFontSize(fontSizeRef.current + delta);
+            try { window.localStorage.setItem(TERMINAL_FONT_SIZE_STORAGE, String(fontSizeRef.current)); } catch {}
+            for (const [id, entry] of entriesRef.current) {
+              entry.terminal.options.fontSize = fontSizeRef.current;
+              if (id === activeSessionIdRef.current) fitSession(id);
+            }
+          },
+          selectSession: (index) => {
+            const target = selectTerminalSessionsForWorkspace(sessionsRef.current, workspaceInstanceId)[index];
+            if (target) { lastActiveSessionByScope.set(scopeKey, target.id); setActiveSessionId(target.id); }
+          },
+        }));
+        terminal.onTitleChange?.((programTitle) => {
+          if (isSessionActive(session.id)) markSession(session.id, { programTitle });
         });
 
         terminal.open(container);
@@ -727,6 +763,12 @@ export function useNotesTerminalSessions({
           fitAddon,
           searchAddon,
           terminal,
+          outputReady: false,
+          outputSequence: null,
+          exitWritten: false,
+          fitFrame: null,
+          resizeTimer: null,
+          lastResize: null,
         });
 
         // Listen before awaiting the backend; starting input uses the existing queue.
@@ -758,7 +800,16 @@ export function useNotesTerminalSessions({
           });
         });
 
-        const record = await terminalBridge.resume({
+        const current = sessionsRef.current.find(({ id }) => id === session.id);
+        const alreadyEnded = current?.status === "exited" || current?.status === "failed";
+        // Display an unattached ended tab without starting a new Shell merely
+        // to read its result. Input still uses the existing explicit restart.
+        const record: DesktopTerminalSessionRecord = alreadyEnded ? {
+          backend: session.backend, cwd: session.cwd, id: session.id,
+          shell: session.shell ?? "", cols: terminal.cols, rows: terminal.rows,
+          ...snapshotsRef.current.get(session.id),
+          exit: pendingExitRef.current.get(session.id) ?? { sessionId: session.id, exitCode: null, errorMessage: current?.status === "failed" ? "Terminal startup failed" : null },
+        } : await terminalBridge.resume({
           cols: terminal.cols || DEFAULT_COLS,
           cwd,
           rows: terminal.rows || DEFAULT_ROWS,
@@ -775,17 +826,36 @@ export function useNotesTerminalSessions({
           return;
         }
 
+        const entry = entriesRef.current.get(session.id)!;
+        if (record.output) terminal.write(record.output);
+        // Apply the snapshot first, then only live chunks past its boundary.
+        // This also catches data emitted before xterm's import/open completed.
+        entry.outputSequence = record.outputSequence ?? null;
+        for (const event of pendingOutputRef.current.get(session.id) ?? []) {
+          if (event.sequence !== undefined && entry.outputSequence !== null && event.sequence <= entry.outputSequence) continue;
+          terminal.write(event.data);
+          if (event.sequence !== undefined) entry.outputSequence = event.sequence;
+        }
+        pendingOutputRef.current.delete(session.id);
+        entry.outputReady = true;
+        entry.lastResize = `${record.cols ?? terminal.cols}x${record.rows ?? terminal.rows}`;
+        const earlyExit = pendingExitRef.current.get(session.id) ?? record.exit;
+        pendingExitRef.current.delete(session.id);
         markSession(session.id, {
           backend: record.backend,
           cwd: record.cwd,
-          isAlive: true,
+          isAlive: !earlyExit,
           shell: record.shell,
-          status: "running",
+          status: earlyExit ? (earlyExit.errorMessage ? "failed" : "exited") : "running",
           workspaceInstanceId: record.workspaceInstanceId ?? session.workspaceInstanceId,
         });
         setStatusMessage(null);
-        if (record.output) {
-          terminal.write(record.output);
+        if (earlyExit) {
+          terminal.write(formatExitMessage(earlyExit.exitCode, earlyExit.signal));
+          terminal.write(formatRestartHintMessage());
+          entry.exitWritten = true;
+          showActiveSession(session.id, true);
+          return;
         }
         const pendingInput = consumePendingInput(session.id);
 
@@ -812,7 +882,7 @@ export function useNotesTerminalSessions({
 
 
 
-        showActiveSession(activeSessionIdRef.current);
+        showActiveSession(session.id, true);
       } catch (error) {
         pendingInputRef.current.delete(session.id);
         disposeEntry(session.id);
@@ -841,18 +911,24 @@ export function useNotesTerminalSessions({
       queueSessionRestart,
       showActiveSession,
       terminalBridge,
+      fitSession,
+      scopeKey,
+      workspaceInstanceId,
     ],
   );
 
   useEffect(() => {
+    if (!visible && visibleSessions.length === 0) activatedScopesRef.current.delete(scopeKey);
     if (!enabled || !visible || !terminalBridge || !hasLoadedBackendSessions) {
       return;
     }
 
-    if (visibleSessions.length === 0) {
+    if (visibleSessions.length > 0) activatedScopesRef.current.add(scopeKey);
+    else if (!activatedScopesRef.current.has(scopeKey)) {
+      activatedScopesRef.current.add(scopeKey);
       createSession();
     }
-  }, [createSession, enabled, hasLoadedBackendSessions, terminalBridge, visible, visibleSessions.length]);
+  }, [createSession, enabled, hasLoadedBackendSessions, scopeKey, terminalBridge, visible, visibleSessions.length]);
 
   useEffect(() => {
     const nextActiveSessionId = selectActiveTerminalSessionId(
@@ -874,12 +950,11 @@ export function useNotesTerminalSessions({
       return;
     }
 
-    visibleSessions.forEach((session) => {
-      if (session.status === "starting") {
-        void initializeSession(session);
-      }
-    });
-  }, [enabled, initializeSession, terminalBridge, visible, visibleSessions]);
+    // Dormant restored tabs (and other workspaces) do not run shells until
+    // selected. Switching back to a running entry keeps its screen and PTY.
+    const session = visibleSessions.find(({ id }) => id === activeSessionId);
+    if (session && (session.status === "starting" || pendingExitRef.current.has(session.id))) void initializeSession(session);
+  }, [activeSessionId, enabled, initializeSession, terminalBridge, visible, visibleSessions]);
 
   useEffect(() => {
     showActiveSession(activeSessionId);
@@ -891,12 +966,43 @@ export function useNotesTerminalSessions({
     }
 
     const removeDataListener = terminalBridge.onData((event) => {
-      entriesRef.current.get(event.sessionId)?.terminal.write(event.data);
+      const entry = entriesRef.current.get(event.sessionId);
+      if (entry?.outputReady) {
+        // A queued IPC data notification may be delivered after the invoke
+        // response. Keep the boundary for the whole attachment, not just the
+        // array that happened to arrive before resume resolved.
+        if (event.sequence !== undefined && entry.outputSequence !== null && event.sequence <= entry.outputSequence) return;
+        entry.terminal.write(event.data);
+        if (event.sequence !== undefined) entry.outputSequence = event.sequence;
+      } else if (sessionsRef.current.some(({ id }) => id === event.sessionId)) {
+        if (entry || initializingSessionIdsRef.current.has(event.sessionId)) {
+          const pending = pendingOutputRef.current.get(event.sessionId) ?? [];
+          // An in-flight snapshot has no known boundary yet. Preserve this
+          // finite attach tail, including ANSI/mode prefixes, without clipping.
+          pending.push(event);
+          pendingOutputRef.current.set(event.sessionId, pending);
+        } else {
+          // Unattached background tabs use the same bounded recovery history
+          // as main. A final exit snapshot replaces this tail before display.
+          const snapshot = snapshotsRef.current.get(event.sessionId);
+          if (snapshot && (event.sequence === undefined || snapshot.outputSequence === undefined || event.sequence > snapshot.outputSequence)) snapshotsRef.current.set(event.sessionId, {
+            ...snapshot, output: `${snapshot.output ?? ""}${event.data}`.slice(-200_000), outputSequence: event.sequence,
+          });
+        }
+      }
     });
     const removeExitListener = terminalBridge.onExit((event) => {
+      if (!sessionsRef.current.some(({ id }) => id === event.sessionId)) return;
       const entry = entriesRef.current.get(event.sessionId);
-      entry?.terminal.write(formatExitMessage(event.exitCode, event.signal));
-      entry?.terminal.write(formatRestartHintMessage());
+      if (!entry?.outputReady) {
+        pendingExitRef.current.set(event.sessionId, event);
+        const snapshot = snapshotsRef.current.get(event.sessionId);
+        if (snapshot && event.output !== undefined) snapshotsRef.current.set(event.sessionId, { ...snapshot, output: event.output, outputSequence: event.outputSequence });
+      } else if (!entry.exitWritten) {
+        entry.terminal.write(formatExitMessage(event.exitCode, event.signal));
+        entry.terminal.write(formatRestartHintMessage());
+        entry.exitWritten = true;
+      }
       markSession(event.sessionId, {
         isAlive: false,
         status: event.errorMessage ? "failed" : "exited",
@@ -950,11 +1056,16 @@ export function useNotesTerminalSessions({
       });
       entriesRef.current.forEach((entry, sessionId) => {
         pendingInputRef.current.delete(sessionId);
+        if (entry.fitFrame !== null) cancelAnimationFrame(entry.fitFrame);
+        if (entry.resizeTimer !== null) clearTimeout(entry.resizeTimer);
         entry.terminal.dispose();
         entry.container.remove();
       });
       entriesRef.current.clear();
       pendingInputRef.current.clear();
+      pendingOutputRef.current.clear();
+      pendingExitRef.current.clear();
+      snapshotsRef.current.clear();
     };
 
     return disposeAllEntries;
@@ -969,6 +1080,7 @@ export function useNotesTerminalSessions({
       disposeEntry(sessionId);
       setSessions((current) => {
         const nextSessions = current.filter((session) => session.id !== sessionId);
+        sessionsRef.current = nextSessions;
 
         if (activeSessionId === sessionId) {
           const nextActiveSessionId = selectTerminalSessionsForWorkspace(
@@ -1087,7 +1199,12 @@ export function useNotesTerminalSessions({
         return;
       }
 
-      writeInputToSession(activeSessionId, clipboardText);
+      const entry = entriesRef.current.get(activeSessionId);
+      const current = sessionsRef.current.find(({ id }) => id === activeSessionId);
+      if (entry && current?.status === "running") {
+        // xterm owns bracketed-paste mode; raw bridge.write loses its markers.
+        entry.terminal.paste(clipboardText);
+      } else writeInputToSession(activeSessionId, clipboardText);
       if (visibleRef.current && activeSessionIdRef.current === activeSessionId) {
         entriesRef.current.get(activeSessionId)?.terminal.focus();
       }

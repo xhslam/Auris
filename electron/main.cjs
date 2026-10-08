@@ -175,6 +175,7 @@ const {
   createReleaseTagPreparer,
 } = require("./release-tag-preparer.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
+const { createTerminalSessionCatalog } = require("./terminal-session-catalog.cjs");
 const { createTerminalTranscriptService } = require("./terminal-transcript-service.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 const {
@@ -285,6 +286,8 @@ let videoLibraryRepositoryPath = null;
 let vaultWatcher = null;
 let vaultMutationChain = Promise.resolve();
 let terminalSessionManager = null;
+let terminalSessionCatalog = null;
+const terminalResumeRequests = new Map();
 let terminalTranscriptService = null;
 let notesRecoveryStore = null;
 let terminalSessionUnsubscribers = [];
@@ -1709,9 +1712,21 @@ function getTerminalRecoveryStore() {
     path.join(app.getPath("userData"), TERMINAL_RECOVERY_FILE),
   );
 }
+function getTerminalSessionCatalog() {
+  terminalSessionCatalog ??= createTerminalSessionCatalog({
+    store: getTerminalRecoveryStore(), manager: getTerminalSessionManager(),
+  });
+  return terminalSessionCatalog;
+}
 function persistTerminalRecovery() {
   if (!terminalSessionManager) return [];
-  return getTerminalRecoveryStore().save(terminalSessionManager.listSessions());
+  try { return getTerminalSessionCatalog().persist(); }
+  catch (error) {
+    // A storage error must not masquerade as spawn failure after a real PTY
+    // already exists. It remains visible in the startup log for recovery.
+    writeStartupLog(`terminal:recovery-save-failed ${error?.message ?? error}`);
+    return [];
+  }
 }
 function sendTerminalEvent(channel, payload) {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -1738,7 +1753,10 @@ function getTerminalSessionManager() {
 
   terminalSessionManager = createTerminalSessionManager({
     sessionEnvironment: (sessionId) => getTerminalTranscriptService().sessionEnvironment(sessionId),
-    onSessionRemoved: (sessionId) => getTerminalTranscriptService().forget(sessionId),
+    onSessionRemoved: (sessionId) => {
+      terminalSessionCatalog?.remove(sessionId);
+      getTerminalTranscriptService().forget(sessionId);
+    },
     cwdExistsSync: (candidate) => {
       // Defensive existence check: if the cwd (typically a configured vault
       // path that may have moved between machines) is gone, the manager will
@@ -1764,14 +1782,8 @@ function getTerminalSessionManager() {
       sendTerminalEvent(TERMINAL_EXIT_CHANNEL, payload);
     }),
   ];
-  for (const descriptor of getTerminalRecoveryStore().load()) {
-    try {
-      terminalSessionManager.createSession(descriptor);
-    } catch (error) {
-      writeStartupLog(`terminal:${descriptor.id}:restore-failed ${error?.message ?? error}`);
-    }
-  }
-  persistTerminalRecovery();
+  // Restore tab descriptors on list, not processes. Only the selected tab
+  // calls resume, so a cold open does not spawn other workspaces' shells.
   return terminalSessionManager;
 }
 function getNotesMcpBridge() {
@@ -1829,6 +1841,8 @@ function closeTerminalSessionManager() {
   persistTerminalRecovery();
   terminalSessionManager?.killAll();
   terminalSessionManager = null;
+  terminalSessionCatalog = null;
+  terminalResumeRequests.clear();
 }
 
 async function createTerminalSession(input) {
@@ -1840,8 +1854,25 @@ async function createTerminalSession(input) {
       vaultPath,
     }),
   );
+  getTerminalSessionCatalog().created(record);
   persistTerminalRecovery();
   return record;
+}
+
+function resumeTerminalSession(input) {
+  const sessionId = requireTerminalSessionId(input?.sessionId);
+  const manager = getTerminalSessionManager();
+  const existing = manager.listSessions().find((item) => item.id === sessionId) ?? manager.getEndedSession(sessionId);
+  if (existing) return Promise.resolve(existing);
+  if (terminalResumeRequests.has(sessionId)) return terminalResumeRequests.get(sessionId);
+  const descriptor = getTerminalSessionCatalog().get(sessionId);
+  // The public app has no explicit-shell setting; saved shell paths describe
+  // the former implicit default. Re-create through today's same trusted cwd/
+  // default-shell policy, not by executing arbitrary paths from disk.
+  const request = createTerminalSession({ ...descriptor, ...input, sessionId })
+    .finally(() => terminalResumeRequests.delete(sessionId));
+  terminalResumeRequests.set(sessionId, request);
+  return request;
 }
 
 function requireTerminalSessionId(value) {
@@ -4008,13 +4039,11 @@ function registerDesktopHandlers() {
 
   ipcMain.handle("shadowing:terminal:list", async (event) => {
     requireTrustedDesktopEvent(event);
-    return getTerminalSessionManager().listSessions();
+    return getTerminalSessionCatalog().list();
   });
   ipcMain.handle("shadowing:terminal:resume", async (event, input) => {
     requireTrustedDesktopEvent(event);
-    const sessionId = requireTerminalSessionId(input?.sessionId);
-    const existing = getTerminalSessionManager().listSessions().find((item) => item.id === sessionId);
-    return existing ?? createTerminalSession(input);
+    return resumeTerminalSession(input);
   });
 
   ipcMain.handle("shadowing:terminal:write", async (event, sessionId, data) => {
@@ -4032,7 +4061,9 @@ function registerDesktopHandlers() {
 
   ipcMain.handle("shadowing:terminal:kill", async (event, sessionId) => {
     requireTrustedDesktopEvent(event);
-    getTerminalSessionManager().kill(requireTerminalSessionId(sessionId));
+    const id = requireTerminalSessionId(sessionId);
+    if (getTerminalSessionManager().listSessions().some((record) => record.id === id)) getTerminalSessionManager().kill(id);
+    else getTerminalSessionCatalog().remove(id);
     persistTerminalRecovery();
   });
 

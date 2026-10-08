@@ -44,6 +44,7 @@ import {
   type NotesMarkdownLayout,
 } from "@/features/notes/formatting/notes-markdown-layout";
 import { NotesTerminalPanel } from "@/components/notes-v2/notes-terminal-panel";
+import { loadNotesTerminalRuntime } from "./terminal/notes-terminal-runtime";
 import {
   clampBrowserSidePaneWidth,
   clampRightSidebarWidth,
@@ -338,6 +339,13 @@ export function NotesWorkbench({
     null,
   );
   const [isTerminalSplitOpen, setIsTerminalSplitOpen] = useState(false);
+  useEffect(() => {
+    if (!desktopTerminal) return;
+    // Prewarm code after Notes mounts, without listing/restoring or running
+    // any Shell. Opening a terminal need not download xterm on the click path.
+    const timer = setTimeout(() => { void loadNotesTerminalRuntime().catch(() => undefined); }, 250);
+    return () => clearTimeout(timer);
+  }, [desktopTerminal]);
   const [isBrowserPaneOpen, setIsBrowserPaneOpen] = useState(false);
   // Match VMark's deferred activation: once shown, keep xterm's screen intact
   // while the side pane is hidden. Raw ANSI replay cannot restore a TUI screen.
@@ -576,9 +584,12 @@ export function NotesWorkbench({
 
   const focusTerminalSurface = useCallback(() => {
     if (typeof document === "undefined") return;
-    const xtermTextarea = document.querySelector<HTMLTextAreaElement>(
+    const xtermTextarea = Array.from(document.querySelectorAll<HTMLTextAreaElement>(
       ".notes-v2__terminal-surface .xterm-helper-textarea, .notes-v2__minimal-terminal-pane .xterm-helper-textarea",
-    );
+    )).find((element) => {
+      const session = element.closest<HTMLElement>(".notes-v2__terminal-xterm");
+      return !session || session.dataset.active === "true";
+    });
     if (xtermTextarea) {
       xtermTextarea.focus();
     }
@@ -1021,6 +1032,7 @@ export function NotesWorkbench({
                   commands={desktopCommands}
                   compactChrome
                   visible={terminalVisible}
+                  onClosePanel={() => setIsTerminalSplitOpen(false)}
                   isDesktopBridgeAvailable={isDesktopBridgeAvailable}
                   lastRunCommandTitle={lastRunCommandTitle}
                   onRefreshCommands={onRefreshDesktopCommands}

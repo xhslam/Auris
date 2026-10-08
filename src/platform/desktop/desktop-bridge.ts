@@ -189,22 +189,31 @@ export type DesktopTerminalSessionInput = {
 };
 
 export type DesktopTerminalSessionRecord = {
-  backend: "pipe" | "pty";
+  // null means a dormant recovery descriptor, not an unverified live PTY.
+  backend: "pipe" | "pty" | null;
+  ptyPackage?: string | null;
   cols?: number;
   cwd: string | null;
   id: string;
   output?: string;
+  /** Monotonic data-chunk boundary included in the output snapshot. */
+  outputSequence?: number;
+  /** Read-only ended record returned when a process exits before attach. */
+  exit?: DesktopTerminalExitEvent;
   rows?: number;
-  shell: string;
+  shell: string | null;
   workspaceInstanceId?: string | null;
 };
 
 export type DesktopTerminalDataEvent = {
   data: string;
   sessionId: string;
+  sequence?: number;
 };
 
 export type DesktopTerminalExitEvent = {
+  output?: string;
+  outputSequence?: number;
   errorMessage?: string | null;
   exitCode: number | null;
   sessionId: string;

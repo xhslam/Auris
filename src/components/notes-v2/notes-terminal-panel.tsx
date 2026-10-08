@@ -8,7 +8,8 @@ import {
   useId,
   type MouseEvent,
 } from "react";
-import { ClockCounterClockwise, Plus, ArrowClockwise, X } from "@phosphor-icons/react";
+import { ClockCounterClockwise, Plus, ArrowClockwise, Trash, X } from "@phosphor-icons/react";
+import { terminalTabGlyph } from "./terminal/notes-terminal-options";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesTerminalSessions } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
 import { NotesTerminalTranscript } from "./terminal/notes-terminal-transcript";
@@ -34,11 +35,8 @@ type NotesTerminalPanelProps = {
   terminalBridge?: DesktopTerminalBridge | null;
   terminalCwd?: string | null;
   workspaceInstanceId?: string | null;
+  onClosePanel?: () => void;
 };
-
-function getSessionButtonLabel(label: string) {
-  return label.match(/^Terminal (\d+)$/)?.[1] ?? label.slice(0, 1).toUpperCase();
-}
 
 export function NotesTerminalPanel({
   autoFocus = true,
@@ -52,7 +50,11 @@ export function NotesTerminalPanel({
   terminalBridge = null,
   terminalCwd = null,
   workspaceInstanceId = null,
+  onClosePanel,
 }: NotesTerminalPanelProps) {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const toggleSearch = useCallback(() => setSearchOpen((open) => !open), []);
   const {
     activeSession,
     activeSessionId,
@@ -77,7 +79,16 @@ export function NotesTerminalPanel({
     terminalBridge,
     visible,
     workspaceInstanceId,
+    onSearch: toggleSearch,
   });
+  const closeSession = useCallback(() => {
+    closeActiveSession();
+    if (sessions.length === 1) onClosePanel?.();
+  }, [closeActiveSession, onClosePanel, sessions.length]);
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+    else setSearchQuery("");
+  }, [searchOpen, setSearchQuery]);
 
   useEffect(() => {
     if (!autoFocus || !visible) return;
@@ -134,7 +145,7 @@ export function NotesTerminalPanel({
       >
         {sessions.map((session) => (
           <button
-            aria-label={session.label}
+            aria-label={session.programTitle || session.label}
             aria-selected={session.id === activeSessionId}
             className="notes-v2__terminal-tab"
             data-active={session.id === activeSessionId ? "true" : "false"}
@@ -142,10 +153,10 @@ export function NotesTerminalPanel({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             role="tab"
-            title={`${session.label} ${session.shell ?? ""}`.trim()}
+            title={`${session.programTitle || session.label} ${session.shell ?? ""}`.trim()}
             type="button"
           >
-            {getSessionButtonLabel(session.label)}
+            {terminalTabGlyph(session.label, session.programTitle)}
           </button>
         ))}
         <button
@@ -173,11 +184,11 @@ export function NotesTerminalPanel({
         <button
           aria-label={NOTES_UI_COPY.panels.terminal.closeSession}
           className="notes-v2__terminal-dock-button"
-          onClick={() => closeActiveSession()}
+          onClick={closeSession}
           title={NOTES_UI_COPY.panels.terminal.closeSession}
           type="button"
         >
-          <X aria-hidden="true" size={14} />
+          <Trash aria-hidden="true" size={14} />
         </button>
       </div>
     </div>
@@ -238,10 +249,10 @@ export function NotesTerminalPanel({
                   key={session.id}
                   onClick={() => setActiveSessionId(session.id)}
                   role="tab"
-                  title={`${session.label} ${session.shell ?? ""}`.trim()}
+                  title={`${session.programTitle || session.label} ${session.shell ?? ""}`.trim()}
                   type="button"
                 >
-                  {getSessionButtonLabel(session.label)}
+                  {terminalTabGlyph(session.label, session.programTitle)}
                 </button>
               ))}
               <button
@@ -264,25 +275,36 @@ export function NotesTerminalPanel({
               <button onClick={() => copyActiveSelection()} type="button">
                 {NOTES_UI_COPY.panels.terminal.copySelection}
               </button>
-              <button onClick={() => closeActiveSession()} type="button">
+              <button onClick={closeSession} type="button">
                 {NOTES_UI_COPY.panels.terminal.closeSession}
               </button>
             </div>
             </div>
           )}
 
-          {compactChrome ? null : (
+          {!compactChrome || searchOpen ? (
             <label className="notes-v2__terminal-search">
               <span className="notes-v2__sr-only">
                 {NOTES_UI_COPY.panels.terminal.searchSrOnly}
               </span>
               <input
+                ref={searchInputRef}
                 onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setSearchOpen(false);
+                    setSearchQuery("");
+                    focusActiveSession();
+                  }
+                }}
                 placeholder={NOTES_UI_COPY.panels.terminal.searchPlaceholder}
                 value={searchQuery}
               />
+              {compactChrome ? <button type="button" aria-label="关闭终端查找" onClick={() => { setSearchOpen(false); setSearchQuery(""); focusActiveSession(); }}><X size={14} aria-hidden="true" /></button> : null}
             </label>
-          )}
+          ) : null}
 
           <div
             className="notes-v2__terminal-surface"

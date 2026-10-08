@@ -6,6 +6,8 @@ const {
   createTerminalSessionManager,
   getPtyPackagePreference,
   loadPtyBackendCandidates,
+  resolveDefaultShell,
+  buildShellArgs,
 } = require("../../../electron/terminal-session-manager.cjs");
 
 type FakePty = {
@@ -42,9 +44,9 @@ function createFakePty(): FakePty {
 }
 
 describe("terminal-session-manager", () => {
-  it("prefers Windows PowerShell over cmd.exe when no shell is specified", () => {
+  it("uses the same COMSPEC cmd default as VMark rather than forcing PowerShell", () => {
     const pty = createFakePty();
-    const spawnPty = vi.fn(() => pty);
+    const spawnPty = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
     const manager = createTerminalSessionManager({
       env: {
         ComSpec: "C:\\Windows\\System32\\cmd.exe",
@@ -58,22 +60,43 @@ describe("terminal-session-manager", () => {
     });
 
     const session = manager.createSession({
-      sessionId: "term-powershell-default",
+      sessionId: "term-vmark-default",
     });
 
-    expect(session.shell).toBe(
-      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    );
+    expect(session.shell).toBe("C:\\Windows\\System32\\cmd.exe");
     expect(spawnPty).toHaveBeenCalledWith(
-      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      expect.arrayContaining(["-NoExit", "-Command"]),
+      "C:\\Windows\\System32\\cmd.exe",
+      ["/K", "chcp 65001 > nul"],
       expect.any(Object),
     );
   });
 
+  it.each([
+    [{ COMSPEC: "D:\\Windows\\System32\\cmd.exe" }, "D:\\Windows\\System32\\cmd.exe"],
+    [{ ComSpec: "C:\\Tools\\pwsh.exe" }, "C:\\Tools\\pwsh.exe"],
+    [{ COMSPEC: "cmd.exe", SystemRoot: "D:\\Windows" }, "D:\\Windows\\System32\\cmd.exe"],
+    [{ COMSPEC: "", windir: "E:\\Windows" }, "E:\\Windows\\System32\\cmd.exe"],
+    [{}, "C:\\Windows\\System32\\cmd.exe"],
+  ])("resolves a Windows shell without PATH probing or profile changes (%j)", (env, expected) => {
+    expect(resolveDefaultShell("win32", env)).toBe(expected);
+  });
+
+  it("keeps explicit PowerShell sessions and their UTF-8 startup", () => {
+    const pty = createFakePty();
+    const spawn = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
+    const shell = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
+    const manager = createTerminalSessionManager({
+      env: { ComSpec: "C:\\Windows\\System32\\cmd.exe" },
+      platform: "win32", homedir: () => "C:\\Users\\test", ptyBackend: { spawn },
+    });
+    expect(manager.createSession({ shell }).shell).toBe(shell);
+    expect(spawn).toHaveBeenCalledWith(shell, buildShellArgs(shell, "win32", "pty"), expect.any(Object));
+    expect(buildShellArgs(shell, "win32", "pty").join(" ")).toContain("[Console]::InputEncoding");
+  });
+
   it("creates a pty-backed terminal session and streams data through the manager", () => {
     const pty = createFakePty();
-    const spawnPty = vi.fn(() => pty);
+    const spawnPty = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
     const manager = createTerminalSessionManager({
       env: {
         ComSpec: "C:\\Windows\\System32\\cmd.exe",
@@ -104,11 +127,11 @@ describe("terminal-session-manager", () => {
       cwd: "C:\\vault",
       id: "term-1",
       workspaceInstanceId: "path:win32:C:\\vault",
-      shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      shell: "C:\\Windows\\System32\\cmd.exe",
     });
     expect(spawnPty).toHaveBeenCalledWith(
-      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      expect.arrayContaining(["-NoExit", "-Command"]),
+      "C:\\Windows\\System32\\cmd.exe",
+      ["/K", "chcp 65001 > nul"],
       expect.objectContaining({
         cols: 120,
         cwd: "C:\\vault",
@@ -132,6 +155,7 @@ describe("terminal-session-manager", () => {
     expect(onData).toHaveBeenCalledWith({
       data: "ready\r\n",
       sessionId: "term-1",
+      sequence: 1,
     });
     expect(onExit).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -148,7 +172,7 @@ describe("terminal-session-manager", () => {
       env: { SHELL: "/bin/zsh" },
       homedir: () => "/Users/test",
       platform: "darwin",
-      ptyBackend: { spawn: vi.fn(() => pty) },
+      ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
     });
 
     const created = manager.createSession({
@@ -162,6 +186,7 @@ describe("terminal-session-manager", () => {
       expect.objectContaining({
         id: "term-buffered",
         output: "before detach\r\n",
+        outputSequence: 1,
         workspaceInstanceId: "path:darwin:/workspace",
       }),
     ]);
@@ -170,6 +195,32 @@ describe("terminal-session-manager", () => {
     const [record] = manager.listSessions();
     expect(record.output).toHaveLength(200_000);
     expect(record.output.endsWith("x".repeat(32))).toBe(true);
+  });
+
+  it("retains an ended output snapshot without listing or starting it as live", () => {
+    const pty = createFakePty();
+    const spawnPty = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
+    const manager = createTerminalSessionManager({ ptyBackend: { spawn: spawnPty }, env: {}, platform: "win32", homedir: () => "C:\\vault" });
+    const onExit = vi.fn(); manager.onExit(onExit);
+    manager.createSession({ sessionId: "ended-tab" });
+    pty.emitData("final output"); pty.emitExit(7);
+    expect(manager.listSessions()).toEqual([]);
+    expect(manager.getEndedSession("ended-tab")).toMatchObject({ id: "ended-tab", output: "final output", outputSequence: 1, exit: { exitCode: 7 } });
+    expect(onExit).toHaveBeenCalledWith(expect.objectContaining({ output: "final output", outputSequence: 1, exitCode: 7 }));
+    expect(spawnPty).toHaveBeenCalledTimes(1);
+    pty.emitExit(7);
+    expect(onExit).toHaveBeenCalledTimes(1);
+    manager.createSession({ sessionId: "ended-tab" });
+    expect(manager.getEndedSession("ended-tab")).toBeNull();
+  });
+
+  it("does not load native PTY modules just to enumerate sessions", () => {
+    const requireFn = vi.fn(() => ({ spawn: vi.fn(() => createFakePty()) }));
+    const manager = createTerminalSessionManager({ requireFn, env: {}, platform: "win32", homedir: () => "C:\\Users\\test" });
+    expect(manager.listSessions()).toEqual([]);
+    expect(requireFn).not.toHaveBeenCalled();
+    manager.createSession();
+    expect(requireFn).toHaveBeenCalledWith("node-pty");
   });
 
   it("rejects renderer-provided relative shell paths", () => {
@@ -195,7 +246,7 @@ describe("terminal-session-manager", () => {
 
   it("falls back to the home directory when the requested cwd does not exist", () => {
     const pty = createFakePty();
-    const spawnPty = vi.fn(() => pty);
+    const spawnPty = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
     const manager = createTerminalSessionManager({
       cwdExistsSync: (candidate: string) => candidate === "/Users/test",
       env: { SHELL: "/bin/zsh" },
@@ -219,7 +270,7 @@ describe("terminal-session-manager", () => {
 
   it("forces a UTF-8 locale for POSIX shells when the desktop process inherited C locale", () => {
     const pty = createFakePty();
-    const spawnPty = vi.fn(() => pty);
+    const spawnPty = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
     const manager = createTerminalSessionManager({
       env: {
         LANG: "C",
@@ -250,7 +301,7 @@ describe("terminal-session-manager", () => {
   });
 
   it("preserves an existing UTF-8 locale for POSIX shells", () => {
-    const spawnPty = vi.fn(() => createFakePty());
+    const spawnPty = vi.fn<(...args: unknown[]) => ReturnType<typeof createFakePty>>(() => createFakePty());
     const manager = createTerminalSessionManager({
       env: {
         LANG: "zh_CN.UTF-8",
@@ -471,7 +522,7 @@ describe("terminal-session-manager", () => {
       env: { SHELL: "/bin/zsh" },
       homedir: () => "/Users/test",
       platform: "darwin",
-      ptyBackend: { spawn: vi.fn(() => pty) },
+      ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
     });
 
     ptyManager.createSession({ sessionId: "term-resize-pty" });

@@ -9,6 +9,7 @@ const terminalHarness = vi.hoisted(() => {
   return {
     importGate,
     resolveImport: () => resolveImport(),
+    importRequested: vi.fn(),
     focus: vi.fn(),
     fit: vi.fn(),
     dispose: vi.fn(),
@@ -17,6 +18,7 @@ const terminalHarness = vi.hoisted(() => {
 });
 
 vi.mock("@xterm/xterm", async () => {
+  terminalHarness.importRequested();
   await terminalHarness.importGate;
   return {
     Terminal: class {
@@ -48,8 +50,10 @@ describe("deferred terminal visibility", () => {
   it("finishes an activation hidden during import/resume and reopens the same screen", async () => {
     let resolveResume!: (record: DesktopTerminalSessionRecord) => void;
     const resumeGate = new Promise<DesktopTerminalSessionRecord>((resolve) => { resolveResume = resolve; });
+    let resolveList!: (records: DesktopTerminalSessionRecord[]) => void;
+    const listGate = new Promise<DesktopTerminalSessionRecord[]>((resolve) => { resolveList = resolve; });
     const bridge: DesktopTerminalBridge = {
-      create: vi.fn(), list: vi.fn().mockResolvedValue([]),
+      create: vi.fn(), list: vi.fn(() => listGate),
       resume: vi.fn(() => resumeGate), resize: vi.fn().mockResolvedValue(undefined),
       kill: vi.fn().mockResolvedValue(undefined), write: vi.fn().mockResolvedValue(undefined),
       onData: vi.fn(() => () => {}), onExit: vi.fn(() => () => {}),
@@ -58,6 +62,9 @@ describe("deferred terminal visibility", () => {
       <div className="notes-v2"><NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={bridge} visible={visible} /></div>
     );
     const view = render(panel(true));
+    await waitFor(() => expect(terminalHarness.importRequested).toHaveBeenCalledTimes(1));
+    expect(bridge.resume).not.toHaveBeenCalled();
+    await act(async () => { resolveList([]); await listGate; });
     await screen.findByRole("tab", { selected: true });
     expect(bridge.resume).not.toHaveBeenCalled();
 

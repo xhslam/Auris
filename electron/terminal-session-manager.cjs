@@ -33,11 +33,14 @@ function isAbsoluteShellPath(candidate) {
 }
 
 function resolveWindowsShell(env) {
-  if (
-    isAbsoluteShellPath(env.ComSpec) &&
-    /(?:^|\\)(?:pwsh|powershell)\.exe$/i.test(env.ComSpec)
-  ) {
-    return env.ComSpec;
+  // Match VMark v0.9.94 shell_env's COMSPEC default (ISC; see
+  // docs/vmark-port/UPSTREAM-LICENSE.txt). Do not force a profile-heavy
+  // PowerShell on users whose native default is cmd. Node env keys are
+  // case-insensitive on Windows, but injected/test environments are not.
+  for (const key of Object.keys(env)) {
+    if (key.toUpperCase() === "COMSPEC" && isAbsoluteShellPath(env[key])) {
+      return env[key].trim();
+    }
   }
 
   const windowsRoot =
@@ -45,13 +48,7 @@ function resolveWindowsShell(env) {
     (typeof env.windir === "string" && env.windir.trim()) ||
     "C:\\Windows";
 
-  return path.win32.join(
-    windowsRoot,
-    "System32",
-    "WindowsPowerShell",
-    "v1.0",
-    "powershell.exe",
-  );
+  return path.win32.join(windowsRoot, "System32", "cmd.exe");
 }
 
 function resolveDefaultShell(platform, env) {
@@ -227,18 +224,23 @@ function createTerminalSessionManager(options = {}) {
   const platform = options.platform ?? process.platform;
   const emitter = new EventEmitter();
   const sessions = new Map();
+  const endedSessions = new Map();
   const homedir = options.homedir ?? (() => os.homedir());
   const logger = options.logger ?? null;
   // PTY candidates in preference order. Tests may inject a single backend via
   // options.ptyBackend (or null to force the pipe path); production resolves
   // the real package list. Each candidate is probed with an actual spawn in
   // createSession because Windows resolves its native binding lazily.
-  const ptyCandidates =
-    options.ptyBackend === undefined
-      ? loadPtyBackendCandidates(options.requireFn, options.logger ?? null, platform)
-      : options.ptyBackend
-        ? [{ backend: options.ptyBackend, name: "injected" }]
-        : [];
+  let ptyCandidates = options.ptyBackend === undefined
+    ? null
+    : options.ptyBackend
+      ? [{ backend: options.ptyBackend, name: "injected" }]
+      : [];
+  function getPtyCandidates() {
+    // Enumerating dormant sessions must not load native modules or run shells.
+    ptyCandidates ??= loadPtyBackendCandidates(options.requireFn, logger, platform);
+    return ptyCandidates;
+  }
   const spawnPipe = options.spawnProcess ?? spawnProcess;
   // Opt-in cwd existence check. If a caller does not pass cwdExistsSync we
   // skip validation entirely so existing tests that pass fake paths like
@@ -254,13 +256,24 @@ function createTerminalSessionManager(options = {}) {
   }
 
   function emitExit(sessionId, exitCode, signal, errorMessage = null) {
-    removeSession(sessionId);
-    emitter.emit("exit", {
+    const session = sessions.get(sessionId);
+    // Pipe error/exit notifications can both fire for the same failure.
+    if (!session && endedSessions.has(sessionId)) return;
+    const exit = {
       errorMessage,
       exitCode: typeof exitCode === "number" ? exitCode : null,
       sessionId,
       signal: typeof signal === "string" ? signal : null,
-    });
+    };
+    const record = session ? serializeSession(sessionId, session) : null;
+    if (record) {
+      endedSessions.set(sessionId, { ...record, exit });
+      // Bounded read-only tombstones bridge the race where a live tab exits
+      // before renderer attach. They are never saved as running recovery tabs.
+      if (endedSessions.size > 50) endedSessions.delete(endedSessions.keys().next().value);
+    }
+    removeSession(sessionId);
+    emitter.emit("exit", { ...exit, ...(record ? { output: record.output, outputSequence: record.outputSequence } : {}) });
   }
 
   function emitData(sessionId, data) {
@@ -270,10 +283,12 @@ function createTerminalSessionManager(options = {}) {
       session.output = `${session.output ?? ""}${normalizedData}`.slice(
         -MAX_OUTPUT_BUFFER_LENGTH,
       );
+      session.outputSequence = (session.outputSequence ?? 0) + 1;
     }
     emitter.emit("data", {
       data: normalizedData,
       sessionId,
+      ...(session ? { sequence: session.outputSequence } : {}),
     });
   }
 
@@ -291,6 +306,7 @@ function createTerminalSessionManager(options = {}) {
     if (sessions.has(sessionId)) {
       throw new Error(`Terminal session already exists: ${sessionId}`);
     }
+    endedSessions.delete(sessionId);
 
     const requestedCwd =
       typeof input.cwd === "string" && input.cwd.trim()
@@ -331,8 +347,9 @@ function createTerminalSessionManager(options = {}) {
     // Trying each candidate in turn means one broken fork no longer costs us the
     // real TTY.
     const ptyFailures = [];
+    const candidates = getPtyCandidates();
 
-    for (const candidate of ptyCandidates) {
+    for (const candidate of candidates) {
       let pty = null;
       try {
         pty = candidate.backend.spawn(
@@ -368,6 +385,7 @@ function createTerminalSessionManager(options = {}) {
           rows,
           shell,
           output: "",
+          outputSequence: 0,
           workspaceInstanceId,
         });
 
@@ -384,6 +402,8 @@ function createTerminalSessionManager(options = {}) {
           rows,
           shell,
           output: "",
+          outputSequence: 0,
+          ptyPackage: candidate.name,
           workspaceInstanceId,
         };
       }
@@ -394,10 +414,10 @@ function createTerminalSessionManager(options = {}) {
     // that require a terminal (codex, claude, ...) refuse to start. Make this
     // degradation loud in the log rather than letting it look like a working
     // terminal that mysteriously misbehaves.
-    if (ptyCandidates.length > 0) {
+    if (candidates.length > 0) {
       logger?.(
         `terminal:${sessionId}:pty-unavailable falling back to pipe (no TTY; ` +
-          `resize and interactive CLIs will not work) after ${ptyCandidates.length} ` +
+          `resize and interactive CLIs will not work) after ${candidates.length} ` +
           `candidate(s): ${ptyFailures.join(" | ") || "spawn returned nothing"}`,
       );
     }
@@ -447,6 +467,7 @@ function createTerminalSessionManager(options = {}) {
       rows,
       shell,
       output: "",
+      outputSequence: 0,
       workspaceInstanceId,
     });
 
@@ -470,6 +491,8 @@ function createTerminalSessionManager(options = {}) {
       rows,
       shell,
       output: "",
+      outputSequence: 0,
+      ptyPackage: null,
       workspaceInstanceId,
     };
   }
@@ -539,8 +562,8 @@ function createTerminalSessionManager(options = {}) {
     });
   }
 
-  function listSessions() {
-    return [...sessions.entries()].map(([id, session]) => ({
+  function serializeSession(id, session) {
+    return {
       backend: session.backend,
       cols: session.cols ?? DEFAULT_COLS,
       cwd: session.cwd,
@@ -549,10 +572,14 @@ function createTerminalSessionManager(options = {}) {
       // distinguish "real ConPTY via node-pty" from a silent pipe fallback.
       ptyPackage: session.ptyPackage ?? null,
       output: session.output ?? "",
+      outputSequence: session.outputSequence ?? 0,
       rows: session.rows ?? DEFAULT_ROWS,
       shell: session.shell,
       workspaceInstanceId: session.workspaceInstanceId ?? null,
-    }));
+    };
+  }
+  function listSessions() {
+    return [...sessions.entries()].map(([id, session]) => serializeSession(id, session));
   }
 
   function onData(listener) {
@@ -570,6 +597,7 @@ function createTerminalSessionManager(options = {}) {
     kill,
     killAll,
     listSessions,
+    getEndedSession: (sessionId) => endedSessions.get(sessionId) ?? null,
     onData,
     onExit,
     resize,

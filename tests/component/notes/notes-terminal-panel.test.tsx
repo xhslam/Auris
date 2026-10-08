@@ -7,7 +7,9 @@ import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { NotesTerminalPanel } from "@/components/notes-v2/notes-terminal-panel";
 import type {
   DesktopTerminalBridge,
+  DesktopTerminalDataEvent,
   DesktopTerminalExitEvent,
+  DesktopTerminalSessionRecord,
 } from "@/platform/desktop/desktop-bridge";
 
 type CapturedTerminalOptions = {
@@ -29,6 +31,8 @@ const terminalKeyHandlers: Array<(event: KeyboardEvent) => boolean> = [];
 const terminalWrites: string[][] = [];
 const terminalDisposeSpies: Array<Mock<() => void>> = [];
 const terminalFitSpies: Array<Mock<() => void>> = [];
+const terminalPasteSpies: Array<Mock<(text: string) => void>> = [];
+const terminalTitleListeners: Array<(title: string) => void> = [];
 let terminalSelection = "";
 
 vi.mock("@xterm/xterm", () => ({
@@ -39,6 +43,7 @@ vi.mock("@xterm/xterm", () => ({
       activeVersion: "",
     };
     writeIndex = 0;
+    textarea: HTMLTextAreaElement | null = null;
     options: CapturedTerminalOptions;
 
     constructor(options: CapturedTerminalOptions) {
@@ -49,6 +54,7 @@ vi.mock("@xterm/xterm", () => ({
       terminalFocusSpies.push(vi.fn<() => void>());
       terminalSelectAllSpies.push(vi.fn<() => void>());
       this.writeIndex = terminalWrites.push([]) - 1;
+      terminalPasteSpies.push(vi.fn<(text: string) => void>());
     }
 
     attachCustomKeyEventHandler(handler: (event: KeyboardEvent) => boolean) {
@@ -61,7 +67,7 @@ vi.mock("@xterm/xterm", () => ({
     }
 
     clear() {
-      terminalClearSpies.at(-1)?.();
+      terminalClearSpies[this.writeIndex]?.();
       return undefined;
     }
 
@@ -71,7 +77,8 @@ vi.mock("@xterm/xterm", () => ({
     }
 
     focus() {
-      terminalFocusSpies.at(-1)?.();
+      terminalFocusSpies[this.writeIndex]?.();
+      this.textarea?.focus();
       return undefined;
     }
 
@@ -85,19 +92,32 @@ vi.mock("@xterm/xterm", () => ({
 
     onData(listener: (data: string) => void) {
       terminalInputListeners.push(listener);
-      return {
-        dispose() {},
-      };
+      return { dispose() {} };
     }
+
+    onTitleChange(listener: (title: string) => void) {
+      terminalTitleListeners.push(listener);
+      return { dispose() {} };
+    }
+
+    paste(text: string) {
+      terminalPasteSpies[this.writeIndex]?.(text);
+      terminalInputListeners[this.writeIndex]?.(text);
+    }
+
+    scrollToBottom() {}
 
     open(container: HTMLElement) {
       const stub = document.createElement("div");
       stub.dataset.testid = "xterm-stub";
+      this.textarea = document.createElement("textarea");
+      this.textarea.className = "xterm-helper-textarea";
+      stub.appendChild(this.textarea);
       container.appendChild(stub);
     }
 
     selectAll() {
-      terminalSelectAllSpies.at(-1)?.();
+      terminalSelectAllSpies[this.writeIndex]?.();
       return undefined;
     }
 
@@ -145,12 +165,14 @@ vi.mock("@xterm/addon-web-links", () => ({
 type TerminalBridgeHarness = {
   bridge: DesktopTerminalBridge;
   emitExit: (event: DesktopTerminalExitEvent) => void;
+  emitData: (event: DesktopTerminalDataEvent) => void;
 };
 
 function createTerminalBridge(
   backend: "pipe" | "pty" = "pty",
 ): TerminalBridgeHarness {
   let exitListener: ((event: DesktopTerminalExitEvent) => void) | null = null;
+  let dataListener: ((event: DesktopTerminalDataEvent) => void) | null = null;
   const startSession = async (input: Parameters<DesktopTerminalBridge["resume"]>[0]) => ({
     backend,
     cols: input.cols ?? 80,
@@ -165,7 +187,10 @@ function createTerminalBridge(
       create: vi.fn<DesktopTerminalBridge["create"]>(startSession),
       kill: vi.fn<DesktopTerminalBridge["kill"]>(async () => undefined),
       list: vi.fn<DesktopTerminalBridge["list"]>(async () => []),
-      onData: vi.fn(() => () => undefined),
+      onData: vi.fn((listener) => {
+        dataListener = listener;
+        return () => { dataListener = null; };
+      }),
       onExit: vi.fn((listener) => {
         exitListener = listener;
         return () => {
@@ -179,6 +204,7 @@ function createTerminalBridge(
     emitExit(event) {
       exitListener?.(event);
     },
+    emitData(event) { dataListener?.(event); },
   };
 }
 
@@ -221,6 +247,9 @@ describe("NotesTerminalPanel", () => {
     terminalWrites.length = 0;
     terminalDisposeSpies.length = 0;
     terminalFitSpies.length = 0;
+    terminalPasteSpies.length = 0;
+    terminalTitleListeners.length = 0;
+    window.localStorage.removeItem("auris.notes.terminal.font-size");
     terminalSelection = "";
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -230,6 +259,151 @@ describe("NotesTerminalPanel", () => {
       },
     });
     Reflect.deleteProperty(window, "shadowingDesktop");
+  });
+
+  it("also deduplicates snapshot-covered data delivered after resume", async () => {
+    const terminal = createTerminalBridge();
+    vi.mocked(terminal.bridge.resume).mockImplementation(async ({ sessionId }) => ({ backend: "pty", cwd: "C:\\vault", id: sessionId!, shell: "C:\\Windows\\System32\\cmd.exe", output: "AB", outputSequence: 2 }));
+    render(<NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    // The first test pays Vitest's dynamic-addon import cost. This assertion
+    // checks the protocol, not a one-second wall-clock startup SLA.
+    await waitFor(() => expect(screen.getByRole("tab", { selected: true })).toHaveAttribute("data-status", "running"), { timeout: 5_000 });
+    act(() => {
+      terminal.emitData({ sessionId: "notes-term-1", data: "B", sequence: 2 });
+      terminal.emitData({ sessionId: "notes-term-1", data: "C", sequence: 3 });
+      terminal.emitData({ sessionId: "notes-term-1", data: "C", sequence: 3 });
+    });
+    expect(terminalWrites[0].join("")).toBe("ABC");
+  });
+
+  it("preserves the unknown-boundary attach tail including ANSI prefixes beyond 200k", async () => {
+    const terminal = createTerminalBridge();
+    let resolve!: (record: DesktopTerminalSessionRecord) => void;
+    vi.mocked(terminal.bridge.resume).mockImplementation(() => new Promise(next => { resolve = next; }));
+    render(<NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    const prefix = "\u001b[?1049h";
+    const tail = "x".repeat(200_000);
+    act(() => {
+      terminal.emitData({ sessionId: "notes-term-1", data: prefix, sequence: 1 });
+      terminal.emitData({ sessionId: "notes-term-1", data: tail, sequence: 2 });
+    });
+    await act(async () => resolve({ backend: "pty", cwd: "C:\\vault", id: "notes-term-1", shell: "C:\\Windows\\System32\\cmd.exe", output: "", outputSequence: 0 }));
+    expect(terminalWrites[0].join("")).toBe(prefix + tail);
+  });
+
+  it("does not steal search focus when the pending resume completes", async () => {
+    const terminal = createTerminalBridge();
+    const deferred = createDeferredCreateResult();
+    vi.mocked(terminal.bridge.resume).mockImplementation(() => deferred.promise);
+    render(<NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    act(() => terminalKeyHandlers[0](new KeyboardEvent("keydown", { key: "f", ctrlKey: true })));
+    const input = screen.getByPlaceholderText(NOTES_UI_COPY.panels.terminal.searchPlaceholder);
+    expect(input).toHaveFocus();
+    await act(async () => deferred.resolve("notes-term-1"));
+    expect(screen.getByRole("tab", { selected: true })).toHaveAttribute("data-status", "running");
+    expect(input).toHaveFocus();
+    expect(terminal.bridge.write).not.toHaveBeenCalled();
+  });
+
+  it("shows an unattached live tab's final output without spawning it after exit", async () => {
+    const terminal = createTerminalBridge();
+    vi.mocked(terminal.bridge.list).mockResolvedValue([
+      { backend: "pty", cwd: "C:\\vault", id: "notes-term-21", shell: "C:\\Windows\\System32\\cmd.exe", output: "HISTORY", outputSequence: 1 },
+      { backend: "pty", cwd: "C:\\vault", id: "notes-term-22", shell: "C:\\Windows\\System32\\cmd.exe", output: "", outputSequence: 0 },
+    ]);
+    const user = userEvent.setup();
+    render(<NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    act(() => {
+      terminal.emitData({ sessionId: "notes-term-21", data: "TAIL", sequence: 2 });
+      terminal.emitExit({ sessionId: "notes-term-21", exitCode: 0, signal: null, output: "HISTORYTAIL", outputSequence: 2 });
+    });
+    await user.click(screen.getByRole("tab", { name: "Terminal 1" }));
+    await waitFor(() => expect(terminalWrites).toHaveLength(2));
+    expect(terminalWrites[1].join("")).toContain("HISTORYTAIL");
+    expect(terminalWrites[1].join("")).toContain("restart");
+    expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
+    act(() => terminalInputListeners[1]("r"));
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(2));
+    expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-23", "r");
+  });
+
+  it("does not rebound after close-last but creates a new shell when reopened", async () => {
+    const terminal = createTerminalBridge();
+    const onClosePanel = vi.fn();
+    const panel = (visible: boolean) => <NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} visible={visible} onClosePanel={onClosePanel} />;
+    const view = render(panel(true));
+    const user = userEvent.setup();
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    await user.click(screen.getByRole("button", { name: NOTES_UI_COPY.panels.terminal.closeSession }));
+    expect(onClosePanel).toHaveBeenCalledTimes(1);
+    expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
+    view.rerender(panel(false));
+    view.rerender(panel(true));
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("tab", { selected: true })).toHaveAttribute("data-status", "running");
+  });
+
+  it("replays a resume snapshot before live output and deduplicates its sequence boundary", async () => {
+    const terminal = createTerminalBridge();
+    let resolve!: (record: DesktopTerminalSessionRecord) => void;
+    const record = new Promise<DesktopTerminalSessionRecord>((done) => { resolve = done; });
+    terminal.bridge.resume = vi.fn(() => record);
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    const id = vi.mocked(terminal.bridge.resume).mock.calls[0][0].sessionId!;
+    terminal.emitData({ sessionId: id, data: "B", sequence: 2 } as DesktopTerminalDataEvent);
+    terminal.emitData({ sessionId: id, data: "C", sequence: 3 } as DesktopTerminalDataEvent);
+    expect(terminalWrites[0]).toEqual([]);
+    await act(async () => {
+      resolve({ id, backend: "pty", cwd: null, shell: "C:\\Windows\\System32\\cmd.exe", output: "AB", outputSequence: 2 } as DesktopTerminalSessionRecord);
+      await record;
+    });
+    expect(terminalWrites[0].join("")).toBe("ABC");
+    terminal.emitData({ sessionId: id, data: "D", sequence: 4 } as DesktopTerminalDataEvent);
+    expect(terminalWrites[0].join("")).toBe("ABCD");
+  });
+
+  it("does not resurrect a shell that exits while resume is pending", async () => {
+    const terminal = createTerminalBridge();
+    const deferred = createDeferredCreateResult();
+    terminal.bridge.resume = vi.fn(() => deferred.promise);
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    const id = vi.mocked(terminal.bridge.resume).mock.calls[0][0].sessionId!;
+    act(() => terminal.emitExit({ sessionId: id, exitCode: 7 }));
+    await act(async () => { deferred.resolve(id); await deferred.promise; });
+    expect(screen.getByRole("tab")).toHaveAttribute("data-status", "exited");
+    expect(terminalWrites[0].join("")).toContain("Process exited with code 7");
+    act(() => terminalInputListeners[0]("echo restart\r"));
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(2));
+  });
+
+  it("uses a program title for VMark-style compact session glyphs", async () => {
+    const terminal = createTerminalBridge();
+    render(<NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    act(() => terminalTitleListeners[0]?.("cmd"));
+    expect(screen.getByRole("tab", { name: "cmd" })).toHaveTextContent("C");
+  });
+
+  it("supports terminal-local search and font zoom without editor shortcuts", async () => {
+    const terminal = createTerminalBridge();
+    render(<NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
+    const find = new KeyboardEvent("keydown", { key: "f", ctrlKey: true, cancelable: true });
+    act(() => expect(terminalKeyHandlers[0](find)).toBe(false));
+    expect(find.defaultPrevented).toBe(true);
+    expect(screen.getByPlaceholderText(NOTES_UI_COPY.panels.terminal.searchPlaceholder)).toHaveFocus();
+    const zoom = new KeyboardEvent("keydown", { key: "+", ctrlKey: true, cancelable: true });
+    act(() => expect(terminalKeyHandlers[0](zoom)).toBe(false));
+    expect(capturedTerminalOptions?.fontSize).toBe(15);
+    act(() => terminalKeyHandlers[0](new KeyboardEvent("keydown", { key: "0", ctrlKey: true })));
+    expect(capturedTerminalOptions?.fontSize).toBe(13);
+    const ime = new KeyboardEvent("keydown", { key: "f", ctrlKey: true, isComposing: true });
+    expect(terminalKeyHandlers[0](ime)).toBe(true);
   });
 
   it("reveals the selected restored session after its asynchronous attach completes", async () => {
@@ -250,7 +424,7 @@ describe("NotesTerminalPanel", () => {
     const container = screen.getByTestId("xterm-stub").parentElement;
     expect(container?.style.display).toBe("block");
     expect(terminalFocusSpies[0]).toHaveBeenCalled();
-    terminalInputListeners[0]("printf READY\r");
+    act(() => terminalInputListeners[0]("printf READY\r"));
     expect(terminal.bridge.write).toHaveBeenCalledWith("notes-term-41", "printf READY\r");
   });
 
@@ -461,6 +635,16 @@ describe("NotesTerminalPanel", () => {
     const terminalOptions = capturedTerminalOptions as CapturedTerminalOptions | null;
 
     expect(terminalOptions?.theme?.background).toBe("#dde6d8");
+  });
+
+  it("uses the terminal reading ink instead of the editor's stronger ink", async () => {
+    const terminal = createTerminalBridge();
+    render(<div className="desktop-app-frame"><div className="notes-v2" style={{ "--notes-terminal-bg": "#23262b", "--notes-terminal-fg": "#d6d9de", "--notes-text": "#ffffff" } as CSSProperties}>
+      <NotesTerminalPanel commands={[]} compactChrome isDesktopBridgeAvailable terminalBridge={terminal.bridge} />
+    </div></div>);
+    await waitFor(() => expect(capturedTerminalOptions?.theme).toBeDefined());
+    expect(capturedTerminalOptions?.theme?.background).toBe("#23262b");
+    expect(capturedTerminalOptions?.theme?.foreground).toBe("#d6d9de");
   });
 
   it("renders a compact terminal shell without the old panel heading chrome", async () => {
@@ -1128,6 +1312,7 @@ describe("NotesTerminalPanel", () => {
     await user.click(screen.getByRole("menuitem", { name: "Paste" }));
 
     expect(navigator.clipboard.readText).toHaveBeenCalledTimes(1);
+    expect(terminalPasteSpies[0]).toHaveBeenCalledWith("npm test");
     expect(terminal.bridge.write).toHaveBeenCalledWith(
       "notes-term-1",
       "npm test",

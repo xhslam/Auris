@@ -1,7 +1,36 @@
 /* Adapted from VMark v0.9.94 terminal-panel.css / TerminalTabBar.css,
    commit 00ad428592dc5e80aab5afc8878a3f8c3bd27930 (ISC).
-   Keep Auris selectors, app theme tokens and the Electron resize controller.
+   Also ports theme/themes/* bg.primary and text.primary for terminal reading.
+   Keep Auris selectors, scoped overrides and the Electron resize controller.
    Terminal surface: 4px top, 16px sides; one 40px session bar, no nested card. */
+/* Actual VMark reading surfaces, not just its ANSI slots. Terminal ink is
+   separate from the editor's stronger ink; the existing minimal canvas already
+   shares --notes-terminal-bg, so no new card or mismatched border is added. */
+.desktop-app-frame .notes-v2--minimal[data-notes-theme="white"] {
+  --notes-terminal-bg: #FFFFFF;
+  --notes-terminal-fg: #1a1a1a;
+}
+.desktop-app-frame .notes-v2--minimal[data-notes-theme="paper"] {
+  --notes-terminal-bg: #EEEDED;
+  --notes-terminal-fg: #1a1a1a;
+}
+.desktop-app-frame .notes-v2--minimal[data-notes-theme="mint"] {
+  --notes-terminal-bg: #CCE6D0;
+  --notes-terminal-fg: #2d3a35;
+}
+.desktop-app-frame .notes-v2--minimal[data-notes-theme="sepia"] {
+  --notes-terminal-bg: #F9F0DB;
+  --notes-terminal-fg: #5c4b37;
+}
+.desktop-app-frame .notes-v2--minimal[data-notes-theme="night"] {
+  --notes-terminal-bg: #23262b;
+  --notes-terminal-fg: #d6d9de;
+}
+.desktop-app-frame .notes-v2--minimal[data-notes-theme="solarized"] {
+  --notes-terminal-bg: #002b36;
+  --notes-terminal-fg: #93a1a1;
+}
+
 .desktop-app-frame .notes-v2--minimal[data-terminal-open="true"] .notes-v2__minimal-workspace {
   gap: 0;
 }
@@ -79,10 +108,10 @@
 .desktop-app-frame .notes-v2--minimal .notes-v2__terminal-session-dock button {
   appearance: none;
   flex: 0 0 auto;
-  width: 20px;
-  min-width: 20px;
-  height: 20px;
-  min-height: 20px;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  min-height: 24px;
   border: 0;
   border-radius: 4px;
   padding: 0;
@@ -128,6 +157,35 @@
   color: var(--notes-text);
   font-size: 12px;
   opacity: 1;
+}
+
+/* VMark keeps 20px number/title tabs and 24px action targets. */
+.desktop-app-frame .notes-v2--minimal .notes-v2__terminal-session-dock .notes-v2__terminal-tab {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  font-size: 11px;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__terminal-session-tabs,
+.desktop-app-frame .notes-v2--minimal .notes-v2__terminal-session-actions {
+  gap: 2px;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__minimal-terminal-pane .notes-v2__terminal-search {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 4px 8px;
+  background: var(--notes-terminal-bg);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__terminal-search input {
+  flex: 1;
+  min-width: 0;
 }
 
 /* The editor footer shares one space budget. Independent absolute clusters
