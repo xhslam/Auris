@@ -1,12 +1,30 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_NOTES_TYPOGRAPHY,
+  loadNotesTypography,
   notesTypographyCssVars,
   typographyFromUi,
   typographyUiSelects,
 } from "@/features/notes/formatting/notes-typography";
 
 describe("notes-typography mapping", () => {
+  it("keeps explicitly stored typography choices when the presentation defaults change", () => {
+    const stored = JSON.stringify({
+      fontSize: "22px",
+      lineHeight: "1.6",
+      editorMaxWidth: "40em",
+      fontLatin: '"Georgia"',
+      fontCjk: '"Kaiti SC", KaiTi',
+    });
+    window.localStorage.setItem("auris.notes.typography", stored);
+    try {
+      expect(loadNotesTypography()).toMatchObject(JSON.parse(stored));
+      expect(window.localStorage.getItem("auris.notes.typography")).toBe(stored);
+    } finally {
+      window.localStorage.removeItem("auris.notes.typography");
+    }
+  });
+
   it("round-trips default settings through UI selects", () => {
     const selects = typographyUiSelects(DEFAULT_NOTES_TYPOGRAPHY);
     expect(typographyFromUi(selects)).toEqual(DEFAULT_NOTES_TYPOGRAPHY);
@@ -16,7 +34,7 @@ describe("notes-typography mapping", () => {
     // 必须与 auris-settings INITIAL_SELECTS 对齐，否则默认会与显示不符。
     expect(typographyUiSelects(DEFAULT_NOTES_TYPOGRAPHY)).toEqual({
       fontSize: 0,
-      lineHeightEd: 1,
+      lineHeightEd: 2,
       blockSpacing: 1,
       cjkLetterSpacing: 0,
       editorWidth: 1,
@@ -70,7 +88,7 @@ describe("notes-typography mapping", () => {
   it("emits the editor CSS variables", () => {
     expect(notesTypographyCssVars(DEFAULT_NOTES_TYPOGRAPHY)).toMatchObject({
       "--notes-editor-font-size": "18px",
-      "--notes-editor-line-height": "1.6",
+      "--notes-editor-line-height": "1.8",
       "--notes-editor-block-spacing": "14px",
       "--notes-editor-cjk-letter-spacing": "normal",
       "--notes-editor-max-width": "50em",

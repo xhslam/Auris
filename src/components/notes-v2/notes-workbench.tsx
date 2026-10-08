@@ -339,6 +339,11 @@ export function NotesWorkbench({
   );
   const [isTerminalSplitOpen, setIsTerminalSplitOpen] = useState(false);
   const [isBrowserPaneOpen, setIsBrowserPaneOpen] = useState(false);
+  // Match VMark's deferred activation: once shown, keep xterm's screen intact
+  // while the side pane is hidden. Raw ANSI replay cannot restore a TUI screen.
+  const terminalVisible = !isBrowserPaneOpen && isTerminalSplitOpen;
+  const [terminalActivated, setTerminalActivated] = useState(false);
+  if (terminalVisible && !terminalActivated) setTerminalActivated(true);
   const [isTerminalResizing, setIsTerminalResizing] = useState(false);
   const [isBrowserPaneResizing, setIsBrowserPaneResizing] = useState(false);
   // 打开选择器那一刻的内容快照。不在渲染时现取：用户打开选择器后光标可能移动
@@ -976,6 +981,7 @@ export function NotesWorkbench({
             </>
           ) : null}
           {!isBrowserPaneOpen &&
+          !terminalVisible &&
           !rightSidebarCollapsed &&
           rightSidebarMode === "properties" ? (
             <aside
@@ -987,13 +993,15 @@ export function NotesWorkbench({
             </aside>
           ) : null}
 
-          {!isBrowserPaneOpen && isTerminalSplitOpen ? (
+          {terminalActivated ? (
             <>
               <div
                 aria-label="调整终端宽度"
                 aria-orientation="vertical"
                 aria-valuenow={resolvedTerminalWidth}
                 className="notes-v2__minimal-terminal-splitter"
+                hidden={!terminalVisible}
+                style={terminalVisible ? undefined : { display: "none" }}
                 data-active={isTerminalResizing ? "true" : "false"}
                 onKeyDown={handleTerminalSplitterKeyDown}
                 onMouseDown={(event) => {
@@ -1005,11 +1013,14 @@ export function NotesWorkbench({
               />
               <aside
                 className="notes-v2__minimal-terminal-pane"
-                style={{ width: `${resolvedTerminalWidth}px` }}
+                hidden={!terminalVisible}
+                aria-label="终端"
+                style={{ width: `${resolvedTerminalWidth}px`, ...(terminalVisible ? {} : { display: "none" }) }}
               >
                 <NotesTerminalPanel
                   commands={desktopCommands}
                   compactChrome
+                  visible={terminalVisible}
                   isDesktopBridgeAvailable={isDesktopBridgeAvailable}
                   lastRunCommandTitle={lastRunCommandTitle}
                   onRefreshCommands={onRefreshDesktopCommands}
@@ -1023,79 +1034,81 @@ export function NotesWorkbench({
           ) : null}
         </div>
 
-        <NotesWorkbenchBottomLeft
-          activeDocument={activeDocument}
-          activePath={activePath}
-          canGoBack={canGoBack}
-          canGoForward={canGoForward}
-          directoryInfo={directoryInfo}
-          entries={entries}
-          onCopyPath={onCopyPath}
-          onCreateNote={onCreateNote}
-          onCreateNoteInPath={onCreateNoteInPath}
-          onCreateFolderInPath={onCreateFolderInPath}
-          onDeletePath={onDeletePath}
-          onGoBack={onGoBack}
-          onGoForward={onGoForward}
-          onRenamePath={onRenamePath}
-          onRevealPath={onRevealPath}
-          onMovePath={onMovePath}
-          onOpenBrowser={() => {
-            setOpenLeftPopover(null);
-            setIsTerminalSplitOpen(false);
-            setIsBrowserPaneOpen(true);
-          }}
-          onOpenPath={onOpenPath}
-          onPickDirectory={onPickDirectory}
-          onReturnToFolder={onReturnToFolder}
-          openPopover={openLeftPopover}
-          returnFolderName={returnFolderName}
-          setOpenPopover={setOpenLeftPopover}
-        />
+        <div className="notes-v2__status-footer">
+          <NotesWorkbenchBottomLeft
+            activeDocument={activeDocument}
+            activePath={activePath}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            directoryInfo={directoryInfo}
+            entries={entries}
+            onCopyPath={onCopyPath}
+            onCreateNote={onCreateNote}
+            onCreateNoteInPath={onCreateNoteInPath}
+            onCreateFolderInPath={onCreateFolderInPath}
+            onDeletePath={onDeletePath}
+            onGoBack={onGoBack}
+            onGoForward={onGoForward}
+            onRenamePath={onRenamePath}
+            onRevealPath={onRevealPath}
+            onMovePath={onMovePath}
+            onOpenBrowser={() => {
+              setOpenLeftPopover(null);
+              setIsTerminalSplitOpen(false);
+              setIsBrowserPaneOpen(true);
+            }}
+            onOpenPath={onOpenPath}
+            onPickDirectory={onPickDirectory}
+            onReturnToFolder={onReturnToFolder}
+            openPopover={openLeftPopover}
+            returnFolderName={returnFolderName}
+            setOpenPopover={setOpenLeftPopover}
+          />
 
-        <NotesWorkbenchBottomRight
-          activeDocument={activeDocument}
-          documentSaveState={activeDocumentSaveState}
-          documents={documents}
-          graphDocuments={graphDocuments}
-          editorMode={editorMode}
-          indexRebuildMessage={indexRebuildMessage}
-          isRebuildingIndex={isRebuildingIndex}
-          isTerminalSplitOpen={isTerminalSplitOpen}
-          learningDependencyNeedsReview={activeLearningDependencyNeedsReview}
-          learningQuery={learningQuery}
-          learningSnippets={learningSnippets}
-          noteOpenStrategy={activeOpenStrategy}
-          onDeleteActiveNote={onDeleteActiveNote}
-          onEditorModeChange={onEditorModeChange}
-          onExportActiveDocumentHtml={onExportActiveDocumentHtml}
-          onExportActiveDocumentPdf={onExportActiveDocumentPdf}
-          onExportVault={onExportVault}
-          onFormatCjk={onFormatCjk}
-          onInsertSnippet={onInsertSnippet}
-          onResolveLearningDependencyReview={handleResolveLearningDependencyReview}
-          onEnsureGraphDocuments={onEnsureGraphDocuments}
-          onLearningQueryChange={onLearningQueryChange}
-          onOpenSourcePeek={handleOpenSourcePeek}
-          onJumpToHeading={(line) => editorBridgeRef.current?.revealLine(line)}
-          onOpenPath={onOpenPath}
-          onRebuildIndex={onRebuildIndex}
-          onRefresh={onRefresh}
-          onRestoreLastDeleted={onRestoreLastDeleted}
-          onRenameActiveNote={onRenameActiveNote}
-          onSearchQueryChange={onSearchQueryChange}
-          onTerminalSplitToggle={() => {
-            setOpenLeftPopover(null);
-            setIsBrowserPaneOpen(false);
-            setIsTerminalSplitOpen((current) => !current);
-          }}
-          recentDocuments={recentDocuments}
-          searchQuery={searchQuery}
-          searchResults={searchResults}
-          selectionState={selectionState}
-          viewPreferences={viewPreferences}
-          onViewPreferencesChange={handleViewPreferencesChange}
-        />
+          <NotesWorkbenchBottomRight
+            activeDocument={activeDocument}
+            documentSaveState={activeDocumentSaveState}
+            documents={documents}
+            graphDocuments={graphDocuments}
+            editorMode={editorMode}
+            indexRebuildMessage={indexRebuildMessage}
+            isRebuildingIndex={isRebuildingIndex}
+            isTerminalSplitOpen={isTerminalSplitOpen}
+            learningDependencyNeedsReview={activeLearningDependencyNeedsReview}
+            learningQuery={learningQuery}
+            learningSnippets={learningSnippets}
+            noteOpenStrategy={activeOpenStrategy}
+            onDeleteActiveNote={onDeleteActiveNote}
+            onEditorModeChange={onEditorModeChange}
+            onExportActiveDocumentHtml={onExportActiveDocumentHtml}
+            onExportActiveDocumentPdf={onExportActiveDocumentPdf}
+            onExportVault={onExportVault}
+            onFormatCjk={onFormatCjk}
+            onInsertSnippet={onInsertSnippet}
+            onResolveLearningDependencyReview={handleResolveLearningDependencyReview}
+            onEnsureGraphDocuments={onEnsureGraphDocuments}
+            onLearningQueryChange={onLearningQueryChange}
+            onOpenSourcePeek={handleOpenSourcePeek}
+            onJumpToHeading={(line) => editorBridgeRef.current?.revealLine(line)}
+            onOpenPath={onOpenPath}
+            onRebuildIndex={onRebuildIndex}
+            onRefresh={onRefresh}
+            onRestoreLastDeleted={onRestoreLastDeleted}
+            onRenameActiveNote={onRenameActiveNote}
+            onSearchQueryChange={onSearchQueryChange}
+            onTerminalSplitToggle={() => {
+              setOpenLeftPopover(null);
+              setIsBrowserPaneOpen(false);
+              setIsTerminalSplitOpen((current) => !current);
+            }}
+            recentDocuments={recentDocuments}
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            selectionState={selectionState}
+            viewPreferences={viewPreferences}
+            onViewPreferencesChange={handleViewPreferencesChange}
+          />
+        </div>
       </section>
       <NiaPanel
         onApplyProposal={onApplyNiaProposal}

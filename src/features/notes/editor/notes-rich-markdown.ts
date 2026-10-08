@@ -413,7 +413,22 @@ const richNodes = listNodes
   .append(
     tableNodes({
       cellContent: "block+",
-      cellAttributes: {},
+      // VMark v0.9.94 stores GFM alignment per cell (alignedTableNodes.ts).
+      // Keep that attribute across DOM import, editing and Markdown export.
+      cellAttributes: {
+        alignment: {
+          default: null,
+          getFromDOM: (element) => {
+            const alignment = element.getAttribute("align") || element.style.textAlign;
+            return ["left", "center", "right"].includes(alignment) ? alignment : null;
+          },
+          setDOMAttr: (value, attributes) => {
+            if (value === "left" || value === "center" || value === "right") {
+              attributes.style = `${attributes.style || ""}text-align: ${value};`;
+            }
+          },
+        },
+      },
       tableGroup: "block",
     }),
   )
@@ -465,8 +480,16 @@ function renderMarkdownTableRow(cells: string[]) {
   return `| ${cells.map(escapeTableCell).join(" | ")} |`;
 }
 
-function renderMarkdownTableSeparator(columnCount: number) {
-  return `| ${Array.from({ length: columnCount }, () => "---").join(" | ")} |`;
+function renderMarkdownTableSeparator(header: ProseMirrorNode) {
+  const separators: string[] = [];
+  header.forEach((cell) => {
+    separators.push(
+      cell.attrs.alignment === "left" ? ":---" :
+        cell.attrs.alignment === "center" ? ":---:" :
+          cell.attrs.alignment === "right" ? "---:" : "---",
+    );
+  });
+  return `| ${separators.join(" | ")} |`;
 }
 
 function serializeTable(node: ProseMirrorNode) {
@@ -487,7 +510,7 @@ function serializeTable(node: ProseMirrorNode) {
   }
 
   const [headerRow, ...bodyRows] = rows;
-  const separator = renderMarkdownTableSeparator(headerRow.length);
+  const separator = renderMarkdownTableSeparator(node.firstChild!);
   const renderedRows = [
     renderMarkdownTableRow(headerRow),
     separator,

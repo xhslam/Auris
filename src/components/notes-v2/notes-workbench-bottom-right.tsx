@@ -128,7 +128,10 @@ export function NotesWorkbenchBottomRight({
   }[documentSaveState];
 
   return (
-    <div className="notes-v2__corner-cluster notes-v2__corner-cluster--right">
+    <div
+      className="notes-v2__corner-cluster notes-v2__corner-cluster--right"
+      title={`${saveStateLabel} · ${metrics.words} 词 · ${metrics.characters} 字符${selectionState ? ` · Ln ${selectionState.line + 1}, Col ${(selectionState.column ?? 0) + 1}` : ""}`}
+    >
       <span
         className="notes-v2__corner-stat"
         data-save-state={documentSaveState}
@@ -137,18 +140,18 @@ export function NotesWorkbenchBottomRight({
       </span>
       {selectionState ? (
         <>
-          <span className="notes-v2__corner-stat" data-testid="notes-cursor-stat">
+          <span className="notes-v2__corner-stat" data-footer-detail="cursor" data-testid="notes-cursor-stat">
             Ln {selectionState.line + 1}, Col {(selectionState.column ?? 0) + 1}
           </span>
           {selectionLength > 0 ? (
-            <span className="notes-v2__corner-stat" data-testid="notes-selection-stat">
+            <span className="notes-v2__corner-stat" data-footer-detail="selection" data-testid="notes-selection-stat">
               已选 {selectionLength} 字符
             </span>
           ) : null}
         </>
       ) : null}
-      <span className="notes-v2__corner-stat">{metrics.words} 词</span>
-      <span className="notes-v2__corner-stat">{metrics.characters} 字符</span>
+      <span className="notes-v2__corner-stat" data-footer-detail="words">{metrics.words} 词</span>
+      <span className="notes-v2__corner-stat" data-footer-detail="characters">{metrics.characters} 字符</span>
       {learningDependencyNeedsReview ? (
         <button
           aria-expanded={openPopover === "dependency-review"}

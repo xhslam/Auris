@@ -9,6 +9,9 @@ import "@/styles/auris-theme.css";
 // Loaded LAST so the redesign tokens + structural overrides win the cascade.
 import "@/styles/auris-redesign.css";
 import "@/styles/app-palette.css";
+// Notes-specific presentation follows the shell skins and consumes its theme tokens.
+import "@/components/notes-v2/notes-document-presentation.css";
+import "@/components/notes-v2/terminal/notes-terminal-presentation.css";
 
 // Register services on module load
 registerServices();

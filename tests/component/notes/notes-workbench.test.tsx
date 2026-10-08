@@ -19,6 +19,7 @@ afterEach(() => {
 
 vi.mock("@xterm/xterm", () => ({
   Terminal: class {
+    options = {};
     cols = 80;
     rows = 24;
     unicode = {
@@ -26,6 +27,9 @@ vi.mock("@xterm/xterm", () => ({
     };
 
     clear() {
+      return undefined;
+    }
+    attachCustomKeyEventHandler() {
       return undefined;
     }
     dispose() {
@@ -1305,8 +1309,19 @@ describe("NotesWorkbench", () => {
 
   it("opens the terminal as an integrated split pane from the toolbar", async () => {
     const user = userEvent.setup();
+    const longTitle = "强劲人生记录｜2026-10-08（周四）｜学习与复盘".repeat(5);
+    const baseDocument = createDocument();
+    const longDocument = { ...baseDocument, parsed: { ...baseDocument.parsed, title: longTitle } };
     const terminalBridge: DesktopTerminalBridge = {
       create: vi.fn(async (input) => ({
+        backend: "pty" as const,
+        cols: input.cols ?? 80,
+        cwd: input.cwd ?? null,
+        id: input.sessionId ?? "term-1",
+        rows: input.rows ?? 24,
+        shell: "C:\\Windows\\System32\\cmd.exe",
+      })),
+      resume: vi.fn(async (input) => ({
         backend: "pty" as const,
         cols: input.cols ?? 80,
         cwd: input.cwd ?? null,
@@ -1331,7 +1346,7 @@ describe("NotesWorkbench", () => {
         <NotesWorkbench
           activePath="notes/daily.md"
           desktopTerminal={terminalBridge}
-          documents={[createDocument(), createGrammarDocument()]}
+          documents={[longDocument, createGrammarDocument()]}
           entries={ENTRIES}
           onDocumentChange={vi.fn()}
           onOpenPath={vi.fn()}
@@ -1343,6 +1358,7 @@ describe("NotesWorkbench", () => {
     }
 
     render(<TerminalHarness />);
+    expect(terminalBridge.resume).not.toHaveBeenCalled();
 
     await user.click(
       screen.getByRole("button", {
@@ -1379,6 +1395,29 @@ describe("NotesWorkbench", () => {
     expect(
       document.querySelector(".notes-v2__terminal-meta"),
     ).not.toBeInTheDocument();
+    expect(document.querySelector(".notes-v2__minimal-properties-pane")).toBeNull();
+    const footer = document.querySelector(".notes-v2__status-footer")!;
+    expect(footer.querySelector(".notes-v2__corner-cluster--left")).not.toBeNull();
+    expect(footer.querySelector(".notes-v2__corner-cluster--right")).not.toBeNull();
+    expect(screen.getByRole("button", { name: `Open workspace switcher for ${longTitle}` })).toBeInTheDocument();
+    expect(footer.querySelector(".notes-v2__active-note-title")).toHaveAttribute("title", longTitle);
+    expect(footer.querySelectorAll(".notes-v2__corner-cluster--right button.notes-v2__corner-icon")).toHaveLength(7);
+    await waitFor(() => expect(terminalBridge.resume).toHaveBeenCalledTimes(1));
+    const originalScreen = screen.getByTestId("xterm-stub");
+    await user.click(screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.terminal.open }));
+    expect(document.querySelector(".notes-v2__minimal-terminal-pane")).toHaveAttribute("hidden");
+    expect(screen.getByTestId("xterm-stub")).toBe(originalScreen);
+    await user.click(screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.terminal.open }));
+    expect(document.querySelector(".notes-v2__minimal-terminal-pane")).not.toHaveAttribute("hidden");
+    expect(screen.getByTestId("xterm-stub")).toBe(originalScreen);
+    await user.click(screen.getByRole("button", { name: "打开内置浏览器" }));
+    expect(document.querySelector(".notes-v2__minimal-terminal-pane")).toHaveAttribute("hidden");
+    expect(screen.getByTestId("xterm-stub")).toBe(originalScreen);
+    await user.click(screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.terminal.open }));
+    expect(document.querySelector(".notes-v2__minimal-terminal-pane")).not.toHaveAttribute("hidden");
+    expect(screen.getByTestId("xterm-stub")).toBe(originalScreen);
+    expect(terminalBridge.resume).toHaveBeenCalledTimes(1);
+    expect(terminalBridge.kill).not.toHaveBeenCalled();
   });
 
   it("closes the workspace popover when opening the terminal split", async () => {

@@ -345,7 +345,7 @@ const INITIAL_SELECTS: Selects = {
   monoFont: 0,
   // 以下排版默认值须与 notes-typography.ts 的 DEFAULT_NOTES_TYPOGRAPHY 对应。
   fontSize: 0, // 18px
-  lineHeightEd: 1, // 1.6
+  lineHeightEd: 2, // 1.8 — matches the Notes typography default.
   blockSpacing: 1, // 1×（14px）
   cjkLetterSpacing: 0, // 关闭
   editorWidth: 3, // 100%（不限宽）

@@ -5,7 +5,7 @@
  *   阅读区右上角行宽滑条也会写入同一份设置。
  * - 工作台把这些值作为 CSS 变量挂到 `.notes-v2` 根上，编辑器 CSS 通过
  *   `var(--notes-editor-*)` 读取。
- * - 字体族（拉丁/CJK/等宽）暂未纳入，后续单独处理。
+ * - 拉丁、CJK 和等宽字体分别保留用户选择。
  */
 
 export interface NotesTypographySettings {
@@ -25,7 +25,7 @@ export const EDITOR_WIDTH_SLIDER_MAX_EM = 80;
 export const EDITOR_WIDTH_SLIDER_FULL = 100;
 
 /** 当前编辑器实际字体栈——「系统默认」选项即映射到这几个值，保证不接通时观感不变。 */
-const DEFAULT_LATIN_STACK = '"Aptos", "Segoe UI"';
+const DEFAULT_LATIN_STACK = '-apple-system, BlinkMacSystemFont, "Segoe UI"';
 const DEFAULT_CJK_STACK = '"PingFang SC", "Microsoft YaHei"';
 const DEFAULT_MONO_STACK =
   '"Cascadia Code", "JetBrains Mono", "SFMono-Regular", monospace';
@@ -33,7 +33,7 @@ const DEFAULT_MONO_STACK =
 /** 默认值——与编辑器 CSS 的 var() 回退值、设置页 INITIAL_SELECTS 三者保持一致。 */
 export const DEFAULT_NOTES_TYPOGRAPHY: NotesTypographySettings = {
   fontSize: "18px",
-  lineHeight: "1.6",
+  lineHeight: "1.8",
   blockSpacing: "14px",
   cjkLetterSpacing: "normal",
   // 默认中等阅读栏：正文列居中，左右留白对称；可用右下角滑条再调。

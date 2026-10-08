@@ -12083,8 +12083,6 @@ body:has(.workspace-shell),
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-heading,
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-host,
 .desktop-app-frame .notes-v2--minimal .notes-v2__rich-editor-surface {
-  width: min(1240px, 100%);
-  max-width: 1240px;
   margin-inline: auto;
 }
 
@@ -12106,24 +12104,17 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   height: 0;
 }
 
-/* Read-only display ("展示") mode fills the canvas with a comfortable,
-   large reading column. */
+/* Document typography and column width live in notes-document-presentation.css. */
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane[data-mode="reading"] {
   padding: 44px clamp(28px, 8vw, 220px) 44px;
 }
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane[data-mode="reading"] .notes-v2__reading-pane {
-  width: min(1180px, 100%);
-  max-width: 1180px;
   height: 100%;
   min-height: 0;
   margin-inline: auto;
   overflow: auto;
   gap: 24px;
-  color: #252525;
-  font-size: 22px;
-  line-height: 1.72;
-  letter-spacing: 0;
 }
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-heading {
@@ -12156,16 +12147,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-scroller {
   padding-bottom: 28px;
-}
-
-.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-content {
-  font-size: 19px;
-  line-height: 1.75;
-}
-
-.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror {
-  font-size: 19px;
-  line-height: 1.78;
 }
 
 .desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror > h1:first-child {
@@ -12737,11 +12718,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 
   .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane[data-mode="reading"] {
     padding: 38px 28px 92px;
-  }
-
-  .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane[data-mode="reading"] .notes-v2__reading-pane {
-    font-size: 18px;
-    line-height: 1.72;
   }
 
   .desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane[data-mode="reading"] .notes-v2__reading-pane h1 {
@@ -13562,7 +13538,6 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-v2__reading-pane--remark td {
   border: 1px solid var(--notes-line);
   padding: 6px 10px;
-  text-align: left;
 }
 
 .desktop-app-frame .notes-v2__reading-pane--remark th {

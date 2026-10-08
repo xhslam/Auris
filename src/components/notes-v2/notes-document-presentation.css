@@ -1,0 +1,232 @@
+/*
+ * Notes document presentation adapted from VMark v0.9.94,
+ * src/components/Editor/editor.css and src/hooks/useTheme.ts at
+ * 00ad428592dc5e80aab5afc8878a3f8c3bd27930.
+ * Copyright (c) 2026 Xiaolai Li. ISC License; full notice is retained in
+ * docs/vmark-port/UPSTREAM-LICENSE.txt.
+ *
+ * Auris keeps its own theme tokens, stored typography choices and editor
+ * framework. Content width is shared by the heading and document, and tables
+ * use the upstream content-proportional layout in their own scroll surface.
+ */
+
+.desktop-app-frame .notes-v2--minimal {
+  --notes-document-font: var(--notes-editor-font-latin, -apple-system),
+    var(--notes-editor-font-cjk, "PingFang SC"), sans-serif;
+  --notes-document-line-height: calc(
+    var(--notes-editor-font-size, 18px) * var(--notes-editor-line-height, 1.8)
+  );
+  --notes-document-block-font-size: calc(
+    var(--notes-editor-font-size, 18px) * var(--notes-md-block-font-size, 1)
+  );
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-pane {
+  padding: 24px clamp(20px, 3vw, 60px) 48px;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-heading,
+.desktop-app-frame .notes-v2--minimal .notes-v2__rich-editor-surface,
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: var(--notes-editor-content-width, 50em);
+  margin-inline: auto;
+  font-size: var(--notes-editor-font-size, 18px);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg {
+  padding-inline: 0;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__virtual-title-input {
+  box-sizing: border-box;
+  padding-inline: 0;
+  font-family: var(--notes-document-font);
+  font-size: 1.8em;
+  line-height: 1.25;
+  letter-spacing: normal;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__virtual-title-input:focus {
+  border-bottom-color: var(--notes-line-strong);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror {
+  width: 100%;
+  max-width: none;
+  font-family: var(--notes-document-font);
+  font-size: var(--notes-editor-font-size, 18px);
+  line-height: var(--notes-editor-line-height, 1.8);
+  letter-spacing: var(--notes-editor-cjk-letter-spacing, normal);
+  color: var(--notes-text);
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror p {
+  margin: 0 0 var(--notes-editor-block-spacing, 14px);
+  line-height: inherit;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  color: var(--notes-ink);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  text-align: var(--notes-md-heading-align, left);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror h1 { font-size: 1.8em; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror h2 { font-size: 1.65em; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror h3 { font-size: 1.5em; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror h4 { font-size: 1.35em; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror h5 { font-size: 1.25em; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror h6 { font-size: 1.1em; }
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror > h1:first-child {
+  margin-bottom: 0.75em;
+  padding-bottom: 0.3em;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror > :first-child {
+  margin-top: 0;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror :is(ul, ol, blockquote, table) {
+  /* Absolute size prevents a reduced block size compounding in nested lists. */
+  font-size: var(--notes-document-block-font-size);
+  line-height: var(--notes-document-line-height);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror :is(ul, ol) {
+  margin: 0 0 var(--notes-editor-block-spacing, 14px);
+  padding-left: 2em;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror li > :is(ul, ol) {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror li > p {
+  margin: 0;
+  line-height: var(--notes-document-line-height);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror blockquote {
+  margin: 0 0 var(--notes-editor-block-spacing, 14px);
+  padding: 0 1em;
+  border-left: 3px solid var(--notes-line-strong);
+  background: transparent;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror blockquote > p:last-child {
+  margin-bottom: 0;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__table-scroll-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  margin: 0 0 var(--notes-editor-block-spacing, 14px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--notes-line-strong) transparent;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__table-scroll-wrapper::-webkit-scrollbar { height: 6px; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__table-scroll-wrapper::-webkit-scrollbar-track { background: transparent; }
+.desktop-app-frame .notes-v2--minimal .notes-v2__table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--notes-line-strong);
+  border-radius: 3px;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror .notes-v2__table-scroll-wrapper table {
+  width: max-content;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  table-layout: auto;
+  border-collapse: collapse;
+  overflow: visible;
+  word-break: normal;
+  line-height: var(--notes-document-line-height);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror :is(th, td) {
+  box-sizing: border-box;
+  min-width: 3em;
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--notes-line);
+  vertical-align: top;
+  text-align: left;
+  line-height: var(--notes-document-line-height);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror th {
+  font-weight: 700;
+  color: var(--notes-ink);
+  background: color-mix(in srgb, var(--notes-text) 4%, var(--notes-bg));
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror :is(th, td) p {
+  margin: 0;
+  line-height: var(--notes-document-line-height);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror :is(th, td) p + p {
+  margin-top: 0.5em;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror .selectedCell::after {
+  background: color-mix(in srgb, var(--notes-accent) 16%, transparent);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror code {
+  font-family: var(--notes-editor-font-mono, ui-monospace, monospace);
+  font-size: 0.85em;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  color: var(--notes-text);
+  background: color-mix(in srgb, var(--notes-text) 5%, transparent);
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__pm-code-block-content {
+  font-family: var(--notes-editor-font-mono, ui-monospace, monospace);
+  font-size: calc(var(--notes-editor-font-size, 18px) * 0.85);
+  line-height: 1.45;
+  white-space: pre;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror .notes-v2__pm-code-block-source {
+  font-family: var(--notes-editor-font-mono, ui-monospace, monospace);
+  font-size: calc(var(--notes-editor-font-size, 18px) * 0.85);
+  line-height: 1.45;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host--wysiwyg .ProseMirror pre code {
+  font-size: inherit;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host:not(.notes-v2__editor-host--wysiwyg) :is(.cm-editor, .cm-scroller, .cm-content) {
+  font-family: var(--notes-editor-font-mono, ui-monospace, monospace);
+  font-size: calc(var(--notes-editor-font-size, 18px) * 0.85);
+  line-height: var(--notes-editor-line-height, 1.8);
+  letter-spacing: normal;
+}
+
+/* Plain source lines retain a character grid; their existing Markdown preview
+ * decorations still provide headings, formulas and code previews. */
+.desktop-app-frame .notes-v2--minimal .notes-v2__editor-host .cm-line {
+  padding-inline: 0;
+}

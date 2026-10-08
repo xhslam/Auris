@@ -4,6 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { SearchAddon } from "@xterm/addon-search";
 import type { Terminal } from "@xterm/xterm";
+import {
+  DEFAULT_APP_THEME,
+  isAppThemeId,
+} from "@/features/appearance/app-theme";
+import { buildNotesTerminalTheme } from "./notes-terminal-theme";
+import { verifiedMonoStack } from "./verified-terminal-mono-stack";
 import type {
   DesktopTerminalBridge,
   DesktopTerminalSessionRecord,
@@ -43,6 +49,7 @@ type UseNotesTerminalSessionsInput = {
   cwd?: string | null;
   enabled: boolean;
   terminalBridge?: DesktopTerminalBridge | null;
+  visible?: boolean;
   workspaceInstanceId?: string | null;
 };
 
@@ -126,6 +133,13 @@ function readOpaqueThemeColor(
   return fallback;
 }
 
+function getTerminalThemeId(scopeElement?: Element | null) {
+  const scope = getThemeScope(scopeElement);
+  const id = scope?.getAttribute("data-notes-theme") ??
+    scope?.closest("[data-app-theme]")?.getAttribute("data-app-theme");
+  return isAppThemeId(id) ? id : DEFAULT_APP_THEME;
+}
+
 function getTerminalTheme(scopeElement?: Element | null) {
   // The terminal needs solid colors. We walk a small chain of variables so the
   // theme stays in sync with the notes pane wherever possible, but reject any
@@ -145,20 +159,14 @@ function getTerminalTheme(scopeElement?: Element | null) {
     scopeElement,
   );
 
-  return {
-    background,
-    cursor: foreground,
-    foreground,
-    selectionBackground: "rgba(91, 111, 99, 0.25)",
-  };
+  return buildNotesTerminalTheme(getTerminalThemeId(scopeElement), background, foreground);
 }
 
 function getTerminalFontFamily(scopeElement?: Element | null) {
-  return readThemeToken(
-    "--font-mono",
-    "Cascadia Code, JetBrains Mono, SFMono-Regular, monospace",
-    scopeElement,
-  );
+  const family = ["--notes-editor-font-mono", "--auris-font-mono", "--font-mono"]
+    .map((name) => readThemeToken(name, "", scopeElement))
+    .find(Boolean) ?? "Cascadia Code, JetBrains Mono, SFMono-Regular, monospace";
+  return verifiedMonoStack(family);
 }
 
 function createSessionLabel(sessions: NotesTerminalSession[]) {
@@ -301,6 +309,7 @@ async function readTextFromClipboard(): Promise<string | null> {
 export function useNotesTerminalSessions({
   cwd = null,
   enabled,
+  visible = true,
   terminalBridge = null,
   workspaceInstanceId = null,
 }: UseNotesTerminalSessionsInput) {
@@ -310,6 +319,8 @@ export function useNotesTerminalSessions({
   const invalidatedSessionIdsRef = useRef<Set<string>>(new Set());
   const terminatingSessionIdsRef = useRef<Set<string>>(new Set());
   const isMountedRef = useRef(true);
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
   // Forward refs so the xterm key handler (installed once per session inside
   // initializeSession) can always reach the latest paste/copy callbacks
   // without re-binding on every render.
@@ -319,6 +330,10 @@ export function useNotesTerminalSessions({
   const sessionsRef = useRef<NotesTerminalSession[]>([]);
   const nextSessionIdRef = useRef(1);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  // An async import/resume may finish after the visible session was selected.
+  // Publish the current target before effects; never reveal the stale startup id.
+  const activeSessionIdRef = useRef<string | null>(activeSessionId);
+  activeSessionIdRef.current = activeSessionId;
   const [hasLoadedBackendSessions, setHasLoadedBackendSessions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sessions, setSessions] = useState<NotesTerminalSession[]>([]);
@@ -416,6 +431,7 @@ export function useNotesTerminalSessions({
       }
 
       requestAnimationFrame(() => {
+        if (!visibleRef.current || activeSessionIdRef.current !== sessionId) return;
         try {
           entry.fitAddon.fit();
           void terminalBridge.resize(sessionId, {
@@ -436,13 +452,37 @@ export function useNotesTerminalSessions({
         entry.container.style.display = id === sessionId ? "block" : "none";
       });
 
-      if (sessionId) {
+      if (sessionId && visibleRef.current) {
         fitSession(sessionId);
         entriesRef.current.get(sessionId)?.terminal.focus();
       }
     },
     [fitSession],
   );
+
+  // VMark updates running/hidden xterm options without replacing its screen.
+  // Observe the theme scopes, not the terminal subtree (which changes on output).
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || !terminalBridge) return;
+    const syncPresentation = () => {
+      for (const [id, entry] of entriesRef.current) {
+        entry.terminal.options.theme = getTerminalTheme(entry.container);
+        entry.terminal.options.fontFamily = getTerminalFontFamily(entry.container);
+        entry.terminal.options.drawBoldTextInBrightColors =
+          getTerminalThemeId(entry.container) !== "solarized";
+        if (visibleRef.current && activeSessionIdRef.current === id) fitSession(id);
+      }
+    };
+    const observer = new MutationObserver(syncPresentation);
+    for (let element: Element | null = getThemeScope(host); element; element = element.parentElement) {
+      observer.observe(element, {
+        attributes: true,
+        attributeFilter: ["data-notes-theme", "data-app-theme", "class", "style"],
+      });
+    }
+    return () => observer.disconnect();
+  }, [fitSession, terminalBridge]);
 
   const disposeEntry = useCallback((sessionId: string) => {
     const entry = entriesRef.current.get(sessionId);
@@ -584,7 +624,7 @@ export function useNotesTerminalSessions({
       initializingSessionIdsRef.current.add(session.id);
       const container = document.createElement("div");
       container.className = "notes-v2__terminal-xterm";
-      container.style.display = session.id === activeSessionId ? "block" : "none";
+      container.style.display = session.id === activeSessionIdRef.current ? "block" : "none";
       hostRef.current.appendChild(container);
 
       try {
@@ -611,9 +651,13 @@ export function useNotesTerminalSessions({
           allowProposedApi: true,
           convertEol: false,
           cursorBlink: true,
+          cursorStyle: "bar",
+          macOptionIsMeta: true,
+          minimumContrastRatio: 4.5,
+          drawBoldTextInBrightColors: getTerminalThemeId(container) !== "solarized",
           fontFamily: getTerminalFontFamily(container),
           fontSize: 13,
-          lineHeight: 1.25,
+          lineHeight: 1.2,
           scrollback: 5000,
           theme: getTerminalTheme(container),
         });
@@ -677,7 +721,7 @@ export function useNotesTerminalSessions({
         });
 
         terminal.open(container);
-        fitAddon.fit();
+        if (visibleRef.current) fitAddon.fit();
         entriesRef.current.set(session.id, {
           container,
           fitAddon,
@@ -768,7 +812,7 @@ export function useNotesTerminalSessions({
 
 
 
-        showActiveSession(activeSessionId);
+        showActiveSession(activeSessionIdRef.current);
       } catch (error) {
         pendingInputRef.current.delete(session.id);
         disposeEntry(session.id);
@@ -788,7 +832,6 @@ export function useNotesTerminalSessions({
       }
     },
     [
-      activeSessionId,
       cwd,
       consumePendingInput,
       disposeEntry,
@@ -802,14 +845,14 @@ export function useNotesTerminalSessions({
   );
 
   useEffect(() => {
-    if (!enabled || !terminalBridge || !hasLoadedBackendSessions) {
+    if (!enabled || !visible || !terminalBridge || !hasLoadedBackendSessions) {
       return;
     }
 
     if (visibleSessions.length === 0) {
       createSession();
     }
-  }, [createSession, enabled, hasLoadedBackendSessions, terminalBridge, visibleSessions.length]);
+  }, [createSession, enabled, hasLoadedBackendSessions, terminalBridge, visible, visibleSessions.length]);
 
   useEffect(() => {
     const nextActiveSessionId = selectActiveTerminalSessionId(
@@ -827,7 +870,7 @@ export function useNotesTerminalSessions({
   }, [activeSessionId, scopeKey, sessions, workspaceInstanceId]);
 
   useEffect(() => {
-    if (!enabled || !terminalBridge) {
+    if (!enabled || !visible || !terminalBridge) {
       return;
     }
 
@@ -836,11 +879,11 @@ export function useNotesTerminalSessions({
         void initializeSession(session);
       }
     });
-  }, [enabled, initializeSession, terminalBridge, visibleSessions]);
+  }, [enabled, initializeSession, terminalBridge, visible, visibleSessions]);
 
   useEffect(() => {
     showActiveSession(activeSessionId);
-  }, [activeSessionId, showActiveSession]);
+  }, [activeSessionId, showActiveSession, visible]);
 
   useEffect(() => {
     if (!terminalBridge) {
@@ -874,7 +917,7 @@ export function useNotesTerminalSessions({
     }
 
     const observer = new ResizeObserver(() => {
-      if (activeSessionId) {
+      if (activeSessionId && visibleRef.current) {
         fitSession(activeSessionId);
       }
     });
@@ -1045,7 +1088,9 @@ export function useNotesTerminalSessions({
       }
 
       writeInputToSession(activeSessionId, clipboardText);
-      entriesRef.current.get(activeSessionId)?.terminal.focus();
+      if (visibleRef.current && activeSessionIdRef.current === activeSessionId) {
+        entriesRef.current.get(activeSessionId)?.terminal.focus();
+      }
       setStatusMessage(null);
     } catch {
       setStatusMessage("Clipboard paste failed.");
@@ -1075,7 +1120,7 @@ export function useNotesTerminalSessions({
   }, [activeSessionId]);
 
   const focusActiveSession = useCallback(() => {
-    if (!activeSessionId) {
+    if (!activeSessionId || !visibleRef.current) {
       return;
     }
 

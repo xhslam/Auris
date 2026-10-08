@@ -54,6 +54,25 @@ const GENERATED_CASES = Array.from({ length: 96 }, (_, index) => {
 });
 
 describe("notes rich markdown round-trip integrity", () => {
+  it("preserves explicit and unspecified GFM column alignment across a rich-text round trip", () => {
+    const source = [
+      "| Left | Center | Right | Default |",
+      "| :--- | :---: | ---: | --- |",
+      "| 中文 | $v=at$ | **42** | [link](https://example.com) |",
+    ].join("\n");
+    const parsed = parseNotesRichMarkdown(source);
+    const table = parsed.firstChild!;
+    for (let row = 0; row < table.childCount; row += 1) {
+      const alignments: unknown[] = [];
+      table.child(row).forEach((cell) => alignments.push(cell.attrs.alignment));
+      expect(alignments).toEqual(["left", "center", "right", null]);
+    }
+    const canonical = expectStableRoundTrip(source);
+    expect(canonical).toContain("| :--- | :---: | ---: | --- |");
+    expect(canonical).toContain("$v=at$");
+    expect(canonical).toContain("**42**");
+  });
+
   it.each(CORPUS_FILES)(
     "reaches a stable canonical representation for %s",
     (fileName) => {

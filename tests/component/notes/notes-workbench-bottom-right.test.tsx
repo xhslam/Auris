@@ -121,16 +121,17 @@ describe("NotesWorkbenchBottomRight", () => {
     expect(screen.getByTestId("notes-selection-stat")).toHaveTextContent("已选 5 字符");
   });
 
-  it("shows a dependency review action only when the active learning note is stale", async () => {
+  it("keeps save conflict and dependency review actions available beside the terminal", async () => {
     const user = userEvent.setup();
     const onResolveLearningDependencyReview = vi.fn();
 
     render(
       <NotesWorkbenchBottomRight
         activeDocument={activeDocument}
+        documentSaveState="conflict"
         documents={[activeDocument]}
         editorMode="wysiwyg"
-        isTerminalSplitOpen={false}
+        isTerminalSplitOpen
         learningDependencyNeedsReview
         learningQuery=""
         learningSnippets={[]}
@@ -143,7 +144,11 @@ describe("NotesWorkbenchBottomRight", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "学习依赖待复核" }));
+    expect(screen.getByText("保存冲突")).not.toHaveAttribute("data-footer-detail");
+    const reviewButton = screen.getByRole("button", { name: "学习依赖待复核" });
+    expect(reviewButton).not.toHaveAttribute("data-footer-detail");
+    expect(document.querySelectorAll("button.notes-v2__corner-icon")).toHaveLength(7);
+    await user.click(reviewButton);
     await user.click(screen.getByRole("button", { name: "确认已复核" }));
 
     expect(onResolveLearningDependencyReview).toHaveBeenCalledTimes(1);

@@ -114,7 +114,9 @@ export function NotesWorkbenchBottomLeft({
         title={activeDocument?.path ?? directoryInfo?.vaultPath ?? undefined}
         type="button"
       >
-        {getDocumentTitle(activeDocument)}
+        <span className="notes-v2__active-note-title" title={getDocumentTitle(activeDocument)}>
+          {getDocumentTitle(activeDocument)}
+        </span>
       </button>
       <button
         aria-label="打开内置浏览器"

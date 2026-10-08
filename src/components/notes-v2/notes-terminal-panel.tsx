@@ -8,6 +8,7 @@ import {
   useId,
   type MouseEvent,
 } from "react";
+import { ClockCounterClockwise, Plus, ArrowClockwise, X } from "@phosphor-icons/react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesTerminalSessions } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
 import { NotesTerminalTranscript } from "./terminal/notes-terminal-transcript";
@@ -23,6 +24,7 @@ type TerminalContextMenuState = {
 
 type NotesTerminalPanelProps = {
   autoFocus?: boolean;
+  visible?: boolean;
   commands: DesktopCommandRecord[];
   compactChrome?: boolean;
   isDesktopBridgeAvailable: boolean;
@@ -40,6 +42,7 @@ function getSessionButtonLabel(label: string) {
 
 export function NotesTerminalPanel({
   autoFocus = true,
+  visible = true,
   commands,
   compactChrome = false,
   isDesktopBridgeAvailable,
@@ -72,23 +75,27 @@ export function NotesTerminalPanel({
     cwd: terminalCwd,
     enabled: Boolean(terminalBridge),
     terminalBridge,
+    visible,
     workspaceInstanceId,
   });
 
   useEffect(() => {
-    if (!autoFocus) return;
+    if (!autoFocus || !visible) return;
     const timer = requestAnimationFrame(() => {
       focusActiveSession();
     });
     return () => cancelAnimationFrame(timer);
-  }, [autoFocus, focusActiveSession]);
+  }, [autoFocus, focusActiveSession, visible]);
   const contextMenuRef = useRef<HTMLDivElement | null>(null);
   const transcriptRegionId = useId();
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const transcriptToggle = terminalBridge?.readTranscript && terminalBridge.configureTranscript && terminalBridge.transcriptStatus ? (
     <button type="button" aria-controls={transcriptRegionId} aria-expanded={transcriptOpen}
-      aria-label="显示 Agent 执行记录" onClick={() => setTranscriptOpen((open) => !open)}>
-      执行记录
+      className={compactChrome ? "notes-v2__terminal-dock-button" : undefined}
+      aria-label={transcriptOpen ? "隐藏 Agent 执行记录" : "显示 Agent 执行记录"}
+      title={transcriptOpen ? "隐藏 Agent 执行记录" : "显示 Agent 执行记录"}
+      onClick={() => setTranscriptOpen((open) => !open)}>
+      {compactChrome ? <ClockCounterClockwise aria-hidden="true" size={14} /> : "执行记录"}
     </button>
   ) : null;
   const [contextMenu, setContextMenu] =
@@ -149,7 +156,7 @@ export function NotesTerminalPanel({
           title={NOTES_UI_COPY.panels.terminal.newSession}
           type="button"
         >
-          <span aria-hidden="true">+</span>
+          <Plus aria-hidden="true" size={14} />
         </button>
       </div>
       <div className="notes-v2__terminal-session-actions">
@@ -161,7 +168,7 @@ export function NotesTerminalPanel({
           title={NOTES_UI_COPY.panels.terminal.restartSession}
           type="button"
         >
-          <span aria-hidden="true">↻</span>
+          <ArrowClockwise aria-hidden="true" size={14} />
         </button>
         <button
           aria-label={NOTES_UI_COPY.panels.terminal.closeSession}
@@ -170,7 +177,7 @@ export function NotesTerminalPanel({
           title={NOTES_UI_COPY.panels.terminal.closeSession}
           type="button"
         >
-          <span aria-hidden="true">×</span>
+          <X aria-hidden="true" size={14} />
         </button>
       </div>
     </div>
@@ -206,8 +213,13 @@ export function NotesTerminalPanel({
 
   if (terminalBridge) {
     return (
-      <section className="notes-v2__terminal-mode">
+      <section className="notes-v2__terminal-mode" data-visible={visible ? "true" : "false"}>
         <div className="notes-v2__terminal-shell">
+          {activeSession?.backend === "pipe" ? (
+            <p className="notes-v2__terminal-degraded" role="status">
+              简化终端 · 未连接到 TTY，交互式 CLI 和窗口尺寸同步不可用。
+            </p>
+          ) : null}
           {compactChrome ? null : (
             <div className="notes-v2__terminal-toolbar">
             <div
@@ -283,7 +295,7 @@ export function NotesTerminalPanel({
               data-testid="notes-terminal-host"
               ref={hostRef}
             />
-            {transcriptOpen ? <NotesTerminalTranscript bridge={terminalBridge} sessionId={activeSessionId} id={transcriptRegionId} /> : null}
+            {visible && transcriptOpen ? <NotesTerminalTranscript bridge={terminalBridge} sessionId={activeSessionId} id={transcriptRegionId} /> : null}
           </div>
           {contextMenu ? (
             <div
@@ -336,7 +348,7 @@ export function NotesTerminalPanel({
         </div>
 
         {statusMessage ? (
-          <p className="notes-v2__terminal-status">{statusMessage}</p>
+          <p className="notes-v2__terminal-status" role="alert">{statusMessage}</p>
         ) : null}
 
         {compactChrome ? null : (

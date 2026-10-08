@@ -80,6 +80,7 @@ describe("NotesRichEditorPane table toolbar", () => {
     const view = host.__notesRichEditorView;
 
     expect(view).toBeDefined();
+    expect(host.querySelector(".notes-v2__table-scroll-wrapper > table > tbody")).not.toBeNull();
 
     act(() => {
       const position = findTextPosition(view!.state.doc, "One");
@@ -111,5 +112,50 @@ describe("NotesRichEditorPane table toolbar", () => {
     expect(nextSource).toContain("| Right |");
     expect(nextSource).toContain("| Two |");
     expect(nextSource).not.toContain("Left");
+    expect(host.querySelectorAll(".notes-v2__table-scroll-wrapper")).toHaveLength(1);
+  });
+
+  it("maps the scroll-wrapped cells to document positions and preserves alignment while editing", async () => {
+    const onDocumentChange = vi.fn();
+    const rawSource = [
+      "# Table Note",
+      "",
+      "| Left | Center | Right | Default |",
+      "| :--- | :---: | ---: | --- |",
+      "| One | Two | Three | Four |",
+    ].join("\n");
+    const note = createDocument(rawSource);
+    render(
+      <NotesEditorPane
+        document={note}
+        documents={[note]}
+        editorMode="wysiwyg"
+        onDocumentChange={onDocumentChange}
+      />,
+    );
+
+    const host = screen.getByTestId("notes-prosemirror-host") as NotesRichEditorHostElement;
+    const view = host.__notesRichEditorView!;
+    const wrapper = host.querySelector(".notes-v2__table-scroll-wrapper")!;
+    const cells = [...wrapper.querySelectorAll("th")];
+    expect(cells.map((cell) => cell.style.textAlign)).toEqual(["left", "center", "right", ""]);
+    const paragraph = screen.getByText("One");
+    const start = findTextPosition(view.state.doc, "One") - 1;
+
+    expect(view.posAtDOM(paragraph.firstChild!, 0)).toBe(start);
+    expect(onDocumentChange).not.toHaveBeenCalled();
+    act(() => {
+      view.dispatch(view.state.tr.insertText("Edited", start, start + 3));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Edited")).toBeInTheDocument();
+      expect(onDocumentChange).toHaveBeenCalled();
+    });
+    const nextSource = onDocumentChange.mock.calls.at(-1)?.[0] as string;
+    expect(nextSource).toContain("| :--- | :---: | ---: | --- |");
+    expect(nextSource).toContain("| Edited | Two | Three | Four |");
+    expect(nextSource).not.toContain("notes-v2__table-scroll-wrapper");
+    expect(host.querySelector(".notes-v2__table-scroll-wrapper")).toBe(wrapper);
   });
 });

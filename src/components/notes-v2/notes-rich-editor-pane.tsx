@@ -84,6 +84,7 @@ import {
   type NotesRichTableToolbarState,
 } from "@/features/notes/editor/editor-table-toolbar";
 import { tableEditing } from "prosemirror-tables";
+import { NotesTableScrollNodeView } from "@/features/notes/editor/notes-table-node-view";
 import type { Plugin } from "prosemirror-state";
 
 const NOTES_RICH_EDITOR_SYNC_META = "shadowing-notes-rich-editor-sync";
@@ -1220,6 +1221,7 @@ export function NotesRichEditorPane({
         });
       },
       nodeViews: {
+        table: (node) => new NotesTableScrollNodeView(node),
         code_block: (node) => new RichCodeBlockView(node),
         math_block: (node, mathView, getPos) =>
           createNotesMathBlockNodeView(node, mathView, getPos),
