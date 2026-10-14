@@ -471,3 +471,11 @@ Notes 终端在浏览历史时显示实时输入镜像，精确 Enter / Ctrl+C �
 MCP SDK / Mermaid / ProseMirror model-view 固定为 1.32.1 / 12.1.0 / 1.25.12-1.42.6；KaTeX 升至兼容补丁 0.16.47，保留 rehype-katex 的 0.16 契约与唯一物理依赖。最终 163 文件 / 1759 项回归通过，lint 0 errors / 18 既有 warnings；生产构建、Markdown 三项 bundle 补丁、IPC、singleton、CJS 语法及 diff 检查通过。全仓 tsc 改前/改后均 241 项诊断，没有新增文件/错误码计数。真实隔离 Electron / 临时 Vault 7 检查组通过：Notes、Mermaid SVG、数学、代码围栏快捷键、PTY 中文浮动输入、历史视口、Enter / 跳转焦点、六主题与原文不变。npm audit 仍有 54 条，Windows/Linux 实机及 KaTeX 0.19 迁移未完成。
 
 首次源码验收阶段仅交付源码与依赖；当时版本保持 1.0.17，未替换已安装 App、修改真实笔记、提交、推送或发布。原有图标删除和未跟踪设计手册保留。固定来源、适用性与证据见 `docs/vmark-sync/implementation-status-2026-10-14.md`、对应 provenance / incremental-review / verification JSON；可复跑 macOS 源码验收 `node tests/electron/vmark-0999-smoke.cjs`。队列沿用上游无积压上限、失败不重放与不可撤回在途 write 的边界。
+
+## Engineering trajectory: VMark 0.9.99 main 提交与本地 App 交付（2026-10-14）
+
+用户明确授权 main 提交、GitHub 推送与本地安装。工作副本原本位于 main，且与 origin/main 一致；提交 `ef7a211` 已推送。版本递增为 1.0.18，native helper、生产构建、standalone/runtime 组装、arm64 dmg/zip 打包完成（publish never、ad-hoc 签名）。更新生成的 runtime-dependencies.json，确保 MCP SDK 1.32.1 实际进入 Electron closure。待提交 index 完整树 secrets 检查通过；全工作区扫描命中忽略的旧构建示例与上游测试占位串，未将其加入提交。
+
+源码与打包 App 的终端/编辑器/六主题验收通过；打包 MCP 模块健康、Notes/Browser 状态和 Nia/Browser workflow 通过。MCP smoke 用临时 Vault 笔记启动，明确挂载 Notes facade。首次 MCP 联动过程中用户手动退出 App，用户已明确确认，因此不再记录为应用异常；完整重跑通过。
+
+备份旧 App 至 `release/backups/Auris-1.0.17-before-vmark-0999-20261014-103513.app`，校验后替换 `/Applications/Auris.app`；安装包与构建 app.asar SHA-256 一致，深度签名、隐私审计和终端 entitlements 验证通过。安装位置真实 Electron 验收 7 组通过、无 renderer pageerror；正常用户实例已启动并保留运行，根页面 HTTP 200。未重置用户数据、未打标签或发布 Release。既有图片删除与未跟踪设计手册不纳入提交。完整安装、回退与证据见 `docs/vmark-sync/installation-2026-10-14.json`。

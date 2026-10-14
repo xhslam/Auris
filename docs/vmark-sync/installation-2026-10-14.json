@@ -1,0 +1,98 @@
+{
+  "backupPath": "/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.17-before-vmark-0999-20261014-103513.app",
+  "previousVersion": "1.0.17",
+  "backupAsarSha256": "4bec1d1c001525dec8ff1a3ad41ee8e5cbdf3983f2b53523ab0b68039b2f7c71",
+  "date": "2026-10-14",
+  "installedVersion": "1.0.18",
+  "installedPath": "/Applications/Auris.app",
+  "sourceCommit": "ef7a2119d187704136f9a99fced4e7e2d4c7d52d",
+  "appAsarSha256": "060158cb16350a574cae512d8bbabb5f5b859a37338206a4ffcaafd87973e238",
+  "matchesBuild": true,
+  "signatureIntegrityPassed": true,
+  "signatureType": "ad-hoc",
+  "developerIdSigned": false,
+  "installedAt": "2026-10-14T10:37:31.106436+08:00",
+  "terminalPermissionsPassed": true,
+  "privacyAuditPassed": true,
+  "installedElectronSmoke": {
+    "upstream": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
+    "checks": [
+      "Notes opens; Mermaid 12.1 SVG and existing math render",
+      "real rich editor heading shortcut preserves code fence",
+      "real PTY Chinese input mirrored without disturbing scrollback",
+      "Enter returns to output",
+      "jump button retains native input ownership",
+      "floating prompt visible in six themes",
+      "note unchanged"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "app": {
+      "version": "1.0.18",
+      "packaged": true,
+      "path": "/Applications/Auris.app/Contents/Resources/app.asar"
+    },
+    "themes": {
+      "white": {
+        "background": "rgb(255, 255, 255)",
+        "foreground": "rgb(26, 26, 26)",
+        "width": 588,
+        "button": "rgba(0, 0, 0, 0)"
+      },
+      "paper": {
+        "background": "rgb(238, 237, 237)",
+        "foreground": "rgb(26, 26, 26)",
+        "width": 588,
+        "button": "rgba(0, 0, 0, 0)"
+      },
+      "mint": {
+        "background": "rgb(204, 230, 208)",
+        "foreground": "rgb(45, 58, 53)",
+        "width": 588,
+        "button": "rgba(0, 0, 0, 0)"
+      },
+      "sepia": {
+        "background": "rgb(249, 240, 219)",
+        "foreground": "rgb(92, 75, 55)",
+        "width": 588,
+        "button": "rgba(0, 0, 0, 0)"
+      },
+      "night": {
+        "background": "rgb(35, 38, 43)",
+        "foreground": "rgb(214, 217, 222)",
+        "width": 588,
+        "button": "rgba(0, 0, 0, 0)"
+      },
+      "solarized": {
+        "background": "rgb(0, 43, 54)",
+        "foreground": "rgb(147, 161, 161)",
+        "width": 588,
+        "button": "rgba(0, 0, 0, 0)"
+      }
+    },
+    "status": "passed"
+  },
+  "normalStartup": {
+    "running": true,
+    "mainProcess": [
+      "30635 /Applications/Auris.app/Contents/MacOS/Auris"
+    ],
+    "url": "http://127.0.0.1:3000/",
+    "httpStatus": 200,
+    "logPath": "/Users/apple/Library/Application Support/Auris/electron-startup.log",
+    "markers": [
+      "[2026-10-14T02:38:34.326Z] app:ready",
+      "[2026-10-14T02:38:35.170Z] app:handlers-registered",
+      "[2026-10-14T02:38:36.299Z] createMainWindow:ready-to-show",
+      "[2026-10-14T02:38:36.350Z] createMainWindow:loaded http://127.0.0.1:3000/"
+    ]
+  },
+  "userDataReset": false,
+  "githubSourcePushed": true,
+  "releasePublished": false,
+  "initialMcpExitUserConfirmedManual": true,
+  "localArtifacts": {
+    "dmg": "release/Auris-1.0.18-arm64.dmg",
+    "zip": "release/Auris-1.0.18-arm64-mac.zip"
+  }
+}

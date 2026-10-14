@@ -183,7 +183,7 @@
     "stagedTreeSecretsPassed": true,
     "mcpSmoke": {
       "passed": true,
-      "initialAttempt": "App exited 0 before Notes state; original temporary startup log was removed by cleanup, cause unconfirmed.",
+      "initialAttempt": "User confirmed manually quitting the App during the initial run; not an unexplained application failure.",
       "retryEvidence": {
         "browserState": {
           "targets": []
@@ -238,5 +238,15 @@
       },
       "log": "release/vmark-0999-verification/packaged-mcp-retry.log"
     }
+  },
+  "delivery": {
+    "appVersion": "1.0.18",
+    "sourceCommit": "ef7a2119d187704136f9a99fced4e7e2d4c7d52d",
+    "commitCreated": true,
+    "pushed": true,
+    "installedAppReplaced": true,
+    "normalAppRunning": true,
+    "published": false,
+    "receipt": "docs/vmark-sync/installation-2026-10-14.json"
   }
 }

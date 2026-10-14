@@ -62,6 +62,21 @@ node tests/electron/vmark-0999-smoke.cjs
 
 队列沿用上游未设置总积压字节上限的语义；正在发送的 write 不能撤回，失败不重放意味着可能丢失失败批次。Windows/Linux 本轮仅验证平台策略，没有实机验收。首次源码验收阶段仅更新源码与依赖；当时**没有递增应用版本、替换 `/Applications/Auris.app`、提交、推送、打标签或发布 Release**。用户原有 reference-vmark.png 删除与未跟踪设计手册保持。
 
-交付阶段：1.0.18 arm64 安装包已完成构建；深度签名、终端隐私权限和包内容隐私审计通过。使用 `--app release/mac-arm64/Auris.app` 的真实包验收 7 组通过、无 renderer pageerror。MCP smoke 现从临时 Vault 笔记启动，明确挂载 Notes facade；不依赖默认首页偶然提供 Notes 服务。完整工作区 secrets 扫描命中忽略的旧构建示例与上游测试占位串，待提交 Git index 的完整树独立扫描通过。最终安装与推送证据将在交付后补充。
+交付阶段：1.0.18 arm64 安装包已完成构建；深度签名、终端隐私权限和包内容隐私审计通过。使用 `--app release/mac-arm64/Auris.app` 的真实包验收 7 组通过、无 renderer pageerror。MCP smoke 现从临时 Vault 笔记启动，明确挂载 Notes facade；不依赖默认首页偶然提供 Notes 服务。完整工作区 secrets 扫描命中忽略的旧构建示例与上游测试占位串，待提交 Git index 的完整树独立扫描通过。最终交付证据见下方安装记录。
 
-打包 MCP 模块健康检查、Notes/Browser 状态、Nia 与 Browser workflow 已通过。首次联动运行 App 在 Notes 状态返回前退出（exit 0），临时日志已被脚本清理，原因尚未证实；保留日志的重跑通过。安装后会再次核验联动，不把重跑通过解释为已经证明首次退出根因。
+打包 MCP 模块健康检查、Notes/Browser 状态、Nia 与 Browser workflow 已通过。首次联动运行 App 在 Notes 状态返回前退出（exit 0）；用户随后确认当时手动退出了 App，因此不再将该运行记录为未解释的应用异常。保留日志的完整重跑通过。
+
+## main 与本地安装交付
+
+用户随后授权提交、推送和本地 App 替换。当前工作副本原本就在 main，与 origin/main 无分叉，故直接将同步实现提交为 `ef7a2119d187704136f9a99fced4e7e2d4c7d52d` 并推送；远端 refs/heads/main 已验证指向该提交。应用版本 1.0.18，native helper、生产 build、runtime/standalone assemble 与 arm64 dmg/zip 构建完成（publish never）。
+
+旧应用备份为 `release/backups/Auris-1.0.17-before-vmark-0999-20261014-103513.app`，app.asar 校验和与替换前安装包一致。新包暂存、签名验证后替换 `/Applications/Auris.app`；安装 app.asar 与构建包 SHA-256 一致，深度签名、隐私审计与终端权限验证通过。签名是本地 ad-hoc，并非 Developer ID / notarized 发布包。
+
+安装位置的真实 Electron 临时 Vault 验收 7 组通过，版本与 packaged 标志均验证，无 renderer pageerror。最终正常用户实例已启动并加载根路由（HTTP 200），保留运行；没有重置真实用户数据。没有打标签或发布 GitHub Release。原有图片删除与未跟踪设计手册未纳入提交。结构化收据见 [安装与回退记录](installation-2026-10-14.json)。源码回退点 `codex/before-vmark-0999-delivery-20261014` 指向原 main。
+
+安装验收可复跑：
+
+```bash
+node tests/electron/vmark-0999-smoke.cjs --app /Applications/Auris.app --out release/vmark-0999-installed-smoke
+node tests/electron/packaged-mcp-sidecar-smoke.cjs --app /Applications/Auris.app
+```
