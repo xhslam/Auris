@@ -72,13 +72,18 @@ export function createNotesTerminalKeyHandler(actions: KeyActions, platform = ge
       return false;
     };
     if (event.altKey) return true;
-    if (event.shiftKey && key === "insert") return consume(actions.paste);
-    if (platform === "linux" && event.ctrlKey && key === "insert") return consume(actions.copy);
+    if (key === "insert" && !event.metaKey && event.ctrlKey !== event.shiftKey) {
+      if (event.shiftKey) return consume(actions.paste);
+      if (platform === "linux") return consume(actions.copy);
+    }
     if (platform === "macos" && event.ctrlKey && !event.metaKey) return true;
     if (!event.ctrlKey && !event.metaKey) return true;
     if (platform === "linux" && event.ctrlKey && !event.metaKey && !event.shiftKey && /^[abd-uw-z]$/i.test(key)) return true;
     switch (key) {
-      case "c": return actions.hasSelection() ? consume(actions.copy) : true;
+      case "c":
+        if (actions.hasSelection()) return consume(actions.copy);
+        // Linux's UI copy chord must never interrupt a process without selection.
+        return platform === "linux" && event.ctrlKey && event.shiftKey ? consume(() => {}) : true;
       case "v": return consume(actions.paste);
       case "k": return consume(actions.clear);
       case "a": return consume(actions.selectAll);

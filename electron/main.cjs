@@ -20,6 +20,7 @@ const {
   utilityProcess,
 } = require("electron");
 const { createApplicationMenuTemplate } = require("./menu-template.cjs");
+const { recoverSecondInstance } = require("./second-instance-recovery.cjs");
 const { createAiLibraryRepository } = require("./ai-library-db.cjs");
 const { getExtractorScriptForProvider } = require("./ai-extractors/index.cjs");
 const { createLocalHistoryRepository } = require("./local-history-db.cjs");
@@ -4900,7 +4901,16 @@ app.on("second-instance", (_event, commandLine, workingDirectory) => {
   writeStartupLog("app:second-instance");
   openExternalMarkdownArguments(commandLine, workingDirectory);
   if (!focusExistingWindow()) {
-    void ensureMainWindow();
+    void recoverSecondInstance({
+      ensureWindow: ensureMainWindow,
+      hasWindows: () => BrowserWindow.getAllWindows().some((window) => !window.isDestroyed()),
+      platform: process.platform,
+      onError: (error) => {
+        writeStartupLog(`app:second-instance:recovery-failed ${error?.stack ?? error}`);
+        dialog.showErrorBox("无法恢复应用窗口", error instanceof Error ? error.message : String(error));
+      },
+      quit: () => app.quit(),
+    });
   }
 });
 

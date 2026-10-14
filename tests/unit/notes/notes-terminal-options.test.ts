@@ -3,6 +3,20 @@ import { DEFAULT_NOTES_TYPOGRAPHY } from "@/features/notes/formatting/notes-typo
 import { clampTerminalFontSize, createNotesTerminalKeyHandler, preferredTerminalFontStack, terminalTabGlyph } from "@/components/notes-v2/terminal/notes-terminal-options";
 
 describe("VMark terminal presentation and key policy", () => {
+  it("consumes Linux UI copy without selection and only handles exact Insert chords", () => {
+    const actions = { copy: vi.fn(), paste: vi.fn(), clear: vi.fn(), selectAll: vi.fn(), search: vi.fn(), zoom: vi.fn(), selectSession: vi.fn(), hasSelection: () => false };
+    const handler = createNotesTerminalKeyHandler(actions, "linux");
+    expect(handler(new KeyboardEvent("keydown", { key: "c", ctrlKey: true, shiftKey: true }))).toBe(false);
+    expect(handler(new KeyboardEvent("keydown", { key: "c", ctrlKey: true }))).toBe(true);
+    expect(handler(new KeyboardEvent("keydown", { key: "Insert", ctrlKey: true, shiftKey: true }))).toBe(true);
+    expect(handler(new KeyboardEvent("keydown", { key: "Insert", metaKey: true, shiftKey: true }))).toBe(true);
+    expect(actions.copy).not.toHaveBeenCalled();
+    expect(actions.paste).not.toHaveBeenCalled();
+    expect(handler(new KeyboardEvent("keydown", { key: "Insert", ctrlKey: true }))).toBe(false);
+    expect(handler(new KeyboardEvent("keydown", { key: "Insert", shiftKey: true }))).toBe(false);
+    expect(actions.copy).toHaveBeenCalledTimes(1);
+    expect(actions.paste).toHaveBeenCalledTimes(1);
+  });
   it("uses the system monospace tail for the shipping default, preserving custom fonts", () => {
     expect(preferredTerminalFontStack(DEFAULT_NOTES_TYPOGRAPHY.fontMono, "windows")).toBe("ui-monospace, monospace");
     expect(preferredTerminalFontStack("", "linux")).toBe("monospace");

@@ -17,6 +17,9 @@ afterEach(() => {
   window.localStorage.removeItem("auris.appearance.window-preferences.v1");
 });
 
+// Floating buffer behavior uses real xterm in unit/notes/setupFloatingPrompt.test.ts.
+vi.mock("@/components/notes-v2/terminal/setupFloatingPrompt", () => ({ setupFloatingPrompt: () => () => {} }));
+
 vi.mock("@xterm/xterm", () => ({
   Terminal: class {
     options = {};

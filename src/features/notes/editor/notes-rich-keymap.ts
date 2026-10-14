@@ -83,11 +83,26 @@ function toggleRichLink(schema: Schema): Command {
   };
 }
 
+// Behavior adapted from VMark v0.9.99 sourceLineNodes.ts / runEditorAction:
+// formatting must not replace a fenced code block through a secondary entry.
+// Auris owns a ProseMirror keymap, so it guards commands rather than removing
+// Tiptap shortcuts. Consume blocked keys so no lower keymap can handle them.
+function guardCodeFormatting(command: Command): Command {
+  return (state, dispatch, view) => {
+    const { from, to, $from, $to } = state.selection;
+    let inCode = $from.parent.type.spec.code || $to.parent.type.spec.code;
+    state.doc.nodesBetween(from, to, (node) => {
+      if (node.type.spec.code) inCode = true;
+    });
+    return inCode ? true : command(state, dispatch, view);
+  };
+}
+
 export function createNotesRichKeymap(schema: Schema): Record<string, Command> {
   const keys: Record<string, Command> = {};
-  const bind = (key: string, command: Command | undefined) => {
+  const bind = (key: string, command: Command | undefined, formatting = true) => {
     if (command) {
-      keys[key] = command;
+      keys[key] = formatting ? guardCodeFormatting(command) : command;
     }
   };
 
@@ -177,15 +192,15 @@ export function createNotesRichKeymap(schema: Schema): Record<string, Command> {
     }
     return false;
   };
-  bind("Enter", enterCommand);
+  bind("Enter", enterCommand, false);
 
   // Tab indent/outdent in lists
   if (schema.nodes.list_item) {
     const listItem = schema.nodes.list_item;
-    bind("Tab", sinkListItem(listItem));
-    bind("Shift-Tab", liftListItem(listItem));
-    bind("Mod-]", sinkListItem(listItem));
-    bind("Mod-[", liftListItem(listItem));
+    bind("Tab", sinkListItem(listItem), false);
+    bind("Shift-Tab", liftListItem(listItem), false);
+    bind("Mod-]", sinkListItem(listItem), false);
+    bind("Mod-[", liftListItem(listItem), false);
   }
 
   return keys;

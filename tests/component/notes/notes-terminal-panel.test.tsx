@@ -1,3 +1,5 @@
+// Floating buffer behavior is covered with real xterm in unit/notes/setupFloatingPrompt.test.ts.
+vi.mock("@/components/notes-v2/terminal/setupFloatingPrompt", () => ({ setupFloatingPrompt: () => () => {} }));
 import type { CSSProperties } from "react";
 import type { ITheme } from "@xterm/xterm";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -259,6 +261,44 @@ describe("NotesTerminalPanel", () => {
       },
     });
     Reflect.deleteProperty(window, "shadowingDesktop");
+  });
+
+  it("serializes live input behind an unresolved write and batches the tail", async () => {
+    const terminal = createTerminalBridge();
+    let finish!: () => void;
+    terminal.bridge.write = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(screen.getByRole("tab", { selected: true })).toHaveAttribute("data-status", "running"), { timeout: 5000 });
+    act(() => { terminalInputListeners[0]("a"); terminalInputListeners[0]("中"); terminalInputListeners[0]("b"); });
+    expect(terminal.bridge.write).toHaveBeenCalledTimes(1);
+    await act(async () => { finish(); });
+    expect(vi.mocked(terminal.bridge.write).mock.calls).toEqual([["notes-term-1", "a"], ["notes-term-1", "中b"]]);
+    await act(async () => { finish(); });
+  });
+
+  it("does not restart or replay a write that may have partially succeeded", async () => {
+    const terminal = createTerminalBridge();
+    terminal.bridge.write = vi.fn().mockRejectedValueOnce(new Error("partial write")).mockResolvedValue(undefined);
+    render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(screen.getByRole("tab", { selected: true })).toHaveAttribute("data-status", "running"));
+    await act(async () => { terminalInputListeners[0]("echo ONCE\r"); });
+    expect(terminal.bridge.kill).not.toHaveBeenCalled();
+    expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
+    expect(terminal.bridge.write).toHaveBeenCalledExactlyOnceWith("notes-term-1", "echo ONCE\r");
+    expect(screen.getByText(/partial write/)).toBeInTheDocument();
+  });
+
+  it.each(["exit", "unmount"])("drops queued live input when the session is torn down by %s", async (reason) => {
+    const terminal = createTerminalBridge();
+    let finish!: () => void;
+    terminal.bridge.write = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    const view = render(<NotesTerminalPanel commands={[]} isDesktopBridgeAvailable terminalBridge={terminal.bridge} />);
+    await waitFor(() => expect(screen.getByRole("tab", { selected: true })).toHaveAttribute("data-status", "running"));
+    act(() => { terminalInputListeners[0]("first"); terminalInputListeners[0]("never send"); });
+    if (reason === "exit") act(() => terminal.emitExit({ sessionId: "notes-term-1", exitCode: 0 }));
+    else view.unmount();
+    await act(async () => { finish(); });
+    expect(terminal.bridge.write).toHaveBeenCalledExactlyOnceWith("notes-term-1", "first");
   });
 
   it("also deduplicates snapshot-covered data delivered after resume", async () => {

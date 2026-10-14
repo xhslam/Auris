@@ -1,3 +1,5 @@
+// Floating buffer behavior is covered with real xterm in unit/notes/setupFloatingPrompt.test.ts.
+vi.mock("@/components/notes-v2/terminal/setupFloatingPrompt", () => ({ setupFloatingPrompt: () => () => {} }));
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DesktopTerminalBridge, DesktopTerminalSessionRecord } from "@/platform/desktop/desktop-bridge";

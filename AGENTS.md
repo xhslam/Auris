@@ -460,3 +460,14 @@ macOS arm64 DMG/ZIP 已生成，本地 ad-hoc 签名权限与 strict codesign �
 ## Engineering trajectory: Review 首页版本替换本地应用（2026-10-06）
 
 用户明确要求替换本地 App。完成原生灵动岛 helper 构建、standalone/runtime 组装与 arm64 本地打包（ad-hoc 签名、publish never），备份旧应用至 release/backups/Auris-1.0.17-before-review-home-20261006-162131.app，再替换 /Applications/Auris.app，版本保持 1.0.17。构建包和安装包深度签名验证、隐私审计及终端 entitlements 验证通过；安装 app.asar 与构建产物 checksum 一致。原 MCP smoke 停在 Review 时 Notes session 超时，按 Notes facade 只在工作区挂载的实际前提，在临时测试副本先进入 Notes 后，Notes/Browser MCP 与 Nia/Browser workflow 均通过，临时脚本已删除。安装位置真实 Electron 独立 profile 验证默认 Review、阅读/视频/Notes、任务迁移、旧原文/进度保留和 Nia 1→0 更新通过；最终正常用户应用已启动并加载根路由，保留运行。未清空真实用户数据、递增版本、提交、推送或发布。证据见 docs/review-home-installation-2026-10-06.json。
+
+
+## Engineering trajectory: VMark 0.9.99 终端输入、浮动提示与编辑边界同步（2026-10-14）
+
+固定对照 `f2bf1b3fce06ca21fe7cd19382bef9c4774d0558`。参考镜像从 `2d3903cb2` 快进 64 个提交 / 181 文件（用户复盘的 52 个提交使用不同基线），保留回退分支；累计报告刷新，历史映射时间戳未批量更新。直接复用上游 PTY input queue、浮动提示范围与 ANSI cell 逻辑，适配 Auris 的文案、CSS、Electron IPC 和关闭/退出/卸载生命周期。启动输入、pipe prime、实时输入与显式发送共用每会话串行队列；写入失败显示原因且不向新 Shell 重放。Electron 后端同步 write 不等同于 Rust blocking pool，未声称实机复现旧 Auris 输入乱序。
+
+Notes 终端在浏览历史时显示实时输入镜像，精确 Enter / Ctrl+C 回到底部，仍由 xterm textarea 唯一拥有输入；Linux 补齐精确 Insert 修饰键和无选区 Ctrl+Shift+C 行为。共用 `notes-rich-keymap.ts` 对 formatting 命令增加代码节点与跨节点选区门禁，保留编辑键。主进程仅补齐 second-instance 建窗失败的日志/弹窗与非 macOS 无窗口退出策略，保留 Electron 单实例锁；没有移植 Tauri Win32 探针或双按退出机制。YAML 既有 1.2 布尔值、重复键和 alias 预算契约新增回归，不更换 JS 解析器。
+
+MCP SDK / Mermaid / ProseMirror model-view 固定为 1.32.1 / 12.1.0 / 1.25.12-1.42.6；KaTeX 升至兼容补丁 0.16.47，保留 rehype-katex 的 0.16 契约与唯一物理依赖。最终 163 文件 / 1759 项回归通过，lint 0 errors / 18 既有 warnings；生产构建、Markdown 三项 bundle 补丁、IPC、singleton、CJS 语法及 diff 检查通过。全仓 tsc 改前/改后均 241 项诊断，没有新增文件/错误码计数。真实隔离 Electron / 临时 Vault 7 检查组通过：Notes、Mermaid SVG、数学、代码围栏快捷键、PTY 中文浮动输入、历史视口、Enter / 跳转焦点、六主题与原文不变。npm audit 仍有 54 条，Windows/Linux 实机及 KaTeX 0.19 迁移未完成。
+
+首次源码验收阶段仅交付源码与依赖；当时版本保持 1.0.17，未替换已安装 App、修改真实笔记、提交、推送或发布。原有图标删除和未跟踪设计手册保留。固定来源、适用性与证据见 `docs/vmark-sync/implementation-status-2026-10-14.md`、对应 provenance / incremental-review / verification JSON；可复跑 macOS 源码验收 `node tests/electron/vmark-0999-smoke.cjs`。队列沿用上游无积压上限、失败不重放与不可撤回在途 write 的边界。

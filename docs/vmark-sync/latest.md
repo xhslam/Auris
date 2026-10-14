@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `2d3903cb2887a7c6a7a8df7b814f14b745bc2415`
+- Compared commit: `f2bf1b3fce06ca21fe7cd19382bef9c4774d0558`
 - Changed: **2640**
-- Added: **3333**
+- Added: **3361**
 - Deleted: **566**
 - Renamed: **116**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
 - Mapped upstream changes: **232**
-- Capability-domain candidates: **832**
-- Unmapped upstream changes: **5591**
+- Capability-domain candidates: **840**
+- Unmapped upstream changes: **5611**
 
 ## Upstream changes
 
@@ -398,6 +398,8 @@
 - **changed** `e2e/lib/bridge.mjs`
 - **added** `e2e/lib/browser.mjs`
 - **added** `e2e/lib/browserApproval.mjs`
+- **added** `e2e/lib/browserRefusal.mjs`
+- **added** `e2e/lib/browserRefusal.test.mjs`
 - **changed** `e2e/lib/disk.mjs`
 - **added** `e2e/lib/fixtureServer.mjs`
 - **added** `e2e/lib/jsonRpcStdio.mjs`
@@ -408,6 +410,8 @@
 - **added** `e2e/lib/readiness.test.mjs`
 - **added** `e2e/lib/sessionLock.mjs`
 - **added** `e2e/lib/settingsPatch.mjs`
+- **added** `e2e/lib/sidecarBridge.mjs`
+- **added** `e2e/lib/sidecarBridge.test.mjs`
 - **added** `e2e/lib/staleBinary.mjs`
 - **added** `e2e/lib/staleBinary.test.mjs`
 - **added** `e2e/lib/terminal.mjs`
@@ -795,6 +799,7 @@
 - **added** `scripts/plugin-store-coupling-baseline.json`
 - **added** `scripts/pre-push-hook.test.mjs`
 - **changed** `scripts/propagate-rust-errors.mjs`
+- **added** `scripts/pty-spawn-env-keys.test.mjs`
 - **added** `scripts/release-smoke-kb-runtime.test.mjs`
 - **added** `scripts/release-smoke-windows-installer.test.mjs`
 - **added** `scripts/render-dock-icon.swift`
@@ -802,6 +807,7 @@
 - **added** `scripts/rust-coverage-baseline.json`
 - **changed** `scripts/setup-local-git.mjs`
 - **added** `scripts/shell-integration-smoke.test.mjs`
+- **added** `scripts/shell-pipefail-early-exit.test.mjs`
 - **added** `scripts/shell-script-eol.test.mjs`
 - **added** `scripts/shell-slots-baseline.json`
 - **added** `scripts/source-layout.test.mjs`
@@ -815,16 +821,16 @@
 - **added** `scripts/test-types-baseline.json`
 - **added** `scripts/theme-contrast-baseline.json`
 - **added** `scripts/third-party-licenses/texts/boolbase-1.0.0.txt`
-- **added** `scripts/third-party-licenses/texts/expat-2.8.4.txt`
+- **added** `scripts/third-party-licenses/texts/expat-2.8.5.txt`
 - **added** `scripts/third-party-licenses/texts/format-0.2.2.txt`
-- **added** `scripts/third-party-licenses/texts/graphviz-16.0.0.txt`
+- **added** `scripts/third-party-licenses/texts/graphviz-16.1.0.txt`
 - **added** `scripts/third-party-licenses/texts/llhttp-8.1.0.txt`
 - **added** `scripts/third-party-licenses/texts/nodejs-22.23.2.txt`
 - **added** `scripts/third-party-licenses/texts/react-arborist-3.16.0.txt`
 - **added** `scripts/third-party-licenses/texts/remark-math-6.0.0.txt`
-- **added** `scripts/third-party-licenses/texts/viz-js-viz-3.30.0.txt`
+- **added** `scripts/third-party-licenses/texts/viz-js-viz-3.31.0.txt`
 - **added** `scripts/third-party-licenses/texts/xterm-addon-serialize-0.14.0.txt`
-- **added** `scripts/third-party-licenses/texts/yao-pkg-6.22.0.txt`
+- **added** `scripts/third-party-licenses/texts/yao-pkg-6.23.0.txt`
 - **added** `scripts/third-party-licenses/vendored.json`
 - **changed** `scripts/translate-docs.ts`
 - **added** `scripts/translate-docs/jobs.ts`
@@ -997,6 +1003,7 @@
 - **added** `src-tauri/app-entitlements.plist`
 - **changed** `src-tauri/binaries/.gitignore`
 - **changed** `src-tauri/build.rs`
+- **added** `src-tauri/capabilities/automation-bridge.json`
 - **changed** `src-tauri/capabilities/default.json`
 - **changed** `src-tauri/capabilities/pdf-export.json`
 - **changed** `src-tauri/capabilities/settings.json`
@@ -1729,6 +1736,8 @@
 - **added** `src-tauri/src/quit_broadcast.rs`
 - **added** `src-tauri/src/quit_broadcast.test.rs`
 - **added** `src-tauri/src/quit_exit_request.rs`
+- **added** `src-tauri/src/quit_feedback.rs`
+- **added** `src-tauri/src/quit_feedback.test.rs`
 - **added** `src-tauri/src/secret_token.rs`
 - **added** `src-tauri/src/secret_token.test.rs`
 - **changed** `src-tauri/src/secure_store.rs`
@@ -1742,6 +1751,8 @@
 - **added** `src-tauri/src/shell_integration_discovery.test.rs`
 - **added** `src-tauri/src/single_instance.rs`
 - **added** `src-tauri/src/single_instance.test.rs`
+- **added** `src-tauri/src/single_instance_holder.rs`
+- **added** `src-tauri/src/single_instance_holder.test.rs`
 - **added** `src-tauri/src/source_scan.test.rs`
 - **changed** `src-tauri/src/supported_files.test.rs`
 - **added** `src-tauri/src/system_fonts.rs`
@@ -1897,6 +1908,8 @@
 - **added** `src-tauri/src/workspace/validation.rs`
 - **deleted** `src-tauri/src/workspace_transfer.rs`
 - **deleted** `src-tauri/src/workspace_transfer.test.rs`
+- **added** `src-tauri/src/yaml.rs`
+- **added** `src-tauri/src/yaml.test.rs`
 - **changed** `src-tauri/tauri.conf.json`
 - **changed** `src-tauri/tauri.dev.conf.json`
 - **added** `src-tauri/tauri.macos-release.conf.json`
@@ -2415,6 +2428,10 @@
 - **changed** `src/components/Terminal/fileLinkProvider.ts`
 - **added** `src/components/Terminal/fitAndResizePty.test.ts`
 - **added** `src/components/Terminal/fitAndResizePty.ts`
+- **added** `src/components/Terminal/floatingPromptCells.test.ts`
+- **added** `src/components/Terminal/floatingPromptCells.ts`
+- **added** `src/components/Terminal/floatingPromptRange.test.ts`
+- **added** `src/components/Terminal/floatingPromptRange.ts`
 - **added** `src/components/Terminal/imeAsciiHandoff.test.ts`
 - **added** `src/components/Terminal/imeCharClass.test.ts`
 - **added** `src/components/Terminal/imeCharClass.ts`
@@ -2434,6 +2451,8 @@
 - **changed** `src/components/Terminal/setupCopyOnSelect.ts`
 - **changed** `src/components/Terminal/setupFileLinks.test.ts`
 - **changed** `src/components/Terminal/setupFileLinks.ts`
+- **added** `src/components/Terminal/setupFloatingPrompt.test.ts`
+- **added** `src/components/Terminal/setupFloatingPrompt.ts`
 - **deleted** `src/components/Terminal/setupImeComposition.test.ts`
 - **deleted** `src/components/Terminal/setupImeComposition.ts`
 - **added** `src/components/Terminal/setupImeCompositionGate.test.ts`
@@ -2453,11 +2472,13 @@
 - **added** `src/components/Terminal/terminal-transcript.css`
 - **changed** `src/components/Terminal/terminalBell.test.ts`
 - **changed** `src/components/Terminal/terminalBell.ts`
+- **added** `src/components/Terminal/terminalClipboard.ts`
 - **deleted** `src/components/Terminal/terminalGate.ts`
 - **added** `src/components/Terminal/terminalInputTrace.test.ts`
 - **added** `src/components/Terminal/terminalInputTrace.ts`
 - **added** `src/components/Terminal/terminalKeyHandler.focus.test.ts`
 - **added** `src/components/Terminal/terminalKeyHandler.ime.test.ts`
+- **added** `src/components/Terminal/terminalKeyHandler.linux.test.ts`
 - **added** `src/components/Terminal/terminalKeyHandler.scope.test.ts`
 - **changed** `src/components/Terminal/terminalKeyHandler.test.ts`
 - **changed** `src/components/Terminal/terminalKeyHandler.ts`
@@ -3312,9 +3333,12 @@
 - **changed** `src/lib/markdownLinkCheck/check.test.ts`
 - **changed** `src/lib/markdownLinkCheck/check.ts`
 - **added** `src/lib/markdownLinkCheck/detailsOffsets.test.ts`
+- **added** `src/lib/pty.input.test.ts`
 - **added** `src/lib/pty.ready.test.ts`
 - **changed** `src/lib/pty.test.ts`
 - **changed** `src/lib/pty.ts`
+- **added** `src/lib/ptyInputQueue.test.ts`
+- **added** `src/lib/ptyInputQueue.ts`
 - **added** `src/lib/sites/builtins.test.ts`
 - **added** `src/lib/sites/builtins.ts`
 - **deleted** `src/lib/sites/health.test.ts`
@@ -3663,6 +3687,7 @@
 - **added** `src/plugins/codePreview/fenceRegistry.ts`
 - **changed** `src/plugins/codePreview/liveErrorHandling.test.ts`
 - **deleted** `src/plugins/codePreview/manifest.ts`
+- **added** `src/plugins/codePreview/mermaidPreviewSizing.webkit.test.ts`
 - **changed** `src/plugins/codePreview/pluginState.ts`
 - **changed** `src/plugins/codePreview/previewDecorations.ts`
 - **changed** `src/plugins/codePreview/previewHelpers.test.ts`
@@ -3821,6 +3846,8 @@
 - **deleted** `src/plugins/focusMode/manifest.ts`
 - **changed** `src/plugins/focusMode/tiptap.test.ts`
 - **changed** `src/plugins/focusMode/tiptap.ts`
+- **added** `src/plugins/footnotePopup/FootnotePopupView.goto.test.ts`
+- **added** `src/plugins/footnotePopup/FootnotePopupView.goto.webkit.test.ts`
 - **added** `src/plugins/footnotePopup/FootnotePopupView.position.test.ts`
 - **changed** `src/plugins/footnotePopup/FootnotePopupView.test.ts`
 - **changed** `src/plugins/footnotePopup/FootnotePopupView.ts`
@@ -4152,6 +4179,7 @@
 - **changed** `src/plugins/shared/WysiwygPopupView.ts`
 - **changed** `src/plugins/shared/__tests__/WysiwygPopupView.test.ts`
 - **added** `src/plugins/shared/__tests__/blockInsertPos.test.ts`
+- **added** `src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpers.test.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpersExtra.test.ts`
 - **added** `src/plugins/shared/__tests__/remarkFenceAgreement.test.ts`
@@ -7141,6 +7169,10 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/fileLinkProvider.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/fitAndResizePty.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/fitAndResizePty.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/floatingPromptCells.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/floatingPromptCells.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/floatingPromptRange.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/floatingPromptRange.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/imeAsciiHandoff.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/imeCharClass.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/imeCharClass.ts`
@@ -7160,6 +7192,8 @@
 - `terminal` (`defer`): **changed** `src/components/Terminal/setupCopyOnSelect.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/setupFileLinks.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/setupFileLinks.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/setupFloatingPrompt.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/setupFloatingPrompt.ts`
 - `terminal` (`defer`): **deleted** `src/components/Terminal/setupImeComposition.test.ts`
 - `terminal` (`defer`): **deleted** `src/components/Terminal/setupImeComposition.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/setupImeCompositionGate.test.ts`
@@ -7179,11 +7213,13 @@
 - `terminal` (`defer`): **added** `src/components/Terminal/terminal-transcript.css`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalBell.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalBell.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalClipboard.ts`
 - `terminal` (`defer`): **deleted** `src/components/Terminal/terminalGate.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalInputTrace.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalInputTrace.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.focus.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.ime.test.ts`
+- `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.linux.test.ts`
 - `terminal` (`defer`): **added** `src/components/Terminal/terminalKeyHandler.scope.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalKeyHandler.test.ts`
 - `terminal` (`defer`): **changed** `src/components/Terminal/terminalKeyHandler.ts`
@@ -7977,6 +8013,8 @@
 - **changed** `e2e/lib/bridge.mjs`
 - **added** `e2e/lib/browser.mjs`
 - **added** `e2e/lib/browserApproval.mjs`
+- **added** `e2e/lib/browserRefusal.mjs`
+- **added** `e2e/lib/browserRefusal.test.mjs`
 - **changed** `e2e/lib/disk.mjs`
 - **added** `e2e/lib/fixtureServer.mjs`
 - **added** `e2e/lib/jsonRpcStdio.mjs`
@@ -7987,6 +8025,8 @@
 - **added** `e2e/lib/readiness.test.mjs`
 - **added** `e2e/lib/sessionLock.mjs`
 - **added** `e2e/lib/settingsPatch.mjs`
+- **added** `e2e/lib/sidecarBridge.mjs`
+- **added** `e2e/lib/sidecarBridge.test.mjs`
 - **added** `e2e/lib/staleBinary.mjs`
 - **added** `e2e/lib/staleBinary.test.mjs`
 - **added** `e2e/lib/terminal.mjs`
@@ -8370,6 +8410,7 @@
 - **added** `scripts/plugin-store-coupling-baseline.json`
 - **added** `scripts/pre-push-hook.test.mjs`
 - **changed** `scripts/propagate-rust-errors.mjs`
+- **added** `scripts/pty-spawn-env-keys.test.mjs`
 - **added** `scripts/release-smoke-kb-runtime.test.mjs`
 - **added** `scripts/release-smoke-windows-installer.test.mjs`
 - **added** `scripts/render-dock-icon.swift`
@@ -8377,6 +8418,7 @@
 - **added** `scripts/rust-coverage-baseline.json`
 - **changed** `scripts/setup-local-git.mjs`
 - **added** `scripts/shell-integration-smoke.test.mjs`
+- **added** `scripts/shell-pipefail-early-exit.test.mjs`
 - **added** `scripts/shell-script-eol.test.mjs`
 - **added** `scripts/shell-slots-baseline.json`
 - **added** `scripts/source-layout.test.mjs`
@@ -8390,16 +8432,16 @@
 - **added** `scripts/test-types-baseline.json`
 - **added** `scripts/theme-contrast-baseline.json`
 - **added** `scripts/third-party-licenses/texts/boolbase-1.0.0.txt`
-- **added** `scripts/third-party-licenses/texts/expat-2.8.4.txt`
+- **added** `scripts/third-party-licenses/texts/expat-2.8.5.txt`
 - **added** `scripts/third-party-licenses/texts/format-0.2.2.txt`
-- **added** `scripts/third-party-licenses/texts/graphviz-16.0.0.txt`
+- **added** `scripts/third-party-licenses/texts/graphviz-16.1.0.txt`
 - **added** `scripts/third-party-licenses/texts/llhttp-8.1.0.txt`
 - **added** `scripts/third-party-licenses/texts/nodejs-22.23.2.txt`
 - **added** `scripts/third-party-licenses/texts/react-arborist-3.16.0.txt`
 - **added** `scripts/third-party-licenses/texts/remark-math-6.0.0.txt`
-- **added** `scripts/third-party-licenses/texts/viz-js-viz-3.30.0.txt`
+- **added** `scripts/third-party-licenses/texts/viz-js-viz-3.31.0.txt`
 - **added** `scripts/third-party-licenses/texts/xterm-addon-serialize-0.14.0.txt`
-- **added** `scripts/third-party-licenses/texts/yao-pkg-6.22.0.txt`
+- **added** `scripts/third-party-licenses/texts/yao-pkg-6.23.0.txt`
 - **added** `scripts/third-party-licenses/vendored.json`
 - **changed** `scripts/translate-docs.ts`
 - **added** `scripts/translate-docs/jobs.ts`
@@ -8553,6 +8595,7 @@
 - **added** `src-tauri/app-entitlements.plist`
 - **changed** `src-tauri/binaries/.gitignore`
 - **changed** `src-tauri/build.rs`
+- **added** `src-tauri/capabilities/automation-bridge.json`
 - **changed** `src-tauri/capabilities/default.json`
 - **changed** `src-tauri/capabilities/pdf-export.json`
 - **changed** `src-tauri/capabilities/settings.json`
@@ -9087,6 +9130,8 @@
 - **added** `src-tauri/src/quit_broadcast.rs`
 - **added** `src-tauri/src/quit_broadcast.test.rs`
 - **added** `src-tauri/src/quit_exit_request.rs`
+- **added** `src-tauri/src/quit_feedback.rs`
+- **added** `src-tauri/src/quit_feedback.test.rs`
 - **added** `src-tauri/src/secret_token.rs`
 - **added** `src-tauri/src/secret_token.test.rs`
 - **changed** `src-tauri/src/secure_store.rs`
@@ -9100,6 +9145,8 @@
 - **added** `src-tauri/src/shell_integration_discovery.test.rs`
 - **added** `src-tauri/src/single_instance.rs`
 - **added** `src-tauri/src/single_instance.test.rs`
+- **added** `src-tauri/src/single_instance_holder.rs`
+- **added** `src-tauri/src/single_instance_holder.test.rs`
 - **added** `src-tauri/src/source_scan.test.rs`
 - **changed** `src-tauri/src/supported_files.test.rs`
 - **added** `src-tauri/src/system_fonts.rs`
@@ -9160,6 +9207,8 @@
 - **added** `src-tauri/src/workspace/validation.rs`
 - **deleted** `src-tauri/src/workspace_transfer.rs`
 - **deleted** `src-tauri/src/workspace_transfer.test.rs`
+- **added** `src-tauri/src/yaml.rs`
+- **added** `src-tauri/src/yaml.test.rs`
 - **changed** `src-tauri/tauri.conf.json`
 - **changed** `src-tauri/tauri.dev.conf.json`
 - **added** `src-tauri/tauri.macos-release.conf.json`
@@ -10047,9 +10096,12 @@
 - **changed** `src/lib/markdownLinkCheck/check.test.ts`
 - **changed** `src/lib/markdownLinkCheck/check.ts`
 - **added** `src/lib/markdownLinkCheck/detailsOffsets.test.ts`
+- **added** `src/lib/pty.input.test.ts`
 - **added** `src/lib/pty.ready.test.ts`
 - **changed** `src/lib/pty.test.ts`
 - **changed** `src/lib/pty.ts`
+- **added** `src/lib/ptyInputQueue.test.ts`
+- **added** `src/lib/ptyInputQueue.ts`
 - **added** `src/lib/sites/builtins.test.ts`
 - **added** `src/lib/sites/builtins.ts`
 - **deleted** `src/lib/sites/health.test.ts`
@@ -10390,6 +10442,7 @@
 - **added** `src/plugins/codePreview/fenceRegistry.ts`
 - **changed** `src/plugins/codePreview/liveErrorHandling.test.ts`
 - **deleted** `src/plugins/codePreview/manifest.ts`
+- **added** `src/plugins/codePreview/mermaidPreviewSizing.webkit.test.ts`
 - **changed** `src/plugins/codePreview/pluginState.ts`
 - **changed** `src/plugins/codePreview/previewDecorations.ts`
 - **changed** `src/plugins/codePreview/previewHelpers.test.ts`
@@ -10548,6 +10601,8 @@
 - **deleted** `src/plugins/focusMode/manifest.ts`
 - **changed** `src/plugins/focusMode/tiptap.test.ts`
 - **changed** `src/plugins/focusMode/tiptap.ts`
+- **added** `src/plugins/footnotePopup/FootnotePopupView.goto.test.ts`
+- **added** `src/plugins/footnotePopup/FootnotePopupView.goto.webkit.test.ts`
 - **added** `src/plugins/footnotePopup/FootnotePopupView.position.test.ts`
 - **changed** `src/plugins/footnotePopup/FootnotePopupView.test.ts`
 - **changed** `src/plugins/footnotePopup/FootnotePopupView.ts`
@@ -10879,6 +10934,7 @@
 - **changed** `src/plugins/shared/WysiwygPopupView.ts`
 - **changed** `src/plugins/shared/__tests__/WysiwygPopupView.test.ts`
 - **added** `src/plugins/shared/__tests__/blockInsertPos.test.ts`
+- **added** `src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpers.test.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpersExtra.test.ts`
 - **added** `src/plugins/shared/__tests__/remarkFenceAgreement.test.ts`

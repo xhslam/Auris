@@ -10,6 +10,8 @@ import {
 } from "@/features/appearance/app-theme";
 import { buildNotesTerminalTheme } from "./notes-terminal-theme";
 import { verifiedMonoStack } from "./verified-terminal-mono-stack";
+import { createPtyInputQueue, type PtyInputQueue } from "./pty-input-queue";
+import { setupFloatingPrompt } from "./setupFloatingPrompt";
 import { loadNotesTerminalRuntime } from "./notes-terminal-runtime";
 import { clampTerminalFontSize, createNotesTerminalKeyHandler, DEFAULT_TERMINAL_FONT_SIZE, loadTerminalFontSize, preferredTerminalFontStack, TERMINAL_FONT_SIZE_STORAGE } from "./notes-terminal-options";
 import type {
@@ -48,6 +50,8 @@ type TerminalEntry = {
   fitAddon: FitAddon;
   searchAddon: SearchAddon;
   terminal: Terminal;
+  inputQueue: PtyInputQueue;
+  cleanupFloatingPrompt: () => void;
   outputReady: boolean;
   outputSequence: number | null;
   exitWritten: boolean;
@@ -542,6 +546,8 @@ export function useNotesTerminalSessions({
 
     if (entry.fitFrame !== null) cancelAnimationFrame(entry.fitFrame);
     if (entry.resizeTimer !== null) clearTimeout(entry.resizeTimer);
+    entry.inputQueue.close();
+    entry.cleanupFloatingPrompt();
     entry.terminal.dispose();
     entry.container.remove();
     entriesRef.current.delete(sessionId);
@@ -703,6 +709,7 @@ export function useNotesTerminalSessions({
           fontWeightBold: "bold",
           lineHeight: 1.2,
           scrollback: 5000,
+          scrollOnUserInput: false,
           theme: getTerminalTheme(container),
         });
         const fitAddon = new FitAddon();
@@ -758,11 +765,22 @@ export function useNotesTerminalSessions({
 
         terminal.open(container);
         if (visibleRef.current) fitAddon.fit();
+        const inputQueue = createPtyInputQueue(
+          (data) => terminalBridge.write(session.id, data),
+          (error) => {
+            // A failed write may have delivered a prefix. Never replay it in
+            // a new shell. Keep later input ordered and make the failure visible.
+            if (!isSessionActive(session.id) || !entriesRef.current.has(session.id)) return;
+            setStatusMessage(`Terminal write failed: ${error instanceof Error ? error.message : String(error)}`);
+          },
+        );
         entriesRef.current.set(session.id, {
           container,
           fitAddon,
           searchAddon,
           terminal,
+          inputQueue,
+          cleanupFloatingPrompt: setupFloatingPrompt({ term: terminal, container }),
           outputReady: false,
           outputSequence: null,
           exitWritten: false,
@@ -795,9 +813,7 @@ export function useNotesTerminalSessions({
             data,
             currentSession.backend,
           );
-          void terminalBridge.write(session.id, normalizedData).catch(() => {
-            queueSessionRestart(session.id, data);
-          });
+          inputQueue.write(normalizedData);
         });
 
         const current = sessionsRef.current.find(({ id }) => id === session.id);
@@ -851,6 +867,7 @@ export function useNotesTerminalSessions({
         });
         setStatusMessage(null);
         if (earlyExit) {
+          inputQueue.close();
           terminal.write(formatExitMessage(earlyExit.exitCode, earlyExit.signal));
           terminal.write(formatRestartHintMessage());
           entry.exitWritten = true;
@@ -860,24 +877,9 @@ export function useNotesTerminalSessions({
         const pendingInput = consumePendingInput(session.id);
 
         if (pendingInput) {
-          void terminalBridge
-            .write(
-              session.id,
-              normalizeInputForBackend(pendingInput, record.backend),
-            )
-            .catch((error) => {
-              markSession(session.id, {
-                isAlive: false,
-                status: "failed",
-              });
-              terminal.write(
-                `\r\n[Terminal write failed: ${
-                  error instanceof Error ? error.message : String(error)
-                }]\r\n`,
-              );
-            });
+          inputQueue.write(normalizeInputForBackend(pendingInput, record.backend));
         } else if (record.backend === "pipe") {
-          void terminalBridge.write(session.id, "\n").catch(() => undefined);
+          inputQueue.write("\n");
         }
 
 
@@ -994,6 +996,7 @@ export function useNotesTerminalSessions({
     const removeExitListener = terminalBridge.onExit((event) => {
       if (!sessionsRef.current.some(({ id }) => id === event.sessionId)) return;
       const entry = entriesRef.current.get(event.sessionId);
+      entry?.inputQueue.close();
       if (!entry?.outputReady) {
         pendingExitRef.current.set(event.sessionId, event);
         const snapshot = snapshotsRef.current.get(event.sessionId);
@@ -1058,6 +1061,8 @@ export function useNotesTerminalSessions({
         pendingInputRef.current.delete(sessionId);
         if (entry.fitFrame !== null) cancelAnimationFrame(entry.fitFrame);
         if (entry.resizeTimer !== null) clearTimeout(entry.resizeTimer);
+        entry.inputQueue.close();
+        entry.cleanupFloatingPrompt();
         entry.terminal.dispose();
         entry.container.remove();
       });
@@ -1148,9 +1153,7 @@ export function useNotesTerminalSessions({
         data,
         currentSession.backend,
       );
-      void terminalBridge.write(sessionId, normalizedData).catch(() => {
-        queueSessionRestart(sessionId, data);
-      });
+      entriesRef.current.get(sessionId)?.inputQueue.write(normalizedData);
     },
     [queuePendingInput, queueSessionRestart, terminalBridge],
   );

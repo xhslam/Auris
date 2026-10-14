@@ -1,0 +1,950 @@
+{
+  "baselineCommit": "2d3903cb2887a7c6a7a8df7b814f14b745bc2415",
+  "upstreamCommit": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
+  "mirrorIncrementCommits": 64,
+  "files": 181,
+  "scope": "Selected source and runtime contracts only. Inventory does not certify complete alignment. Prior historical manifest comparison stamps remain unchanged.",
+  "changes": [
+    {
+      "status": "M",
+      "path": ".claude/feature-ledger.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/dependabot.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/ci.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/claude-audit.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/claude.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/mutation.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/pdf-smoke.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/release.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/rust-coverage.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/rust-scheduled.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "CHANGELOG.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "e2e/README.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "e2e/journeys/29-browser-ssrf-policy.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "e2e/journeys/37-browser-secondary-window-teardown.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "e2e/lib/browserRefusal.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "e2e/lib/browserRefusal.test.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "e2e/lib/sidecarBridge.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "e2e/lib/sidecarBridge.test.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "e2e/lib/vmarkMcp.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "package.json",
+      "review": "selective-dependency-update",
+      "aurisPath": "package.json",
+      "reason": "MCP SDK 1.32.1, Mermaid 12.1.0, ProseMirror model/view 1.25.12/1.42.6, compatible KaTeX 0.16.47. No Tauri/Tiptap/Graphviz installation."
+    },
+    {
+      "status": "M",
+      "path": "pnpm-lock.yaml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/cargo-audit-baseline.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/check-comment-headers.sh",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/check-cross-target.sh",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/check-new-deps.sh",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/feature-map.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/file-size-baseline.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/lib/dod-assertions.sh",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/npm-audit-baseline.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "scripts/pty-spawn-env-keys.test.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "scripts/shell-pipefail-early-exit.test.mjs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "R100",
+      "path": "scripts/third-party-licenses/texts/expat-2.8.5.txt",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "R100",
+      "path": "scripts/third-party-licenses/texts/graphviz-16.1.0.txt",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "R100",
+      "path": "scripts/third-party-licenses/texts/viz-js-viz-3.31.0.txt",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "R100",
+      "path": "scripts/third-party-licenses/texts/yao-pkg-6.23.0.txt",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "scripts/third-party-licenses/vendored.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "server/content/package.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "server/mcp/package.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "server/mcp/src/cli.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/Cargo.lock",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/Cargo.toml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/capabilities/automation-bridge.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/capabilities/default.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/de.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/en.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/es.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/fr.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/it.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/ja.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/ko.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/pt-BR.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/zh-CN.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/locales/zh-TW.yml",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/resources/generated/THIRD_PARTY_LICENSES.txt",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/app_plugins.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/browser/ai_commands.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/browser/ai_commands.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/command_error.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/genies/commands.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/genies/parsing.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/gha_workflow/action_fetch.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/lib.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/pty/lifecycle.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/pty/spawn_policy.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/pty/spawn_policy.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/quit.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/src/quit_feedback.rs",
+      "review": "not-applicable",
+      "aurisPath": null,
+      "reason": "Auris has no first-Cmd+Q double-press confirmation gate."
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/src/quit_feedback.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/single_instance.rs",
+      "review": "adapted",
+      "aurisPath": "electron/second-instance-recovery.cjs",
+      "reason": "Report recovery failure; quit non-macOS windowless holder. Keep Electron lock."
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/single_instance.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/src/single_instance_holder.rs",
+      "review": "not-applicable",
+      "aurisPath": null,
+      "reason": "Tauri Win32 plugin mutex/message-window probing does not match Electron requestSingleInstanceLock."
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/src/single_instance_holder.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/trusted_html/tauri_pin.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/workflow/examples.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/workflow/examples.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/workflow/prepare.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/workflow/runner_flow.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/workflow/types.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/workflow/validate.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/src/yaml.rs",
+      "review": "contract-verified",
+      "aurisPath": "src/features/notes/documents/frontmatter.ts",
+      "reason": "Auris already uses yaml JS (YAML 1.2, duplicate-key error, bounded alias expansion); no Rust parser migration."
+    },
+    {
+      "status": "A",
+      "path": "src-tauri/src/yaml.test.rs",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/tauri.conf.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/StatusBar/StatusBar.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/StatusBar/StatusBar.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/StatusBar/useQuitFeedback.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/TerminalPanel.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/TerminalPanel.transcript.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/createTerminalInstance.rollback.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/createTerminalInstance.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/createTerminalInstance.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/createTerminalInstance.webgl.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/floatingPromptCells.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/floatingPromptCells.ts",
+      "review": "ported",
+      "aurisPath": "src/components/notes-v2/terminal/floatingPromptCells.ts",
+      "reason": "Unchanged behavior; provenance header added."
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/floatingPromptRange.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/floatingPromptRange.ts",
+      "review": "ported",
+      "aurisPath": "src/components/notes-v2/terminal/floatingPromptRange.ts",
+      "reason": "Unchanged behavior; provenance header added."
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/setupFloatingPrompt.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/setupFloatingPrompt.ts",
+      "review": "adapted",
+      "aurisPath": "src/components/notes-v2/terminal/setupFloatingPrompt.ts",
+      "reason": "Auris label and scoped class names; same public xterm buffer/input/parser API."
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/spawnPty.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/terminal-panel.css",
+      "review": "adapted",
+      "aurisPath": "src/components/notes-v2/terminal/notes-terminal-presentation.css",
+      "reason": "Scoped mirror, neutral jump action, six themes, visible keyboard focus."
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/terminalClipboard.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/components/Terminal/terminalKeyHandler.linux.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/terminalKeyHandler.ts",
+      "review": "adapted",
+      "aurisPath": "src/components/notes-v2/terminal/notes-terminal-options.ts",
+      "reason": "Existing Linux readline policy retained, exact Insert chords and no-selection Ctrl+Shift+C completed."
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/terminalOptions.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/terminalOptions.ts",
+      "review": "adapted",
+      "aurisPath": "src/components/notes-v2/terminal/use-notes-terminal-sessions.ts",
+      "reason": "scrollOnUserInput false; WebGL policy is WebKitGTK specific, Auris already uses DOM renderer."
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/terminalSpawnEnv.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/terminalSpawnEnv.ts",
+      "review": "deferred",
+      "aurisPath": null,
+      "reason": "Auris identifies as auris, not WezTerm. OSC8 and paired CSI-u capability handling must be established before advertising a WezTerm version."
+    },
+    {
+      "status": "M",
+      "path": "src/components/Terminal/useTerminalSessions.createFail.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Welcome/welcome.css",
+      "review": "not-applicable",
+      "aurisPath": null,
+      "reason": "No VMark welcome-recents layout. No identical overflow selector used."
+    },
+    {
+      "status": "M",
+      "path": "src/export/printDocument.ts",
+      "review": "not-applicable",
+      "aurisPath": null,
+      "reason": "Rolldown ineffective dynamic import in VMark resource resolver; different Next/Electron export pipeline."
+    },
+    {
+      "status": "M",
+      "path": "src/lib/formats/adapters/mermaid-preview.css",
+      "review": "not-applicable",
+      "aurisPath": null,
+      "reason": "Auris uses separate Notes preview selectors, not this standalone .mmd/inline dual-class layout. Real SVG verified."
+    },
+    {
+      "status": "A",
+      "path": "src/lib/pty.input.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/lib/pty.ts",
+      "review": "adapted",
+      "aurisPath": "src/components/notes-v2/terminal/use-notes-terminal-sessions.ts",
+      "reason": "All startup/live/explicit-input writes share one queue per renderer session."
+    },
+    {
+      "status": "A",
+      "path": "src/lib/ptyInputQueue.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/lib/ptyInputQueue.ts",
+      "review": "ported",
+      "aurisPath": "src/components/notes-v2/terminal/pty-input-queue.ts",
+      "reason": "Pure input queue reused; Electron bridge, failure UI and lifecycle adapted."
+    },
+    {
+      "status": "M",
+      "path": "src/locales/de/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/en/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/es/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/fr/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/it/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/ja/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/ko/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/pt-BR/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/zh-CN/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/locales/zh-TW/statusbar.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/main.bootFailure.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/main.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/pages/settings/TerminalSettings.test.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/pages/settings/TerminalSettings.tsx",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/plugins/codePreview/mermaidPreviewSizing.webkit.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/plugins/footnotePopup/FootnotePopupView.goto.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/plugins/footnotePopup/FootnotePopupView.goto.webkit.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/plugins/footnotePopup/FootnotePopupView.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/plugins/footnotePopup/__tests__/FootnotePopupView.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/plugins/footnotePopup/tiptapDomUtils.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/plugins/footnotePopup/tiptapDomUtils.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/plugins/linkPopup/tiptapPointer.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "A",
+      "path": "src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/plugins/shared/sourceLineNodes.ts",
+      "review": "adapted",
+      "aurisPath": "src/features/notes/editor/notes-rich-keymap.ts",
+      "reason": "Auris uses ProseMirror, not stock Tiptap extensions. Guard formatting keymap, retain editing keys."
+    },
+    {
+      "status": "M",
+      "path": "src/test/perTestTimeouts.test.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "src/test/waitBudget.ts",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/de/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/de/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/de/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/de/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/es/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/es/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/es/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/es/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/fr/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/fr/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/fr/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/fr/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/it/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/it/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/it/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/it/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ja/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ja/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ja/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ja/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ko/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ko/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ko/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/ko/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/package.json",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/pt-BR/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/pt-BR/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/pt-BR/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/pt-BR/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-CN/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-CN/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-CN/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-CN/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-TW/guide/settings.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-TW/guide/shortcuts.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-TW/guide/terminal.md",
+      "review": "not-individually-certified"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-TW/guide/troubleshooting.md",
+      "review": "not-individually-certified"
+    }
+  ]
+}

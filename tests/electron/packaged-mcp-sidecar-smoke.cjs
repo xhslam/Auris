@@ -74,7 +74,7 @@ async function waitFor(read, predicate, label, timeoutMs = 30_000) {
   throw new Error(`${label} timed out: ${JSON.stringify(latest)}`);
 }
 
-function writeIsolatedConfig(userData) {
+function writeIsolatedConfig(userData, vaultPath) {
   fs.mkdirSync(path.join(userData, "nia"), { recursive: true });
   fs.writeFileSync(
     path.join(userData, "shadowing-desktop-config.json"),
@@ -83,7 +83,8 @@ function writeIsolatedConfig(userData) {
         browserAutomationEnabled: true,
         mcp: { autoApproveEdits: false, enabled: true, startOnLaunch: true },
         pluginsEnabled: {},
-        vaultPath: null,
+        vaultPath,
+        knownVaultRoots: [vaultPath],
         videoLibraryPath: null,
       },
       null,
@@ -206,7 +207,13 @@ async function main() {
   const binary = path.join(appRoot, "Contents", "MacOS", "Auris");
   const discoveryPath = path.join(temporaryRoot, "auris-notes-mcp-port");
   const userData = path.join(temporaryRoot, "user-data");
-  writeIsolatedConfig(userData);
+  // Notes exposes its renderer facade only while /notes is mounted.
+  // Open a temporary note at startup rather than relying on the default home.
+  const vaultPath = path.join(temporaryRoot, "vault");
+  fs.mkdirSync(vaultPath);
+  const fixturePath = path.join(vaultPath, "packaged-mcp-smoke.md");
+  fs.writeFileSync(fixturePath, "# Packaged MCP smoke\n\nTemporary note.\n");
+  writeIsolatedConfig(userData, vaultPath);
   const credentialRegistryPath = path.join(temporaryRoot, "auris-mcp-clients.json");
   const credential = await createMcpClientCredentialStore({
     registryPath: credentialRegistryPath,
@@ -224,7 +231,9 @@ async function main() {
     NODE_OPTIONS: "",
     NODE_PATH: "",
   };
-  const application = spawn(binary, [`--user-data-dir=${userData}`], {
+  delete appEnvironment.ELECTRON_RUN_AS_NODE;
+  delete appEnvironment.SHADOWING_DESKTOP_URL;
+  const application = spawn(binary, [`--user-data-dir=${userData}`, fixturePath], {
     cwd: temporaryRoot,
     env: appEnvironment,
     stdio: ["ignore", "pipe", "pipe"],

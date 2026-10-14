@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "2d3903cb2887a7c6a7a8df7b814f14b745bc2415",
+  "comparedCommit": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
   "summary": {
     "changed": 2640,
-    "added": 3333,
+    "added": 3361,
     "deleted": 566,
     "renamed": 116,
     "missingAurisTargets": 0,
     "staleMappings": 12,
     "mappedUpstreamChanges": 232,
-    "domainCandidates": 832,
-    "unmappedUpstreamChanges": 5591
+    "domainCandidates": 840,
+    "unmappedUpstreamChanges": 5611
   },
   "upstreamChanges": [
     {
@@ -1559,6 +1559,14 @@
       "status": "added"
     },
     {
+      "path": "e2e/lib/browserRefusal.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/browserRefusal.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/lib/disk.mjs",
       "status": "changed"
     },
@@ -1596,6 +1604,14 @@
     },
     {
       "path": "e2e/lib/settingsPatch.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/sidecarBridge.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/sidecarBridge.test.mjs",
       "status": "added"
     },
     {
@@ -3147,6 +3163,10 @@
       "status": "changed"
     },
     {
+      "path": "scripts/pty-spawn-env-keys.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/release-smoke-kb-runtime.test.mjs",
       "status": "added"
     },
@@ -3172,6 +3192,10 @@
     },
     {
       "path": "scripts/shell-integration-smoke.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/shell-pipefail-early-exit.test.mjs",
       "status": "added"
     },
     {
@@ -3227,7 +3251,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/expat-2.8.4.txt",
+      "path": "scripts/third-party-licenses/texts/expat-2.8.5.txt",
       "status": "added"
     },
     {
@@ -3235,7 +3259,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/graphviz-16.0.0.txt",
+      "path": "scripts/third-party-licenses/texts/graphviz-16.1.0.txt",
       "status": "added"
     },
     {
@@ -3255,7 +3279,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/viz-js-viz-3.30.0.txt",
+      "path": "scripts/third-party-licenses/texts/viz-js-viz-3.31.0.txt",
       "status": "added"
     },
     {
@@ -3263,7 +3287,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/yao-pkg-6.22.0.txt",
+      "path": "scripts/third-party-licenses/texts/yao-pkg-6.23.0.txt",
       "status": "added"
     },
     {
@@ -3982,6 +4006,10 @@
     {
       "path": "src-tauri/build.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/capabilities/automation-bridge.json",
+      "status": "added"
     },
     {
       "path": "src-tauri/capabilities/default.json",
@@ -6912,6 +6940,14 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/quit_feedback.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/quit_feedback.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/secret_token.rs",
       "status": "added"
     },
@@ -6961,6 +6997,14 @@
     },
     {
       "path": "src-tauri/src/single_instance.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance_holder.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance_holder.test.rs",
       "status": "added"
     },
     {
@@ -7582,6 +7626,14 @@
     {
       "path": "src-tauri/src/workspace_transfer.test.rs",
       "status": "deleted"
+    },
+    {
+      "path": "src-tauri/src/yaml.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/yaml.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/tauri.conf.json",
@@ -9657,6 +9709,22 @@
       "status": "added"
     },
     {
+      "path": "src/components/Terminal/floatingPromptCells.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/floatingPromptCells.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/floatingPromptRange.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/floatingPromptRange.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/imeAsciiHandoff.test.ts",
       "status": "added"
     },
@@ -9731,6 +9799,14 @@
     {
       "path": "src/components/Terminal/setupFileLinks.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/components/Terminal/setupFloatingPrompt.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/setupFloatingPrompt.ts",
+      "status": "added"
     },
     {
       "path": "src/components/Terminal/setupImeComposition.test.ts",
@@ -9809,6 +9885,10 @@
       "status": "changed"
     },
     {
+      "path": "src/components/Terminal/terminalClipboard.ts",
+      "status": "added"
+    },
+    {
       "path": "src/components/Terminal/terminalGate.ts",
       "status": "deleted"
     },
@@ -9826,6 +9906,10 @@
     },
     {
       "path": "src/components/Terminal/terminalKeyHandler.ime.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Terminal/terminalKeyHandler.linux.test.ts",
       "status": "added"
     },
     {
@@ -13257,6 +13341,10 @@
       "status": "added"
     },
     {
+      "path": "src/lib/pty.input.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/pty.ready.test.ts",
       "status": "added"
     },
@@ -13267,6 +13355,14 @@
     {
       "path": "src/lib/pty.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/ptyInputQueue.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/ptyInputQueue.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/sites/builtins.test.ts",
@@ -14661,6 +14757,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/codePreview/mermaidPreviewSizing.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codePreview/pluginState.ts",
       "status": "changed"
     },
@@ -15291,6 +15391,14 @@
     {
       "path": "src/plugins/focusMode/tiptap.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/FootnotePopupView.goto.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/footnotePopup/FootnotePopupView.goto.webkit.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/footnotePopup/FootnotePopupView.position.test.ts",
@@ -16616,6 +16724,10 @@
     },
     {
       "path": "src/plugins/shared/__tests__/blockInsertPos.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts",
       "status": "added"
     },
     {
@@ -32037,6 +32149,22 @@
           "status": "added"
         },
         {
+          "path": "src/components/Terminal/floatingPromptCells.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/floatingPromptCells.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/floatingPromptRange.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/floatingPromptRange.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/imeAsciiHandoff.test.ts",
           "status": "added"
         },
@@ -32111,6 +32239,14 @@
         {
           "path": "src/components/Terminal/setupFileLinks.ts",
           "status": "changed"
+        },
+        {
+          "path": "src/components/Terminal/setupFloatingPrompt.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/setupFloatingPrompt.ts",
+          "status": "added"
         },
         {
           "path": "src/components/Terminal/setupImeComposition.test.ts",
@@ -32189,6 +32325,10 @@
           "status": "changed"
         },
         {
+          "path": "src/components/Terminal/terminalClipboard.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Terminal/terminalGate.ts",
           "status": "deleted"
         },
@@ -32206,6 +32346,10 @@
         },
         {
           "path": "src/components/Terminal/terminalKeyHandler.ime.test.ts",
+          "status": "added"
+        },
+        {
+          "path": "src/components/Terminal/terminalKeyHandler.linux.test.ts",
           "status": "added"
         },
         {
@@ -35675,6 +35819,38 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/floatingPromptCells.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/floatingPromptCells.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/floatingPromptRange.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/floatingPromptRange.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/imeAsciiHandoff.test.ts",
         "status": "added"
       },
@@ -35821,6 +35997,22 @@
       "change": {
         "path": "src/components/Terminal/setupFileLinks.ts",
         "status": "changed"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/setupFloatingPrompt.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/setupFloatingPrompt.ts",
+        "status": "added"
       },
       "decision": "defer",
       "domainId": "terminal"
@@ -35979,6 +36171,14 @@
     },
     {
       "change": {
+        "path": "src/components/Terminal/terminalClipboard.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
         "path": "src/components/Terminal/terminalGate.ts",
         "status": "deleted"
       },
@@ -36012,6 +36212,14 @@
     {
       "change": {
         "path": "src/components/Terminal/terminalKeyHandler.ime.test.ts",
+        "status": "added"
+      },
+      "decision": "defer",
+      "domainId": "terminal"
+    },
+    {
+      "change": {
+        "path": "src/components/Terminal/terminalKeyHandler.linux.test.ts",
         "status": "added"
       },
       "decision": "defer",
@@ -40840,6 +41048,14 @@
       "status": "added"
     },
     {
+      "path": "e2e/lib/browserRefusal.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/browserRefusal.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "e2e/lib/disk.mjs",
       "status": "changed"
     },
@@ -40877,6 +41093,14 @@
     },
     {
       "path": "e2e/lib/settingsPatch.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/sidecarBridge.mjs",
+      "status": "added"
+    },
+    {
+      "path": "e2e/lib/sidecarBridge.test.mjs",
       "status": "added"
     },
     {
@@ -42412,6 +42636,10 @@
       "status": "changed"
     },
     {
+      "path": "scripts/pty-spawn-env-keys.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/release-smoke-kb-runtime.test.mjs",
       "status": "added"
     },
@@ -42437,6 +42665,10 @@
     },
     {
       "path": "scripts/shell-integration-smoke.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/shell-pipefail-early-exit.test.mjs",
       "status": "added"
     },
     {
@@ -42492,7 +42724,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/expat-2.8.4.txt",
+      "path": "scripts/third-party-licenses/texts/expat-2.8.5.txt",
       "status": "added"
     },
     {
@@ -42500,7 +42732,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/graphviz-16.0.0.txt",
+      "path": "scripts/third-party-licenses/texts/graphviz-16.1.0.txt",
       "status": "added"
     },
     {
@@ -42520,7 +42752,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/viz-js-viz-3.30.0.txt",
+      "path": "scripts/third-party-licenses/texts/viz-js-viz-3.31.0.txt",
       "status": "added"
     },
     {
@@ -42528,7 +42760,7 @@
       "status": "added"
     },
     {
-      "path": "scripts/third-party-licenses/texts/yao-pkg-6.22.0.txt",
+      "path": "scripts/third-party-licenses/texts/yao-pkg-6.23.0.txt",
       "status": "added"
     },
     {
@@ -43171,6 +43403,10 @@
     {
       "path": "src-tauri/build.rs",
       "status": "changed"
+    },
+    {
+      "path": "src-tauri/capabilities/automation-bridge.json",
+      "status": "added"
     },
     {
       "path": "src-tauri/capabilities/default.json",
@@ -45309,6 +45545,14 @@
       "status": "added"
     },
     {
+      "path": "src-tauri/src/quit_feedback.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/quit_feedback.test.rs",
+      "status": "added"
+    },
+    {
       "path": "src-tauri/src/secret_token.rs",
       "status": "added"
     },
@@ -45358,6 +45602,14 @@
     },
     {
       "path": "src-tauri/src/single_instance.test.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance_holder.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/single_instance_holder.test.rs",
       "status": "added"
     },
     {
@@ -45599,6 +45851,14 @@
     {
       "path": "src-tauri/src/workspace_transfer.test.rs",
       "status": "deleted"
+    },
+    {
+      "path": "src-tauri/src/yaml.rs",
+      "status": "added"
+    },
+    {
+      "path": "src-tauri/src/yaml.test.rs",
+      "status": "added"
     },
     {
       "path": "src-tauri/tauri.conf.json",
@@ -49149,6 +49409,10 @@
       "status": "added"
     },
     {
+      "path": "src/lib/pty.input.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/lib/pty.ready.test.ts",
       "status": "added"
     },
@@ -49159,6 +49423,14 @@
     {
       "path": "src/lib/pty.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/lib/ptyInputQueue.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/ptyInputQueue.ts",
+      "status": "added"
     },
     {
       "path": "src/lib/sites/builtins.test.ts",
@@ -50521,6 +50793,10 @@
       "status": "deleted"
     },
     {
+      "path": "src/plugins/codePreview/mermaidPreviewSizing.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/codePreview/pluginState.ts",
       "status": "changed"
     },
@@ -51151,6 +51427,14 @@
     {
       "path": "src/plugins/focusMode/tiptap.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/footnotePopup/FootnotePopupView.goto.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/footnotePopup/FootnotePopupView.goto.webkit.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/footnotePopup/FootnotePopupView.position.test.ts",
@@ -52476,6 +52760,10 @@
     },
     {
       "path": "src/plugins/shared/__tests__/blockInsertPos.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts",
       "status": "added"
     },
     {

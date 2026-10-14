@@ -279,3 +279,47 @@
 .desktop-app-frame .notes-v2.notes-v2--minimal[data-browser-pane-open="true"] .notes-v2__editor-pane {
   padding-bottom: 104px !important;
 }
+
+/* VMark v0.9.99 terminal-panel.css, f2bf1b3fc (ISC; see vmark-port notice).
+   Mirror only: input remains owned by xterm. Theme colors come from xterm. */
+.notes-v2 .notes-terminal-floating-prompt {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--notes-border);
+  box-shadow: 0 -1px 2px color-mix(in srgb, var(--notes-text) 6%, transparent),
+    0 -4px 12px color-mix(in srgb, var(--notes-text) 8%, transparent);
+  z-index: 2;
+  cursor: default;
+}
+.notes-v2 .notes-terminal-floating-prompt[hidden] { display: none; }
+.notes-terminal-floating-prompt-rows { flex: 1; min-width: 0; overflow: hidden; }
+.notes-terminal-floating-prompt-row { white-space: pre; overflow: hidden; }
+.notes-terminal-floating-prompt-cursor { outline: 1px solid currentColor; outline-offset: -1px; }
+.desktop-app-frame .notes-v2 .notes-terminal-floating-prompt button.notes-terminal-floating-prompt-jump {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent !important;
+  color: inherit;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer;
+}
+.desktop-app-frame .notes-v2 .notes-terminal-floating-prompt button.notes-terminal-floating-prompt-jump:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent) !important;
+}
+.desktop-app-frame .notes-v2 .notes-terminal-floating-prompt button.notes-terminal-floating-prompt-jump:focus-visible {
+  outline: 2px solid var(--notes-accent);
+  outline-offset: -2px;
+}

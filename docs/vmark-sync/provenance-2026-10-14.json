@@ -1,0 +1,36 @@
+{
+  "repository": "https://github.com/xiaolai/vmark",
+  "commit": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
+  "license": "ISC",
+  "notice": "docs/vmark-port/UPSTREAM-LICENSE.txt",
+  "files": [
+    {
+      "upstreamPath": "src/lib/ptyInputQueue.ts",
+      "aurisPath": "src/components/notes-v2/terminal/pty-input-queue.ts",
+      "upstreamSHA256": "b327d51e3c313f69187beb34d9ae9dbb22af7ebc12caa2f3ac4f75224ad806d0",
+      "aurisSHA256": "b0ea3e6d55a2c72ea8d591bbac0cb725e35cfd9fa92ff2a13be3a300495b7c34",
+      "differences": "Added provenance/full ISC notice; pure implementation unchanged"
+    },
+    {
+      "upstreamPath": "src/components/Terminal/floatingPromptRange.ts",
+      "aurisPath": "src/components/notes-v2/terminal/floatingPromptRange.ts",
+      "upstreamSHA256": "9f0af67e51fed8f808250741cad4f96785205f0a2585152001e3514ff4105796",
+      "aurisSHA256": "fdcbf2586a1b03fc6ae575a805c88431e1128deffc997a870b882fdbf1dc2dfe",
+      "differences": "Added provenance/full ISC notice; pure implementation unchanged"
+    },
+    {
+      "upstreamPath": "src/components/Terminal/floatingPromptCells.ts",
+      "aurisPath": "src/components/notes-v2/terminal/floatingPromptCells.ts",
+      "upstreamSHA256": "8ab618c60a4c742a975f79b13f3c795f72beacf83760c67a7807252da5b16423",
+      "aurisSHA256": "e38f0d7fe4cce006ad9a7ba87b06eef05491fb34bf5af6b65a968720c5658d39",
+      "differences": "Added provenance/full ISC notice; pure implementation unchanged"
+    },
+    {
+      "upstreamPath": "src/components/Terminal/setupFloatingPrompt.ts",
+      "aurisPath": "src/components/notes-v2/terminal/setupFloatingPrompt.ts",
+      "upstreamSHA256": "ff972a553e095d01b5244c5c84d16dfbfd182880b12000441defba61dd11719c",
+      "aurisSHA256": "b5acb90669cf2e0afad6ee5556a226b67cfff815f5b23baa1e85075c5346eafa",
+      "differences": "Added provenance/full ISC notice; Auris label and CSS class prefix adapted"
+    }
+  ]
+}
