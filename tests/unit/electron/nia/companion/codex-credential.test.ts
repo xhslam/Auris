@@ -116,7 +116,7 @@ describe("Realtime credential exchange and SDP proxy", () => {
   }
 
   it("matches Mochi's pinned session request and keeps both secrets opaque", async () => {
-    const fetchImpl = vi.fn(async () => response(200, JSON.stringify({ value: "ek_fixture-secret", expires_at: 1_800_000_000 })));
+    const fetchImpl = vi.fn<(url: string, init: RequestInit) => Promise<ReturnType<typeof response>>>(async () => response(200, JSON.stringify({ value: "ek_fixture-secret", expires_at: 1_800_000_000 })));
     const result = await exchangeRealtimeSession({ credential: await credential(), fetchImpl });
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);

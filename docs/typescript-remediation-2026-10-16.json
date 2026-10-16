@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-16",
+  "version": "1.0.18",
+  "status": "type_debt_cleared_with_runtime_test_caveats",
+  "diagnostics": {
+    "before": 241,
+    "backupNoise": 108,
+    "afterExcludingRelease": 133,
+    "afterRemediation": 0
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "routeGeneration": true,
+    "coverage": {
+      "source": {
+        "config": "tsconfig.source.json",
+        "strict": true,
+        "noEmit": true,
+        "allowJs": false,
+        "rootFiles": 615,
+        "releaseRoots": 0
+      },
+      "tests": {
+        "config": "tsconfig.tests.json",
+        "strict": true,
+        "noEmit": true,
+        "allowJs": false,
+        "rootFiles": 505,
+        "releaseRoots": 0
+      },
+      "all": {
+        "config": "tsconfig.json",
+        "strict": true,
+        "noEmit": true,
+        "allowJs": false,
+        "rootFiles": 1093,
+        "releaseRoots": 0
+      }
+    }
+  },
+  "ci": {
+    "path": ".github/workflows/typecheck.yml",
+    "localContractTests": 4,
+    "remoteRun": false,
+    "branchProtectionConfigured": false
+  },
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "typeCheckingRestored": true,
+    "markdownBundlePostbuildPassed": true
+  },
+  "lint": {
+    "exitCode": 0,
+    "errors": 0,
+    "warnings": 18,
+    "newWarnings": 0
+  },
+  "runtimeTests": {
+    "primary": {
+      "files": 219,
+      "passed": 2345,
+      "exitCode": 0
+    },
+    "fixtureIndependent": {
+      "files": 24,
+      "passed": 120,
+      "exitCode": 0
+    },
+    "authorityIntegration": {
+      "files": 1,
+      "passed": 6,
+      "exitCode": 0
+    },
+    "firstFull": {
+      "files": 453,
+      "passed": 3723,
+      "failed": 1,
+      "exitCode": 1
+    },
+    "finalFull": {
+      "files": 454,
+      "passed": 3726,
+      "failed": 2,
+      "exitCode": 1
+    },
+    "countsOverlap": true,
+    "unresolved": [
+      {
+        "file": "tests/unit/release-workflow.test.ts",
+        "reason": "Original root path resolves one level too high; release-desktop.yml also absent in current project; original test preserved.",
+        "modified": false
+      },
+      {
+        "file": "tests/component/video/desktop-video-detail-shell.test.tsx",
+        "reason": "Playback-controls timer assertion failed once in final full suite; first full run passed; 3 subsequent focused whole-file runs each passed 11 tests. Root cause not established.",
+        "modified": false,
+        "retries": [
+          {
+            "passed": 11,
+            "exitCode": 0
+          },
+          {
+            "passed": 11,
+            "exitCode": 0
+          },
+          {
+            "passed": 11,
+            "exitCode": 0
+          }
+        ]
+      }
+    ]
+  },
+  "negativeProbes": {
+    "source": {
+      "exitCode": 2,
+      "diagnostics": 1,
+      "hasTS2322": true,
+      "caughtLiveProbe": true,
+      "excludedBackup": true
+    },
+    "tests": {
+      "exitCode": 2,
+      "diagnostics": 1,
+      "hasTS2322": true,
+      "caughtLiveProbe": true,
+      "excludedBackup": true
+    },
+    "all": {
+      "exitCode": 2,
+      "diagnostics": 2,
+      "hasTS2322": true,
+      "caughtLiveProbe": true,
+      "excludedBackup": true
+    }
+  },
+  "protection": {
+    "notesWorkflowUnchangedFromStart": true,
+    "notesWorkflowSha256": "ca8ee109a77483733cca065bee9836ccbae06d3650a5dfbed5fa223c48c449c8",
+    "committed": false,
+    "pushed": false,
+    "published": false,
+    "installedAppReplaced": false,
+    "agentsFilesModified": false,
+    "productionMainPreloadModified": false
+  },
+  "limitations": [
+    "Electron CJS/MJS implementations are not fully checkJs-checked; declarations plus runtime tests do not prove implementation type safety.",
+    "Full runtime suite not green; two unresolved results retained.",
+    "Full Playwright, actual Windows smoke, remote CI and required branch protection not executed/configured."
+  ],
+  "evidenceDirectory": "release/typescript-remediation-20261016",
+  "collaboration": {
+    "tool": "agy --dangerously-skip-permissions",
+    "completed": true,
+    "parentIndependentlyVerified": true
+  }
+}

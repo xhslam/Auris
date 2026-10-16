@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createDesktopVaultService } from "@/platform/desktop/vault-service";
+import { DEFAULT_DESKTOP_RUNTIME_STATE } from "@/features/app-runtime/app-runtime-storage";
 import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
 
 function createBridge(): DesktopBridge {
@@ -20,21 +21,24 @@ function createBridge(): DesktopBridge {
     },
     runtimeState: {
       get: vi.fn(async () => ({
-        lastWorkspace: "workspace",
+        ...DEFAULT_DESKTOP_RUNTIME_STATE,
+        lastWorkspace: "workspace" as const,
         lastVisitedAt: "2026-04-03T00:00:00.000Z",
         primaryResumeId: null,
         primaryResumeType: null,
         updatedAt: "2026-04-03T00:00:00.000Z",
       })),
       importLegacy: vi.fn(async () => ({
-        lastWorkspace: "workspace",
+        ...DEFAULT_DESKTOP_RUNTIME_STATE,
+        lastWorkspace: "workspace" as const,
         lastVisitedAt: "2026-04-03T00:00:00.000Z",
         primaryResumeId: null,
         primaryResumeType: null,
         updatedAt: "2026-04-03T00:00:00.000Z",
       })),
       setLastWorkspace: vi.fn(async () => ({
-        lastWorkspace: "workspace",
+        ...DEFAULT_DESKTOP_RUNTIME_STATE,
+        lastWorkspace: "workspace" as const,
         lastVisitedAt: "2026-04-03T00:00:00.000Z",
         primaryResumeId: null,
         primaryResumeType: null,
@@ -69,6 +73,13 @@ function createBridge(): DesktopBridge {
       revealFile: vi.fn(async () => undefined),
       revealPluginsDirectory: vi.fn(async () => undefined),
       saveFile: vi.fn(async () => undefined),
+    },
+    voiceEngine: {
+      generate: vi.fn(async () => { throw new Error("Voice generation is outside this Vault fixture"); }),
+      getCapabilities: vi.fn(async () => ({ locales: [], modes: [], supportsReferenceAudio: false, supportsStylePrompt: false })),
+      getStatus: vi.fn<DesktopBridge["voiceEngine"]["getStatus"]>(async () => ({ activeProvider: "openai", platform: "test", reason: null, state: "ready" })),
+      start: vi.fn<DesktopBridge["voiceEngine"]["start"]>(async () => ({ activeProvider: "openai", platform: "test", reason: null, state: "ready" })),
+      stop: vi.fn<DesktopBridge["voiceEngine"]["stop"]>(async () => ({ activeProvider: "openai", platform: "test", reason: null, state: "ready" })),
     },
     window: {
       showInFolder: vi.fn(async () => undefined),

@@ -84,6 +84,7 @@ describe("session repository backend selection", () => {
       status: "ready",
       audioUrl: "/api/audio/session-1",
       durationMs: 900,
+      voiceId: "alloy",
       sentences,
       wordTokens,
     });

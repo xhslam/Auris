@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_DESKTOP_RUNTIME_STATE } from "@/features/app-runtime/app-runtime-storage";
 import { createDesktopFileExportService } from "@/platform/files/desktop-file-export-service";
 import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
 
@@ -23,9 +24,9 @@ function createBridge(): DesktopBridge {
       setEnabled: vi.fn(async () => []),
     },
     runtimeState: {
-      get: vi.fn(async () => ({} as Awaited<DesktopBridge["runtimeState"]["get"]>)),
-      importLegacy: vi.fn(async () => ({} as Awaited<DesktopBridge["runtimeState"]["get"]>)),
-      setLastWorkspace: vi.fn(async () => ({} as Awaited<DesktopBridge["runtimeState"]["get"]>)),
+      get: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
+      importLegacy: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
+      setLastWorkspace: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
     },
     system: {
       openUpgrade: vi.fn(async () => ({
@@ -52,6 +53,38 @@ function createBridge(): DesktopBridge {
       removeFile: vi.fn(async () => undefined),
       revealPluginsDirectory: vi.fn(async () => undefined),
       saveFile: vi.fn(async () => undefined),
+    },
+    voiceEngine: {
+      generate: vi.fn(async () => ({
+        audioBase64: "",
+        contentType: "audio/wav",
+        durationMs: 1200,
+        transcriptWords: [],
+      })),
+      getCapabilities: vi.fn(async () => ({
+        locales: ["en-US"],
+        modes: ["preset" as const],
+        supportsReferenceAudio: false,
+        supportsStylePrompt: true,
+      })),
+      getStatus: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+      start: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+      stop: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
     },
     window: {
       showInFolder: vi.fn(async () => undefined),

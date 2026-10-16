@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createApplicationMenuTemplate } from "../../../electron/menu-template.cjs";
 
-function findMenu(template: Array<{ label?: string }>, label: string) {
+function findMenu(template: ReturnType<typeof createApplicationMenuTemplate>, label: string) {
   return template.find((item) => item.label === label);
 }
 
@@ -76,11 +76,11 @@ describe("application menu template", () => {
       isMac: false,
     });
     const editMenu = findMenu(template, "Edit");
-    const split = editMenu?.submenu.find(
+    const split = editMenu?.submenu?.find(
       (item: { label?: string }) => item.label === "Toggle Markdown Split",
     );
 
-    split?.click();
+    split?.click?.();
     expect(onNotesCommand).toHaveBeenCalledWith("notes.split");
   });
 });

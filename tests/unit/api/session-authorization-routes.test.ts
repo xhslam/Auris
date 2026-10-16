@@ -105,6 +105,7 @@ describe("session ownership guards", () => {
       status: "ready",
       audioUrl: `/api/audio/${session.id}`,
       durationMs: 900,
+      voiceId: "alloy",
       sentences: [
         {
           id: "sentence-1",

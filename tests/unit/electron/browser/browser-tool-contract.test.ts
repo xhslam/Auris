@@ -260,19 +260,26 @@ describe("Browser MCP ESM contract adapter", () => {
     const error = canonical.createBrowserPublicError("AMBIGUOUS_TARGET", { targets });
     const serialized = canonical.serializeBrowserError(error);
 
-    expect(serialized.metadata.targets).toHaveLength(32);
-    expect(serialized.metadata.targets[0]).toEqual({
+    expect(serialized.code).toBe("AMBIGUOUS_TARGET");
+    if (serialized.code !== "AMBIGUOUS_TARGET") throw new Error("Expected ambiguous target error");
+    const serializedTargets = serialized.metadata?.targets;
+    const errorTargets = error.metadata?.targets;
+    expect(serializedTargets).toBeDefined();
+    expect(errorTargets).toBeDefined();
+    if (!serializedTargets || !errorTargets) throw new Error("Expected safe ambiguity targets");
+    expect(serializedTargets).toHaveLength(32);
+    expect(serializedTargets[0]).toEqual({
       tabId: "tab-0",
       title: "Research 0",
       url: "https://example.com/path/0",
       windowId: "window-0",
     });
     expect(Object.isFrozen(error.metadata)).toBe(true);
-    expect(Object.isFrozen(error.metadata.targets)).toBe(true);
-    expect(Object.isFrozen(error.metadata.targets[0])).toBe(true);
+    expect(Object.isFrozen(errorTargets)).toBe(true);
+    expect(Object.isFrozen(errorTargets[0])).toBe(true);
     expect(Object.isFrozen(serialized.metadata)).toBe(true);
-    expect(Object.isFrozen(serialized.metadata.targets)).toBe(true);
-    expect(Object.isFrozen(serialized.metadata.targets[0])).toBe(true);
+    expect(Object.isFrozen(serializedTargets)).toBe(true);
+    expect(Object.isFrozen(serializedTargets[0])).toBe(true);
     expect(JSON.stringify(serialized)).not.toMatch(/must-not-leak|profile-secret|session-secret|drop-me|token=|user:pass/);
 
     expect(canonical.serializeBrowserError(

@@ -47,6 +47,9 @@ describe("Nia companion IPC", () => {
     service.register();
     const event = { sender: {} };
     const open = await ipcMain.handlers.get(COMMAND_CHANNEL)!(event, { command: "open-session", payload: {} });
+    if (typeof open !== "object" || open === null || !("ok" in open) || !("sessionId" in open) || typeof open.sessionId !== "string") {
+      throw new Error("Expected an opaque successful session response");
+    }
     expect(open.ok).toBe(true);
     expect(open.sessionId).toMatch(/^[A-Za-z0-9_-]{20,}$/);
     expect(JSON.stringify(open)).not.toContain("realtime-session");

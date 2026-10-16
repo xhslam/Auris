@@ -199,7 +199,7 @@ function snapshot({ bookmarked = false, loading = false } = {}): BrowserChromeSn
   };
 }
 
-function nativeBridge(invoke: ReturnType<typeof vi.fn>): BrowserNativeBridge {
+function nativeBridge(invoke: BrowserNativeBridge["invoke"]): BrowserNativeBridge {
   return {
     invoke: (command, payload) => invoke(command, payload),
     subscribe: vi.fn(() => true),

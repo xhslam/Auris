@@ -274,7 +274,7 @@ function createFixture() {
     snapshot: vi.fn(({ windowId }: { windowId: string }) => ({
       pendingApprovals: [{ approvalId: `approval-${windowId}` }],
     })),
-    subscribe: vi.fn(() => vi.fn()),
+    subscribe: vi.fn<(_listener: () => void) => () => void>(() => vi.fn()),
   };
   const windowAuthority = {
     closeWindow: vi.fn(async () => true),

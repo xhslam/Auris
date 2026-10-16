@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DesktopVideoLibraryShell } from "@/components/desktop/desktop-video-library-shell";
+import { DEFAULT_DESKTOP_RUNTIME_STATE } from "@/features/app-runtime/app-runtime-storage";
 import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
 
 function createDesktopBridge(
@@ -62,9 +63,10 @@ function createDesktopBridge(
     },
     runtimeState: {
       get: vi.fn(async () => ({
+        ...DEFAULT_DESKTOP_RUNTIME_STATE,
         lastRoute: "/video",
         lastVisitedAt: "2026-04-03T00:00:00.000Z",
-        lastWorkspace: "workspace",
+        lastWorkspace: "workspace" as const,
         legacyRuntimeMigratedAt: null,
         primaryResumeId: null,
         primaryResumeType: null,
@@ -72,9 +74,10 @@ function createDesktopBridge(
         windowBounds: null,
       })),
       importLegacy: vi.fn(async () => ({
+        ...DEFAULT_DESKTOP_RUNTIME_STATE,
         lastRoute: "/video",
         lastVisitedAt: "2026-04-03T00:00:00.000Z",
-        lastWorkspace: "workspace",
+        lastWorkspace: "workspace" as const,
         legacyRuntimeMigratedAt: "2026-04-03T00:00:00.000Z",
         primaryResumeId: null,
         primaryResumeType: null,
@@ -82,9 +85,10 @@ function createDesktopBridge(
         windowBounds: null,
       })),
       setLastWorkspace: vi.fn(async () => ({
+        ...DEFAULT_DESKTOP_RUNTIME_STATE,
         lastRoute: "/video",
         lastVisitedAt: "2026-04-03T00:00:00.000Z",
-        lastWorkspace: "workspace",
+        lastWorkspace: "workspace" as const,
         legacyRuntimeMigratedAt: null,
         primaryResumeId: null,
         primaryResumeType: null,
@@ -139,6 +143,38 @@ function createDesktopBridge(
       saveThumbnail: vi.fn(async () => null),
       updateSourceMetadata: vi.fn(async () => null),
       ...overrides,
+    },
+    voiceEngine: {
+      generate: vi.fn(async () => ({
+        audioBase64: "",
+        contentType: "audio/wav",
+        durationMs: 1200,
+        transcriptWords: [],
+      })),
+      getCapabilities: vi.fn(async () => ({
+        locales: ["en-US"],
+        modes: ["preset" as const],
+        supportsReferenceAudio: false,
+        supportsStylePrompt: true,
+      })),
+      getStatus: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+      start: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+      stop: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
     },
     window: {
       showInFolder: vi.fn(async () => undefined),

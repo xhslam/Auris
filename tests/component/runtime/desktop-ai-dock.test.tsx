@@ -122,8 +122,8 @@ function createDesktopBridge(): DesktopBridge {
       get: vi.fn(async () => ({
         ...DEFAULT_DESKTOP_RUNTIME_STATE,
         aiDock: {
-          activeProvider: "chatgpt",
-          activeView: "provider",
+          activeProvider: "chatgpt" as const,
+          activeView: "provider" as const,
           isOpen: false,
           panelWidth: 560,
         },
@@ -146,27 +146,27 @@ function createDesktopBridge(): DesktopBridge {
       })),
       getCapabilities: vi.fn(async () => ({
         locales: ["en-US"],
-        modes: ["preset"],
+        modes: ["preset" as const],
         supportsReferenceAudio: false,
         supportsStylePrompt: true,
       })),
       getStatus: vi.fn(async () => ({
-        activeProvider: "openai",
-        platform: "win32",
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
         reason: null,
-        state: "ready",
+        state: "ready" as const,
       })),
       start: vi.fn(async () => ({
-        activeProvider: "openai",
-        platform: "win32",
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
         reason: null,
-        state: "ready",
+        state: "ready" as const,
       })),
       stop: vi.fn(async () => ({
-        activeProvider: "openai",
-        platform: "win32",
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
         reason: "manual_stop",
-        state: "degraded",
+        state: "degraded" as const,
       })),
     },
     vault: {
@@ -461,18 +461,18 @@ describe("DesktopAiDockShell", () => {
       }),
     ];
 
-    desktopBridge.aiPrompts = {
-      ...desktopBridge.aiPrompts,
-      list: vi.fn(async () => promptRecords),
-      search: vi.fn(async (query: string) =>
-        promptRecords.filter((record) =>
-          [record.title, record.content, ...record.tags]
-            .join(" ")
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-        ),
+    if (!desktopBridge.aiPrompts) {
+      throw new Error("desktopBridge.aiPrompts is required");
+    }
+    desktopBridge.aiPrompts.list = vi.fn(async () => promptRecords);
+    desktopBridge.aiPrompts.search = vi.fn(async (query: string) =>
+      promptRecords.filter((record) =>
+        [record.title, record.content, ...record.tags]
+          .join(" ")
+          .toLowerCase()
+          .includes(query.toLowerCase()),
       ),
-    };
+    );
 
     render(
       <div style={{ height: "900px", width: "1280px" }}>

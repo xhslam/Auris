@@ -33,6 +33,7 @@ const control: Control = {
 };
 
 class FakeWebContents extends EventEmitter {
+  stop = vi.fn<() => void>();
   currentUrl = "https://research.test/form?private=value";
   destroyed = false;
   loadURL = vi.fn(async (url: string) => {

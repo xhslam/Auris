@@ -1,0 +1,28 @@
+name: Typecheck
+
+# Run independently of the Notes/Windows smoke path filters. JSON fixtures and
+# dependency/config changes can affect inferred types as well as .ts/.tsx files.
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Generate Next route types and check source, tests, and full project
+        run: npm run typecheck
+      - name: Verify type gate coverage and strictness
+        run: npx vitest run tests/unit/quality/typecheck-contract.test.ts

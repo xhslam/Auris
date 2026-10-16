@@ -53,7 +53,10 @@ function createNativeBridge(): BrowserNativeBridge & {
   const unsubscribe = vi.fn((listener) => listeners.delete(listener));
   return {
     invoke: vi.fn(async () => null),
-    subscribe: vi.fn((listener) => listeners.add(listener)),
+    subscribe: vi.fn((listener: (snapshot: BrowserChromeSnapshot) => void) => {
+      listeners.add(listener);
+      return true;
+    }),
     unsubscribe,
   };
 }

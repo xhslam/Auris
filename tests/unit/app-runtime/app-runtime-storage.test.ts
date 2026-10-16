@@ -9,41 +9,11 @@ import {
   readDesktopRuntimeState,
   writeLastWorkspace,
 } from "@/features/app-runtime/app-runtime-storage";
-import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
+import type { DesktopRuntimeState } from "@/features/app-runtime/app-runtime.types";
+import { createTestDesktopBridge, type TestDesktopBridgeOverrides } from "../../fixtures/typecheck/desktop-bridge-fixture";
 
-function createBridge() {
-  let runtimeState = { ...DEFAULT_DESKTOP_RUNTIME_STATE };
-
-  return {
-    runtimeState: {
-      get: vi.fn(async () => runtimeState),
-      importLegacy: vi.fn(async (legacyState) => {
-        runtimeState = {
-          ...runtimeState,
-          ...legacyState,
-          legacyRuntimeMigratedAt: "2026-03-26T00:00:00.000Z",
-        };
-        return runtimeState;
-      }),
-      setResumeTarget: vi.fn(async (targetType, targetId) => {
-        runtimeState = {
-          ...runtimeState,
-          primaryResumeId: targetId,
-          primaryResumeType: targetType,
-          updatedAt: "2026-03-26T00:00:00.000Z",
-        };
-        return runtimeState;
-      }),
-      setLastWorkspace: vi.fn(async (workspace) => {
-        runtimeState = {
-          ...runtimeState,
-          lastVisitedAt: "2026-03-26T00:00:00.000Z",
-          lastWorkspace: workspace,
-        };
-        return runtimeState;
-      }),
-    },
-  } satisfies Pick<DesktopBridge, "runtimeState">;
+function createBridge(overrides: TestDesktopBridgeOverrides = {}) {
+  return createTestDesktopBridge(overrides);
 }
 
 describe("app runtime storage", () => {
@@ -73,7 +43,7 @@ describe("app runtime storage", () => {
     const bridge = createBridge();
 
     const runtimeState = await readDesktopRuntimeState(
-      bridge as DesktopBridge,
+      bridge,
       window.localStorage,
     );
 
@@ -90,6 +60,7 @@ describe("app runtime storage", () => {
   it("normalizes malformed ai dock payloads from the desktop bridge", async () => {
     const bridge = createBridge({
       runtimeState: {
+        // 边界测试：模拟 IPC / 桥接返回被破坏或未经验证的 payload 时，验证规范化防御降级
         get: vi.fn(async () => ({
           ...DEFAULT_DESKTOP_RUNTIME_STATE,
           aiDock: {
@@ -98,14 +69,14 @@ describe("app runtime storage", () => {
             isOpen: "yes",
             panelWidth: -20,
           },
-        })),
+        } as unknown as DesktopRuntimeState)),
         importLegacy: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
         setLastWorkspace: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
       },
     });
 
     const runtimeState = await readDesktopRuntimeState(
-      bridge as DesktopBridge,
+      bridge,
       window.localStorage,
     );
 
@@ -117,7 +88,7 @@ describe("app runtime storage", () => {
     writeLastWorkspace(window.localStorage, "notes");
 
     const runtimeState = await hydrateDesktopRuntimeState(
-      bridge as DesktopBridge,
+      bridge,
       window.localStorage,
     );
 
@@ -133,7 +104,7 @@ describe("app runtime storage", () => {
     const bridge = createBridge();
 
     const runtimeState = await persistLastWorkspace(
-      bridge as DesktopBridge,
+      bridge,
       window.localStorage,
       "assessment",
     );
@@ -147,7 +118,7 @@ describe("app runtime storage", () => {
     const bridge = createBridge();
 
     const runtimeState = await persistResumeTarget(
-      bridge as DesktopBridge,
+      bridge,
       window.localStorage,
       "training",
       "session-1",

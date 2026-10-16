@@ -32,13 +32,12 @@ function createDocument(rawSource: string): NoteDocument {
 
 describe("NotesEditorPane image paste", () => {
   afterEach(() => {
-    delete (window as Window & { shadowingDesktop?: unknown }).shadowingDesktop;
+    vi.unstubAllGlobals();
   });
 
   it("does not persist or insert pasted images while read-only", async () => {
-    const saveFile = vi.fn(async () => undefined);
-    (window as Window & { shadowingDesktop?: { vault?: { saveFile?: typeof saveFile } } })
-      .shadowingDesktop = { vault: { saveFile } };
+    const saveFile = vi.fn<(path: string, content: Uint8Array) => Promise<void>>(async () => undefined);
+    vi.stubGlobal("shadowingDesktop", { vault: { saveFile } });
     const onDocumentChange = vi.fn();
 
     render(
@@ -72,13 +71,8 @@ describe("NotesEditorPane image paste", () => {
   });
 
   it("saves pasted image files into the note assets folder and inserts a markdown image line", async () => {
-    const saveFile = vi.fn(async () => undefined);
-    (window as Window & { shadowingDesktop?: { vault?: { saveFile?: typeof saveFile } } })
-      .shadowingDesktop = {
-      vault: {
-        saveFile,
-      },
-    };
+    const saveFile = vi.fn<(path: string, content: Uint8Array) => Promise<void>>(async () => undefined);
+    vi.stubGlobal("shadowingDesktop", { vault: { saveFile } });
 
     const onDocumentChange = vi.fn();
 

@@ -6,8 +6,14 @@ import {
 } from "@/features/ai-dock/ai-dock-layout";
 import { useAiDockLayoutSync } from "@/features/ai-dock/use-ai-dock-layout-sync";
 
-function createAiDockBridge() {
+import { DEFAULT_DESKTOP_RUNTIME_STATE } from "@/features/app-runtime/app-runtime-storage";
+import type { DesktopBridge } from "@/platform/desktop/desktop-bridge";
+
+function createAiDockBridge(): NonNullable<DesktopBridge["aiDock"]> {
   return {
+    setActiveProvider: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
+    setActiveView: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
+    setVisibility: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
     syncLayout: vi.fn(async (layout) => layout),
   };
 }
@@ -43,7 +49,7 @@ function LayoutHarness({ bridge, isDockVisible = true }: LayoutHarnessProps) {
 
   return (
     <div>
-      <div ref={surfaceRef} />
+      <section ref={surfaceRef} />
       <div ref={providerHostRef} />
       <div
         data-testid="state"

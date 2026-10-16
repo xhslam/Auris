@@ -10,6 +10,7 @@ describe("audio storage backend selection", () => {
 
   it("delegates audio persistence to the injected backend", async () => {
     const backend = {
+      deleteAudioAsset: vi.fn(async () => undefined),
       storeAudioAsset: vi.fn().mockResolvedValue("/api/audio/session-1"),
     };
 

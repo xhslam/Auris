@@ -23,7 +23,9 @@ declare namespace browserContract {
   const browserPublicErrorCodeSchema: z.ZodType<BrowserPublicErrorCode>;
   const browserOwnerSchema: z.ZodType<BrowserOwner>;
   const browserTargetDescriptorSchema: z.ZodType<BrowserTargetDescriptor>;
-  const browserActionRequestSchema: z.ZodType<BrowserActionRequest>;
+  const browserActionRequestSchema: z.ZodType<BrowserActionRequest> & {
+    readonly options: readonly z.ZodObject[];
+  };
   const browserCommandEnvelopeSchema: z.ZodType<BrowserCommandEnvelope>;
 
   function parseBrowserToolAction(value: unknown): BrowserToolAction;
@@ -144,8 +146,21 @@ declare namespace browserContract {
     target?: BrowserApprovalTarget;
   }>;
 
+  type BrowserAmbiguousTarget = Readonly<{
+    windowId: string;
+    tabId: string;
+    title: string;
+    url: string;
+  }>;
+
+  type BrowserAmbiguousTargetMetadata = Readonly<BrowserErrorMetadata & {
+    targets?: readonly BrowserAmbiguousTarget[];
+  }>;
+
   type BrowserPublicErrorMetadata<TCode extends BrowserPublicErrorCode> =
-    TCode extends "APPROVAL_REQUIRED" ? BrowserApprovalRequiredMetadata : BrowserErrorMetadata;
+    TCode extends "APPROVAL_REQUIRED" ? BrowserApprovalRequiredMetadata
+      : TCode extends "AMBIGUOUS_TARGET" ? BrowserAmbiguousTargetMetadata
+        : BrowserErrorMetadata;
 
   type SerializedBrowserApprovalRequiredError = Readonly<{
     code: "APPROVAL_REQUIRED";
@@ -153,20 +168,28 @@ declare namespace browserContract {
     metadata?: BrowserApprovalRequiredMetadata;
   }>;
 
+  type SerializedBrowserAmbiguousTargetError = Readonly<{
+    code: "AMBIGUOUS_TARGET";
+    message: string;
+    metadata?: BrowserAmbiguousTargetMetadata;
+  }>;
+
   type SerializedBrowserOtherError = Readonly<{
-    code: Exclude<BrowserPublicErrorCode, "APPROVAL_REQUIRED">;
+    code: Exclude<BrowserPublicErrorCode, "APPROVAL_REQUIRED" | "AMBIGUOUS_TARGET">;
     message: string;
     metadata?: BrowserErrorMetadata;
   }>;
 
   type SerializedBrowserError =
     | SerializedBrowserApprovalRequiredError
+    | SerializedBrowserAmbiguousTargetError
     | SerializedBrowserOtherError;
 
   type SerializedBrowserErrorFor<TCode extends BrowserPublicErrorCode> =
     TCode extends "APPROVAL_REQUIRED"
       ? SerializedBrowserApprovalRequiredError
-      : SerializedBrowserOtherError & { code: TCode };
+      : TCode extends "AMBIGUOUS_TARGET" ? SerializedBrowserAmbiguousTargetError
+        : SerializedBrowserOtherError & { code: TCode };
 
   class BrowserPublicError<
     TCode extends BrowserPublicErrorCode = BrowserPublicErrorCode,

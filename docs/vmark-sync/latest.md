@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `f2bf1b3fce06ca21fe7cd19382bef9c4774d0558`
-- Changed: **2640**
-- Added: **3361**
+- Compared commit: `8887701db097cef0dea00584b70a0ea1dac5ae05`
+- Changed: **2646**
+- Added: **3369**
 - Deleted: **566**
 - Renamed: **116**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
 - Mapped upstream changes: **232**
-- Capability-domain candidates: **840**
-- Unmapped upstream changes: **5611**
+- Capability-domain candidates: **841**
+- Unmapped upstream changes: **5624**
 
 ## Upstream changes
 
@@ -528,6 +528,7 @@
 - **added** `scripts/check-file-size.test.ts`
 - **added** `scripts/check-followups-phase.sh`
 - **added** `scripts/check-followups-phase.test.mjs`
+- **added** `scripts/check-fs-capability-grants.test.mjs`
 - **added** `scripts/check-gate-liveness.mjs`
 - **added** `scripts/check-gate-liveness.test.mjs`
 - **added** `scripts/check-gates-tier-binaries.test.mjs`
@@ -561,6 +562,7 @@
 - **added** `scripts/check-mutants-config-path.mjs`
 - **added** `scripts/check-mutants-config-path.test.mjs`
 - **added** `scripts/check-mutation-in-place.test.mjs`
+- **added** `scripts/check-mutation-scope.test.mjs`
 - **changed** `scripts/check-new-deps.sh`
 - **added** `scripts/check-new-deps.test.mjs`
 - **added** `scripts/check-no-nul-bytes.mjs`
@@ -583,6 +585,7 @@
 - **added** `scripts/check-repo-audit-phase.test.mjs`
 - **added** `scripts/check-review-schedule.mjs`
 - **added** `scripts/check-review-schedule.test.mjs`
+- **added** `scripts/check-rolling-issue-timeouts.test.mjs`
 - **added** `scripts/check-rust-cache-parity.test.mjs`
 - **added** `scripts/check-rust-coverage.mjs`
 - **added** `scripts/check-rust-coverage.test.mjs`
@@ -2024,6 +2027,7 @@
 - **changed** `src/components/Editor/DocumentSplit/document-split.css`
 - **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.test.ts`
 - **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.ts`
+- **added** `src/components/Editor/DocumentSplit/splitModeToggle.test.tsx`
 - **added** `src/components/Editor/DocumentSplit/useSplitDrag.ts`
 - **changed** `src/components/Editor/Editor.test.tsx`
 - **changed** `src/components/Editor/Editor.tsx`
@@ -2846,6 +2850,8 @@
 - **changed** `src/hooks/useImagePasteToast.ts`
 - **changed** `src/hooks/useIsDarkTheme.test.ts`
 - **changed** `src/hooks/useIsDarkTheme.ts`
+- **changed** `src/hooks/useIsFocusedPane.test.tsx`
+- **changed** `src/hooks/useIsFocusedPane.ts`
 - **added** `src/hooks/useKeybindingRouter.test.ts`
 - **added** `src/hooks/useKeybindingRouter.ts`
 - **added** `src/hooks/useLiveDocsResponder.test.ts`
@@ -2867,6 +2873,7 @@
 - **added** `src/hooks/useOpenFileEvent.ts`
 - **deleted** `src/hooks/useOpenWorkflowTarget.ts`
 - **added** `src/hooks/useOutlineSync.scroll.test.ts`
+- **changed** `src/hooks/useOutlineSync.test.ts`
 - **changed** `src/hooks/useOutlineSync.ts`
 - **added** `src/hooks/usePromptHistory.clearHistory.test.ts`
 - **changed** `src/hooks/usePromptHistory.comprehensive.test.ts`
@@ -2911,6 +2918,8 @@
 - **added** `src/hooks/useSystemFontFamilies.ts`
 - **added** `src/hooks/useTabDragOut.lifetime.test.ts`
 - **changed** `src/hooks/useTabDragOut.ts`
+- **changed** `src/hooks/useTabModeSync.test.ts`
+- **changed** `src/hooks/useTabModeSync.ts`
 - **deleted** `src/hooks/useTabOperations.test.ts`
 - **deleted** `src/hooks/useTabOperations.ts`
 - **deleted** `src/hooks/useTabShortcuts.statusbar.test.tsx`
@@ -4775,6 +4784,8 @@
 - **renamed** `src/hooks/markdownSplitToggle.ts` → `src/services/editor/markdownSplitToggle.ts`
 - **changed** `src/services/editor/readOnlyGuard.test.ts`
 - **changed** `src/services/editor/readOnlyGuard.ts`
+- **added** `src/services/editor/restoreChoice.test.ts`
+- **added** `src/services/editor/restoreChoice.ts`
 - **added** `src/services/editor/runEditorAction.test.ts`
 - **added** `src/services/editor/runEditorAction.ts`
 - **added** `src/services/editor/scrollAnchor.test.ts`
@@ -4783,6 +4794,7 @@
 - **added** `src/services/editor/scrollPosition.ts`
 - **changed** `src/services/editor/sourcePeek.test.ts`
 - **changed** `src/services/editor/sourcePeek.ts`
+- **added** `src/services/editor/tiptapFocus.tabSwitch.test.ts`
 - **changed** `src/services/editor/tiptapFocus.test.ts`
 - **changed** `src/services/editor/tiptapFocus.ts`
 - **changed** `src/services/editor/tiptapView.ts`
@@ -5815,9 +5827,11 @@
 - **changed** `src/utils/cursorSync/matching.test.ts`
 - **changed** `src/utils/cursorSync/pmHelpers.test.ts`
 - **changed** `src/utils/cursorSync/pmHelpers.ts`
+- **added** `src/utils/cursorSync/restoreWithoutScroll.test.ts`
 - **changed** `src/utils/cursorSync/table.test.ts`
 - **changed** `src/utils/cursorSync/table.ts`
 - **changed** `src/utils/cursorSync/tiptap.test.ts`
+- **changed** `src/utils/cursorSync/tiptap.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.test.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.ts`
 - **changed** `src/utils/cursorSync/types.ts`
@@ -6955,6 +6969,7 @@
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/DocumentSplit/document-split.css`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/splitKeyboardResize.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/splitModeToggle.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/DocumentSplit/useSplitDrag.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/Editor.test.tsx`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/Editor.tsx`
@@ -8139,6 +8154,7 @@
 - **added** `scripts/check-file-size.test.ts`
 - **added** `scripts/check-followups-phase.sh`
 - **added** `scripts/check-followups-phase.test.mjs`
+- **added** `scripts/check-fs-capability-grants.test.mjs`
 - **added** `scripts/check-gate-liveness.mjs`
 - **added** `scripts/check-gate-liveness.test.mjs`
 - **added** `scripts/check-gates-tier-binaries.test.mjs`
@@ -8172,6 +8188,7 @@
 - **added** `scripts/check-mutants-config-path.mjs`
 - **added** `scripts/check-mutants-config-path.test.mjs`
 - **added** `scripts/check-mutation-in-place.test.mjs`
+- **added** `scripts/check-mutation-scope.test.mjs`
 - **changed** `scripts/check-new-deps.sh`
 - **added** `scripts/check-new-deps.test.mjs`
 - **added** `scripts/check-no-nul-bytes.mjs`
@@ -8194,6 +8211,7 @@
 - **added** `scripts/check-repo-audit-phase.test.mjs`
 - **added** `scripts/check-review-schedule.mjs`
 - **added** `scripts/check-review-schedule.test.mjs`
+- **added** `scripts/check-rolling-issue-timeouts.test.mjs`
 - **added** `scripts/check-rust-cache-parity.test.mjs`
 - **added** `scripts/check-rust-coverage.mjs`
 - **added** `scripts/check-rust-coverage.test.mjs`
@@ -9723,6 +9741,8 @@
 - **changed** `src/hooks/useImagePasteToast.ts`
 - **changed** `src/hooks/useIsDarkTheme.test.ts`
 - **changed** `src/hooks/useIsDarkTheme.ts`
+- **changed** `src/hooks/useIsFocusedPane.test.tsx`
+- **changed** `src/hooks/useIsFocusedPane.ts`
 - **added** `src/hooks/useKeybindingRouter.test.ts`
 - **added** `src/hooks/useKeybindingRouter.ts`
 - **added** `src/hooks/useLiveDocsResponder.test.ts`
@@ -9743,6 +9763,7 @@
 - **added** `src/hooks/useOpenFileEvent.ts`
 - **deleted** `src/hooks/useOpenWorkflowTarget.ts`
 - **added** `src/hooks/useOutlineSync.scroll.test.ts`
+- **changed** `src/hooks/useOutlineSync.test.ts`
 - **changed** `src/hooks/useOutlineSync.ts`
 - **added** `src/hooks/usePromptHistory.clearHistory.test.ts`
 - **changed** `src/hooks/usePromptHistory.comprehensive.test.ts`
@@ -9787,6 +9808,8 @@
 - **added** `src/hooks/useSystemFontFamilies.ts`
 - **added** `src/hooks/useTabDragOut.lifetime.test.ts`
 - **changed** `src/hooks/useTabDragOut.ts`
+- **changed** `src/hooks/useTabModeSync.test.ts`
+- **changed** `src/hooks/useTabModeSync.ts`
 - **deleted** `src/hooks/useTabOperations.test.ts`
 - **deleted** `src/hooks/useTabOperations.ts`
 - **deleted** `src/hooks/useTabShortcuts.statusbar.test.tsx`
@@ -11464,6 +11487,8 @@
 - **renamed** `src/hooks/markdownSplitToggle.ts` → `src/services/editor/markdownSplitToggle.ts`
 - **changed** `src/services/editor/readOnlyGuard.test.ts`
 - **changed** `src/services/editor/readOnlyGuard.ts`
+- **added** `src/services/editor/restoreChoice.test.ts`
+- **added** `src/services/editor/restoreChoice.ts`
 - **added** `src/services/editor/runEditorAction.test.ts`
 - **added** `src/services/editor/runEditorAction.ts`
 - **added** `src/services/editor/scrollAnchor.test.ts`
@@ -11472,6 +11497,7 @@
 - **added** `src/services/editor/scrollPosition.ts`
 - **changed** `src/services/editor/sourcePeek.test.ts`
 - **changed** `src/services/editor/sourcePeek.ts`
+- **added** `src/services/editor/tiptapFocus.tabSwitch.test.ts`
 - **changed** `src/services/editor/tiptapFocus.test.ts`
 - **changed** `src/services/editor/tiptapFocus.ts`
 - **changed** `src/services/editor/tiptapView.ts`
@@ -12358,9 +12384,11 @@
 - **changed** `src/utils/cursorSync/matching.test.ts`
 - **changed** `src/utils/cursorSync/pmHelpers.test.ts`
 - **changed** `src/utils/cursorSync/pmHelpers.ts`
+- **added** `src/utils/cursorSync/restoreWithoutScroll.test.ts`
 - **changed** `src/utils/cursorSync/table.test.ts`
 - **changed** `src/utils/cursorSync/table.ts`
 - **changed** `src/utils/cursorSync/tiptap.test.ts`
+- **changed** `src/utils/cursorSync/tiptap.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.test.ts`
 - **changed** `src/utils/cursorSync/tiptapAnchors.ts`
 - **changed** `src/utils/cursorSync/types.ts`

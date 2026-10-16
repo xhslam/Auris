@@ -299,10 +299,10 @@ describe("browser window manager", () => {
       entries: ["https://example.com/one", "https://example.com/two"],
       index: 0,
     });
-    const restoredContents = fixture.surfaceManager.getSurface(
-      reopened.windowId,
-      reopened.activeTabId,
-    ).view.webContents;
+    const restoredSurface = fixture.surfaceManager.getSurface(reopened.windowId, reopened.activeTabId);
+    expect(restoredSurface).not.toBeNull();
+    if (!restoredSurface) throw new Error("Expected the restored surface");
+    const restoredContents = restoredSurface.view.webContents;
     expect(restoredContents.loadURL).toHaveBeenCalledWith("https://example.com/two");
     expect(restoredContents.navigationHistory.goToIndex).toHaveBeenCalledWith(0);
   });
@@ -416,8 +416,11 @@ function createFixture({
 
 function createStateRepository() {
   return {
-    listBookmarks: vi.fn(() => []),
-    loadWindows: vi.fn(() => []),
+    listBookmarks: vi.fn<() => Array<{ title: string; url: string }>>(() => []),
+    loadWindows: vi.fn<() => Array<{
+      bounds: { height: number; width: number; x: number; y: number };
+      tabs: Array<{ active: boolean; automationMode: "Human"; retained: boolean; title: string; url: string }>;
+    }>>(() => []),
     removeBookmark: vi.fn(() => true),
     saveWindows: vi.fn(),
     upsertBookmark: vi.fn((bookmark) => bookmark),

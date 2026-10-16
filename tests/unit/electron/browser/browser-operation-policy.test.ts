@@ -77,10 +77,10 @@ describe("browser operation policy", () => {
       action: "screenshot",
       publication: "evidence",
     })).toBe("publish");
-    expect(() => listBrowserOperationPolicies().find((row) => row.operation === "missing"))
+    expect(() => listBrowserOperationPolicies().find((row: { operation: string }) => row.operation === "missing"))
       .not.toThrow();
     expect(
-      listBrowserOperationPolicies().every((row) => REQUIRED_OPERATIONS.includes(row.operation)),
+      listBrowserOperationPolicies().every((row: { operation: string }) => REQUIRED_OPERATIONS.some((operation) => operation === row.operation)),
     ).toBe(true);
   });
 });

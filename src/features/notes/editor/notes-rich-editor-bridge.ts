@@ -5,6 +5,7 @@ import {
 } from "prosemirror-state";
 import { Slice } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
+import { cancelNotesScrollRestore } from "@/features/notes/editor/notes-scroll-memory";
 import { parseNotesRichMarkdown, serializeNotesRichMarkdown } from "@/features/notes/editor/notes-rich-markdown";
 import type {
   NotesEditorBridge,
@@ -136,26 +137,29 @@ export function createNotesRichEditorBridge(
         return;
       }
 
+      cancelNotesScrollRestore();
       const targetPosition = findApproximatePositionForLine(view.state, line);
-
+      // ProseMirror ignores scrollToSelection while the DOM selection belongs
+      // outside this view. Claim focus before dispatching the explicit jump.
+      view.focus();
       view.dispatch(
         view.state.tr
           .setSelection(Selection.near(view.state.doc.resolve(targetPosition), 1))
           .scrollIntoView(),
       );
-      view.focus();
     },
     setSelection(from: number, to: number) {
       if (!view) {
         return;
       }
 
+      cancelNotesScrollRestore();
+      view.focus();
       view.dispatch(
         view.state.tr
           .setSelection(createSelection(view.state, from, to))
           .scrollIntoView(),
       );
-      view.focus();
     },
     view,
   };

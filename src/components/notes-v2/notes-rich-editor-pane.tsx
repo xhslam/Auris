@@ -1324,7 +1324,10 @@ export function NotesRichEditorPane({
       transaction.setSelection(TextSelection.create(transaction.doc, 1));
     }
 
-    view.dispatch(transaction.scrollIntoView());
+    // Updating the same note is not a navigation intent. Preserve the reader's
+    // viewport independently of the caret (VMark 8887701db / #1561). A newly
+    // selected note still starts at its caret, then its own scroll memory wins.
+    view.dispatch(documentPathChanged ? transaction.scrollIntoView() : transaction);
     lastAppliedSourceRef.current = wysiwygDocumentSource;
     lastDocumentPathRef.current = document.path;
     if (documentPathChanged) onBridgeReadyRef.current?.(bridgeRef.current);

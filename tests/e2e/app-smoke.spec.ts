@@ -1,4 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
+import type {
+  AppRuntimeState,
+  AppWorkspaceId,
+  DesktopResumeTargetType,
+  DesktopRuntimeState,
+} from "@/features/app-runtime/app-runtime.types";
+import type { PronunciationAssessmentRecord } from "@/features/assessment/pronunciation-assessment.types";
+import type { SessionPlayback } from "@/features/sessions/session.types";
 
 async function installDesktopBridge(page: Page) {
   await page.addInitScript(() => {
@@ -27,11 +35,17 @@ async function installDesktopBridge(page: Page) {
       }
     ).__desktopExports = [];
 
-    function readRuntimeState() {
+    function readRuntimeState(): DesktopRuntimeState {
       const rawValue = window.localStorage.getItem(runtimeStateStorageKey);
 
       if (!rawValue) {
         return {
+          aiDock: {
+            activeProvider: "chatgpt",
+            activeView: "provider",
+            isOpen: false,
+            panelWidth: 560,
+          },
           legacyRuntimeMigratedAt: null,
           lastRoute: "/",
           lastVisitedAt: null,
@@ -44,9 +58,15 @@ async function installDesktopBridge(page: Page) {
       }
 
       try {
-        return JSON.parse(rawValue);
+        return JSON.parse(rawValue) as DesktopRuntimeState;
       } catch {
         return {
+          aiDock: {
+            activeProvider: "chatgpt",
+            activeView: "provider",
+            isOpen: false,
+            panelWidth: 560,
+          },
           legacyRuntimeMigratedAt: null,
           lastRoute: "/",
           lastVisitedAt: null,
@@ -59,7 +79,7 @@ async function installDesktopBridge(page: Page) {
       }
     }
 
-    function writeRuntimeState(nextState: unknown) {
+    function writeRuntimeState(nextState: DesktopRuntimeState): DesktopRuntimeState {
       window.localStorage.setItem(runtimeStateStorageKey, JSON.stringify(nextState));
       return nextState;
     }
@@ -83,7 +103,7 @@ async function installDesktopBridge(page: Page) {
       return nextState;
     }
 
-    function readTrainingPlayback() {
+    function readTrainingPlayback(): Record<string, SessionPlayback> {
       const rawValue = window.localStorage.getItem(trainingPlaybackStorageKey);
 
       if (!rawValue) {
@@ -123,7 +143,7 @@ async function installDesktopBridge(page: Page) {
       }
 
       try {
-        return JSON.parse(rawValue);
+        return JSON.parse(rawValue) as Record<string, SessionPlayback>;
       } catch {
         return {};
       }
@@ -134,7 +154,7 @@ async function installDesktopBridge(page: Page) {
       return nextState;
     }
 
-    function readAssessmentHistory() {
+    function readAssessmentHistory(): PronunciationAssessmentRecord[] {
       const rawValue = window.localStorage.getItem(assessmentHistoryStorageKey);
 
       if (!rawValue) {
@@ -155,32 +175,36 @@ async function installDesktopBridge(page: Page) {
       }
 
       try {
-        return JSON.parse(rawValue);
+        return JSON.parse(rawValue) as PronunciationAssessmentRecord[];
       } catch {
         return [];
       }
     }
 
-    function writeAssessmentHistory(nextState: unknown) {
+    function writeAssessmentHistory(nextState: PronunciationAssessmentRecord[]): PronunciationAssessmentRecord[] {
       window.localStorage.setItem(assessmentHistoryStorageKey, JSON.stringify(nextState));
       return nextState;
     }
 
     window.shadowingDesktop = {
       assessmentHistory: {
+        delete: async (assessmentId: string): Promise<PronunciationAssessmentRecord[]> => {
+          const current = readAssessmentHistory();
+          return writeAssessmentHistory(current.filter((item) => item.id !== assessmentId));
+        },
         importLegacy: async (records: unknown[]) => {
           if (records.length > 0) {
-            return writeAssessmentHistory(records);
+            return writeAssessmentHistory(records as PronunciationAssessmentRecord[]);
           }
 
           return readAssessmentHistory();
         },
-        list: async () => readAssessmentHistory(),
-        save: async (record: unknown) => {
-          const current = readAssessmentHistory() as Array<{ id: string }>;
+        list: async (): Promise<PronunciationAssessmentRecord[]> => readAssessmentHistory(),
+        save: async (record: PronunciationAssessmentRecord): Promise<PronunciationAssessmentRecord[]> => {
+          const current = readAssessmentHistory();
           return writeAssessmentHistory([
             record,
-            ...current.filter((item) => item.id !== (record as { id: string }).id),
+            ...current.filter((item) => item.id !== record.id),
           ]);
         },
       },
@@ -222,11 +246,8 @@ async function installDesktopBridge(page: Page) {
         setEnabled: async () => [],
       },
       runtimeState: {
-        get: async () => readRuntimeState(),
-        importLegacy: async (legacyState: {
-          lastVisitedAt: string | null;
-          lastWorkspace: "assessment" | "home" | "notes" | "workspace";
-        }) =>
+        get: async (): Promise<DesktopRuntimeState> => readRuntimeState(),
+        importLegacy: async (legacyState: AppRuntimeState): Promise<DesktopRuntimeState> =>
           writeRuntimeState({
             ...readRuntimeState(),
             ...legacyState,
@@ -234,8 +255,8 @@ async function installDesktopBridge(page: Page) {
             updatedAt: "2026-03-26T00:00:00.000Z",
           }),
         setLastWorkspace: async (
-          workspace: "assessment" | "home" | "notes" | "workspace",
-        ) =>
+          workspace: AppWorkspaceId,
+        ): Promise<DesktopRuntimeState> =>
           writeRuntimeState({
             ...readRuntimeState(),
             lastRoute:
@@ -249,9 +270,9 @@ async function installDesktopBridge(page: Page) {
             updatedAt: "2026-03-26T00:00:00.000Z",
           }),
         setResumeTarget: async (
-          targetType: "assessment" | "note" | "training" | null,
+          targetType: DesktopResumeTargetType | null,
           targetId: string | null,
-        ) =>
+        ): Promise<DesktopRuntimeState> =>
           writeRuntimeState({
             ...readRuntimeState(),
             primaryResumeId: targetId,
@@ -263,12 +284,12 @@ async function installDesktopBridge(page: Page) {
         deleteSession: async (sessionId: string) => {
           const current = readTrainingHistory() as Array<{ id: string }>;
           writeTrainingHistory(current.filter((item) => item.id !== sessionId));
-          const playbackMap = readTrainingPlayback() as Record<string, unknown>;
+          const playbackMap = readTrainingPlayback();
           delete playbackMap[sessionId];
           writeTrainingPlayback(playbackMap);
         },
-        getPlayback: async (sessionId: string) => {
-          const playbackMap = readTrainingPlayback() as Record<string, unknown>;
+        getPlayback: async (sessionId: string): Promise<SessionPlayback | null> => {
+          const playbackMap = readTrainingPlayback();
           return playbackMap[sessionId] ?? null;
         },
         listRecent: async () => readTrainingHistory(),
@@ -321,6 +342,38 @@ async function installDesktopBridge(page: Page) {
         removeFile: async () => undefined,
         revealPluginsDirectory: async () => undefined,
         saveFile: async () => undefined,
+      },
+      voiceEngine: {
+        generate: async () => ({
+          audioBase64: "",
+          contentType: "audio/wav",
+          durationMs: 1200,
+          transcriptWords: [],
+        }),
+        getCapabilities: async () => ({
+          locales: ["en-US"],
+          modes: ["preset" as const],
+          supportsReferenceAudio: false,
+          supportsStylePrompt: true,
+        }),
+        getStatus: async () => ({
+          activeProvider: "openai" as const,
+          platform: "win32" as const,
+          reason: null,
+          state: "ready" as const,
+        }),
+        start: async () => ({
+          activeProvider: "openai" as const,
+          platform: "win32" as const,
+          reason: null,
+          state: "ready" as const,
+        }),
+        stop: async () => ({
+          activeProvider: "openai" as const,
+          platform: "win32" as const,
+          reason: null,
+          state: "ready" as const,
+        }),
       },
       window: {
         showInFolder: async () => undefined,

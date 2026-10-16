@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
+  "comparedCommit": "8887701db097cef0dea00584b70a0ea1dac5ae05",
   "summary": {
-    "changed": 2640,
-    "added": 3361,
+    "changed": 2646,
+    "added": 3369,
     "deleted": 566,
     "renamed": 116,
     "missingAurisTargets": 0,
     "staleMappings": 12,
     "mappedUpstreamChanges": 232,
-    "domainCandidates": 840,
-    "unmappedUpstreamChanges": 5611
+    "domainCandidates": 841,
+    "unmappedUpstreamChanges": 5624
   },
   "upstreamChanges": [
     {
@@ -2079,6 +2079,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-fs-capability-grants.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-gate-liveness.mjs",
       "status": "added"
     },
@@ -2211,6 +2215,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-mutation-scope.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-new-deps.sh",
       "status": "changed"
     },
@@ -2296,6 +2304,10 @@
     },
     {
       "path": "scripts/check-review-schedule.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-rolling-issue-timeouts.test.mjs",
       "status": "added"
     },
     {
@@ -8092,6 +8104,10 @@
       "status": "added"
     },
     {
+      "path": "src/components/Editor/DocumentSplit/splitModeToggle.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/components/Editor/DocumentSplit/useSplitDrag.ts",
       "status": "added"
     },
@@ -11392,6 +11408,14 @@
       "status": "changed"
     },
     {
+      "path": "src/hooks/useIsFocusedPane.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useIsFocusedPane.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/hooks/useKeybindingRouter.test.ts",
       "status": "added"
     },
@@ -11475,6 +11499,10 @@
     {
       "path": "src/hooks/useOutlineSync.scroll.test.ts",
       "status": "added"
+    },
+    {
+      "path": "src/hooks/useOutlineSync.test.ts",
+      "status": "changed"
     },
     {
       "path": "src/hooks/useOutlineSync.ts",
@@ -11650,6 +11678,14 @@
     },
     {
       "path": "src/hooks/useTabDragOut.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useTabModeSync.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useTabModeSync.ts",
       "status": "changed"
     },
     {
@@ -19119,6 +19155,14 @@
       "status": "changed"
     },
     {
+      "path": "src/services/editor/restoreChoice.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/editor/restoreChoice.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/editor/runEditorAction.test.ts",
       "status": "added"
     },
@@ -19149,6 +19193,10 @@
     {
       "path": "src/services/editor/sourcePeek.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/editor/tiptapFocus.tabSwitch.test.ts",
+      "status": "added"
     },
     {
       "path": "src/services/editor/tiptapFocus.test.ts",
@@ -23332,6 +23380,10 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/cursorSync/restoreWithoutScroll.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/cursorSync/table.test.ts",
       "status": "changed"
     },
@@ -23341,6 +23393,10 @@
     },
     {
       "path": "src/utils/cursorSync/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/cursorSync/tiptap.ts",
       "status": "changed"
     },
     {
@@ -29809,6 +29865,10 @@
           "status": "added"
         },
         {
+          "path": "src/components/Editor/DocumentSplit/splitModeToggle.test.tsx",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/DocumentSplit/useSplitDrag.ts",
           "status": "added"
         },
@@ -34099,6 +34159,14 @@
     {
       "change": {
         "path": "src/components/Editor/DocumentSplit/splitKeyboardResize.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
+        "path": "src/components/Editor/DocumentSplit/splitModeToggle.test.tsx",
         "status": "added"
       },
       "decision": "adapt",
@@ -41552,6 +41620,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-fs-capability-grants.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-gate-liveness.mjs",
       "status": "added"
     },
@@ -41684,6 +41756,10 @@
       "status": "added"
     },
     {
+      "path": "scripts/check-mutation-scope.test.mjs",
+      "status": "added"
+    },
+    {
       "path": "scripts/check-new-deps.sh",
       "status": "changed"
     },
@@ -41769,6 +41845,10 @@
     },
     {
       "path": "scripts/check-review-schedule.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-rolling-issue-timeouts.test.mjs",
       "status": "added"
     },
     {
@@ -47917,6 +47997,14 @@
       "status": "changed"
     },
     {
+      "path": "src/hooks/useIsFocusedPane.test.tsx",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useIsFocusedPane.ts",
+      "status": "changed"
+    },
+    {
       "path": "src/hooks/useKeybindingRouter.test.ts",
       "status": "added"
     },
@@ -47995,6 +48083,10 @@
     {
       "path": "src/hooks/useOutlineSync.scroll.test.ts",
       "status": "added"
+    },
+    {
+      "path": "src/hooks/useOutlineSync.test.ts",
+      "status": "changed"
     },
     {
       "path": "src/hooks/useOutlineSync.ts",
@@ -48170,6 +48262,14 @@
     },
     {
       "path": "src/hooks/useTabDragOut.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useTabModeSync.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/hooks/useTabModeSync.ts",
       "status": "changed"
     },
     {
@@ -54889,6 +54989,14 @@
       "status": "changed"
     },
     {
+      "path": "src/services/editor/restoreChoice.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/editor/restoreChoice.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/editor/runEditorAction.test.ts",
       "status": "added"
     },
@@ -54919,6 +55027,10 @@
     {
       "path": "src/services/editor/sourcePeek.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/services/editor/tiptapFocus.tabSwitch.test.ts",
+      "status": "added"
     },
     {
       "path": "src/services/editor/tiptapFocus.test.ts",
@@ -58507,6 +58619,10 @@
       "status": "changed"
     },
     {
+      "path": "src/utils/cursorSync/restoreWithoutScroll.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/utils/cursorSync/table.test.ts",
       "status": "changed"
     },
@@ -58516,6 +58632,10 @@
     },
     {
       "path": "src/utils/cursorSync/tiptap.test.ts",
+      "status": "changed"
+    },
+    {
+      "path": "src/utils/cursorSync/tiptap.ts",
       "status": "changed"
     },
     {

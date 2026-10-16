@@ -41,6 +41,7 @@ describe("memory notes store", () => {
     });
 
     await storage.savePage({
+      ...createNotePage({ id: "note-1", title: "Review Page", fileName: "review-note.md" }),
       blocks: [
         createNoteBlock("paragraph", "Review rhythm today"),
         createNoteBlock("todo", "Add rhythm to tomorrow plan"),

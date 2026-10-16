@@ -179,11 +179,11 @@ function createFixture({ onEvent = vi.fn(), sideInsetRight = 360 } = {}) {
   const views: SurfaceViewFixture[] = [];
   const policyDisposers: ReturnType<typeof vi.fn>[] = [];
   class FakeView {
-    options: Record<string, unknown>;
+    options: { webPreferences: Record<string, unknown> };
     bounds = null as null | Record<string, number>;
     visible = false;
     webContents = createFakeWebContents(calls);
-    constructor(options: Record<string, unknown>) {
+    constructor(options: { webPreferences: Record<string, unknown> }) {
       this.options = options;
       views.push(this);
     }

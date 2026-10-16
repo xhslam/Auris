@@ -1,5 +1,6 @@
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { cancelNotesScrollRestore } from "@/features/notes/editor/notes-scroll-memory";
 import { notesEditorSyncAnnotation } from "@/features/notes/editor/editor-annotations";
 import { createNotesEditorExtensions } from "@/features/notes/editor/editor-extensions";
 import type {
@@ -99,6 +100,7 @@ export function createNotesEditorBridge(
         return;
       }
 
+      cancelNotesScrollRestore();
       const docLength = view.state.doc.length;
       const start = Math.min(Math.max(Math.min(from, to), 0), docLength);
       const end = Math.min(Math.max(Math.max(from, to), 0), docLength);
@@ -114,6 +116,7 @@ export function createNotesEditorBridge(
         return;
       }
 
+      cancelNotesScrollRestore();
       const targetLine = view.state.doc.line(
         Math.min(Math.max(line + 1, 1), view.state.doc.lines),
       );

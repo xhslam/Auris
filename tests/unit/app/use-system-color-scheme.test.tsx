@@ -10,25 +10,26 @@ type MediaQueryChangeListener = (event: MediaQueryListEvent) => void;
 function installMatchMedia(initialMatches: boolean) {
   let matches = initialMatches;
   const listeners = new Set<MediaQueryChangeListener>();
-  const mediaQuery = {
+  const mediaQuery: MediaQueryList = {
     get matches() {
       return matches;
     },
     media: darkColorSchemeQuery,
-    addEventListener: vi.fn((type: string, listener: MediaQueryChangeListener) => {
-      if (type === "change") {
-        listeners.add(listener);
+    onchange: null,
+    addEventListener: vi.fn((type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type === "change" && typeof listener === "function") {
+        listeners.add(listener as MediaQueryChangeListener);
       }
     }),
-    removeEventListener: vi.fn((type: string, listener: MediaQueryChangeListener) => {
-      if (type === "change") {
-        listeners.delete(listener);
+    removeEventListener: vi.fn((type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type === "change" && typeof listener === "function") {
+        listeners.delete(listener as MediaQueryChangeListener);
       }
     }),
     addListener: vi.fn(),
     removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  } as MediaQueryList;
+    dispatchEvent: vi.fn(() => true),
+  };
 
   const matchMedia = vi.fn((query: string) => {
     expect(query).toBe(darkColorSchemeQuery);
@@ -51,7 +52,7 @@ function installMatchMedia(initialMatches: boolean) {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  delete (window as typeof window & { matchMedia?: typeof window.matchMedia }).matchMedia;
+  Reflect.deleteProperty(window, "matchMedia");
 });
 
 describe("useSystemColorScheme", () => {

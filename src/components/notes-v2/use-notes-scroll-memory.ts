@@ -4,6 +4,7 @@ import { useEffect, type RefObject } from "react";
 import {
   findNotesScrollContainer,
   getNotesScrollOffset,
+  getNotesScrollNavigationVersion,
   restoreNotesScroll,
   trackNotesScroll,
   type NotesScrollSurface,
@@ -33,12 +34,17 @@ export function useNotesScrollMemory({
     }
 
     let stopTracking: (() => void) | undefined;
+    const navigationVersion = getNotesScrollNavigationVersion();
     const frame = requestAnimationFrame(() => {
       const container = findNotesScrollContainer(hostRef.current);
       if (!container) {
         return;
       }
-      restoreNotesScroll(container, getNotesScrollOffset(path, surface));
+      // A bridge jump can happen before this first layout frame. Do not let
+      // mount-time reading memory reclaim its viewport (VMark #1561).
+      if (getNotesScrollNavigationVersion() === navigationVersion) {
+        restoreNotesScroll(container, getNotesScrollOffset(path, surface));
+      }
       stopTracking = trackNotesScroll(container, path, surface);
     });
 

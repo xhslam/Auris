@@ -205,15 +205,15 @@ describe("notes rich keymap", () => {
     const doc = paragraphDoc("hello");
     const selection = TextSelection.create(doc, 1, 6);
     const next = runCommand("Mod-k", doc, selection);
-    let linkMark: { href: string } | null = null;
+    const linkMark: { current: { href: string } | null } = { current: null };
     next?.doc.descendants((node) => {
       const mark = node.marks.find((m) => m.type.name === "link");
       if (mark) {
-        linkMark = mark.attrs as { href: string };
+        linkMark.current = { href: String(mark.attrs.href) };
       }
     });
-    expect(linkMark).not.toBeNull();
-    expect(linkMark?.href).toBe("https://");
+    expect(linkMark.current).not.toBeNull();
+    expect(linkMark.current?.href).toBe("https://");
   });
 
   it("Mod-k on existing link removes the link", () => {

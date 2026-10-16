@@ -1041,7 +1041,7 @@ describe("VMark sync report", () => {
     const invocations: string[][] = [];
     const gitRunner = (
       argv: string[],
-      options: Record<string, unknown>,
+      options: Parameters<ReturnType<typeof createGitRunner>>[1] = {},
     ) => {
       invocations.push(argv);
       return createGitRunner()(argv, options);

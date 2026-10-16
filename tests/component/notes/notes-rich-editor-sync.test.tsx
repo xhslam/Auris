@@ -37,6 +37,29 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("NotesRichEditorPane sync", () => {
+  it("does not scroll back to the caret when the same note is updated externally", () => {
+    const onDocumentChange = vi.fn();
+    const initial = createDocument("# Daily Review\n\nBody");
+    const { rerender } = render(
+      <NotesEditorPane document={initial} documents={[initial]} editorMode="wysiwyg" onDocumentChange={onDocumentChange} />,
+    );
+    const host = screen.getByTestId("notes-prosemirror-host") as HTMLDivElement & {
+      __notesRichEditorView?: ProseMirrorEditorView;
+    };
+    const view = host.__notesRichEditorView!;
+    const dispatch = vi.spyOn(view, "dispatch");
+    const updated = createDocument("# Daily Review\n\nBody updated elsewhere");
+    rerender(
+      <NotesEditorPane document={updated} documents={[updated]} editorMode="wysiwyg" onDocumentChange={onDocumentChange} />,
+    );
+    const replacements = dispatch.mock.calls.map(([tr]) => tr).filter((tr) => tr.docChanged);
+    expect(replacements).toHaveLength(1);
+    expect(replacements[0].scrolledIntoView).toBe(false);
+    expect(view.state.doc.textContent).toContain("updated elsewhere");
+    expect(onDocumentChange).not.toHaveBeenCalled();
+    dispatch.mockRestore();
+  });
+
   it("opens structured files as editable raw source with a parsed preview", () => {
     const onDocumentChange = vi.fn();
     const document = {
@@ -235,7 +258,7 @@ describe("NotesRichEditorPane sync", () => {
 
   it("does not let programmatic rich-editor writes bypass read-only mode", () => {
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
 
     render(
@@ -244,7 +267,7 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
         viewPreferences={{
@@ -257,11 +280,11 @@ describe("NotesRichEditorPane sync", () => {
     );
 
     act(() => {
-      bridge?.insertSnippet("blocked");
+      bridge.current?.insertSnippet("blocked");
     });
 
     expect(onDocumentChange).not.toHaveBeenCalled();
-    expect(bridge?.getSource()).toBe(rawSource);
+    expect(bridge.current?.getSource()).toBe(rawSource);
   });
 
   it("preserves original UTF-16 offsets during case-insensitive replacement", () => {
@@ -325,7 +348,7 @@ describe("NotesRichEditorPane sync", () => {
 
   it("serializes the first rich-editor heading as the note title", () => {
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
 
     render(
@@ -334,14 +357,14 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
     );
 
     act(() => {
-      const view = bridge?.view as ProseMirrorEditorView | null;
+      const view = bridge.current?.view as ProseMirrorEditorView | null;
       view?.dispatch(view.state.tr.insertText("Edited ", 1));
     });
 
@@ -352,7 +375,7 @@ describe("NotesRichEditorPane sync", () => {
 
   it("emits full note source when WYSIWYG edits change the body", () => {
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = [
       "---",
       "tags:",
@@ -369,14 +392,14 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
     );
 
     act(() => {
-      bridge?.insertSnippet("Second paragraph");
+      bridge.current?.insertSnippet("Second paragraph");
     });
 
     expect(onDocumentChange).toHaveBeenCalledWith(
@@ -393,7 +416,7 @@ describe("NotesRichEditorPane sync", () => {
   it("waits for an IME composition to finish before emitting a rich-editor change", () => {
     vi.useFakeTimers();
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
     const { container } = render(
       <NotesEditorPane
@@ -401,7 +424,7 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
@@ -412,7 +435,7 @@ describe("NotesRichEditorPane sync", () => {
 
     act(() => {
       editorDom?.dispatchEvent(new Event("compositionstart", { bubbles: true }));
-      const view = bridge?.view as ProseMirrorEditorView | null;
+      const view = bridge.current?.view as ProseMirrorEditorView | null;
       view?.dispatch(view.state.tr.insertText("wo ju", 1));
       view?.dispatch(view.state.tr.insertText("我觉得", 1, 6));
     });
@@ -435,7 +458,7 @@ describe("NotesRichEditorPane sync", () => {
   it("removes leftover pinyin before a confirmed Chinese candidate", () => {
     vi.useFakeTimers();
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# 李笑来\n\nBody";
     const { container } = render(
       <NotesEditorPane
@@ -443,18 +466,18 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
     );
     const editorDom = container.querySelector(".ProseMirror");
-    const view = bridge?.view as ProseMirrorEditorView | null;
+    const view = bridge.current?.view as ProseMirrorEditorView | null;
     const compositionEnd = new Event("compositionend", { bubbles: true });
     Object.defineProperty(compositionEnd, "data", { value: "实际" });
 
     act(() => {
-      bridge?.setSelection(4, 4);
+      bridge.current?.setSelection(4, 4);
       editorDom?.dispatchEvent(new Event("compositionstart", { bubbles: true }));
       view?.dispatch(view.state.tr.insertText("sh实际", 4));
       editorDom?.dispatchEvent(compositionEnd);
@@ -469,7 +492,7 @@ describe("NotesRichEditorPane sync", () => {
   it("serializes the final IME document state after candidate replacement", () => {
     vi.useFakeTimers();
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
     const { container } = render(
       <NotesEditorPane
@@ -477,13 +500,13 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
     );
     const editorDom = container.querySelector(".ProseMirror");
-    const view = bridge?.view as ProseMirrorEditorView | null;
+    const view = bridge.current?.view as ProseMirrorEditorView | null;
 
     act(() => {
       editorDom?.dispatchEvent(new Event("compositionstart", { bubbles: true }));
@@ -501,7 +524,7 @@ describe("NotesRichEditorPane sync", () => {
 
   it("does not replace active IME composition with a stale parent document", () => {
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
     const staleDocument = createDocument(rawSource);
     const { container, rerender } = render(
@@ -510,13 +533,13 @@ describe("NotesRichEditorPane sync", () => {
         documents={[staleDocument]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
     );
     const editorDom = container.querySelector(".ProseMirror");
-    const view = bridge?.view as ProseMirrorEditorView | null;
+    const view = bridge.current?.view as ProseMirrorEditorView | null;
 
     act(() => {
       editorDom?.dispatchEvent(new Event("compositionstart", { bubbles: true }));
@@ -529,20 +552,20 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
     );
 
-    expect(bridge?.getSource()).toBe("# pinDaily Review\n\nBody");
+    expect(bridge.current?.getSource()).toBe("# pinDaily Review\n\nBody");
     expect(onDocumentChange).not.toHaveBeenCalled();
   });
 
   it("drops a deferred IME change when the rich editor unmounts", () => {
     vi.useFakeTimers();
     const onDocumentChange = vi.fn();
-    let bridge: NotesEditorBridge | null = null;
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
     const { container, unmount } = render(
       <NotesEditorPane
@@ -550,7 +573,7 @@ describe("NotesRichEditorPane sync", () => {
         documents={[createDocument(rawSource)]}
         editorMode="wysiwyg"
         onBridgeReady={(nextBridge) => {
-          bridge = nextBridge;
+          bridge.current = nextBridge;
         }}
         onDocumentChange={onDocumentChange}
       />,
@@ -559,7 +582,7 @@ describe("NotesRichEditorPane sync", () => {
 
     act(() => {
       editorDom?.dispatchEvent(new Event("compositionstart", { bubbles: true }));
-      bridge?.insertSnippet("wo ju");
+      bridge.current?.insertSnippet("wo ju");
       editorDom?.dispatchEvent(new Event("compositionend", { bubbles: true }));
       unmount();
       vi.runAllTimers();

@@ -79,6 +79,38 @@ function createBridge(): DesktopBridge {
       revealPluginsDirectory: vi.fn(async () => undefined),
       saveFile: vi.fn(async () => undefined),
     },
+    voiceEngine: {
+      generate: vi.fn(async () => ({
+        audioBase64: "",
+        contentType: "audio/wav",
+        durationMs: 1200,
+        transcriptWords: [],
+      })),
+      getCapabilities: vi.fn(async () => ({
+        locales: ["en-US"],
+        modes: ["preset" as const],
+        supportsReferenceAudio: false,
+        supportsStylePrompt: true,
+      })),
+      getStatus: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+      start: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+      stop: vi.fn(async () => ({
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
+        reason: null,
+        state: "ready" as const,
+      })),
+    },
     window: {
       showInFolder: vi.fn(async () => undefined),
     },

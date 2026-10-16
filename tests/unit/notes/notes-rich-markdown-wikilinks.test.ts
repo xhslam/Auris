@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EditorState } from "prosemirror-state";
+import { DecorationSet, EditorView } from "prosemirror-view";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import {
   createWikiLinkDecorationPlugin,
@@ -56,11 +57,17 @@ describe("notes rich markdown wiki links", () => {
     });
 
     const decorationSet = plugin.props.decorations?.call(plugin, state);
-    const classes = decorationSet
-      ?.find()
-      .map((decoration) => (decoration as { type: { attrs: { class: string } } }).type.attrs.class);
-
-    expect(classes).toContain("notes-v2__wikilink--exists");
-    expect(classes).toContain("notes-v2__wikilink--missing");
+    expect(decorationSet).toBeInstanceOf(DecorationSet);
+    if (!(decorationSet instanceof DecorationSet)) throw new Error("Expected wiki-link decorations");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const view = new EditorView(host, { state });
+    try {
+      expect(host.querySelector(".notes-v2__wikilink--exists")).not.toBeNull();
+      expect(host.querySelector(".notes-v2__wikilink--missing")).not.toBeNull();
+    } finally {
+      view.destroy();
+      host.remove();
+    }
   });
 });

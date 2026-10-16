@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-16",
+  "timezone": "Asia/Shanghai",
+  "aurisVersion": "1.0.18",
+  "baselineCommit": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
+  "upstreamCommit": "8887701db097cef0dea00584b70a0ea1dac5ae05",
+  "agentRoles": {
+    "primary": "ChatGPT",
+    "agy": {
+      "command": "agy --dangerously-skip-permissions",
+      "mode": "read-only independent applicability review",
+      "range": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558..220d84399523aed7e34b8e3d29c441445c391306",
+      "completed": true
+    }
+  },
+  "redTests": {
+    "initialRealFailures": 6,
+    "focusOrderingFailures": 2,
+    "note": "Initial CodeMirror RAF fixture issue corrected before recording six product failures."
+  },
+  "regression": {
+    "command": "npx vitest run tests/unit/notes/ tests/component/notes/ tests/unit/vmark/ tests/unit/workflows/ tests/unit/electron/workflows/",
+    "files": 174,
+    "passed": 1736,
+    "exit": 0
+  },
+  "targeted": {
+    "files": 3,
+    "passed": 30
+  },
+  "lint": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 18
+  },
+  "typescript": {
+    "exitBefore": 2,
+    "exitAfter": 2,
+    "diagnosticsBefore": 241,
+    "diagnosticsAfter": 241,
+    "normalizedDiagnosticMultisetsEqual": true,
+    "passed": false
+  },
+  "build": {
+    "exit": 0,
+    "markdownBundlePatches": 3
+  },
+  "gates": {
+    "singletonSelfTests": 4,
+    "singletonDependencies": 12,
+    "ipcInvokes": 126,
+    "ipcHandlers": 129
+  },
+  "desktop": {
+    "upstream": "8887701db097cef0dea00584b70a0ea1dac5ae05",
+    "checks": [
+      "wysiwyg: switching documents restores reading position with caret present",
+      "wysiwyg: explicit outline bridge jump outlives the previous restore",
+      "source: switching documents restores reading position with caret present",
+      "source: explicit outline bridge jump outlives the previous restore",
+      "temporary note bytes unchanged"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "status": "passed"
+  },
+  "preexistingChanges": {
+    "notesWorkflowUnchanged": true,
+    "notesWorkflowSHA256": "ca8ee109a77483733cca065bee9836ccbae06d3650a5dfbed5fa223c48c449c8",
+    "mirrorPatchUnchanged": true,
+    "mirrorPatchSHA256": "3258fbf1b719751404118802316224534fa063c87df45e9f214a10d3d9514467"
+  },
+  "artifacts": {
+    "logs": "release/vmark-20261016-verification/",
+    "desktop": "release/vmark-20261016-reading-smoke/",
+    "implementation": "docs/vmark-sync/implementation-status-2026-10-16.md"
+  },
+  "delivery": {
+    "sourceOnly": true,
+    "versionBumped": false,
+    "installedAppReplaced": false,
+    "committed": false,
+    "pushed": false,
+    "published": false
+  },
+  "limitations": [
+    "No Windows/Linux desktop run",
+    "No cross-surface cursor mapping or per-document caret persistence added",
+    "No full export/PDF revalidation",
+    "No new full vulnerability audit",
+    "No claim that all historical mappings are aligned"
+  ]
+}

@@ -11,7 +11,7 @@ import { createNotesEditorState } from "@/features/notes/editor/editor-state-bri
 const source = "See [^来源]\n\n[^来源]: 中文参考文献 — العربية\n    continuation text";
 let view: EditorView;
 let parent: HTMLElement;
-let onChange: ReturnType<typeof vi.fn>;
+let onChange: ReturnType<typeof vi.fn<(source: string) => void>>;
 
 function setup(position: number) {
   parent = document.createElement("div");

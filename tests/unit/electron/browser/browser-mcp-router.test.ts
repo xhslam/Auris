@@ -39,12 +39,14 @@ const {
   };
   getBrowserDispatcherErrorData: (error: unknown) => null | Record<string, unknown>;
 };
+type BrowserDispatch = Parameters<typeof createBrowserMcpRouter>[0]["dispatchBrowserRequest"];
+
 const canonical = require("../../../../electron/shared/browser-contract.cjs");
 
 describe("Browser MCP router", () => {
   it("keeps Notes methods on the renderer forwarding path", async () => {
     const forwardNotesRequest = vi.fn(async () => ({ source: "# Note" }));
-    const dispatchBrowserRequest = vi.fn(async () => ({ ok: true }));
+    const dispatchBrowserRequest = vi.fn<BrowserDispatch>(async () => ({ ok: true }));
     const router = createBrowserMcpRouter({ dispatchBrowserRequest, forwardNotesRequest });
 
     await expect(router.route({
@@ -63,7 +65,7 @@ describe("Browser MCP router", () => {
   });
 
   it("terminates Browser methods at the injected main-process dispatcher", async () => {
-    const dispatchBrowserRequest = vi.fn(async () => ({ ok: true }));
+    const dispatchBrowserRequest = vi.fn<BrowserDispatch>(async () => ({ ok: true }));
     const forwardNotesRequest = vi.fn();
     const router = createBrowserMcpRouter({ dispatchBrowserRequest, forwardNotesRequest });
 
@@ -95,7 +97,7 @@ describe("Browser MCP router", () => {
   });
 
   it("revalidates the request and derives the action timeout in main", async () => {
-    const dispatchBrowserRequest = vi.fn(async () => ({ ok: true }));
+    const dispatchBrowserRequest = vi.fn<BrowserDispatch>(async () => ({ ok: true }));
     const router = createBrowserMcpRouter({
       dispatchBrowserRequest,
       forwardNotesRequest: vi.fn(),
@@ -226,7 +228,7 @@ describe("Browser MCP router", () => {
       },
     },
   ])("rejects $label before main dispatch", async ({ params }) => {
-    const dispatchBrowserRequest = vi.fn(async () => ({ ok: true }));
+    const dispatchBrowserRequest = vi.fn<BrowserDispatch>(async () => ({ ok: true }));
     const router = createBrowserMcpRouter({
       dispatchBrowserRequest,
       forwardNotesRequest: vi.fn(),
@@ -280,7 +282,7 @@ describe("Browser MCP router", () => {
       },
     },
   ])("passes a canonical $params.request.action envelope", async ({ expected, params }) => {
-    const dispatchBrowserRequest = vi.fn(async () => ({ ok: true }));
+    const dispatchBrowserRequest = vi.fn<BrowserDispatch>(async () => ({ ok: true }));
     const router = createBrowserMcpRouter({
       dispatchBrowserRequest,
       forwardNotesRequest: vi.fn(),
@@ -297,11 +299,11 @@ describe("Browser MCP router", () => {
   });
 
   it("allows a real wait action to consume its full action budget", async () => {
-    const dispatchBrowserRequest = vi.fn(async ({ params }: {
-      params: { request: { milliseconds: number } };
-    }) => {
-      await new Promise((resolve) => setTimeout(resolve, params.request.milliseconds));
-      return { waited: params.request.milliseconds };
+    const dispatchBrowserRequest = vi.fn<BrowserDispatch>(async ({ params }) => {
+      const request = canonical.browserActionRequestSchema.parse(params.request);
+      if (request.action !== "wait") throw new Error("Expected wait fixture");
+      await new Promise((resolve) => setTimeout(resolve, request.milliseconds));
+      return { waited: request.milliseconds };
     });
     const router = createBrowserMcpRouter({
       dispatchBrowserRequest,
@@ -413,10 +415,10 @@ describe("Browser MCP router", () => {
   });
 
   it("keeps injected fixed deadlines exact while aborting and clearing hung requests", async () => {
-    let firstSignal: AbortSignal | null = null;
+    const firstSignal: { current: AbortSignal | null } = { current: null };
     const dispatchBrowserRequest = vi.fn(({ signal }: { signal: AbortSignal }) => {
-      if (!firstSignal) {
-        firstSignal = signal;
+      if (!firstSignal.current) {
+        firstSignal.current = signal;
         return new Promise(() => undefined);
       }
       return Promise.resolve({ recovered: true });
@@ -440,7 +442,7 @@ describe("Browser MCP router", () => {
       message: "Browser MCP request timed out.",
     });
     expect(Date.now() - startedAt).toBeLessThan(100);
-    expect(firstSignal?.aborted).toBe(true);
+    expect(firstSignal.current?.aborted).toBe(true);
 
     await expect(router.route({
       connectionId: "connection-main-owned",

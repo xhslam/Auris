@@ -19,7 +19,7 @@ describe('SessionService', () => {
   const mockSession: SessionRecord = {
     id: 'session-123',
     userId: 'user-456',
-    sourceType: 'manual',
+    sourceType: 'paste',
     title: 'Test Session',
     originalText: 'Hello world',
     normalizedText: 'Hello world',
@@ -120,7 +120,7 @@ describe('SessionService', () => {
     it('should create a new session', async () => {
       const input = {
         userId: 'user-456',
-        sourceType: 'manual' as const,
+        sourceType: 'paste' as const,
         title: 'New Session',
         originalText: 'Test text',
       };
@@ -137,7 +137,7 @@ describe('SessionService', () => {
       await expect(
         service.create({
           userId: '',
-          sourceType: 'manual',
+          sourceType: 'paste',
           title: 'Test',
           originalText: 'Test',
         })
@@ -148,7 +148,7 @@ describe('SessionService', () => {
       await expect(
         service.create({
           userId: 'user-456',
-          sourceType: 'manual',
+          sourceType: 'paste',
           title: '',
           originalText: 'Test',
         })
@@ -159,7 +159,7 @@ describe('SessionService', () => {
       await expect(
         service.create({
           userId: 'user-456',
-          sourceType: 'manual',
+          sourceType: 'paste',
           title: 'Test',
           originalText: '',
         })
@@ -170,7 +170,7 @@ describe('SessionService', () => {
       await expect(
         service.create({
           userId: 'user-456',
-          sourceType: 'manual',
+          sourceType: 'paste',
           title: 'Test',
           originalText: 'a'.repeat(50001),
         })

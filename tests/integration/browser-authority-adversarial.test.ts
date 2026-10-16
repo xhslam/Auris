@@ -39,6 +39,11 @@ function createAdversarialFixture({
   capabilities = createBrowserCapabilities(),
   sessionService = null,
   sessionCapabilities = null,
+}: {
+  automationMode?: string;
+  capabilities?: ReturnType<typeof createBrowserCapabilities>;
+  sessionService?: unknown;
+  sessionCapabilities?: unknown;
 } = {}) {
   const registry = createBrowserRegistry();
   const leases = createBrowserLeaseManager();

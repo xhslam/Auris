@@ -2,10 +2,10 @@ import { act, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DesktopIslandSyncHost } from "@/components/desktop/desktop-island-sync-host";
 import { DESKTOP_ISLAND_TASKS_KEY, createEmptyDesktopIslandTaskState } from "@/features/desktop-island/desktop-island-task-store";
-import type { DesktopIslandRendererIntent } from "@/features/desktop-island/desktop-island.types";
+import type { DesktopIslandContentSnapshot, DesktopIslandRendererIntent, DesktopIslandSettings, DesktopIslandSyncResult } from "@/features/desktop-island/desktop-island.types";
 
 const island = {
-  acknowledgeIntent: vi.fn(async () => undefined),
+  acknowledgeIntent: vi.fn<(actionId: string) => Promise<void>>(async () => undefined),
   getSettings: vi.fn(async () => ({ enabled: true, expandOnHover: true, placement: "top" as const, privacyMode: false })),
   listPendingIntents: vi.fn(async () => [] as DesktopIslandRendererIntent[]),
   listener: null as ((intent: DesktopIslandRendererIntent) => void) | null,
@@ -13,8 +13,8 @@ const island = {
     island.listener = listener;
     return () => { island.listener = null; };
   }),
-  syncSnapshot: vi.fn(async () => ({ accepted: true, revision: 1 })),
-  updateSettings: vi.fn(async () => ({ enabled: true, expandOnHover: true, placement: "top" as const, privacyMode: false })),
+  syncSnapshot: vi.fn<(snapshot: DesktopIslandContentSnapshot) => Promise<DesktopIslandSyncResult>>(async () => ({ accepted: true, revision: 1 })),
+  updateSettings: vi.fn<(patch: Partial<DesktopIslandSettings>) => Promise<DesktopIslandSettings>>(async () => ({ enabled: true, expandOnHover: true, placement: "top", privacyMode: false })),
 };
 
 vi.mock("@/platform/desktop/use-hydrated-desktop-bridge", () => ({
@@ -48,7 +48,9 @@ describe("DesktopIslandSyncHost", () => {
 
     render(<DesktopIslandSyncHost />);
     await waitFor(() => expect(island.syncSnapshot).toHaveBeenCalled());
-    expect(island.syncSnapshot.mock.calls[0][0].tasks.items[0]).toMatchObject({
+    const firstCall = island.syncSnapshot.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    expect(firstCall?.[0].tasks.items[0]).toMatchObject({
       done: false, id: "task-1", title: "整理阅读笔记",
     });
 

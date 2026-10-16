@@ -8,7 +8,7 @@ type IslandService = {
   listPendingIntents: () => Array<{ actionId: string }>;
   getSettings: () => Record<string, unknown>;
   start: () => void;
-  syncSnapshot: (snapshot: ReturnType<typeof snapshot>) => { revision: number };
+  syncSnapshot: (snapshotPayload: ReturnType<typeof snapshot>) => { revision: number };
 };
 const { DesktopIslandService } = require(
   "../../../electron/desktop-island/desktop-island-service.cjs",

@@ -50,7 +50,13 @@ describe("unknown text fallback", () => {
   });
 
   it("does not materialize an unknown binary file as an editable document", async () => {
-    const client = { readFile: async () => "\u0000\u0001PNG\r\n" } as VaultClient;
+    const client: VaultClient = {
+      readFile: async () => "\u0000\u0001PNG\r\n",
+      createDirectory: async () => undefined, deleteEntry: async () => undefined,
+      listEntries: async () => [], moveEntry: async () => undefined,
+      renameEntry: async () => undefined, rootPath: null,
+      subscribeToChanges: () => () => undefined, writeFile: async () => undefined,
+    };
     await expect(
       loadNoteDocument(client, { mtime: null, path: "asset.custom" }),
     ).resolves.toBeNull();

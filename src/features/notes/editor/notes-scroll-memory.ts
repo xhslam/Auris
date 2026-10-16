@@ -9,6 +9,9 @@ const saveThrottleMs = 150;
 
 let activeRestore: (() => void) | null = null;
 let restoreEpoch = 0;
+// Explicit navigation outranks remembered pixels, including a not-yet-run frame.
+// Adapted invariant: VMark 8887701db, sourcePendingNav/restoreChoice (#1561).
+let navigationVersion = 0;
 
 function isUsablePath(path: string | null | undefined): path is string {
   return Boolean(path && path.trim());
@@ -39,6 +42,12 @@ export function resetNotesScrollMemoryForTests(): void {
   for (const path of Object.keys(offsetsByPath)) delete offsetsByPath[path];
   cancelNotesScrollRestore();
   restoreEpoch = 0;
+  navigationVersion = 0;
+}
+
+/** Captured by mount-time frames so an intervening explicit jump wins. */
+export function getNotesScrollNavigationVersion(): number {
+  return navigationVersion;
 }
 
 /** Finds the editor-owned scrolling element before falling back to an ancestor surface. */
@@ -95,7 +104,9 @@ export function restoreNotesScroll(
   container: HTMLElement | null,
   offset: number | undefined,
 ): void {
-  cancelNotesScrollRestore();
+  // Replacing an internal restore is not a new navigation intent: another
+  // surface's pending mount frame must not be invalidated by this one.
+  activeRestore?.();
   if (!container || offset === undefined || !Number.isFinite(offset)) return;
   restoreEpoch += 1;
   if (offset <= 0) {
@@ -134,5 +145,7 @@ export function restoreNotesScroll(
 
 /** Explicit navigation (outline, search, links or selection) takes viewport ownership. */
 export function cancelNotesScrollRestore(): void {
+  navigationVersion += 1;
+  restoreEpoch += 1;
   activeRestore?.();
 }

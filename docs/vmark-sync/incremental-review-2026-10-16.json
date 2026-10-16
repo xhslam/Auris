@@ -1,0 +1,438 @@
+{
+  "baselineCommit": "f2bf1b3fce06ca21fe7cd19382bef9c4774d0558",
+  "upstreamCommit": "8887701db097cef0dea00584b70a0ea1dac5ae05",
+  "firstParentCommits": 7,
+  "files": 84,
+  "scope": "Incremental applicability inventory; not full historical alignment certification. agy independently reviewed only f2bf1b3fc..220d84399; ChatGPT reviewed later commits and owns implementation.",
+  "commits": [
+    "8887701db097cef0dea00584b70a0ea1dac5ae05 fix: restore the reading position on tab switch even with a cursor (fixes #1556) (#1561)",
+    "7a6cff673551a198d9f56ea7b5deb3622692b155 fix: stop Source/WYSIWYG flicker loop after F6 in two-document split (fixes #1554) (#1562)",
+    "0d292bd2915d969dc46a9d1587251e90772f81cb fix(capabilities): grant fs lstat to document windows (#1555) (#1560)",
+    "220d84399523aed7e34b8e3d29c441445c391306 fix(e2e): wait for the workflow step graph to draw before reading it (#1559)",
+    "afa6d5888aee942c8bf2a9bd1dffaa0f8193f0c2 fix(ci): bound both mutation test sets and report timed-out scheduled jobs (fixes #1557) (#1558)",
+    "e0a982d3cf5a5ac635a9e768bfc493bbb89e661a chore(deps): bump the actions-minor-patch group across 1 directory with 2 updates (#1551)",
+    "3d16efe3c357e89c9482c8ce92d8d70f4d21266a chore(deps-dev): bump typescript-eslint (#1552)"
+  ],
+  "changes": [
+    {
+      "status": "M",
+      "path": ".claude/feature-ledger.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/baseline-review.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/ci.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/claude-audit.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/claude.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/gate-liveness.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/mutation.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/release.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/rust-coverage.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/rust-scheduled.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/soak.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/tier0-e2e.yml",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": "e2e/journeys/44-workflow-execution.mjs",
+      "review": "not-applicable-no-equivalent-gha-workflow-canvas"
+    },
+    {
+      "status": "M",
+      "path": "package.json",
+      "review": "reviewed-upstream-dependency-maintenance-not-ported"
+    },
+    {
+      "status": "M",
+      "path": "pnpm-lock.yaml",
+      "review": "reviewed-upstream-dependency-maintenance-not-ported"
+    },
+    {
+      "status": "A",
+      "path": "scripts/check-fs-capability-grants.test.mjs",
+      "review": "not-applicable-tauri-or-rust-specific"
+    },
+    {
+      "status": "A",
+      "path": "scripts/check-mutation-scope.test.mjs",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "A",
+      "path": "scripts/check-rolling-issue-timeouts.test.mjs",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": "scripts/file-size-baseline.json",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/.cargo/mutants.toml",
+      "review": "not-applicable-tauri-or-rust-specific"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/Cargo.lock",
+      "review": "not-applicable-tauri-or-rust-specific"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/capabilities/default.json",
+      "review": "not-applicable-tauri-or-rust-specific"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/capabilities/windows.json",
+      "review": "not-applicable-tauri-or-rust-specific"
+    },
+    {
+      "status": "M",
+      "path": "src-tauri/src/capabilities.test.rs",
+      "review": "not-applicable-tauri-or-rust-specific"
+    },
+    {
+      "status": "A",
+      "path": "src/components/Editor/DocumentSplit/splitModeToggle.test.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/SourceEditor.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/TiptapEditor.sync.test.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/TiptapEditor.test.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/TiptapEditor.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/sourceFocusRestore.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/sourceFocusRestore.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/sourcePendingNav.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/sourcePendingNav.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/useTiptapContentSync.test.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/useTiptapContentSync.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/wysiwygPendingNav.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/components/Editor/wysiwygPendingNav.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/export/resourceResolver.test.ts",
+      "review": "reviewed-tauri-export-implementation-not-ported"
+    },
+    {
+      "status": "M",
+      "path": "src/export/resourceResolver.ts",
+      "review": "reviewed-tauri-export-implementation-not-ported"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useIsFocusedPane.test.tsx",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useIsFocusedPane.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useOutlineSync.test.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useOutlineSync.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useSourceOutlineSync.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useSourcePaneFocus.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useTabModeSync.test.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/hooks/useTabModeSync.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/lib/formats/adapters/yaml.test.ts",
+      "review": "not-applicable-no-equivalent-gha-workflow-canvas"
+    },
+    {
+      "status": "M",
+      "path": "src/lib/formats/adapters/yamlWorkflowChunkFailure.test.tsx",
+      "review": "not-applicable-no-equivalent-gha-workflow-canvas"
+    },
+    {
+      "status": "A",
+      "path": "src/services/editor/restoreChoice.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "A",
+      "path": "src/services/editor/restoreChoice.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/services/editor/scrollPosition.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/services/editor/scrollPosition.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "A",
+      "path": "src/services/editor/tiptapFocus.tabSwitch.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/services/editor/tiptapFocus.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/services/editor/tiptapFocus.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/services/windowClose/tabCleanup.test.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/services/windowClose/tabCleanup.ts",
+      "review": "editor-integration-reviewed-no-same-two-document-pane-architecture"
+    },
+    {
+      "status": "M",
+      "path": "src/test/waitBudget.ts",
+      "review": "not-applicable-no-equivalent-gha-workflow-canvas"
+    },
+    {
+      "status": "M",
+      "path": "src/utils/cursorSync/codemirror.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "A",
+      "path": "src/utils/cursorSync/restoreWithoutScroll.test.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/utils/cursorSync/tiptap.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "src/utils/cursorSync/tiptapAnchors.ts",
+      "review": "reading-navigation-invariant-adapted-not-full-file-port"
+    },
+    {
+      "status": "M",
+      "path": "stryker.config.json",
+      "review": "not-applicable-no-equivalent-ci-infrastructure"
+    },
+    {
+      "status": "M",
+      "path": "website/de/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/de/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/es/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/es/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/fr/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/fr/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/it/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/it/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/ja/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/ja/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/ko/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/ko/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/pt-BR/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/pt-BR/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-CN/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-CN/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-TW/guide/features.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    },
+    {
+      "status": "M",
+      "path": "website/zh-TW/guide/tab-navigation.md",
+      "review": "reference-only-documentation-or-upstream-baseline"
+    }
+  ]
+}

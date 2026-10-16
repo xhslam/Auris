@@ -72,9 +72,9 @@ describe("NiaWorkspaceSurface split layout", () => {
   it("sends usable angry-expression and hop commands from the settings controls", () => {
     render(<NiaWorkspaceSurface />);
     fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
-    fireEvent.click(screen.getByRole("button", { name: "生气", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "生气" }));
     expect(JSON.parse(localStorage.getItem(NIA_AVATAR_CUE_KEY)!)).toMatchObject({ expression: "angry", intensity: 1 });
-    fireEvent.click(screen.getByRole("button", { name: "轻跳", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "轻跳" }));
     expect(JSON.parse(localStorage.getItem(NIA_AVATAR_CUE_KEY)!)).toMatchObject({ motion: "hop" });
   });
 

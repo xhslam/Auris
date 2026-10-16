@@ -15,8 +15,8 @@ function createBridge(): DesktopBridge {
       setActiveView: vi.fn(async () => runtimeState),
       setVisibility: vi.fn(async () => runtimeState),
       syncLayout: vi.fn(async () => ({
-        activeProvider: "chatgpt",
-        activeView: "provider",
+        activeProvider: "chatgpt" as const,
+        activeView: "provider" as const,
         bounds: { height: 700, width: 560, x: 840, y: 40 },
         isOpen: true,
         panelWidth: 560,
@@ -91,27 +91,27 @@ function createBridge(): DesktopBridge {
       })),
       getCapabilities: vi.fn(async () => ({
         locales: ["en-US"],
-        modes: ["preset"],
+        modes: ["preset" as const],
         supportsReferenceAudio: false,
         supportsStylePrompt: true,
       })),
       getStatus: vi.fn(async () => ({
-        activeProvider: "voxcpm",
-        platform: "win32",
+        activeProvider: "voxcpm" as const,
+        platform: "win32" as const,
         reason: null,
-        state: "ready",
+        state: "ready" as const,
       })),
       start: vi.fn(async () => ({
-        activeProvider: "voxcpm",
-        platform: "win32",
+        activeProvider: "voxcpm" as const,
+        platform: "win32" as const,
         reason: null,
-        state: "ready",
+        state: "ready" as const,
       })),
       stop: vi.fn(async () => ({
-        activeProvider: "openai",
-        platform: "win32",
+        activeProvider: "openai" as const,
+        platform: "win32" as const,
         reason: "manual_stop",
-        state: "degraded",
+        state: "degraded" as const,
       })),
     },
     vault: {
@@ -154,12 +154,12 @@ describe("desktop ai bridge", () => {
   });
 
   it("rejects malformed optional ai sections when present", () => {
-    const bridge = createBridge() as DesktopBridge & {
-      aiDock: { setVisibility: () => Promise<unknown> };
-    };
-
-    bridge.aiDock = {
-      setVisibility: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
+    // 边界测试：故意构造缺少 setActiveProvider 等必要方法的畸形 aiDock，验证运行时类型收窄函数 isDesktopBridge 返回 false
+    const bridge = {
+      ...createBridge(),
+      aiDock: {
+        setVisibility: vi.fn(async () => DEFAULT_DESKTOP_RUNTIME_STATE),
+      },
     };
 
     expect(isDesktopBridge(bridge)).toBe(false);

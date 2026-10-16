@@ -14,8 +14,13 @@ function parse(html: string) {
   return template.content;
 }
 
-function entry(lookupKey: string) {
-  const found = wordIndex.entries.find((item) => item.lookupKey === lookupKey);
+type CheckedInVocabEntry = {
+  lookupKey: string;
+  sections: Array<{ lines: string[]; title: string }>;
+};
+
+function entry(lookupKey: string): CheckedInVocabEntry {
+  const found = (wordIndex.entries as CheckedInVocabEntry[]).find((item) => item.lookupKey === lookupKey);
   expect(found, `missing checked-in entry ${lookupKey}`).toBeDefined();
   return found!;
 }

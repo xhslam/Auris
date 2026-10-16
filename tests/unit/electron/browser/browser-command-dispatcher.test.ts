@@ -93,8 +93,11 @@ function createFixture() {
       windowId: window.windowId,
     };
   }
-  const createAiSandboxTarget = vi.fn(async ({ url }: { url: string }) => createTarget(url));
-  const destroyTarget = vi.fn(async () => true);
+  // Malformed adapter attestations are intentional negative fixtures.
+  type Target = Awaited<ReturnType<typeof createTarget>>;
+  type AdapterTarget = Omit<Target, "webContents"> & Partial<Pick<Target, "webContents">>;
+  const createAiSandboxTarget = vi.fn<(input: { url: string }) => Promise<AdapterTarget>>(async ({ url }) => createTarget(url));
+  const destroyTarget = vi.fn<() => Promise<boolean | undefined>>(async () => true);
   const navigationPolicy = createBrowserNavigationPolicy({
     allowLoopback: true,
     resolveDns: async () => ["93.184.216.34"],
@@ -491,7 +494,7 @@ describe("browser command dispatcher", () => {
         await Promise.resolve();
         expect(settled).toBe(false);
       } else {
-        const error = await pending.catch((caught) => caught);
+        const error = await pending.catch((caught: unknown) => caught);
         expect(error).toMatchObject({ code: "CAPABILITY_NOT_VERIFIED" });
         expect(JSON.stringify(serializeBrowserError(error))).not.toContain("native-cleanup-secret");
       }
@@ -518,10 +521,10 @@ describe("browser command dispatcher", () => {
 
   it("destroys a deferred target when the real signal aborts before handoff", async () => {
     const fixture = createFixture();
-    let resolveFactory: (() => void) | null = null;
+    const resolveFactory: { current: (() => void) | null } = { current: null };
     fixture.createAiSandboxTarget.mockImplementationOnce(({ url }) =>
       new Promise((resolve) => {
-        resolveFactory = () => { void fixture.createTarget(url).then(resolve); };
+        resolveFactory.current = () => { void fixture.createTarget(url).then(resolve); };
       }));
     const controller = new AbortController();
     const pending = fixture.dispatcher.dispatch({
@@ -533,10 +536,10 @@ describe("browser command dispatcher", () => {
       },
       signal: controller.signal,
     });
-    await vi.waitFor(() => expect(resolveFactory).toBeTypeOf("function"));
+    await vi.waitFor(() => expect(resolveFactory.current).toBeTypeOf("function"));
 
     controller.abort();
-    resolveFactory?.();
+    resolveFactory.current?.();
     await expect(pending).rejects.toMatchObject({ code: "CANCELLED" });
     expect(fixture.destroyTarget).toHaveBeenCalledOnce();
     expect(fixture.leases.snapshot().leases).toEqual([]);
@@ -546,11 +549,11 @@ describe("browser command dispatcher", () => {
     "cleans a late open target after router %s and leaves later acquisition available",
     async (ending) => {
       const fixture = createFixture();
-      let resolveFactory: (() => void) | null = null;
+      const resolveFactory: { current: (() => void) | null } = { current: null };
       let lateTarget: Awaited<ReturnType<typeof fixture.createTarget>> | null = null;
       fixture.createAiSandboxTarget.mockImplementationOnce(({ url }) =>
         new Promise((resolve) => {
-          resolveFactory = () => {
+          resolveFactory.current = () => {
             void fixture.createTarget(url).then((target) => {
               lateTarget = target;
               resolve(target);
@@ -572,7 +575,7 @@ describe("browser command dispatcher", () => {
       });
       void pending.catch(() => undefined);
       await vi.waitFor(
-        () => expect(resolveFactory).toBeTypeOf("function"),
+        () => expect(resolveFactory.current).toBeTypeOf("function"),
         { interval: 1 },
       );
 
@@ -580,7 +583,7 @@ describe("browser command dispatcher", () => {
       await expect(pending).rejects.toMatchObject({
         code: ending === "timeout" ? -32001 : -32000,
       });
-      resolveFactory?.();
+      resolveFactory.current?.();
       await vi.waitFor(() => expect(fixture.destroyTarget).toHaveBeenCalledOnce());
       const quarantined = lateTarget!;
       expect(fixture.leases.snapshot().leases).toEqual([]);

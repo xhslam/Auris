@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_DESKTOP_RUNTIME_STATE } from "@/features/app-runtime/app-runtime-storage";
+import type { AppRuntimeState, AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import { createFileExportService } from "@/platform/files/file-export-service";
 
 describe("file export service", () => {
@@ -30,7 +31,7 @@ describe("file export service", () => {
         },
         runtimeState: {
           get: async () => runtimeState,
-          importLegacy: async (legacyState) => {
+          importLegacy: async (legacyState: AppRuntimeState) => {
             runtimeState = {
               ...runtimeState,
               ...legacyState,
@@ -38,7 +39,7 @@ describe("file export service", () => {
             };
             return runtimeState;
           },
-          setLastWorkspace: async (workspace) => {
+          setLastWorkspace: async (workspace: AppWorkspaceId) => {
             runtimeState = {
               ...runtimeState,
               lastVisitedAt: "2026-03-26T00:00:00.000Z",
