@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-16T14:51:30.360607+08:00",
+  "sourceCommit": "ee74b47c0b17b2f8d23c3eb64225a522d91dda82",
+  "sourceApp": "/Users/apple/Desktop/大学markdown/release/local-install-20261016-ee74b47/mac-arm64/Auris.app",
+  "installedPath": "/Applications/Auris.app",
+  "backupPath": "/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.18-before-ee74b47-20261016-145130.app",
+  "version": "1.0.18",
+  "userDataReset": false,
+  "releasePublished": false,
+  "sourceAsarSha256": "969c8bb13e97e95e5a06bb9126000babd0c5212b8fdd0921cf2772fd10b4ed13",
+  "previousAsarSha256": "060158cb16350a574cae512d8bbabb5f5b859a37338206a4ffcaafd87973e238",
+  "installedAsarSha256": "969c8bb13e97e95e5a06bb9126000babd0c5212b8fdd0921cf2772fd10b4ed13",
+  "matchesBuild": true,
+  "signatureIntegrityPassed": true,
+  "signatureType": "ad-hoc",
+  "status": "installed_verified_running",
+  "installedReadingSmoke": {
+    "upstream": "8887701db097cef0dea00584b70a0ea1dac5ae05",
+    "checks": [
+      "wysiwyg: switching documents restores reading position with caret present",
+      "wysiwyg: explicit outline bridge jump outlives the previous restore",
+      "source: switching documents restores reading position with caret present",
+      "source: explicit outline bridge jump outlives the previous restore",
+      "temporary note bytes unchanged"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "app": {
+      "version": "1.0.18",
+      "packaged": true,
+      "path": "/Applications/Auris.app/Contents/Resources/app.asar"
+    },
+    "status": "passed"
+  },
+  "normalStartup": {
+    "running": true,
+    "mainPids": [
+      "21760"
+    ],
+    "windowLoaded": true,
+    "startupLog": "/Users/apple/Library/Application Support/Auris/electron-startup.log",
+    "routes": {
+      "/": 200,
+      "/notes": 200,
+      "/video": 200
+    },
+    "origin": "http://127.0.0.1:3000",
+    "passed": true
+  },
+  "verifiedAt": "2026-10-16T14:53:04.008306+08:00",
+  "githubSourcePushed": true,
+  "githubSourceUrl": "https://github.com/xhslam/Auris/commit/ee74b47c0b17b2f8d23c3eb64225a522d91dda82",
+  "githubTypecheck": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/xhslam/Auris/actions/runs/38863151118"
+  },
+  "githubNotesWorkflowAtVerification": "in_progress",
+  "buildTypeCheckingPassed": true,
+  "terminalPermissionsPassed": true,
+  "privacyAuditPassed": true,
+  "packagedMcpSmokePassed": true,
+  "packagedReadingSmoke": {
+    "upstream": "8887701db097cef0dea00584b70a0ea1dac5ae05",
+    "checks": [
+      "wysiwyg: switching documents restores reading position with caret present",
+      "wysiwyg: explicit outline bridge jump outlives the previous restore",
+      "source: switching documents restores reading position with caret present",
+      "source: explicit outline bridge jump outlives the previous restore",
+      "temporary note bytes unchanged"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "app": {
+      "version": "1.0.18",
+      "packaged": true,
+      "path": "/Users/apple/Desktop/大学markdown/release/local-install-20261016-ee74b47/mac-arm64/Auris.app/Contents/Resources/app.asar"
+    },
+    "status": "passed"
+  },
+  "evidenceDirectory": "release/local-install-20261016-ee74b47",
+  "untouchedUserChanges": [
+    ".github/workflows/notes.yml",
+    "docs/icon-fix-2026-09-09/reference-vmark.png (deleted)",
+    "UI_DESIGN_SYSTEM_GUIDE.md (untracked)"
+  ],
+  "prePushSecretScan": {
+    "fullDirectory": "failed_on_ignored_backup_and_mirror_placeholder_literals",
+    "gitTrackedFilesUsingOriginalRules": "passed"
+  },
+  "runtimeTestCaveats": "Prior full suite: 3726 passed, 2 failed; missing release workflow and intermittent video timer assertion; see typescript remediation report. Not rerun/reclassified as fully passing during installation."
+}
