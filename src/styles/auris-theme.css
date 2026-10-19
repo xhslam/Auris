@@ -91,8 +91,8 @@
   pointer-events: auto !important;
 }
 
-/* 折叠态只显示图标；显式展开态由 auris-redesign.css 恢复文字。 */
-.desktop-app-shell[data-sidebar-expanded="false"]
+/* 应用侧栏固定为紧凑图标导航。 */
+.desktop-app-shell
   .desktop-app-sidebar__link-text {
   display: none;
 }

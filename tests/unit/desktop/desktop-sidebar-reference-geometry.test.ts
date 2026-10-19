@@ -25,11 +25,11 @@ function ruleBody(css: string, selector: string) {
 
 describe('Desktop sidebar reference geometry contract', () => {
   // Test that required geometry values exist
-  it('defines the 30px capsule rail width', () => {
+  it('defines the 30px rectangular rail width', () => {
     expect(REDESIGN_CSS).toContain("--sidebar-rail-width: 30px");
   });
 
-  it('positions the in-flow rail at 8px from left and top', () => {
+  it('fills the full-height shell column with no outer margin', () => {
     const rail = ruleBody(
       REDESIGN_CSS,
       '.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar',
@@ -38,7 +38,7 @@ describe('Desktop sidebar reference geometry contract', () => {
     expect(rail).toContain("position: relative");
     expect(rail).toContain("left: auto");
     expect(rail).toContain("top: auto");
-    expect(rail).toContain("margin: 8px 0 8px 8px");
+    expect(rail).toContain("margin: 0");
     expect(rail).toContain("width: 30px");
     expect(rail).toContain("height: auto");
     expect(rail).toContain("display: flex");
@@ -58,29 +58,24 @@ describe('Desktop sidebar reference geometry contract', () => {
       REDESIGN_CSS,
       '.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-frame',
     );
-    const expandedShell = ruleBody(
-      REDESIGN_CSS,
-      '.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]',
-    );
 
-    expect(REDESIGN_CSS).toContain("--sidebar-shell-collapsed-column: 52px");
-    expect(REDESIGN_CSS).toContain("--sidebar-shell-expanded-column: 262px");
+    expect(REDESIGN_CSS).toContain("--sidebar-shell-collapsed-column: 30px");
+    expect(REDESIGN_CSS).not.toContain("--sidebar-shell-expanded-column");
     expect(shell).toContain("display: grid !important");
     expect(shell).toContain(
-      "grid-template-columns: var(--sidebar-shell-collapsed-column, 52px) minmax(0, 1fr)",
+      "grid-template-columns: var(--sidebar-shell-collapsed-column, 30px) minmax(0, 1fr)",
     );
     expect(rail).toContain("position: relative");
-    expect(rail).toContain("margin: 8px 0 8px 8px");
+    expect(rail).toContain("margin: 0");
     expect(rail).toContain("grid-column: 1");
     expect(frame).toContain("grid-column: 2");
     expect(frame).toContain("width: 100%");
-    expect(expandedShell).toContain(
-      "grid-template-columns: var(--sidebar-shell-expanded-column, 262px) minmax(0, 1fr)",
-    );
   });
 
-  it('uses 15px border-radius for capsule shape', () => {
-    expect(REDESIGN_CSS).toContain("border-radius: 15px");
+  it('uses a straight edge without floating shadow', () => {
+    const rail = ruleBody(REDESIGN_CSS, '.desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar');
+    expect(rail).toContain("border-radius: 0");
+    expect(rail).toContain("box-shadow: none");
   });
 
   it('sizes nav items at 28×28px', () => {
@@ -146,27 +141,19 @@ describe('Desktop sidebar reference geometry contract', () => {
     );
   });
 
-  it("keeps the Notes status cluster clear of the floating capsule", () => {
+  it("keeps the Notes status cluster clear of the fixed rail", () => {
     expect(REDESIGN_CSS).toContain(
-      "left: calc(var(--sidebar-rail-left, 8px) + var(--sidebar-rail-width, 30px) + 16px) !important;",
+      "left: calc(var(--sidebar-rail-left, 0px) + var(--sidebar-rail-width, 30px) + 16px) !important;",
     );
     expect(GLOBALS_CSS).not.toContain(
       "left: calc(14px + var(--desktop-app-sidebar-width, 74px) + 16px) !important;",
     );
   });
 
-  it("lets the explicit 240px expanded state reveal all navigation labels", () => {
-    const expandedSelector =
-      '.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]\n  .desktop-app-sidebar';
-    const expanded = ruleBody(REDESIGN_CSS, expandedSelector);
-
-    expect(expanded).toContain("width: var(--auris-sidebar-wide, 240px)");
-    expect(expanded).toContain("border-radius: 16px");
-    expect(REDESIGN_CSS).toMatch(
-      /\[data-sidebar-expanded="true"\][\s\S]*?\.desktop-app-sidebar__link-text\s*\{[\s\S]*?display:\s*inline/,
-    );
-    expect(THEME_CSS).not.toContain(
-      ".desktop-app-sidebar__link-text {\n  display: none !important;",
-    );
+  it("removes expansion geometry and idle hiding from the rail", () => {
+    expect(REDESIGN_CSS).not.toContain("data-sidebar-expanded");
+    expect(REDESIGN_CSS).not.toContain("brand-swap");
+    expect(THEME_CSS).not.toContain("data-sidebar-expanded");
+    expect(REDESIGN_CSS).not.toContain("data-chrome-hidden");
   });
 });

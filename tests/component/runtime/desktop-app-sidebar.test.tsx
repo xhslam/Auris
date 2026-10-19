@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef } from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { DesktopAppSidebar } from "@/components/desktop/desktop-app-sidebar";
 import { DESKTOP_NAV_ITEMS } from "@/components/desktop/desktop-shell-fixtures";
 
@@ -53,13 +53,13 @@ describe("DesktopAppSidebar", () => {
     searchParamsGetMock.mockReturnValue(null);
   });
 
-  it("renders a compact navigation rail with brand and optional expand toggle", () => {
+  it("renders a compact navigation rail with brand and no expansion control", () => {
     render(<DesktopAppSidebar activeNavId="review" activeWorkspace="home" isVisible />);
 
     const sidebar = screen.getByLabelText("App navigation");
 
     expect(sidebar).toHaveAttribute("data-visible", "true");
-    expect(sidebar).toHaveAttribute("data-expanded", "false");
+    expect(sidebar).not.toHaveAttribute("data-expanded");
     expect(
       screen.queryByLabelText("Technical Meeting Rehearsal"),
     ).not.toBeInTheDocument();
@@ -73,6 +73,28 @@ describe("DesktopAppSidebar", () => {
     );
     expect(screen.getAllByRole("link")).toHaveLength(DESKTOP_NAV_ITEMS.length);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("opens the vault list when entering Notes even if it was previously open", async () => {
+    window.sessionStorage.setItem("auris.desktop.notes-vault-open", "true");
+    const { rerender } = render(
+      <DesktopAppSidebar activeNavId="review" activeWorkspace="home" isVisible />,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "本地笔记" }));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/notes"));
+    rerender(<DesktopAppSidebar activeNavId="notes" activeWorkspace="notes" isVisible />);
+    const notes = screen.getByRole("link", { name: "本地笔记" });
+    expect(notes).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("group", { name: "笔记库" })).toBeInTheDocument();
+    fireEvent.click(notes);
+    expect(notes).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("group", { name: "笔记库" })).not.toBeInTheDocument();
+    const hiddenVault = screen.getByRole("group", { name: "笔记库", hidden: true });
+    expect(hiddenVault.closest("[inert]")).not.toBeNull();
+    fireEvent.click(notes);
+    expect(notes).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("group", { name: "笔记库" })).toBeInTheDocument();
+    window.sessionStorage.removeItem("auris.desktop.notes-vault-open");
   });
 
   it("renders the Nia navigation glyph", () => {
@@ -149,126 +171,11 @@ describe("DesktopAppSidebar", () => {
     expect(screen.getByLabelText("阅读精选")).toBeInTheDocument();
   });
 
-  it("shows full feature labels and toggle when expanded", () => {
-    const onToggleExpanded = vi.fn();
-
-    render(
-      <DesktopAppSidebar
-        activeNavId="reading"
-        activeWorkspace="workspace"
-        isExpanded
-        isPersistentRail
-        isVisible={false}
-        onToggleExpanded={onToggleExpanded}
-      />,
-    );
-
-    const sidebar = screen.getByLabelText("App navigation");
-    expect(sidebar).toHaveAttribute("data-expanded", "true");
-    expect(screen.getByText("Auris")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "阅读精选" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "文章" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "书籍" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "题目" })).toBeInTheDocument();
-    expect(screen.getByLabelText("视频")).toHaveAttribute("href", "/video");
-    expect(screen.queryByLabelText("会议片段")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("系统设置")).toBeInTheDocument();
-
-    const toggle = screen.getByRole("button", { name: "收起侧栏" });
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(toggle);
-    expect(onToggleExpanded).toHaveBeenCalledTimes(1);
-  });
-
-  it("merges the brand avatar into a hover-expand control while collapsed", () => {
-    const onToggleExpanded = vi.fn();
-
-    render(
-      <DesktopAppSidebar
-        activeNavId="review"
-        activeWorkspace="home"
-        isExpanded={false}
-        isPersistentRail
-        isVisible={false}
-        onToggleExpanded={onToggleExpanded}
-      />,
-    );
-
-    const toggle = screen.getByRole("button", { name: "展开侧栏" });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(toggle).toHaveClass("desktop-app-sidebar__brand-swap");
-    expect(toggle.querySelector(".desktop-app-sidebar__brand-img")).toBeNull();
-    expect(screen.queryByRole("button", { name: "收起侧栏" })).not.toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(onToggleExpanded).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows the three reading columns beneath the Reading parent", () => {
+  it("keeps reading as an icon link without an expanded tree or toggle", () => {
     pathnameMock.mockReturnValue("/reading");
-    searchParamsGetMock.mockImplementation((key: string) =>
-      key === "filter" ? "article" : null,
-    );
-
-    render(
-      <DesktopAppSidebar
-        activeNavId="reading"
-        activeWorkspace="workspace"
-        isExpanded
-        isPersistentRail
-        isVisible={false}
-        onToggleExpanded={vi.fn()}
-      />,
-    );
-
-    const sidebar = screen.getByLabelText("App navigation");
-    expect(sidebar).toHaveAttribute("data-reading-nav", "true");
-    expect(screen.getByRole("button", { name: "阅读精选" })).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
-    expect(screen.getByRole("link", { name: "文章" })).toHaveAttribute(
-      "href",
-      "/reading",
-    );
-    expect(screen.getByRole("link", { name: "书籍" })).toHaveAttribute(
-      "href",
-      "/reading?filter=book",
-    );
-    expect(screen.getByRole("link", { name: "题目" })).toHaveAttribute(
-      "href",
-      "/reading?filter=exam",
-    );
-    expect(screen.queryByRole("link", { name: "导入" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "阅读概览" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "收藏夹" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "阅读历史" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "文章" })).toHaveAttribute(
-      "data-active",
-      "true",
-    );
-  });
-
-  it("hides the reading curated tree when the sidebar is collapsed", () => {
-    pathnameMock.mockReturnValue("/reading");
-
-    render(
-      <DesktopAppSidebar
-        activeNavId="reading"
-        activeWorkspace="workspace"
-        isExpanded={false}
-        isPersistentRail
-        isVisible={false}
-        onToggleExpanded={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByLabelText("App navigation")).toHaveAttribute(
-      "data-reading-nav",
-      "false",
-    );
-    expect(screen.queryByRole("button", { name: "阅读精选" })).not.toBeInTheDocument();
-    // Collapsed rail still keeps the reading icon link.
-    expect(screen.getByLabelText("阅读精选")).toBeInTheDocument();
+    render(<DesktopAppSidebar activeNavId="reading" activeWorkspace="workspace" isPersistentRail isVisible />);
+    expect(screen.getByRole("link", { name: "阅读精选" })).toHaveAttribute("href", "/reading");
+    expect(screen.queryByRole("button", { name: /展开侧栏|收起侧栏/ })).toBeNull();
   });
 
   it("keeps modified nav link clicks on native browser behavior", () => {

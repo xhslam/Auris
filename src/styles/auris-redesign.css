@@ -63,25 +63,25 @@
   --auris-shadow-float: 0 10px 28px color-mix(in srgb, var(--accent) 18%, transparent);
 
   --auris-sidebar-rail: 30px;
-  --auris-sidebar-wide: 240px;
 
-  /* ── Sidebar capsule-rail geometry (reference contract) ───────────────── */
+
+  /* ── Sidebar fixed-column geometry (reference contract) ───────────────── */
   --sidebar-rail-width: 30px;
-  --sidebar-rail-left: 8px;
-  --sidebar-rail-top: 8px;
-  --sidebar-rail-radius: 15px;
+  --sidebar-rail-left: 0px;
+  --sidebar-rail-top: 0px;
+  --sidebar-rail-radius: 0px;
   --sidebar-item-size: 28px;
   --sidebar-item-radius: 5px;
   --sidebar-item-gap: 4px;
   --sidebar-glyph-size: 14px;
   --sidebar-indicator-width: 2px;
   --sidebar-indicator-height: 20px;
-  --sidebar-shell-gap: 14px;
-  --sidebar-shell-collapsed-column: 52px;
-  --sidebar-shell-expanded-column: 262px;
+  --sidebar-shell-gap: 0px;
+  --sidebar-shell-collapsed-column: 30px;
+
 
   /* ── Sidebar per-theme semantic variables (Night defaults) ────────────── */
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
@@ -186,7 +186,9 @@ body::-webkit-scrollbar-thumb:hover,
   min-height: 0 !important;
   padding: 0 !important;
   gap: 0 !important;
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: var(--sidebar-shell-collapsed-column, 30px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   align-items: stretch;
   background: var(--app-bg);
   overflow: hidden;
@@ -194,16 +196,11 @@ body::-webkit-scrollbar-thumb:hover,
 }
 
 /* The desktop rail is a real shell column, not a layer over page content.
-   8px left inset + 30px rail + 14px content gap = 52px collapsed column. */
+   The full-height rectangular rail fills its reserved 30px column. */
 .desktop-app-shell[data-desktop-runtime="true"] {
   display: grid !important;
-  grid-template-columns: var(--sidebar-shell-collapsed-column, 52px) minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-shell-collapsed-column, 30px) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
-  transition: grid-template-columns 280ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"] {
-  grid-template-columns: var(--sidebar-shell-expanded-column, 262px) minmax(0, 1fr);
 }
 
 .desktop-app-shell__reveal-zone {
@@ -258,25 +255,23 @@ body::-webkit-scrollbar-thumb:hover,
 /* ── 5a. Base (non-desktop fallback) ───────────────────────────────────── */
 
 .desktop-app-sidebar {
-  position: fixed;
-  left: var(--sidebar-rail-left, 8px);
-  top: var(--sidebar-rail-top, 8px);
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  left: auto;
+  top: auto;
   width: var(--sidebar-rail-width, 30px);
-  height: calc(100vh - 16px);
+  height: 100%;
   padding: 0;
   border: 0;
-  border-radius: var(--sidebar-rail-radius, 15px);
+  border-radius: var(--sidebar-rail-radius, 0px);
   overflow: hidden;
   z-index: 90;
   display: flex;
   flex-direction: column;
   align-items: center;
   background: var(--sidebar-rail-bg, #2B2E33);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-  transition:
-    width 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    padding 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: none;
 }
 
 /* ── 5a-i. Brand area ─────────────────────────────────────────────────── */
@@ -291,65 +286,26 @@ body::-webkit-scrollbar-thumb:hover,
   padding: 0;
 }
 
-.desktop-app-sidebar__brand-img {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  object-fit: cover;
+.desktop-app-sidebar__brand-pixel {
+  /* 90% of the previous 28px mark. */
+  width: 25.2px;
+  height: 25.2px;
+  flex: 0 0 auto;
   display: block;
+  color: var(--accent);
   user-select: none;
-  -webkit-user-drag: none;
 }
 
-/* Collapsed expand toggle: transparent by default, visible on rail hover / focus */
-.desktop-app-sidebar__brand-swap {
-  position: relative;
-  width: var(--sidebar-item-size, 28px);
-  height: var(--sidebar-item-size, 28px);
-  padding: 0;
-  border: none;
-  border-radius: var(--sidebar-item-radius, 5px);
-  display: grid;
-  place-items: center;
-  background: transparent;
-  color: transparent;
-  cursor: pointer;
-  overflow: hidden;
-  transition:
-    color 180ms ease,
-    background-color 180ms ease;
+.desktop-app-sidebar__brand-pixel-highlight {
+  fill: color-mix(in srgb, var(--accent) 65%, var(--app-muted));
 }
 
-.desktop-app-sidebar:hover .desktop-app-sidebar__brand-swap,
-.desktop-app-sidebar__brand-swap:focus-visible {
-  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
-}
-
-.desktop-app-sidebar__brand-swap:hover,
-.desktop-app-sidebar__brand-swap:focus-visible {
-  color: var(--sidebar-active-icon, #6BA4F8);
-  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
-}
-
-.desktop-app-sidebar__brand-swap-face {
-  grid-area: 1 / 1;
-  display: grid;
-  place-items: center;
-}
-
-.desktop-app-sidebar__brand-swap-face--logo {
-  display: none;
-}
-
-.desktop-app-sidebar__brand-swap-face--toggle {
-  opacity: 1;
-}
-
-/* Expanded state brand: Auris title + collapse button */
+/* Compact brand */
 .desktop-app-sidebar__brand-main {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
+  width: 100%;
   gap: 10px;
   min-width: 0;
   flex: 1 1 auto;
@@ -357,35 +313,6 @@ body::-webkit-scrollbar-thumb:hover,
 
 .desktop-app-sidebar__brand-copy {
   display: none;
-}
-
-.desktop-app-sidebar__toggle {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: var(--sidebar-item-radius, 5px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sidebar-icon, rgba(215, 217, 222, 0.52));
-  background: transparent;
-  cursor: pointer;
-  transition:
-    color 0.18s ease,
-    background-color 0.18s ease;
-}
-
-.desktop-app-sidebar__toggle:hover,
-.desktop-app-sidebar__toggle:focus-visible {
-  color: var(--sidebar-active-icon, #6BA4F8);
-  background: var(--sidebar-item-hover-bg, rgba(255, 255, 255, 0.045));
-}
-
-.desktop-app-sidebar__toggle-glyph {
-  width: 14px;
-  height: 14px;
 }
 
 /* ── 5a-ii. Navigation layout ─────────────────────────────────────────── */
@@ -548,11 +475,11 @@ body::-webkit-scrollbar-thumb:hover,
   max-height: none;
   min-height: 0;
   padding: 0;
-  margin: 8px 0 8px 8px;
+  margin: 0;
   border: 0;
-  border-radius: 15px;
+  border-radius: 0;
   background: var(--sidebar-rail-bg, #2B2E33);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   transform: none;
@@ -710,150 +637,16 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* ── 5b-ii. Collapsed brand area (desktop) ─────────────────────────────── */
 
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="false"]
+.desktop-app-shell[data-desktop-runtime="true"]
   .desktop-app-sidebar__brand {
   flex-direction: column;
   gap: 0;
   padding: 0;
 }
 
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="false"]
+.desktop-app-shell[data-desktop-runtime="true"]
   .desktop-app-sidebar__brand-copy {
   display: none;
-}
-
-/* ── 5b-iii. Expanded state: 240px floating overlay ────────────────────── */
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar {
-  width: var(--auris-sidebar-wide, 240px);
-  border-radius: 16px;
-  align-items: stretch;
-  padding: 10px 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
-  overflow: hidden;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__brand {
-  justify-content: space-between;
-  padding: 0 2px 8px;
-  margin-bottom: 2px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__brand-main {
-  justify-content: flex-start;
-  gap: 8px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__brand-copy {
-  display: grid;
-  opacity: 1;
-  width: auto;
-  transform: translateX(0);
-  transition:
-    opacity 220ms ease 80ms,
-    transform 220ms ease 80ms;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__brand-copy
-  strong {
-  color: var(--app-text, var(--text));
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__sections,
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__group,
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__nav {
-  align-items: stretch;
-  justify-content: flex-start;
-  width: 100%;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link {
-  width: 100%;
-  height: auto;
-  min-height: 34px;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0;
-  border-radius: 8px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link-leading {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link-mark {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  flex: 0 0 18px;
-  margin: 0;
-  place-items: center;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__glyph {
-  width: 16px;
-  height: 16px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link-text {
-  display: inline;
-  flex: 0 1 auto;
-  margin: 0;
-  opacity: 1;
-  color: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transform: none;
-  transition: opacity 220ms ease 80ms;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link[data-active="true"] {
-  color: var(--sidebar-active-icon, #6BA4F8);
-  background: var(--sidebar-item-active-bg, #333D4B);
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link:hover {
-  transform: translateX(2px);
-}
-
-/* Expanded state owns a wider shell column, so it reflows rather than covers content. */
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar,
-.desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar[data-visible="true"] {
-  width: var(--auris-sidebar-wide, 240px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
 }
 
 .desktop-app-shell[data-desktop-runtime="true"][data-workspace="home"]
@@ -865,9 +658,6 @@ body::-webkit-scrollbar-thumb:hover,
 
 @media (prefers-reduced-motion: reduce) {
   .desktop-app-sidebar,
-  .desktop-app-sidebar__brand-swap,
-  .desktop-app-sidebar__brand-swap-face,
-  .desktop-app-sidebar__toggle,
   .desktop-app-shell[data-desktop-runtime="true"] .desktop-app-sidebar__link {
     animation: none;
     transition: none;
@@ -887,7 +677,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* Night: exact PRD spec values (already in :root defaults) */
 .desktop-app-shell[data-app-theme="night"] {
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
@@ -897,7 +687,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* White */
 .desktop-app-shell[data-app-theme="white"] {
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
@@ -907,7 +697,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* Paper */
 .desktop-app-shell[data-app-theme="paper"] {
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
@@ -917,7 +707,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* Mint */
 .desktop-app-shell[data-app-theme="mint"] {
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
@@ -927,7 +717,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* Tan (sepia) */
 .desktop-app-shell[data-app-theme="sepia"] {
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
@@ -937,143 +727,12 @@ body::-webkit-scrollbar-thumb:hover,
 
 /* Solarized */
 .desktop-app-shell[data-app-theme="solarized"] {
-  --sidebar-rail-bg: var(--app-surface);
+  --sidebar-rail-bg: color-mix(in srgb, var(--app-bg) 70%, var(--app-surface));
   --sidebar-item-hover-bg: var(--app-fill);
   --sidebar-item-active-bg: var(--accent-10);
   --sidebar-icon: var(--app-muted);
   --sidebar-active-icon: var(--accent);
   --sidebar-active-indicator: var(--accent);
-}
-
-/* ---------- 5c. 阅读页展开侧栏：阅读精选手风琴（靠左紧贴 + 右侧箭头） ---------- */
-.desktop-reading-nav {
-  display: none;
-  width: 100%;
-  flex-direction: column;
-  gap: 2px;
-  padding: 2px 0 0;
-  margin: 2px 0 0;
-  border-top: none;
-  border-bottom: none;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar[data-reading-nav="true"]
-  .desktop-reading-nav {
-  display: flex;
-}
-
-.desktop-reading-nav__block,
-.desktop-reading-nav__shortcuts {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 100%;
-}
-
-.desktop-reading-nav__row {
-  width: 100%;
-  min-height: 36px;
-  padding: 8px 6px;
-  border: none;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  background: transparent;
-  color: var(--app-muted, var(--muted));
-  text-decoration: none;
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-  transition:
-    color 0.18s ease,
-    background-color 0.18s ease;
-}
-
-.desktop-reading-nav__row:hover {
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.desktop-reading-nav__row[data-active="true"] {
-  color: var(--accent);
-  background: var(--accent-10);
-}
-
-.desktop-reading-nav__leading {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.desktop-reading-nav__trailing {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  color: inherit;
-  opacity: 0.72;
-}
-
-.desktop-reading-nav__mark {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
-  display: grid;
-  place-items: center;
-}
-
-.desktop-reading-nav__glyph {
-  width: 15px;
-  height: 15px;
-}
-
-.desktop-reading-nav__label {
-  flex: 0 1 auto;
-  min-width: 0;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.desktop-reading-nav__chevron-icon {
-  width: 14px;
-  height: 14px;
-  display: block;
-}
-
-.desktop-reading-nav__children {
-  list-style: none;
-  margin: 0;
-  padding: 2px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  position: relative;
-}
-
-.desktop-reading-nav__children::before {
-  content: "";
-  position: absolute;
-  left: 13px;
-  top: 6px;
-  bottom: 6px;
-  width: 1px;
-  background: var(--app-border, rgba(0, 0, 0, 0.12));
-}
-
-.desktop-reading-nav__row--child {
-  min-height: 34px;
-  padding: 7px 6px 7px 22px;
 }
 
 /* ---------- 6. 通用排版：标题用衬线 ---------- */
@@ -2198,7 +1857,7 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 /* 左簇让开桌面侧栏；右簇让开右下角 AI dock 圆钮。 */
 .desktop-app-shell[data-desktop-runtime="true"]
   .notes-v2__corner-cluster--left {
-  left: calc(var(--sidebar-rail-left, 8px) + var(--sidebar-rail-width, 30px) + 16px) !important;
+  left: calc(var(--sidebar-rail-left, 0px) + var(--sidebar-rail-width, 30px) + 16px) !important;
 }
 
 .desktop-app-frame .notes-v2__corner-cluster--right {
@@ -2480,6 +2139,55 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 /* Notes vaults live under the Notes navigation item instead of consuming a
    separate editor-side column. The compact rail mirrors VMark: each configured
    vault keeps one stable, name-derived glyph and the add control remains a square. */
+.desktop-app-sidebar__nav-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.desktop-notes-vault-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 220ms ease,
+    opacity 180ms ease,
+    visibility 0s linear 220ms;
+}
+
+.desktop-notes-vault-disclosure[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.desktop-notes-vault-disclosure__content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.desktop-notes-vault-disclosure__content > .desktop-notes-vault-nav {
+  margin-top: var(--sidebar-item-gap, 4px);
+}
+
+@starting-style {
+  .desktop-notes-vault-disclosure[data-open="true"] {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-notes-vault-disclosure {
+    transition: none;
+  }
+}
+
 .desktop-notes-vault-nav {
   display: flex;
   flex-direction: column;
@@ -2567,78 +2275,4 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   font-size: 10px;
   line-height: 1.25;
   overflow-wrap: anywhere;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav {
-  align-items: stretch;
-  gap: 2px;
-  padding: 2px 0 6px 26px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__roots {
-  align-items: stretch;
-  gap: 2px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__root,
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__add {
-  display: flex;
-  width: 100%;
-  min-height: 28px;
-  height: auto;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 7px;
-  padding: 5px 7px;
-  border: 0;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  text-align: left;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__root-mark {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
-  font-size: 11px;
-}
-
-.desktop-notes-vault-nav__root-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__root:hover:not(:disabled),
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__root:focus-visible:not(:disabled),
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__add:hover,
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-notes-vault-nav__add:focus-visible {
-  color: var(--accent);
-  background: var(--accent-10);
-  outline: none;
-}
-/* Sidebar geometry baseline: expanded navigation must retain the collapsed
-   rail's vertical anchor (36px brand content + 8px padding + 12px measured gap) and 36px / 4px rhythm. */
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__brand {
-  min-height: 36px;
-  margin-bottom: 12px;
-}
-
-.desktop-app-shell[data-desktop-runtime="true"][data-sidebar-expanded="true"]
-  .desktop-app-sidebar__link {
-  height: 36px !important;
-  min-height: 36px !important;
-  padding: 0 8px !important;
 }

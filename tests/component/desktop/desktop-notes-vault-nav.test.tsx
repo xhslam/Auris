@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DesktopNotesVaultNav } from "@/components/desktop/desktop-notes-vault-nav";
-import { NOTES_FOLDER_NAVIGATE_EVENT } from "@/components/notes-v2/notes-navigation";
+import { NOTES_FOLDER_NAVIGATE_EVENT, NOTES_ROOT_NAVIGATE_EVENT } from "@/components/notes-v2/notes-navigation";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { __resetWorkspaceInstancesForTests } from "@/features/notes/workspace/workspace-instances-store";
 import { resetHydratedDesktopBridgeCacheForTests } from "@/platform/desktop/use-hydrated-desktop-bridge";
@@ -45,9 +45,19 @@ afterEach(() => {
 });
 
 describe("DesktopNotesVaultNav", () => {
+  it("retains current-vault navigation in the browser preview without native add controls", async () => {
+    const onRoot = vi.fn();
+    window.addEventListener(NOTES_ROOT_NAVIGATE_EVENT, onRoot);
+    render(<DesktopNotesVaultNav />);
+    await userEvent.click(screen.getByRole("button", { name: "打开当前笔记库" }));
+    expect(onRoot).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: NOTES_UI_COPY.workspaceRail.add })).not.toBeInTheDocument();
+    window.removeEventListener(NOTES_ROOT_NAVIGATE_EVENT, onRoot);
+  });
+
   it("shows configured vault glyph squares and preserves the compact add square", async () => {
     installVaultBridge();
-    render(<DesktopNotesVaultNav isSidebarExpanded={false} />);
+    render(<DesktopNotesVaultNav />);
 
     const personal = await screen.findByRole("button", {
       name: NOTES_UI_COPY.workspaceRail.activate("个人笔记"),
@@ -68,14 +78,6 @@ describe("DesktopNotesVaultNav", () => {
     expect(screen.queryByText("课程笔记")).not.toBeInTheDocument();
   });
 
-  it("shows vault names as Notes sub-navigation when expanded", async () => {
-    installVaultBridge();
-    render(<DesktopNotesVaultNav isSidebarExpanded />);
-    expect(await screen.findByText("个人笔记")).toBeInTheDocument();
-    expect(screen.getByText("课程笔记")).toBeInTheDocument();
-    expect(screen.getByText("添加笔记库")).toBeInTheDocument();
-  });
-
   it("uses the compact glyph square to open the matching folder browser and keeps native add", async () => {
     const { pickDirectory, setRoot } = installVaultBridge();
     const user = userEvent.setup();
@@ -84,7 +86,7 @@ describe("DesktopNotesVaultNav", () => {
       folderEvents.push(event as CustomEvent<FolderNavigateDetail>);
     };
     window.addEventListener(NOTES_FOLDER_NAVIGATE_EVENT, onFolderNavigate);
-    render(<DesktopNotesVaultNav isSidebarExpanded={false} />);
+    render(<DesktopNotesVaultNav />);
 
     await user.click(
       await screen.findByRole("button", {

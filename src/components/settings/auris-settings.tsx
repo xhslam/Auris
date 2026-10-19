@@ -1810,7 +1810,7 @@ function buildPanel(
             title: "窗口",
             rows: [
               { kind: "toggle", key: "titlebarName", label: "在标题栏显示文件名", desc: "在窗口标题中显示当前文件名" },
-              { kind: "toggle", key: "hideStatus", label: "自动隐藏状态栏", desc: "不与界面交互时隐藏底部状态栏" },
+              { kind: "toggle", key: "hideStatus", label: "自动隐藏状态栏", desc: "静止 3 秒后隐藏底部状态栏，操作界面时显示" },
             ],
           },
           {

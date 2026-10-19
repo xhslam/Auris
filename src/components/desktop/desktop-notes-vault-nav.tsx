@@ -2,27 +2,38 @@
 
 import {
   createNotesFolderNavigateEvent,
+  createNotesRootNavigateEvent,
+  readLastNotesFolder,
 } from "@/components/notes-v2/notes-navigation";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
+import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 import { useWorkspaceRail } from "@/features/notes/workspace/use-workspace-rail";
 
-type DesktopNotesVaultNavProps = {
-  isSidebarExpanded: boolean;
-};
-
-/**
- * Notes 的笔记库属于应用侧栏的二级导航，而不是编辑画布旁的一列。
- *
- * 收起时，每个已授权笔记库以其名称首个可见字形显示为紧凑方块，紧随其后的
- * `+` 方块始终保留为添加入口；展开时，同一组条目展示完整名称。
- */
-export function DesktopNotesVaultNav({
-  isSidebarExpanded,
-}: DesktopNotesVaultNavProps) {
+/** Compact vault glyphs retain full names through labels and tooltips. */
+export function DesktopNotesVaultNav() {
   const rail = useWorkspaceRail();
 
   if (!rail.canSwitch) {
-    return null;
+    // A browser preview has the current vault but no native root-switching IPC.
+    // Preserve its existing folder navigation instead of hiding the whole group.
+    if (getDesktopBridge()) return null;
+    const folder = readLastNotesFolder();
+    const name = folder?.name ?? "当前笔记库";
+    return (
+      <div aria-label="笔记库" className="desktop-notes-vault-nav" role="group">
+        <button
+          aria-label={`打开${name}`}
+          className="desktop-notes-vault-nav__root"
+          title={name}
+          type="button"
+          onClick={() => window.dispatchEvent(createNotesRootNavigateEvent())}
+        >
+          <span aria-hidden="true" className="desktop-notes-vault-nav__root-mark">
+            {Array.from(name)[0]}
+          </span>
+        </button>
+      </div>
+    );
   }
 
   const handleOpenFolder = (entry: (typeof rail.entries)[number]) => {
@@ -42,7 +53,6 @@ export function DesktopNotesVaultNav({
     <div
       aria-label="笔记库"
       className="desktop-notes-vault-nav"
-      data-expanded={isSidebarExpanded ? "true" : "false"}
       role="group"
     >
       <div className="desktop-notes-vault-nav__roots">
@@ -70,11 +80,7 @@ export function DesktopNotesVaultNav({
             >
               {entry.glyph ?? "?"}
             </span>
-            {isSidebarExpanded ? (
-              <span className="desktop-notes-vault-nav__root-name">
-                {entry.displayName}
-              </span>
-            ) : null}
+
           </button>
         ))}
       </div>
@@ -87,7 +93,6 @@ export function DesktopNotesVaultNav({
         type="button"
       >
         <span aria-hidden="true">+</span>
-        {isSidebarExpanded ? <span>添加笔记库</span> : null}
       </button>
       {rail.error ? (
         <p className="desktop-notes-vault-nav__error" role="alert">

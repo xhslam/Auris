@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  Fragment,
-  Suspense,
   useCallback,
   useEffect,
   startTransition,
@@ -13,17 +11,14 @@ import {
   type MouseEventHandler,
 } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-import aurisLogo from "@/app/icon.png";
 
 import {
   DESKTOP_NAV_ITEMS,
   type DesktopNavItem,
   type DesktopNavGroupId,
 } from "@/components/desktop/desktop-shell-fixtures";
-import { DesktopReadingSidebarNav } from "@/components/desktop/desktop-reading-sidebar-nav";
 import { DesktopNotesVaultNav } from "@/components/desktop/desktop-notes-vault-nav";
 import { createNotesRootNavigateEvent } from "@/components/notes-v2/notes-navigation";
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
@@ -32,10 +27,8 @@ import "@/components/auris-ui/auris-ui.css";
 type DesktopAppSidebarProps = {
   activeNavId?: string;
   activeWorkspace: AppWorkspaceId;
-  isExpanded?: boolean;
   isVisible: boolean;
   onNavigate?: () => void;
-  onToggleExpanded?: () => void;
   onBlurCapture?: FocusEventHandler<HTMLElement>;
   onFocusCapture?: FocusEventHandler<HTMLElement>;
   onMouseEnter?: MouseEventHandler<HTMLElement>;
@@ -246,6 +239,7 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
 
 type DesktopSidebarLinkProps = {
   isActive: boolean;
+  isExpanded?: boolean;
   item: DesktopNavItem;
   onActiveClick?: () => void;
   onBeforeNavigate?: () => void;
@@ -254,6 +248,7 @@ type DesktopSidebarLinkProps = {
 
 function DesktopSidebarLink({
   isActive,
+  isExpanded,
   item,
   onActiveClick,
   onBeforeNavigate,
@@ -335,6 +330,7 @@ function DesktopSidebarLink({
   return (
     <Link
       aria-label={item.label}
+      aria-expanded={isExpanded}
       className="desktop-app-sidebar__link"
       data-active={isActive ? "true" : "false"}
       href={item.href}
@@ -354,54 +350,18 @@ function DesktopSidebarLink({
   );
 }
 
-function SidebarToggleGlyph({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="desktop-app-sidebar__toggle-glyph"
-      viewBox="0 0 24 24"
-    >
-      <rect
-        fill="none"
-        height="14"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        width="16"
-        x="4"
-        y="5"
-      />
-      <path
-        d={expanded ? "M10 5v14" : "M14 5v14"}
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
 export function DesktopAppSidebar({
   activeNavId,
   activeWorkspace,
-  isExpanded = false,
   isVisible,
   onNavigate,
-  onToggleExpanded,
   onBlurCapture,
   onFocusCapture,
   onMouseEnter,
   onMouseLeave,
   isPersistentRail = false,
 }: DesktopAppSidebarProps) {
-  const pathname = usePathname();
   const resolvedActiveId = activeNavId ?? (activeWorkspace === "home" ? "review" : activeWorkspace);
-  const isReadingRoute =
-    resolvedActiveId === "reading" ||
-    pathname === "/reading" ||
-    pathname.startsWith("/reading/");
-  const showReadingNav = isExpanded && isReadingRoute;
   const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(readNotesVaultOpen);
   const toggleNotesVaultOpen = useCallback(() => {
     setIsNotesVaultOpen((current) => {
@@ -412,18 +372,17 @@ export function DesktopAppSidebar({
   }, []);
   const handleNotesRootNavigate = useCallback(() => {
     window.dispatchEvent(createNotesRootNavigateEvent());
-    toggleNotesVaultOpen();
-  }, [toggleNotesVaultOpen]);
+    setIsNotesVaultOpen(true);
+    writeNotesVaultOpen(true);
+  }, []);
   const showNotesVaultNav =
-    resolvedActiveId === "notes" && (isNotesVaultOpen || isExpanded);
+    resolvedActiveId === "notes" && isNotesVaultOpen;
 
   return (
     <aside
       aria-label="App navigation"
       aria-hidden={isVisible || isPersistentRail ? undefined : true}
       className="desktop-app-sidebar"
-      data-expanded={isExpanded ? "true" : "false"}
-      data-reading-nav={showReadingNav ? "true" : "false"}
       data-visible={isVisible ? "true" : "false"}
       onBlurCapture={onBlurCapture}
       onFocusCapture={onFocusCapture}
@@ -431,57 +390,24 @@ export function DesktopAppSidebar({
       onMouseLeave={onMouseLeave}
     >
       <div className="desktop-app-sidebar__brand">
-        {isExpanded ? (
-          <>
-            <div className="desktop-app-sidebar__brand-main">
-              <Image
-                alt=""
-                className="desktop-app-sidebar__brand-img"
-                height={28}
-                priority
-                src={aurisLogo}
-                width={28}
-              />
-              <span className="desktop-app-sidebar__brand-copy">
-                <strong>Auris</strong>
-              </span>
-            </div>
-            {onToggleExpanded ? (
-              <button
-                aria-expanded
-                aria-label="收起侧栏"
-                className="desktop-app-sidebar__toggle"
-                onClick={onToggleExpanded}
-                type="button"
-              >
-                <SidebarToggleGlyph expanded />
-              </button>
-            ) : null}
-          </>
-        ) : onToggleExpanded ? (
-          <button
-            aria-expanded={false}
-            aria-label="展开侧栏"
-            className="desktop-app-sidebar__brand-swap"
-            onClick={onToggleExpanded}
-            type="button"
+        <div className="desktop-app-sidebar__brand-main">
+          <svg
+            aria-label="Auris"
+            role="img"
+            className="desktop-app-sidebar__brand-pixel"
+            viewBox="0 0 10 10"
+            shapeRendering="crispEdges"
           >
-            <span className="desktop-app-sidebar__brand-swap-face desktop-app-sidebar__brand-swap-face--toggle">
-              <SidebarToggleGlyph expanded={false} />
-            </span>
-          </button>
-        ) : (
-          <div className="desktop-app-sidebar__brand-main">
-            <Image
-              alt=""
-              className="desktop-app-sidebar__brand-img"
-              height={28}
-              priority
-              src={aurisLogo}
-              width={28}
+            <path
+              fill="currentColor"
+              d="M4 1h2v1H4zM3 2h1v1H3zM6 2h1v1H6zM2 3h1v2H2zM7 3h1v2H7zM1 5h8v1H1zM1 6h1v2H1zM8 6h1v2H8zM0 8h2v1H0zM8 8h2v1H8z"
             />
-          </div>
-        )}
+            <path
+              className="desktop-app-sidebar__brand-pixel-highlight"
+              d="M4 1h2v1H4zM3 2h1v1H3zM2 3h1v2H2z"
+            />
+          </svg>
+        </div>
       </div>
       <div className="desktop-app-sidebar__sections">
         {(isPersistentRail
@@ -491,9 +417,7 @@ export function DesktopAppSidebar({
           renderNavGroup(group, resolvedActiveId, onNavigate, {
             notesVaultOpen: showNotesVaultNav,
             onNotesVaultNavigate: handleNotesRootNavigate,
-            onNotesVaultToggle: handleNotesRootNavigate,
-            sidebarExpanded: isExpanded,
-            replaceReadingWithTree: showReadingNav && group === "primary",
+            onNotesVaultToggle: toggleNotesVaultOpen,
           }),
         )}
 
@@ -513,8 +437,6 @@ function renderNavGroup(
     notesVaultOpen?: boolean;
     onNotesVaultNavigate?: () => void;
     onNotesVaultToggle?: () => void;
-    replaceReadingWithTree?: boolean;
-    sidebarExpanded?: boolean;
   } = {},
 ) {
   const items = getGroupItems(group);
@@ -530,19 +452,12 @@ function renderNavGroup(
         className="desktop-app-sidebar__nav"
       >
         {items.map((item) => {
-          if (options.replaceReadingWithTree && item.id === "reading") {
-            return (
-              <Suspense fallback={null} key="reading-tree">
-                <DesktopReadingSidebarNav />
-              </Suspense>
-            );
-          }
-
           return (
-            <Fragment key={item.id}>
+            <div className="desktop-app-sidebar__nav-entry" key={item.id}>
               <DesktopSidebarLink
                 isActive={item.id === resolvedActiveId}
                 item={item}
+                isExpanded={item.id === "notes" ? Boolean(options.notesVaultOpen) : undefined}
                 onActiveClick={
                   item.id === "notes" ? options.onNotesVaultToggle : undefined
                 }
@@ -551,12 +466,19 @@ function renderNavGroup(
                 }
                 onNavigate={onNavigate}
               />
-              {item.id === "notes" && options.notesVaultOpen ? (
-                <DesktopNotesVaultNav
-                  isSidebarExpanded={Boolean(options.sidebarExpanded)}
-                />
+              {item.id === "notes" && resolvedActiveId === "notes" ? (
+                <div
+                  aria-hidden={!options.notesVaultOpen}
+                  inert={!options.notesVaultOpen}
+                  className="desktop-notes-vault-disclosure"
+                  data-open={Boolean(options.notesVaultOpen)}
+                >
+                  <div className="desktop-notes-vault-disclosure__content">
+                    <DesktopNotesVaultNav />
+                  </div>
+                </div>
               ) : null}
-            </Fragment>
+            </div>
           );
         })}
       </nav>

@@ -1,7 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
+import { saveAppWindowPreferences } from "@/features/appearance/app-window-preferences";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import {
   DEFAULT_DESKTOP_ROUTE_PREFETCHES,
@@ -33,34 +34,18 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/components/desktop/desktop-app-sidebar", () => ({
   DesktopAppSidebar: ({
-    isExpanded,
     isPersistentRail,
     isVisible,
-    onToggleExpanded,
   }: {
-    isExpanded?: boolean;
     isPersistentRail?: boolean;
     isVisible: boolean;
-    onToggleExpanded?: () => void;
   }) => (
     <aside
-      data-expanded={isExpanded ? "true" : "false"}
       data-focus-reveal="false"
       data-persistent-rail={isPersistentRail ? "true" : "false"}
       data-testid="desktop-sidebar"
       data-visible={isVisible ? "true" : "false"}
-    >
-      {onToggleExpanded ? (
-        <button
-          aria-expanded={Boolean(isExpanded)}
-          aria-label={isExpanded ? "收起侧栏" : "展开侧栏"}
-          onClick={onToggleExpanded}
-          type="button"
-        >
-          toggle
-        </button>
-      ) : null}
-    </aside>
+    />
   ),
 }));
 
@@ -152,11 +137,11 @@ describe("DesktopAppFrame", () => {
     const sidebar = screen.getByTestId("desktop-sidebar");
 
     expect(shell).toHaveAttribute("data-sidebar-visible", "false");
-    expect(shell).toHaveAttribute("data-sidebar-expanded", "false");
+    expect(shell).not.toHaveAttribute("data-sidebar-expanded");
     expect(sidebar).toHaveAttribute("data-visible", "false");
     expect(sidebar).toHaveAttribute("data-persistent-rail", "true");
     expect(sidebar).toHaveAttribute("data-focus-reveal", "false");
-    expect(sidebar).toHaveAttribute("data-expanded", "false");
+    expect(sidebar).not.toHaveAttribute("data-expanded");
     expect(screen.queryByTestId("desktop-sidebar-reveal-zone")).not.toBeInTheDocument();
   });
 
@@ -184,53 +169,29 @@ describe("DesktopAppFrame", () => {
     expect(sidebar).toHaveAttribute("data-persistent-rail", "true");
     expect(sidebar).toHaveAttribute("data-focus-reveal", "false");
     expect(shell).toHaveAttribute("data-sidebar-visible", "false");
-    expect(shell).toHaveAttribute("data-sidebar-expanded", "false");
+    expect(shell).not.toHaveAttribute("data-sidebar-expanded");
 
     fireEvent.focus(sidebar);
 
     expect(shell).toHaveAttribute("data-sidebar-visible", "false");
-    expect(shell).toHaveAttribute("data-sidebar-expanded", "false");
+    expect(shell).not.toHaveAttribute("data-sidebar-expanded");
   });
 
-  it("keeps push expand across remounts after the user opens the sidebar", async () => {
-    const user = userEvent.setup();
+  it.each(["home", "notes", "workspace", "assessment"] as const)("keeps the rail visible even when status auto-hide is enabled in %s", (activeWorkspace) => {
+    vi.useFakeTimers();
+    saveAppWindowPreferences({ hideStatus: true, focusDim: 0, titlebarName: false });
+    const { container } = render(<DesktopAppFrame activeWorkspace={activeWorkspace} title="Test" subtitle="Test"><main>content</main></DesktopAppFrame>);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(container.querySelector(".desktop-app-shell")).not.toHaveAttribute("data-chrome-hidden");
+    expect(screen.getByTestId("desktop-sidebar")).toHaveAttribute("data-persistent-rail", "true");
+    act(() => saveAppWindowPreferences({ hideStatus: false, focusDim: 0, titlebarName: false }));
+  });
 
-    const { container, unmount } = render(
-      <DesktopAppFrame activeWorkspace="home" subtitle="Home" title="Workbench">
-        <main>content</main>
-      </DesktopAppFrame>,
-    );
-
-    const shell = container.querySelector(".desktop-app-shell");
-    expect(shell).toHaveAttribute("data-sidebar-expanded", "false");
-    expect(screen.queryByTestId("desktop-sidebar-expand-zone")).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "展开侧栏" }));
-
-    expect(shell).toHaveAttribute("data-sidebar-expanded", "true");
-    expect(screen.getByTestId("desktop-sidebar")).toHaveAttribute("data-expanded", "true");
-    expect(window.sessionStorage.getItem("auris.desktop.sidebar-expanded")).toBe("true");
-
-    unmount();
-
-    const nextRender = render(
-      <DesktopAppFrame activeWorkspace="notes" subtitle="Notes" title="Notebook">
-        <main>notes</main>
-      </DesktopAppFrame>,
-    );
-
-    expect(nextRender.container.querySelector(".desktop-app-shell")).toHaveAttribute(
-      "data-sidebar-expanded",
-      "true",
-    );
-
-    await user.click(screen.getByRole("button", { name: "收起侧栏" }));
-
-    expect(nextRender.container.querySelector(".desktop-app-shell")).toHaveAttribute(
-      "data-sidebar-expanded",
-      "false",
-    );
-    expect(window.sessionStorage.getItem("auris.desktop.sidebar-expanded")).toBe("false");
+  it("ignores the retired expansion preference", () => {
+    window.sessionStorage.setItem("auris.desktop.sidebar-expanded", "true");
+    const { container } = render(<DesktopAppFrame activeWorkspace="notes" subtitle="Notes" title="Notes"><main>notes</main></DesktopAppFrame>);
+    expect(container.querySelector(".desktop-app-shell")).not.toHaveAttribute("data-sidebar-expanded");
+    expect(screen.queryByRole("button", { name: /展开侧栏|收起侧栏/ })).toBeNull();
   });
 
   it("marks the shell as desktop-enabled when the bridge is available after hydration", async () => {
