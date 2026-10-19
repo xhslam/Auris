@@ -11,6 +11,7 @@ import { persistLastWorkspace } from "@/features/app-runtime/app-runtime-storage
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import { useDesktopRoutePrefetch } from "@/platform/desktop/use-desktop-route-prefetch";
 import { useHydratedDesktopBridge } from "@/platform/desktop/use-hydrated-desktop-bridge";
+import { useDesktopReviewMcp } from "@/components/desktop/desktop-review-mcp";
 import { useAppTheme } from "@/features/appearance/use-app-theme";
 
 type DesktopAppFrameProps = {
@@ -35,6 +36,8 @@ export function DesktopAppFrame({
 }: DesktopAppFrameProps) {
   const router = useRouter();
   const { desktopBridge, hasHydratedDesktopBridge } = useHydratedDesktopBridge();
+
+  useDesktopReviewMcp(desktopBridge);
 
   // 全局主题：设置页的单一偏好挂到外壳根上，供所有界面消费。
   const appTheme = useAppTheme();

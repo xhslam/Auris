@@ -21,7 +21,8 @@ import {
   type OutputReviewProject, type OutputReviewState, type ReviewDifficulty,
   type ReviewEvent, type ReviewQueueItem,
 } from "@/features/output-review/output-review-model";
-import { readOutputReviewState, writeOutputReviewState } from "@/features/output-review/output-review-storage";
+import { readOutputReviewState, OUTPUT_REVIEW_STORAGE_EVENT, OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
+import { readReviewMcpState, persistReviewMcpState } from "@/features/output-review/review-mcp-handler";
 import "@/components/review/output-review-page.css";
 
 type ReviewView = "today" | "all" | "projects" | "heatmap";
@@ -66,6 +67,25 @@ export function ReviewPageClient({
   }, [today]);
 
   useEffect(() => {
+    const reload = () => {
+      try {
+        setState(refreshReviewStatuses(readReviewMcpState(window.localStorage), today));
+      } catch {
+        setNotice("本地复习数据不可读取，未覆盖当前内容。");
+      }
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.storageArea === window.localStorage && (event.key === OUTPUT_REVIEW_STORAGE_KEY || event.key === null)) reload();
+    };
+    window.addEventListener(OUTPUT_REVIEW_STORAGE_EVENT, reload);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(OUTPUT_REVIEW_STORAGE_EVENT, reload);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [today]);
+
+  useEffect(() => {
     if (
       initialIntent !== "create-knowledge-point" ||
       !hydrated ||
@@ -97,11 +117,17 @@ export function ReviewPageClient({
   }, [notice]);
 
   const commit = useCallback((updater: (current: OutputReviewState) => OutputReviewState) => {
-    setState((current) => {
-      const next = updater(current);
-      writeOutputReviewState(window.localStorage, next);
-      return next;
-    });
+    try {
+      // Read on every UI action as well: a delayed React snapshot must not
+      // overwrite records just created by the Agent.
+      const next = updater(readReviewMcpState(window.localStorage));
+      persistReviewMcpState(window.localStorage, next);
+      setState(next);
+      return true;
+    } catch {
+      setNotice("保存失败：请检查本地复习数据或存储空间，当前操作未确认。");
+      return false;
+    }
   }, []);
 
   const queue = useMemo(() => getReviewQueue(state, today), [state, today]);
@@ -114,20 +140,20 @@ export function ReviewPageClient({
     if (!point) return;
     if (confirmAction.kind === "complete") {
       const wasDay7 = point.currentStage === "day7";
-      commit((current) => completeCurrentReview(current, point.id));
+      if (!commit((current) => completeCurrentReview(current, point.id))) return;
       setNotice(wasDay7 ? "Day 7 已完成，知识点已标记为掌握。" : "输出复习已完成，后续计划已更新。");
     } else if (confirmAction.kind === "restart") {
-      commit((current) => restartReviewCycle(current, point.id));
+      if (!commit((current) => restartReviewCycle(current, point.id))) return;
       setNotice("已开始新的 1/2/4/7 周期，旧周期保留在历史中。");
     } else if (confirmAction.kind === "master") {
-      commit((current) => setKnowledgePointStatus(current, point.id, "master"));
+      if (!commit((current) => setKnowledgePointStatus(current, point.id, "master"))) return;
       setNotice("知识点已手动标记为掌握。");
     } else if (confirmAction.kind === "archive") {
-      commit((current) => setKnowledgePointStatus(current, point.id, "archive"));
+      if (!commit((current) => setKnowledgePointStatus(current, point.id, "archive"))) return;
       setDetailId(null);
       setNotice("知识点已归档，历史仍然保留。");
     } else {
-      commit((current) => deleteKnowledgePoint(current, point.id));
+      if (!commit((current) => deleteKnowledgePoint(current, point.id))) return;
       setDetailId(null);
       setNotice("知识点及其复习周期已永久删除。");
     }
@@ -163,10 +189,10 @@ export function ReviewPageClient({
           onCancel={() => setFormPoint(null)}
           onSave={(input) => {
             if (formPoint === "new") {
-              commit((current) => createKnowledgePoint(current, input));
+              if (!commit((current) => createKnowledgePoint(current, input))) return;
               setNotice("1/2/4/7 输出复习周期已创建。");
             } else {
-              commit((current) => updateKnowledgePoint(current, formPoint.id, input));
+              if (!commit((current) => updateKnowledgePoint(current, formPoint.id, input))) return;
               setNotice("知识点信息已更新。");
             }
             setFormPoint(null);
@@ -175,7 +201,7 @@ export function ReviewPageClient({
           setProjectFormOpen(false);
           setContinueKnowledgePointAfterProject(false);
         }} onSave={(name, description) => {
-          commit((current) => createProject(current, { name, description }));
+          if (!commit((current) => createProject(current, { name, description }))) return;
           setProjectFormOpen(false);
           setNotice("项目已创建。");
           if (continueKnowledgePointAfterProject) {
@@ -189,7 +215,7 @@ export function ReviewPageClient({
           onClose={() => setDetailId(null)} onEdit={() => setFormPoint(detailPoint)}
           onPauseResume={() => {
             const action = detailPoint.status === "paused" ? "resume" : "pause";
-            commit((current) => setKnowledgePointStatus(current, detailPoint.id, action));
+            if (!commit((current) => setKnowledgePointStatus(current, detailPoint.id, action))) return;
             setNotice(action === "pause" ? "复习周期已暂停。" : "复习周期已从今天恢复。");
           }} point={detailPoint} project={state.projects.find((project) => project.id === detailPoint.projectId)} /> : null}
         {confirmAction ? <ConfirmationDialog action={confirmAction} onCancel={() => setConfirmAction(null)} onConfirm={handleConfirm} /> : null}

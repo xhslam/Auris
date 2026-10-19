@@ -30,6 +30,13 @@ import {
   workflowToolInputSchema,
 } from "./mcp/workflow-tool-contract.mjs";
 
+import {
+  REVIEW_READ_TOOL_DESCRIPTION,
+  REVIEW_MUTATION_TOOL_DESCRIPTION,
+  reviewReadToolInputSchema,
+  reviewMutationToolInputSchema,
+} from "./mcp/review-tool-contract.mjs";
+
 const require = createRequire(import.meta.url);
 const { parseMcpDiscovery } = require("./auris-mcp-config.cjs");
 const { BROWSER_DISPATCH_ERROR_CODE } = require("./browser/browser-mcp-router.cjs");
@@ -523,6 +530,19 @@ export function createAurisNotesMcpServer(bridge = new AurisNotesBridgeClient())
     }
   });
 
+  for (const [name, schema, description, readOnly] of [
+    ["auris_review_read", reviewReadToolInputSchema, REVIEW_READ_TOOL_DESCRIPTION, true],
+    ["auris_review", reviewMutationToolInputSchema, REVIEW_MUTATION_TOOL_DESCRIPTION, false],
+  ]) {
+    server.registerTool(name, {
+      annotations: { destructiveHint: false, idempotentHint: readOnly, openWorldHint: false, readOnlyHint: readOnly },
+      description,
+      inputSchema: schema,
+      outputSchema: GENERIC_OUTPUT_SCHEMA,
+      title: readOnly ? "Auris Review (read-only)" : "Auris Review Creation",
+    }, (input) => call("review.mcp.action", input, () => null));
+  }
+
   return server;
 }
 
@@ -538,6 +558,8 @@ async function main() {
         "auris_browser_read",
         "auris_browser",
         "auris_workflow",
+        "auris_review_read",
+        "auris_review",
       ],
     })}\n`);
     return;

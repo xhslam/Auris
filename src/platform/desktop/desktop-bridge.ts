@@ -677,6 +677,9 @@ export type DesktopBridge = {
       listener: (request: DesktopNotesMcpRequest) => Promise<unknown> | unknown,
     ) => () => void;
   };
+  reviewMcp?: {
+    onRequest: (listener: (request: { method: string; params?: unknown }) => Promise<unknown> | unknown) => () => void;
+  };
   notesRecovery?: DesktopNotesRecoveryBridge;
   plugins: {
     list: () => Promise<DesktopPluginRecord[]>;

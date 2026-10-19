@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReviewPageClient } from "@/components/review/review-page-client";
@@ -10,6 +10,7 @@ import {
   createProject,
   toLocalDateKey,
 } from "@/features/output-review/output-review-model";
+import { executeReviewMcpRequest } from "@/features/output-review/review-mcp-handler";
 import { OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 
 vi.mock("@/components/desktop/desktop-app-frame", () => ({
@@ -19,6 +20,26 @@ vi.mock("@/components/desktop/desktop-app-frame", () => ({
 describe("output review page", () => {
   beforeEach(() => {
     window.localStorage.clear();
+  });
+
+  it("shows Agent-created records live and keeps them when the user creates another project", async () => {
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    act(() => { executeReviewMcpRequest({ method: "review.mcp.action", params: { action: "create_project", name: "Agent 项目" } }, window.localStorage); });
+    expect(await screen.findByText("Agent 项目", { exact: true })).toBeInTheDocument();
+    const stored = JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!);
+    act(() => { executeReviewMcpRequest({ method: "review.mcp.action", params: { action: "create_knowledge_point", project_id: stored.projects[0].id, title: "Agent 知识点" } }, window.localStorage); });
+    await user.click(screen.getByRole("button", { name: /^全部$/ }));
+    expect(await screen.findByText("Agent 知识点", { exact: true })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    await user.click(screen.getByRole("button", { name: "新建项目" }));
+    const form = screen.getByRole("form", { name: "新建项目" });
+    await user.type(within(form).getByLabelText(/项目名称/), "用户项目");
+    await user.click(within(form).getByRole("button", { name: "创建项目" }));
+    const latest = JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!);
+    expect(latest.projects.map((project: { name: string }) => project.name)).toEqual(["Agent 项目", "用户项目"]);
+    expect(latest.knowledgePoints).toHaveLength(1);
   });
 
   it("creates a project and knowledge point, then completes the due output", async () => {

@@ -44,6 +44,35 @@ function invoke(channel, ...args) {
   return ipcRenderer.invoke(channel, ...args);
 }
 
+let reviewMcpSubscriberCount = 0;
+
+function subscribeMcpRequests(listener, reviewOnly) {
+  if (typeof listener !== "function") return () => undefined;
+  const handler = (_event, payload) => {
+    const isReview = payload?.request?.method === "review.mcp.action";
+    if (isReview !== reviewOnly) return;
+    const bridgeRequestId = payload?.bridgeRequestId;
+    Promise.resolve().then(() => listener(payload?.request))
+      .then(result => invoke("shadowing:notes-mcp:resolve-request", bridgeRequestId, result))
+      .catch(error => invoke("shadowing:notes-mcp:reject-request", bridgeRequestId,
+        error instanceof Error ? error.message : String(error)));
+  };
+  ipcRenderer.on(NOTES_MCP_REQUEST_CHANNEL, handler);
+  if (reviewOnly && ++reviewMcpSubscriberCount === 1) {
+    void invoke("shadowing:review-mcp:set-ready", true).catch(() => undefined);
+  }
+  let disposed = false;
+  return () => {
+    if (disposed) return;
+    disposed = true;
+    ipcRenderer.removeListener(NOTES_MCP_REQUEST_CHANNEL, handler);
+    if (reviewOnly && --reviewMcpSubscriberCount === 0) {
+      void invoke("shadowing:review-mcp:set-ready", false).catch(() => undefined);
+    }
+  };
+}
+
+
 const niaWrappers = new Map();
 let niaMainSubscribed = false;
 let niaSyncInFlight = false;
@@ -362,32 +391,10 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     listClients: () => invoke("shadowing:notes-mcp:list-clients"),
     removeClient: (clientId) => invoke("shadowing:notes-mcp:remove-client", clientId),
     updatePolicy: (policy) => invoke("shadowing:notes-mcp:update-policy", policy),
-    onRequest: (listener) => {
-      if (typeof listener !== "function") {
-        return () => undefined;
-      }
-
-      const handler = (_event, payload) => {
-        const bridgeRequestId = payload?.bridgeRequestId;
-
-        Promise.resolve(listener(payload?.request))
-          .then((result) =>
-            invoke("shadowing:notes-mcp:resolve-request", bridgeRequestId, result),
-          )
-          .catch((error) =>
-            invoke(
-              "shadowing:notes-mcp:reject-request",
-              bridgeRequestId,
-              error instanceof Error ? error.message : String(error),
-            ),
-          );
-      };
-      ipcRenderer.on(NOTES_MCP_REQUEST_CHANNEL, handler);
-
-      return () => {
-        ipcRenderer.removeListener(NOTES_MCP_REQUEST_CHANNEL, handler);
-      };
-    },
+    onRequest: (listener) => subscribeMcpRequests(listener, false),
+  },
+  reviewMcp: {
+    onRequest: (listener) => subscribeMcpRequests(listener, true),
   },
   notesRecovery: {
     captureDraft: (draft) =>

@@ -40,6 +40,7 @@ const { createNotesMcpBridge } = require("../../../electron/notes-mcp-bridge.cjs
       url?: string | null;
     };
     resolveRequest: (bridgeRequestId: string, result: unknown) => void;
+    setReviewRendererReady: (ready: boolean) => void;
     start: () => Promise<{
       enabled: boolean;
       port: number | null;
@@ -50,6 +51,37 @@ const { createNotesMcpBridge } = require("../../../electron/notes-mcp-bridge.cjs
 };
 
 describe("notes MCP bridge discovery", () => {
+  it.each([false, true])("routes Review requests and requires verified clients for creation (verified=%s)", async verified => {
+    const writeDiscovery = vi.fn();
+    const rendererSend = vi.fn((_channel: string, payload: { bridgeRequestId: string; request: unknown }) => {
+      bridge.resolveRequest(payload.bridgeRequestId, { received: payload.request });
+    });
+    const bridge = createNotesMcpBridge({
+      getWindow: () => ({ isDestroyed: () => false, webContents: { send: rendererSend } }),
+      logger: vi.fn(), removeDiscovery: vi.fn(), writeDiscovery,
+      verifyClientCredential: async () => verified ? { id: "test-client", kind: "installed-mcp-client", verified: true } : null,
+    });
+    const { port } = await bridge.start();
+    const token = JSON.parse(String(writeDiscovery.mock.calls[0]?.[0])).token;
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/notes-mcp`);
+    try {
+      await authorizeSocket(socket, token);
+      const notReady = await waitForMessage(socket, () => socket.send(JSON.stringify({ id: "early", method: "review.mcp.action", params: { action: "list_projects" } })));
+      expect(notReady).toMatchObject({ error: { message: expect.stringContaining("REVIEW_NOT_READY") } });
+      expect(rendererSend).not.toHaveBeenCalled();
+      bridge.setReviewRendererReady(true);
+      const read = await waitForMessage(socket, () => socket.send(JSON.stringify({ id: "review-read", method: "review.mcp.action", params: { action: "list_projects" } })));
+      expect(read).toMatchObject({ result: { received: { method: "review.mcp.action", params: { action: "list_projects" } } } });
+      rendererSend.mockClear();
+      for (const action of ["create_project", "create_knowledge_point", "unknown_action"]) {
+        const response = await waitForMessage(socket, () => socket.send(JSON.stringify({ id: action, method: "review.mcp.action", params: { action, name: "X" } })));
+        if (verified) expect(response).toMatchObject({ result: { received: { method: "review.mcp.action" } } });
+        else expect(response).toMatchObject({ error: { code: 403 } });
+      }
+      expect(rendererSend).toHaveBeenCalledTimes(verified ? 3 : 0);
+    } finally { socket.close(); bridge.close(); }
+  });
+
   it("allows legacy clients to read but rejects mutations with reinstall guidance", async () => {
     const rendererSend = vi.fn((_channel: string, payload: {
       bridgeRequestId: string;

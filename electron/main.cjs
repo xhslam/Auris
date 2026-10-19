@@ -3628,6 +3628,10 @@ async function createMainWindow() {
     mainWindow?.show();
   });
 
+  mainWindow.webContents.on("did-start-navigation", (_event, _url, isInPlace, isMainFrame) => {
+    if (isMainFrame && !isInPlace) notesMcpBridge?.setReviewRendererReady(false);
+  });
+
   mainWindow.webContents.on("did-fail-load", (_event, errorCode, errorDescription) => {
     writeStartupLog(`createMainWindow:did-fail-load code=${errorCode} message=${errorDescription}`);
   });
@@ -3987,6 +3991,12 @@ function registerDesktopHandlers() {
   ipcMain.handle("shadowing:clipboard:read-text", async (event) => {
     requireTrustedDesktopEvent(event);
     return clipboard.readText();
+  });
+
+  ipcMain.handle("shadowing:review-mcp:set-ready", (event, ready) => {
+    requireTrustedDesktopEvent(event);
+    if (event.sender !== mainWindow?.webContents) throw new Error("Review MCP requires the main workspace.");
+    getNotesMcpBridge().setReviewRendererReady(ready === true);
   });
 
   ipcMain.handle("shadowing:notes-mcp:get-server-info", async (event) => {

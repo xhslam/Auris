@@ -21,6 +21,7 @@ const READ_ONLY_BROWSER_ACTIONS = new Set([
   "wait",
   "wait_for",
 ]);
+const READ_ONLY_REVIEW_ACTIONS = new Set(["list_projects", "list_knowledge_points", "get_knowledge_point"]);
 const READ_ONLY_WORKFLOW_ACTIONS = new Set([
   "get_state",
   "inspect",
@@ -45,6 +46,9 @@ function createUnverifiedPrincipal() {
 }
 
 function requiresVerifiedPrincipal(payload) {
+  if (payload.method === "review.mcp.action") {
+    return !READ_ONLY_REVIEW_ACTIONS.has(payload.params?.action);
+  }
   if (MUTATING_NOTES_METHODS.has(payload.method)) return true;
   if (payload.method === "notes.mcp.document") {
     return payload.params?.action !== "read";
@@ -168,6 +172,7 @@ function createNotesMcpBridge({
 }) {
   let port = null;
   let server = null;
+  let reviewRendererReady = false;
   const instanceId = randomUUID();
   const token = randomUUID();
   const pendingRequests = new Map();
@@ -234,6 +239,9 @@ function createNotesMcpBridge({
   }
 
   function forwardRequestToRenderer(request) {
+    if (request.method === "review.mcp.action" && !reviewRendererReady) {
+      return Promise.reject(new Error("REVIEW_NOT_READY: main workspace is loading; no operation performed. Retry after the workspace is ready."));
+    }
     const window = getWindow();
 
     if (!window || window.isDestroyed()) {
@@ -293,6 +301,11 @@ function createNotesMcpBridge({
           params: payload.params,
           principal: socket.principal,
         });
+        sendSocketJson(socket, createResultResponse(id, result));
+        return;
+      }
+      if (payload.method === "review.mcp.action") {
+        const result = await forwardRequestToRenderer({ method: payload.method, params: payload.params });
         sendSocketJson(socket, createResultResponse(id, result));
         return;
       }
@@ -472,6 +485,7 @@ function createNotesMcpBridge({
     getServerInfo,
     rejectRequest,
     resolveRequest,
+    setReviewRendererReady: (ready) => { reviewRendererReady = ready === true; },
     start,
   };
 }

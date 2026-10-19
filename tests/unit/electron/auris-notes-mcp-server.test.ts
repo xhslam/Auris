@@ -182,6 +182,8 @@ describe("Auris Notes MCP server", () => {
         "auris_browser_read",
         "auris_browser",
         "auris_workflow",
+        "auris_review_read",
+        "auris_review",
       ]);
       expect(tools.tools.filter(({ name }) => name === "auris_browser")).toHaveLength(1);
       const notesCompatibilityProjection = tools.tools
