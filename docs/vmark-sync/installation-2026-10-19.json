@@ -1,0 +1,149 @@
+{
+  "sourceCommit": "fbe589406204bea325b7bb54ed55314e51cf0a84",
+  "version": "1.0.19",
+  "sourceApp": "/Users/apple/Desktop/大学markdown/release/local-install-20261019-v101/mac-arm64/Auris.app",
+  "installedPath": "/Applications/Auris.app",
+  "backupPath": "/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.18-before-v101-20261019-171726.app",
+  "userDataReset": false,
+  "releasePublished": false,
+  "signatureType": "ad-hoc",
+  "startedAt": "2026-10-19T17:17:26.309136",
+  "sourceAsarSha256": "5160bd7dccd689ef92e851d94f29947d8c799ac9378aa2d29e94494360a78dcd",
+  "previousVersion": "1.0.18",
+  "previousAsarSha256": "969c8bb13e97e95e5a06bb9126000babd0c5212b8fdd0921cf2772fd10b4ed13",
+  "installedAsarSha256": "5160bd7dccd689ef92e851d94f29947d8c799ac9378aa2d29e94494360a78dcd",
+  "matchesBuild": true,
+  "signatureIntegrityPassed": true,
+  "normalStartup": {
+    "running": true,
+    "mainPids": [
+      68527
+    ],
+    "windowLoaded": true,
+    "origin": "http://127.0.0.1:3000",
+    "routes": {
+      "/": 200,
+      "/notes": 200,
+      "/video": 200
+    },
+    "passed": true
+  },
+  "status": "installed_verified_running",
+  "verifiedAt": "2026-10-19T17:17:41.089666",
+  "date": "2026-10-19T17:20:08.881153+08:00",
+  "githubSourcePushed": true,
+  "githubSourceUrl": "https://github.com/xhslam/Auris/commit/fbe589406204bea325b7bb54ed55314e51cf0a84",
+  "packagedImageSmoke": {
+    "upstream": "449fbc3e0b25215b3e1e38079ca59999f7a06a2b",
+    "checks": [
+      "rich: near images loaded, offscreen requests deferred, last image loads on scroll",
+      "rich: consecutive images retain placeholders and do not all start on open",
+      "full source remains raw text rather than enabling mixed image previews",
+      "load, scroll and document/mode switching leave original note bytes unchanged",
+      "confirmed source edit saves only the active temporary note and preserves image Markdown"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "app": {
+      "version": "1.0.19",
+      "packaged": true,
+      "path": "/Users/apple/Desktop/大学markdown/release/local-install-20261019-v101/mac-arm64/Auris.app/Contents/Resources/app.asar"
+    },
+    "initialMixedRequests": 7,
+    "consecutiveRequestsAfterSwitchAndTop": 22,
+    "status": "passed"
+  },
+  "installedImageSmoke": {
+    "upstream": "449fbc3e0b25215b3e1e38079ca59999f7a06a2b",
+    "checks": [
+      "rich: near images loaded, offscreen requests deferred, last image loads on scroll",
+      "rich: consecutive images retain placeholders and do not all start on open",
+      "full source remains raw text rather than enabling mixed image previews",
+      "load, scroll and document/mode switching leave original note bytes unchanged",
+      "confirmed source edit saves only the active temporary note and preserves image Markdown"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "app": {
+      "version": "1.0.19",
+      "packaged": true,
+      "path": "/Applications/Auris.app/Contents/Resources/app.asar"
+    },
+    "initialMixedRequests": 7,
+    "consecutiveRequestsAfterSwitchAndTop": 14,
+    "status": "passed"
+  },
+  "packagedMcpSmoke": {
+    "browserState": {
+      "targets": []
+    },
+    "moduleProbe": {
+      "ok": true,
+      "nia": "completed",
+      "browser": "cancelled"
+    },
+    "niaStatus": "completed",
+    "notesState": {
+      "active_tab_id": "packaged-mcp-smoke.md",
+      "capabilities": {
+        "document": [
+          "read",
+          "write"
+        ],
+        "selection": [
+          "get",
+          "set"
+        ],
+        "workspace": [
+          "new",
+          "open",
+          "save",
+          "close",
+          "switch_tab"
+        ]
+      },
+      "tabs": [
+        {
+          "dirty": false,
+          "path": "packaged-mcp-smoke.md",
+          "revision": "sha256-ff63f87c347c5a4aeab1259c8a57f61fa9a6e8e7b3edd0e5e18c7bbed0e73c2b"
+        }
+      ],
+      "vault": {
+        "configured": true
+      }
+    },
+    "ok": true,
+    "tools": [
+      "auris_browser",
+      "auris_browser_read",
+      "auris_document",
+      "auris_selection",
+      "auris_session",
+      "auris_workflow",
+      "auris_workspace"
+    ],
+    "workflowStatus": "completed"
+  },
+  "regression": {
+    "files": 161,
+    "passed": 3004,
+    "failed": 0,
+    "typecheckPassed": true,
+    "lintErrors": 0,
+    "lintWarnings": 18,
+    "buildPassed": true
+  },
+  "privacyAuditPassed": true,
+  "terminalPermissionsPassed": true,
+  "prePushSecretScan": "passed against complete staged tree using original rules",
+  "remoteCiStatus": "not checked; no claim of GitHub Actions success",
+  "normalDesktopScreenshot": "Computer tool requested macOS permissions; no further computer action attempted. Normal startup proved by process/fresh loaded log/HTTP, isolated installed UI by Playwright.",
+  "evidenceDirectory": "release/local-install-20261019-v101",
+  "untouchedUserChanges": [
+    ".github/workflows/notes.yml",
+    "docs/icon-fix-2026-09-09/reference-vmark.png (deleted)",
+    "UI_DESIGN_SYSTEM_GUIDE.md (untracked)"
+  ],
+  "installedFilesRechecked": true
+}
