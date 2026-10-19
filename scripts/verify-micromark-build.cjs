@@ -6,9 +6,11 @@ const path = require("node:path");
 
 const outputRoot = path.resolve(__dirname, "../.next");
 const markers = ["_gfmAutolinkLiteralUnbalanced", "aurisMdastCallbacks", "aurisListItemAt"];
+// ProseMirror runs on the client. Its retained static property survives minification.
+const clientMarkers = [...markers, "aurisDecorationPatch1565"];
 
-function missingPatchMarkers(root) {
-  const missing = new Set(markers);
+function missingPatchMarkers(root, requiredMarkers = markers) {
+  const missing = new Set(requiredMarkers);
   if (!fs.existsSync(root)) return [...missing];
   const pending = [root];
   while (pending.length > 0) {
@@ -27,8 +29,10 @@ function missingPatchMarkers(root) {
   return [...missing];
 }
 
+module.exports = { missingPatchMarkers, clientMarkers };
+if (require.main === module) {
 for (const surface of ["server", "static"]) {
-  const missing = missingPatchMarkers(path.join(outputRoot, surface));
+  const missing = missingPatchMarkers(path.join(outputRoot, surface), surface === "static" ? clientMarkers : markers);
   if (missing.length) {
     console.error(
       `[verify-micromark-build] ${surface} bundle lacks Markdown patch markers: ${missing.join(", ")}. ` +
@@ -39,5 +43,6 @@ for (const surface of ["server", "static"]) {
 }
 
 if (process.exitCode !== 1) {
-  console.log("[verify-micromark-build] all three Markdown patches found in server and client bundles.");
+  console.log("[verify-micromark-build] Markdown patches and client ProseMirror patch found in production bundles.");
+}
 }

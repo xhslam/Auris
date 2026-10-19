@@ -2,17 +2,17 @@
   "schemaVersion": 2,
   "repository": "https://github.com/xiaolai/vmark",
   "baselineCommit": "7c409688dc510d87183bdc46308e1ee645c2579f",
-  "comparedCommit": "8887701db097cef0dea00584b70a0ea1dac5ae05",
+  "comparedCommit": "449fbc3e0b25215b3e1e38079ca59999f7a06a2b",
   "summary": {
     "changed": 2646,
-    "added": 3369,
+    "added": 3392,
     "deleted": 566,
     "renamed": 116,
     "missingAurisTargets": 0,
     "staleMappings": 12,
     "mappedUpstreamChanges": 232,
-    "domainCandidates": 841,
-    "unmappedUpstreamChanges": 5624
+    "domainCandidates": 842,
+    "unmappedUpstreamChanges": 5646
   },
   "upstreamChanges": [
     {
@@ -504,6 +504,10 @@
     },
     {
       "path": ".claude/tdd-guardian/plan-20261002-full-repo-audit-fixes.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/tdd-guardian/plan-20261017-open-cost.md",
       "status": "added"
     },
     {
@@ -1723,6 +1727,10 @@
       "status": "added"
     },
     {
+      "path": "patches/prosemirror-view@1.42.6.patch",
+      "status": "added"
+    },
+    {
       "path": "pnpm-lock.yaml",
       "status": "changed"
     },
@@ -2244,6 +2252,14 @@
     },
     {
       "path": "scripts/check-numeric-env-reads.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-open-cost-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-open-cost-phase.test.mjs",
       "status": "added"
     },
     {
@@ -7708,6 +7724,10 @@
       "status": "changed"
     },
     {
+      "path": "src/bench/openCost.bench.ts",
+      "status": "added"
+    },
+    {
       "path": "src/bench/pipelinePerf.bench.ts",
       "status": "added"
     },
@@ -8694,6 +8714,10 @@
     },
     {
       "path": "src/components/Editor/__tests__/tableFitToWidthCss.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/components/Editor/contentApplied.ts",
       "status": "added"
     },
     {
@@ -10357,6 +10381,10 @@
       "status": "added"
     },
     {
+      "path": "src/contexts/WindowContext.surfaceGate.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/contexts/WindowContext.test.tsx",
       "status": "changed"
     },
@@ -10398,6 +10426,14 @@
     },
     {
       "path": "src/contexts/useWindowReady.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/contexts/windowListening.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/contexts/windowListening.ts",
       "status": "added"
     },
     {
@@ -10623,6 +10659,10 @@
     {
       "path": "src/export/pandocExport.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/export/pandocFormats.ts",
+      "status": "added"
     },
     {
       "path": "src/export/pdf-export-dialog.css",
@@ -14589,6 +14629,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/blockImage/__tests__/loadNearViewport.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/blockImage/manifest.ts",
       "status": "deleted"
     },
@@ -14639,6 +14683,10 @@
     {
       "path": "src/plugins/cjkLetterSpacing/__tests__/cjkLetterSpacing.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/cjkLetterSpacing/__tests__/incrementalStructure.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/cjkLetterSpacing/__tests__/plugin.test.ts",
@@ -16767,6 +16815,30 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/shared/__tests__/decorationSet.differential.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSet.growth.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSet.patchParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSet.render.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSetFixtures.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSetReference.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/shared/__tests__/mediaNodeViewHelpers.test.ts",
       "status": "changed"
     },
@@ -16979,6 +17051,14 @@
     {
       "path": "src/plugins/shared/listHelpers.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/loadImageNearViewport.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/loadImageNearViewport.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/shared/localImagePath.test.ts",
@@ -18424,6 +18504,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/assembly/cjkLetterSpacingLoad.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/assembly/cjkLetterSpacingSetting.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/assembly/compositionOrder.ts",
       "status": "added"
     },
@@ -18437,6 +18525,10 @@
     },
     {
       "path": "src/services/assembly/extensionOrdering.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/assembly/extensionPluginFamilies.test.ts",
       "status": "added"
     },
     {
@@ -30458,6 +30550,10 @@
           "status": "added"
         },
         {
+          "path": "src/components/Editor/contentApplied.ts",
+          "status": "added"
+        },
+        {
           "path": "src/components/Editor/cvIdleEndOfDocument.webkit.test.ts",
           "status": "added"
         },
@@ -35351,6 +35447,14 @@
     },
     {
       "change": {
+        "path": "src/components/Editor/contentApplied.ts",
+        "status": "added"
+      },
+      "decision": "adapt",
+      "domainId": "editor-infrastructure"
+    },
+    {
+      "change": {
         "path": "src/components/Editor/cvIdleEndOfDocument.webkit.test.ts",
         "status": "added"
       },
@@ -40064,6 +40168,10 @@
       "status": "added"
     },
     {
+      "path": ".claude/tdd-guardian/plan-20261017-open-cost.md",
+      "status": "added"
+    },
+    {
       "path": ".claude/tdd-guardian/state.json",
       "status": "changed"
     },
@@ -41276,6 +41384,10 @@
       "status": "added"
     },
     {
+      "path": "patches/prosemirror-view@1.42.6.patch",
+      "status": "added"
+    },
+    {
       "path": "pnpm-lock.yaml",
       "status": "changed"
     },
@@ -41785,6 +41897,14 @@
     },
     {
       "path": "scripts/check-numeric-env-reads.test.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-open-cost-phase.sh",
+      "status": "added"
+    },
+    {
+      "path": "scripts/check-open-cost-phase.test.mjs",
       "status": "added"
     },
     {
@@ -46001,6 +46121,10 @@
       "status": "changed"
     },
     {
+      "path": "src/bench/openCost.bench.ts",
+      "status": "added"
+    },
+    {
       "path": "src/bench/pipelinePerf.bench.ts",
       "status": "added"
     },
@@ -47165,6 +47289,10 @@
       "status": "added"
     },
     {
+      "path": "src/contexts/WindowContext.surfaceGate.test.tsx",
+      "status": "added"
+    },
+    {
       "path": "src/contexts/WindowContext.test.tsx",
       "status": "changed"
     },
@@ -47206,6 +47334,14 @@
     },
     {
       "path": "src/contexts/useWindowReady.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/contexts/windowListening.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/contexts/windowListening.ts",
       "status": "added"
     },
     {
@@ -47431,6 +47567,10 @@
     {
       "path": "src/export/pandocExport.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/export/pandocFormats.ts",
+      "status": "added"
     },
     {
       "path": "src/export/pdf-export-dialog.css",
@@ -50689,6 +50829,10 @@
       "status": "changed"
     },
     {
+      "path": "src/plugins/blockImage/__tests__/loadNearViewport.webkit.test.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/blockImage/manifest.ts",
       "status": "deleted"
     },
@@ -50739,6 +50883,10 @@
     {
       "path": "src/plugins/cjkLetterSpacing/__tests__/cjkLetterSpacing.test.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/cjkLetterSpacing/__tests__/incrementalStructure.test.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/cjkLetterSpacing/__tests__/plugin.test.ts",
@@ -52867,6 +53015,30 @@
       "status": "added"
     },
     {
+      "path": "src/plugins/shared/__tests__/decorationSet.differential.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSet.growth.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSet.patchParity.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSet.render.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSetFixtures.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/__tests__/decorationSetReference.ts",
+      "status": "added"
+    },
+    {
       "path": "src/plugins/shared/__tests__/mediaNodeViewHelpers.test.ts",
       "status": "changed"
     },
@@ -53079,6 +53251,14 @@
     {
       "path": "src/plugins/shared/listHelpers.ts",
       "status": "changed"
+    },
+    {
+      "path": "src/plugins/shared/loadImageNearViewport.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/plugins/shared/loadImageNearViewport.ts",
+      "status": "added"
     },
     {
       "path": "src/plugins/shared/localImagePath.test.ts",
@@ -54524,6 +54704,14 @@
       "status": "added"
     },
     {
+      "path": "src/services/assembly/cjkLetterSpacingLoad.test.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/assembly/cjkLetterSpacingSetting.ts",
+      "status": "added"
+    },
+    {
       "path": "src/services/assembly/compositionOrder.ts",
       "status": "added"
     },
@@ -54537,6 +54725,10 @@
     },
     {
       "path": "src/services/assembly/extensionOrdering.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/services/assembly/extensionPluginFamilies.test.ts",
       "status": "added"
     },
     {

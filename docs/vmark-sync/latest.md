@@ -2,16 +2,16 @@
 
 - Repository: https://github.com/xiaolai/vmark
 - Baseline commit: `7c409688dc510d87183bdc46308e1ee645c2579f`
-- Compared commit: `8887701db097cef0dea00584b70a0ea1dac5ae05`
+- Compared commit: `449fbc3e0b25215b3e1e38079ca59999f7a06a2b`
 - Changed: **2646**
-- Added: **3369**
+- Added: **3392**
 - Deleted: **566**
 - Renamed: **116**
 - Missing Auris targets: **0**
 - Stale mappings: **12**
 - Mapped upstream changes: **232**
-- Capability-domain candidates: **841**
-- Unmapped upstream changes: **5624**
+- Capability-domain candidates: **842**
+- Unmapped upstream changes: **5646**
 
 ## Upstream changes
 
@@ -135,6 +135,7 @@
 - **added** `.claude/tdd-guardian/plan-20260809-followups.md`
 - **added** `.claude/tdd-guardian/plan-20260822-tab-navigation.md`
 - **added** `.claude/tdd-guardian/plan-20261002-full-repo-audit-fixes.md`
+- **added** `.claude/tdd-guardian/plan-20261017-open-cost.md`
 - **changed** `.claude/tdd-guardian/state.json`
 - **added** `.claude/tdd-guardian/tests-20260803-161713.md`
 - **added** `.claude/tdd-guardian/tests-20260822-153000.md`
@@ -439,6 +440,7 @@
 - **added** `patches/mdast-util-to-markdown@2.1.2.patch`
 - **added** `patches/micromark-extension-gfm-autolink-literal@2.1.0.patch`
 - **added** `patches/micromark@4.0.2.patch`
+- **added** `patches/prosemirror-view@1.42.6.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
 - **deleted** `public/dictionaries/de.aff`
@@ -570,6 +572,8 @@
 - **added** `scripts/check-npm-audit.mjs`
 - **added** `scripts/check-npm-audit.test.mjs`
 - **added** `scripts/check-numeric-env-reads.test.mjs`
+- **added** `scripts/check-open-cost-phase.sh`
+- **added** `scripts/check-open-cost-phase.test.mjs`
 - **added** `scripts/check-paydown-phase.sh`
 - **added** `scripts/check-paydown-phase.test.mjs`
 - **added** `scripts/check-plugin-store-coupling.mjs`
@@ -1928,6 +1932,7 @@
 - **added** `src/bench/cjkFormatter.bench.ts`
 - **changed** `src/bench/editor.bench.ts`
 - **changed** `src/bench/helpers.ts`
+- **added** `src/bench/openCost.bench.ts`
 - **added** `src/bench/pipelinePerf.bench.ts`
 - **changed** `src/bench/statusMetrics.bench.ts`
 - **changed** `src/bench/terminal.bench.ts`
@@ -2175,6 +2180,7 @@
 - **added** `src/components/Editor/WorkflowPanel/workflowSnapshots.ts`
 - **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
+- **added** `src/components/Editor/contentApplied.ts`
 - **added** `src/components/Editor/cvIdleEndOfDocument.webkit.test.ts`
 - **added** `src/components/Editor/cvIdleViewportLock.test.ts`
 - **added** `src/components/Editor/cvIdleViewportLock.ts`
@@ -2590,6 +2596,7 @@
 - **added** `src/components/toastIcons.tsx`
 - **added** `src/contexts/WindowContext.restoredGrant.test.tsx`
 - **added** `src/contexts/WindowContext.startupFiles.test.tsx`
+- **added** `src/contexts/WindowContext.surfaceGate.test.tsx`
 - **changed** `src/contexts/WindowContext.test.tsx`
 - **changed** `src/contexts/WindowContext.tsx`
 - **added** `src/contexts/prepareWindowStorage.ts`
@@ -2601,6 +2608,8 @@
 - **added** `src/contexts/useWindowReady.closeListeners.test.tsx`
 - **added** `src/contexts/useWindowReady.test.tsx`
 - **added** `src/contexts/useWindowReady.ts`
+- **added** `src/contexts/windowListening.test.ts`
+- **added** `src/contexts/windowListening.ts`
 - **changed** `src/export/ExportSurface.tsx`
 - **changed** `src/export/PdfExportDialog.tsx`
 - **changed** `src/export/PdfSettingsSidebar.tsx`
@@ -2657,6 +2666,7 @@
 - **added** `src/export/pageSpec.ts`
 - **changed** `src/export/pandocExport.test.ts`
 - **changed** `src/export/pandocExport.ts`
+- **added** `src/export/pandocFormats.ts`
 - **changed** `src/export/pdf-export-dialog.css`
 - **changed** `src/export/pdf-margin-layout.css`
 - **added** `src/export/pdfExportError.test.ts`
@@ -3645,6 +3655,7 @@
 - **deleted** `src/plugins/blockEscape/manifest.ts`
 - **changed** `src/plugins/blockImage/BlockImageNodeView.ts`
 - **changed** `src/plugins/blockImage/__tests__/BlockImageNodeView.test.ts`
+- **added** `src/plugins/blockImage/__tests__/loadNearViewport.webkit.test.ts`
 - **deleted** `src/plugins/blockImage/manifest.ts`
 - **changed** `src/plugins/blockImage/tiptap.test.ts`
 - **changed** `src/plugins/blockImage/tiptap.ts`
@@ -3658,6 +3669,7 @@
 - **changed** `src/plugins/blockquoteEscape/index.ts`
 - **deleted** `src/plugins/blockquoteEscape/manifest.ts`
 - **changed** `src/plugins/cjkLetterSpacing/__tests__/cjkLetterSpacing.test.ts`
+- **added** `src/plugins/cjkLetterSpacing/__tests__/incrementalStructure.test.ts`
 - **changed** `src/plugins/cjkLetterSpacing/__tests__/plugin.test.ts`
 - **changed** `src/plugins/cjkLetterSpacing/index.ts`
 - **deleted** `src/plugins/cjkLetterSpacing/manifest.ts`
@@ -4189,6 +4201,12 @@
 - **changed** `src/plugins/shared/__tests__/WysiwygPopupView.test.ts`
 - **added** `src/plugins/shared/__tests__/blockInsertPos.test.ts`
 - **added** `src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.differential.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.growth.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.patchParity.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.render.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSetFixtures.ts`
+- **added** `src/plugins/shared/__tests__/decorationSetReference.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpers.test.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpersExtra.test.ts`
 - **added** `src/plugins/shared/__tests__/remarkFenceAgreement.test.ts`
@@ -4242,6 +4260,8 @@
 - **added** `src/plugins/shared/lineContent.ts`
 - **changed** `src/plugins/shared/listHelpers.test.ts`
 - **changed** `src/plugins/shared/listHelpers.ts`
+- **added** `src/plugins/shared/loadImageNearViewport.test.ts`
+- **added** `src/plugins/shared/loadImageNearViewport.ts`
 - **added** `src/plugins/shared/localImagePath.test.ts`
 - **added** `src/plugins/shared/localImagePath.ts`
 - **added** `src/plugins/shared/markdownPasteSlice.test.ts`
@@ -4602,10 +4622,13 @@
 - **added** `src/services/assembly/bindHostSettings.test.ts`
 - **added** `src/services/assembly/bindHostSettings.ts`
 - **added** `src/services/assembly/blockMediaExtensions.ts`
+- **added** `src/services/assembly/cjkLetterSpacingLoad.test.ts`
+- **added** `src/services/assembly/cjkLetterSpacingSetting.ts`
 - **added** `src/services/assembly/compositionOrder.ts`
 - **added** `src/services/assembly/createTiptapExtensions.ts`
 - **added** `src/services/assembly/extensionOrdering.test.ts`
 - **added** `src/services/assembly/extensionOrdering.ts`
+- **added** `src/services/assembly/extensionPluginFamilies.test.ts`
 - **added** `src/services/assembly/hostAdapters.ts`
 - **added** `src/services/assembly/linkExtension.ts`
 - **changed** `src/services/assembly/modeSwitchCleanup.test.ts`
@@ -7117,6 +7140,7 @@
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/WorkflowPanel/workflowSnapshots.ts`
 - `editor-infrastructure` (`adapt`): **changed** `src/components/Editor/__tests__/HeadingPicker.test.tsx`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/__tests__/tableFitToWidthCss.test.ts`
+- `editor-infrastructure` (`adapt`): **added** `src/components/Editor/contentApplied.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleEndOfDocument.webkit.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleViewportLock.test.ts`
 - `editor-infrastructure` (`adapt`): **added** `src/components/Editor/cvIdleViewportLock.ts`
@@ -7765,6 +7789,7 @@
 - **added** `.claude/tdd-guardian/plan-20260809-followups.md`
 - **added** `.claude/tdd-guardian/plan-20260822-tab-navigation.md`
 - **added** `.claude/tdd-guardian/plan-20261002-full-repo-audit-fixes.md`
+- **added** `.claude/tdd-guardian/plan-20261017-open-cost.md`
 - **changed** `.claude/tdd-guardian/state.json`
 - **added** `.claude/tdd-guardian/tests-20260803-161713.md`
 - **added** `.claude/tdd-guardian/tests-20260822-153000.md`
@@ -8068,6 +8093,7 @@
 - **added** `patches/mdast-util-to-markdown@2.1.2.patch`
 - **added** `patches/micromark-extension-gfm-autolink-literal@2.1.0.patch`
 - **added** `patches/micromark@4.0.2.patch`
+- **added** `patches/prosemirror-view@1.42.6.patch`
 - **changed** `pnpm-lock.yaml`
 - **changed** `pnpm-workspace.yaml`
 - **deleted** `public/dictionaries/de.aff`
@@ -8196,6 +8222,8 @@
 - **added** `scripts/check-npm-audit.mjs`
 - **added** `scripts/check-npm-audit.test.mjs`
 - **added** `scripts/check-numeric-env-reads.test.mjs`
+- **added** `scripts/check-open-cost-phase.sh`
+- **added** `scripts/check-open-cost-phase.test.mjs`
 - **added** `scripts/check-paydown-phase.sh`
 - **added** `scripts/check-paydown-phase.test.mjs`
 - **added** `scripts/check-plugin-store-coupling.mjs`
@@ -9242,6 +9270,7 @@
 - **added** `src/bench/cjkFormatter.bench.ts`
 - **changed** `src/bench/editor.bench.ts`
 - **changed** `src/bench/helpers.ts`
+- **added** `src/bench/openCost.bench.ts`
 - **added** `src/bench/pipelinePerf.bench.ts`
 - **changed** `src/bench/statusMetrics.bench.ts`
 - **changed** `src/bench/terminal.bench.ts`
@@ -9533,6 +9562,7 @@
 - **added** `src/components/toastIcons.tsx`
 - **added** `src/contexts/WindowContext.restoredGrant.test.tsx`
 - **added** `src/contexts/WindowContext.startupFiles.test.tsx`
+- **added** `src/contexts/WindowContext.surfaceGate.test.tsx`
 - **changed** `src/contexts/WindowContext.test.tsx`
 - **changed** `src/contexts/WindowContext.tsx`
 - **added** `src/contexts/prepareWindowStorage.ts`
@@ -9544,6 +9574,8 @@
 - **added** `src/contexts/useWindowReady.closeListeners.test.tsx`
 - **added** `src/contexts/useWindowReady.test.tsx`
 - **added** `src/contexts/useWindowReady.ts`
+- **added** `src/contexts/windowListening.test.ts`
+- **added** `src/contexts/windowListening.ts`
 - **changed** `src/export/ExportSurface.tsx`
 - **changed** `src/export/PdfExportDialog.tsx`
 - **changed** `src/export/PdfSettingsSidebar.tsx`
@@ -9600,6 +9632,7 @@
 - **added** `src/export/pageSpec.ts`
 - **changed** `src/export/pandocExport.test.ts`
 - **changed** `src/export/pandocExport.ts`
+- **added** `src/export/pandocFormats.ts`
 - **changed** `src/export/pdf-export-dialog.css`
 - **changed** `src/export/pdf-margin-layout.css`
 - **added** `src/export/pdfExportError.test.ts`
@@ -10414,6 +10447,7 @@
 - **deleted** `src/plugins/blockEscape/manifest.ts`
 - **changed** `src/plugins/blockImage/BlockImageNodeView.ts`
 - **changed** `src/plugins/blockImage/__tests__/BlockImageNodeView.test.ts`
+- **added** `src/plugins/blockImage/__tests__/loadNearViewport.webkit.test.ts`
 - **deleted** `src/plugins/blockImage/manifest.ts`
 - **changed** `src/plugins/blockImage/tiptap.test.ts`
 - **changed** `src/plugins/blockImage/tiptap.ts`
@@ -10427,6 +10461,7 @@
 - **changed** `src/plugins/blockquoteEscape/index.ts`
 - **deleted** `src/plugins/blockquoteEscape/manifest.ts`
 - **changed** `src/plugins/cjkLetterSpacing/__tests__/cjkLetterSpacing.test.ts`
+- **added** `src/plugins/cjkLetterSpacing/__tests__/incrementalStructure.test.ts`
 - **changed** `src/plugins/cjkLetterSpacing/__tests__/plugin.test.ts`
 - **changed** `src/plugins/cjkLetterSpacing/index.ts`
 - **deleted** `src/plugins/cjkLetterSpacing/manifest.ts`
@@ -10958,6 +10993,12 @@
 - **changed** `src/plugins/shared/__tests__/WysiwygPopupView.test.ts`
 - **added** `src/plugins/shared/__tests__/blockInsertPos.test.ts`
 - **added** `src/plugins/shared/__tests__/builtInBlockShortcuts.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.differential.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.growth.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.patchParity.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSet.render.test.ts`
+- **added** `src/plugins/shared/__tests__/decorationSetFixtures.ts`
+- **added** `src/plugins/shared/__tests__/decorationSetReference.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpers.test.ts`
 - **changed** `src/plugins/shared/__tests__/mediaNodeViewHelpersExtra.test.ts`
 - **added** `src/plugins/shared/__tests__/remarkFenceAgreement.test.ts`
@@ -11011,6 +11052,8 @@
 - **added** `src/plugins/shared/lineContent.ts`
 - **changed** `src/plugins/shared/listHelpers.test.ts`
 - **changed** `src/plugins/shared/listHelpers.ts`
+- **added** `src/plugins/shared/loadImageNearViewport.test.ts`
+- **added** `src/plugins/shared/loadImageNearViewport.ts`
 - **added** `src/plugins/shared/localImagePath.test.ts`
 - **added** `src/plugins/shared/localImagePath.ts`
 - **added** `src/plugins/shared/markdownPasteSlice.test.ts`
@@ -11371,10 +11414,13 @@
 - **added** `src/services/assembly/bindHostSettings.test.ts`
 - **added** `src/services/assembly/bindHostSettings.ts`
 - **added** `src/services/assembly/blockMediaExtensions.ts`
+- **added** `src/services/assembly/cjkLetterSpacingLoad.test.ts`
+- **added** `src/services/assembly/cjkLetterSpacingSetting.ts`
 - **added** `src/services/assembly/compositionOrder.ts`
 - **added** `src/services/assembly/createTiptapExtensions.ts`
 - **added** `src/services/assembly/extensionOrdering.test.ts`
 - **added** `src/services/assembly/extensionOrdering.ts`
+- **added** `src/services/assembly/extensionPluginFamilies.test.ts`
 - **added** `src/services/assembly/hostAdapters.ts`
 - **added** `src/services/assembly/linkExtension.ts`
 - **changed** `src/services/assembly/modeSwitchCleanup.test.ts`

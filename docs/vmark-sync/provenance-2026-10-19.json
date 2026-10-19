@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-19",
+  "upstream": {
+    "repository": "https://github.com/xiaolai/vmark",
+    "commit": "449fbc3e0b25215b3e1e38079ca59999f7a06a2b",
+    "functionalCommit": "50191c4ec79d73072cb3d70bfabc47c6cfc52c37",
+    "license": "ISC",
+    "notice": "docs/vmark-port/UPSTREAM-LICENSE.txt"
+  },
+  "mapping": [
+    {
+      "decision": "copied-with-adaptation",
+      "upstreamPaths": [
+        "patches/prosemirror-view@1.42.6.patch"
+      ],
+      "localPaths": [
+        "patches/prosemirror-view+1.42.6.patch"
+      ],
+      "differences": [
+        "patch-package path format",
+        "retained static bundle marker in both builds"
+      ]
+    },
+    {
+      "decision": "adapted",
+      "upstreamPaths": [
+        "src/plugins/shared/loadImageNearViewport.ts",
+        "src/plugins/shared/nearViewport.ts",
+        "src/plugins/blockImage/BlockImageNodeView.ts",
+        "src/plugins/imageView/plugin.ts"
+      ],
+      "localPaths": [
+        "src/features/notes/editor/notes-image-loading.ts",
+        "src/features/notes/editor/notes-rich-image-node-view.ts",
+        "src/features/notes/editor/notes-viewport-render-scheduler.ts"
+      ],
+      "differences": [
+        "reuse existing Auris render queue and observer",
+        "pure synchronous protocol URL resolution",
+        "explicit Auris scroller",
+        "no VMark live-DOM export/busy wait consumer"
+      ]
+    },
+    {
+      "decision": "copied-with-adaptation",
+      "upstreamPaths": [
+        "src/plugins/shared/__tests__/decorationSet*",
+        "src/test/cpuClock.ts"
+      ],
+      "localPaths": [
+        "tests/unit/notes/vmark-decoration/"
+      ],
+      "differences": [
+        "native prosemirror-* imports",
+        "jsdom environment required by Auris setup",
+        "direct dependency parity resolution"
+      ]
+    }
+  ],
+  "sha256": {
+    "patches/prosemirror-view+1.42.6.patch": "0b8bfb261a3258a3ee5e339c417ddd7e12e273620aa60268d77d27eae1e279c9",
+    "scripts/markdown-patch-contract.json": "e0432f34d6a5b1190c00e6fad240e97b9a4adb9cc27522b5eab26d42ff51e08c",
+    "scripts/verify-micromark-build.cjs": "0eaaced4c371a96adca3d4e8c702217b9566d5eb02d4d056a0252120a8c88e5a",
+    "src/components/notes-v2/notes-rich-editor-pane.tsx": "b83a1db61e14460e5b27a45b9d167e87888070b5fa84e7c7575ee92bbd1f927b",
+    "src/features/notes/editor/code-block-preview.ts": "88c4962ae73525e6d49b4fc61d3600555b57e8cb0e8b2977afa34ceb650110a9",
+    "src/features/notes/editor/notes-math-render-scheduler.ts": "63ec36f855692bdd39a5fc74321f36c0f91b68d770b04b4bae813b1ddb6e048a",
+    "src/features/notes/editor/notes-viewport-render-scheduler.ts": "2b74d7494223ea57adb0faefe3b122ed3210385fff459e965e49b80a2a851a24",
+    "src/features/notes/editor/notes-image-loading.ts": "5eed071f2381c54fe1603f19b00d6ff1f7f99e7ebcd74a24345529a007dea938",
+    "src/features/notes/editor/notes-rich-image-node-view.ts": "87effbc48b0a0e0a0016f841f06e6073a81d14264e6256d8bb49c68220d5762b",
+    "tests/unit/notes/markdown-linear-dependencies.test.ts": "ff5fa08727e6f42f5974ca75c5eb736bc4a983360c6f5563b0d7c3483f019a5b",
+    "tests/component/notes/notes-image-loading.test.tsx": "1c8d873cd56c786cf7cf0089aaffbd3765828288f9f03c31b97a3187158d0850",
+    "tests/unit/notes/notes-image-loading.test.ts": "05709ff4379b1a79abea2489763f4176c5d4119e2ae91eaab406133f739c278a",
+    "tests/electron/vmark-20261019-image-smoke.cjs": "bb2f9539c6ee54abd278f388d91beaf193dd6b646f7d066997725d5b8839d611",
+    "tests/unit/notes/vmark-decoration/decorationSetReference.ts": "7009872295b4021922e4c867422b25b5f6742830b5ff9ffe960fb688d0e369ca",
+    "tests/unit/notes/vmark-decoration/VMark-LICENSE.txt": "87b3f4064cb76d1c7cc8c39546d7d62790b76372f37cfb9de1bb828a5f652b51",
+    "tests/unit/notes/vmark-decoration/decorationSet.patchParity.test.ts": "21b35697673634c33de8459c1b7d0da3f0f6f6ef9ea6aebd3959ffe97e02295f",
+    "tests/unit/notes/vmark-decoration/decorationSet.render.test.ts": "3afd4203adaba17fa944ae92c7bcf556b41bf24000552984f22eb10dcb8a6ea4",
+    "tests/unit/notes/vmark-decoration/cpuClock.ts": "5f212810e948c4bafe68badebd358adf19bd8803b778c271cc487b23b9476f97",
+    "tests/unit/notes/vmark-decoration/decorationSet.growth.test.ts": "84d5495fdb9c4c3e6f713f6de9ad3fb000953bba4dbb0975603d118e413d6b77",
+    "tests/unit/notes/vmark-decoration/decorationSetFixtures.ts": "a81336a9909b015a495bc7fa4664afc43a64433fc116b212303a5688fb7f8d35",
+    "tests/unit/notes/vmark-decoration/decorationSet.differential.test.ts": "57fb0df316c9a943a55220b39c2e062255e8991c6f2e2ecfa61238a426e117cf"
+  },
+  "deliveryAdaptations": {
+    "date": "2026-10-19",
+    "version": "1.0.19",
+    "smokeTest": "Adds --app/--out to verify packaged and installed Apps using their bundled server; no development URL override."
+  }
+}

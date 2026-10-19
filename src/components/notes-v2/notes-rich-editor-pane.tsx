@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
@@ -85,6 +86,8 @@ import {
 } from "@/features/notes/editor/editor-table-toolbar";
 import { tableEditing } from "prosemirror-tables";
 import { NotesTableScrollNodeView } from "@/features/notes/editor/notes-table-node-view";
+import { NotesRichImageNodeView } from "@/features/notes/editor/notes-rich-image-node-view";
+import { getNotesMediaReloadKey, subscribeNotesMediaReloadKey } from "@/features/notes/editor/notes-media-reload";
 import type { Plugin } from "prosemirror-state";
 
 const NOTES_RICH_EDITOR_SYNC_META = "shadowing-notes-rich-editor-sync";
@@ -435,6 +438,8 @@ export function NotesRichEditorPane({
     surface: "wysiwyg",
   });
   const viewRef = useRef<EditorView | null>(null);
+  const imageViewsRef = useRef(new Set<NotesRichImageNodeView>());
+  const mediaReloadKey = useSyncExternalStore(subscribeNotesMediaReloadKey, getNotesMediaReloadKey, () => 0);
   const bridgeRef = useRef<NotesEditorBridge | null>(null);
   const lastAppliedSourceRef = useRef<string | null>(null);
   const lastDocumentPathRef = useRef<string | null>(null);
@@ -567,6 +572,11 @@ export function NotesRichEditorPane({
   useLayoutEffect(() => {
     documentPathRef.current = document?.path ?? null;
   }, [document?.path]);
+
+  useEffect(() => {
+    // ProseMirror may reuse an equal image node across different document owners.
+    imageViewsRef.current.forEach((image) => image.refresh());
+  }, [document?.path, mediaReloadKey]);
 
   useEffect(() => {
     onSelectionStateChangeRef.current = onSelectionStateChange;
@@ -1221,6 +1231,14 @@ export function NotesRichEditorPane({
         });
       },
       nodeViews: {
+        image: (node) => {
+          const image = new NotesRichImageNodeView(node, hostRef.current, () => ({
+            path: documentPathRef.current,
+            reloadKey: getNotesMediaReloadKey(),
+          }), () => imageViewsRef.current.delete(image));
+          imageViewsRef.current.add(image);
+          return image;
+        },
         table: (node) => new NotesTableScrollNodeView(node),
         code_block: (node) => new RichCodeBlockView(node),
         math_block: (node, mathView, getPos) =>

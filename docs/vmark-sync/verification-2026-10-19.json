@@ -1,0 +1,89 @@
+{
+  "checkedAt": "2026-10-19T12:56:29.471428+08:00",
+  "upstream": "449fbc3e0b25215b3e1e38079ca59999f7a06a2b",
+  "scope": "source implementation and isolated production-renderer Electron verification, not installed App",
+  "aurisVersion": "1.0.18",
+  "tests": {
+    "command": "npx vitest run tests/unit/notes/ tests/component/notes/ tests/unit/vmark/",
+    "files": 161,
+    "passed": 3004,
+    "failed": 0,
+    "log": "release/vmark-20261019-verification/notes-regression-final.log"
+  },
+  "baselineFailures": {
+    "decorationTests": 126,
+    "decorationTotal": 1323,
+    "imageComponentTests": 3,
+    "remoteRefreshRegression": 1,
+    "notes": "Initial node-environment setup failure excluded from algorithm failure count."
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 18,
+    "exitCode": 0
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit --incremental false",
+    "beforeExitCode": 0,
+    "finalExitCode": 0
+  },
+  "build": {
+    "exitCode": 0,
+    "clientPatchMarkerVerified": true,
+    "staleCacheRejected": true,
+    "log": "release/vmark-20261019-verification/build-final.log"
+  },
+  "cleanPatchInstall": {
+    "exitCode": 0,
+    "bothEntryHashesMatch": true,
+    "fullAurisNpmCiRun": false
+  },
+  "singletons": {
+    "exitCode": 0
+  },
+  "ipc": {
+    "exitCode": 0,
+    "invokes": 126,
+    "handlers": 129
+  },
+  "electron": {
+    "upstream": "449fbc3e0b25215b3e1e38079ca59999f7a06a2b",
+    "checks": [
+      "rich: near images loaded, offscreen requests deferred, last image loads on scroll",
+      "rich: consecutive images retain placeholders and do not all start on open",
+      "full source remains raw text rather than enabling mixed image previews",
+      "load, scroll and document/mode switching leave original note bytes unchanged",
+      "confirmed source edit saves only the active temporary note and preserves image Markdown"
+    ],
+    "rendererErrors": [],
+    "isolatedProfile": true,
+    "initialMixedRequests": 7,
+    "consecutiveRequestsAfterSwitchAndTop": 22,
+    "status": "passed"
+  },
+  "originalFilesPreserved": {
+    "hashes": {
+      ".github/workflows/notes.yml": "ca8ee109a77483733cca065bee9836ccbae06d3650a5dfbed5fa223c48c449c8",
+      "UI_DESIGN_SYSTEM_GUIDE.md": "3b1e23df6c2c528cb26a14c6ccba39842f2cad615f039233d65e743ace7a50e3",
+      "AGENTS.md": "7cd6de96e98436560322341a2b707e60b1ca63607c6ab15f379039c48b773985"
+    },
+    "deletedImageStillAbsent": true
+  },
+  "notPerformed": [
+    "version bump",
+    "App packaging/installation",
+    "git commit/push/tag/release",
+    "Windows/Linux manual run",
+    "all historical mapping verification",
+    "full PDF image decode verification",
+    "full Auris npm ci"
+  ],
+  "review": {
+    "delegations": [
+      "dd17a194-4e78-4bfb-bdc0-6e53ca8213d2",
+      "ff35f303-e0cc-4e12-a990-d9118d69510a"
+    ],
+    "oneP2ResolvedWithFailureFirstRegression": true,
+    "finalBlockingFindings": 0
+  }
+}

@@ -18,7 +18,7 @@ describe("Markdown dependency invariants", () => {
   it("requires exact patched bytes and versions, including the production and development files", () => {
     expect(verifyMarkdownPatches()).toBe(true);
   });
-  it("fails the build gate if an installed production file loses its patch", () => {
+  it.each(["mdast-util-from-markdown/lib/index.js", "prosemirror-view/dist/index.js", "prosemirror-view/dist/index.cjs"])("fails the build gate if an installed file loses its patch: %s", (missingFile) => {
     const directory = mkdtempSync(path.join(tmpdir(), "auris-markdown-gate-"));
     const contract = JSON.parse(readFileSync("scripts/markdown-patch-contract.json", "utf8"));
     try {
@@ -33,8 +33,18 @@ describe("Markdown dependency invariants", () => {
         copyFileSync(path.join("node_modules", file), target);
       }
       expect(verifyMarkdownPatches(directory)).toBe(true);
-      writeFileSync(path.join(directory, "node_modules/mdast-util-from-markdown/lib/index.js"), "unpatched");
+      writeFileSync(path.join(directory, "node_modules", missingFile), "unpatched");
       expect(() => verifyMarkdownPatches(directory)).toThrow("Markdown patch missing or changed");
+    } finally { rmSync(directory, { recursive: true, force: true }); }
+  });
+  it("rejects stale client bundles even when all earlier Markdown markers are present", () => {
+    const { missingPatchMarkers, clientMarkers } = require("../../../scripts/verify-micromark-build.cjs");
+    const directory = mkdtempSync(path.join(tmpdir(), "auris-client-patch-gate-"));
+    try {
+      writeFileSync(path.join(directory, "chunk.js"), "_gfmAutolinkLiteralUnbalanced aurisMdastCallbacks aurisListItemAt");
+      expect(missingPatchMarkers(directory, clientMarkers)).toEqual(["aurisDecorationPatch1565"]);
+      writeFileSync(path.join(directory, "chunk.js"), clientMarkers.join(" "));
+      expect(missingPatchMarkers(directory, clientMarkers)).toEqual([]);
     } finally { rmSync(directory, { recursive: true, force: true }); }
   });
   it.each(["lib/index.js", "dev/lib/index.js"])("preserves 197 pristine list ASTs including positions and spread: %s", async (entry) => {

@@ -1,6 +1,7 @@
 "use client";
 
-import { WidgetType } from "@codemirror/view";
+import { WidgetType, type EditorView } from "@codemirror/view";
+import { loadNotesImageNearViewport } from "./notes-image-loading";
 import katex from "katex";
 import mermaid from "mermaid";
 import { sanitizeMathContent } from "@/features/notes/markdown/notes-markdown-dialect";
@@ -263,6 +264,7 @@ type ImagePreviewWidgetProps = {
 };
 
 export class ImagePreviewWidget extends WidgetType {
+  private cleanups = new WeakMap<HTMLElement, () => void>();
   constructor(private readonly props: ImagePreviewWidgetProps) {
     super();
   }
@@ -276,7 +278,7 @@ export class ImagePreviewWidget extends WidgetType {
     );
   }
 
-  toDOM() {
+  toDOM(view: EditorView) {
     const wrapper = document.createElement("figure");
     wrapper.className = "notes-v2__cm-preview-block notes-v2__cm-image-preview";
 
@@ -290,9 +292,7 @@ export class ImagePreviewWidget extends WidgetType {
 
     const image = document.createElement("img");
     image.className = "notes-v2__cm-image-preview-media";
-    image.loading = "lazy";
     image.alt = this.props.alt || this.props.title || this.props.source;
-    image.src = this.props.resolvedSrc;
 
     if (this.props.title) {
       image.title = this.props.title;
@@ -303,13 +303,20 @@ export class ImagePreviewWidget extends WidgetType {
     fallback.textContent = this.props.alt || this.props.title || this.props.source;
     fallback.hidden = true;
 
-    image.addEventListener("error", () => {
+    const onError = () => {
       image.hidden = true;
       fallback.hidden = false;
-    });
-
+    };
+    image.addEventListener("error", onError);
     wrapper.append(image, fallback);
+    const cancel = loadNotesImageNearViewport(image, view.scrollDOM, () => this.props.resolvedSrc);
+    this.cleanups.set(wrapper, () => { cancel(); image.removeEventListener("error", onError); });
     return wrapper;
+  }
+
+  destroy(dom: HTMLElement) {
+    this.cleanups.get(dom)?.();
+    this.cleanups.delete(dom);
   }
 }
 
