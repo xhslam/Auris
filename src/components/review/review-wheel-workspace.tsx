@@ -70,7 +70,7 @@ export function ReviewWheelWorkspace({ children, state, queue, onOpen, onAddProj
         if ((event.target as Element).closest(".review-wheel__cabin") || Math.abs(event.deltaY) < 12) return;
         turn(event.deltaY > 0 ? 1 : -1);
       }}>
-        <div className="review-wheel__rim" aria-hidden="true"><i /><i /><i /><span>1 · 2 · 4 · 7</span></div>
+        <div className="review-wheel__rim" aria-hidden="true" style={{ "--review-wheel-turn": `${-rotation * 120}deg` } as CSSProperties}><i /><i /><i /><span>1 · 2 · 4 · 7</span></div>
         {LABELS.map((label, index) => <div className="review-wheel__gondola" key={label} data-active={active === index} style={{ "--cabin-angle": `${(index - rotation) * 120}deg` } as CSSProperties}>
           <section className="review-wheel__cabin" role="tabpanel" id={`review-wheel-panel-${index}`} aria-labelledby={`review-wheel-tab-${index}`} aria-hidden={active !== index} inert={active !== index}>
             <header><span>0{index + 1} / {index === 2 ? "COLLECTIONS" : index === 1 ? "CATCH UP" : "TODAY"}</span><h3>{label}<b>{counts[index]}</b></h3></header>

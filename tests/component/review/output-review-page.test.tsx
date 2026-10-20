@@ -89,6 +89,46 @@ describe("output review page", () => {
     expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
   });
 
+  it("lets users browse and complete a non-first priority task without completing other tasks", async () => {
+    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "滑动复习" });
+    for (const title of ["第一项任务", "第二项任务", "第三项任务"]) {
+      state = createKnowledgePoint(state, {
+        projectId: state.projects[0].id,
+        startDate: addCalendarDays(toLocalDateKey(new Date()), -1),
+        title,
+      });
+    }
+    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+    const carousel = screen.getByRole("region", { name: "选择优先处理任务" });
+    expect(within(carousel).getAllByRole("article")).toHaveLength(3);
+    const track = within(carousel).getByLabelText("左右滑动浏览复习任务");
+    const scrollBy = vi.fn();
+    Object.defineProperty(track, "scrollBy", { value: scrollBy });
+    Object.defineProperty(track, "clientWidth", { value: 480 });
+    await user.click(within(carousel).getByRole("button", { name: "下一项复习任务" }));
+    expect(scrollBy).toHaveBeenLastCalledWith({ left: 480, behavior: "smooth" });
+    await user.click(within(carousel).getByRole("button", { name: "上一项复习任务" }));
+    expect(scrollBy).toHaveBeenLastCalledWith({ left: -480, behavior: "smooth" });
+    expect(JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!).cycles.every((cycle: { events: { status: string }[] }) => cycle.events[0].status !== "completed")).toBe(true);
+    const second = within(carousel).getByRole("group", { name: /第二项任务/ });
+    await user.click(within(second).getByRole("button", { name: "完成输出" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "完成" }));
+    const saved = JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!);
+    expect(saved.knowledgePoints.find((point: { title: string }) => point.title === "第二项任务").currentStage).toBe("day2");
+    expect(saved.knowledgePoints.find((point: { title: string }) => point.title === "第一项任务").currentStage).toBe("day1");
+  });
+
+  it("hides slide controls for a single priority task", () => {
+    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "单项复习" });
+    state = createKnowledgePoint(state, { projectId: state.projects[0].id, title: "单项任务", startDate: toLocalDateKey(new Date()) });
+    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+    render(<ReviewPageClient />);
+    expect(screen.getByRole("region", { name: "选择优先处理任务" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "下一项复习任务" })).not.toBeInTheDocument();
+  });
+
   it("opens a valid knowledge point deep link after local state hydration", async () => {
     let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "线性代数" });
     state = createKnowledgePoint(state, {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   ArrowUpRightIcon, CalendarDaysIcon, CheckIcon, ChevronRightIcon,
   FolderIcon, HistoryIcon, PlusIcon, RotateCcwIcon, SearchIcon, SunIcon, Trash2Icon,
@@ -24,6 +24,7 @@ import {
 import { readOutputReviewState, OUTPUT_REVIEW_STORAGE_EVENT, OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 import { readReviewMcpState, persistReviewMcpState } from "@/features/output-review/review-mcp-handler";
 import "@/components/review/output-review-page.css";
+import "@/components/review/review-motion.css";
 
 type ReviewView = "today" | "all" | "projects" | "heatmap";
 type ConfirmAction =
@@ -219,7 +220,7 @@ export function ReviewPageClient({
             setNotice(action === "pause" ? "复习周期已暂停。" : "复习周期已从今天恢复。");
           }} point={detailPoint} project={state.projects.find((project) => project.id === detailPoint.projectId)} /> : null}
         {confirmAction ? <ConfirmationDialog action={confirmAction} onCancel={() => setConfirmAction(null)} onConfirm={handleConfirm} /> : null}
-        {notice ? <div className="output-review-toast" role="status"><CheckIcon size={16} />{notice}</div> : null}
+        {notice ? <div className="output-review-toast" key={notice} role="status"><CheckIcon size={16} />{notice}</div> : null}
       </main>
     </DesktopAppFrame>
   );
@@ -231,21 +232,39 @@ function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll, onSho
   onShowHeatmap?: () => void;
 }) {
   const [upcomingOpen, setUpcomingOpen] = useState(true);
-  const featured = queue[0];
+  const taskTrack = useRef<HTMLDivElement>(null);
+  const slideTask = (direction: number) => {
+    const track = taskTrack.current;
+    if (!track) return;
+    track.scrollBy({ left: direction * track.clientWidth, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
   const progress = metrics.totalActionableToday ? Math.round((metrics.completedToday / metrics.totalActionableToday) * 100) : 100;
   return (
     <div className="output-review-today">
       <section className="output-review-overview" aria-label="今日复盘概览">
         <div className="output-review-summary" aria-label="今日复习数据">
-          <div><span>今日执行</span><strong>{metrics.completedToday} / {metrics.totalActionableToday}</strong><small>完成输出</small></div>
-          <div><span>逾期</span><strong data-warning={metrics.overdueCount > 0}>{metrics.overdueCount}</strong><small>需要优先处理</small></div>
-          <div><span>今天到期</span><strong>{metrics.dueTodayCount}</strong><small>尚未完成</small></div>
-          <div className="output-review-summary__progress"><span><span>执行进度</span><b>{progress}%</b></span><div aria-label={`今日执行进度 ${progress}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div></div>
+          <div><span>今日执行</span><strong key={`${metrics.completedToday}/${metrics.totalActionableToday}`}>{metrics.completedToday} / {metrics.totalActionableToday}</strong><small>完成输出</small></div>
+          <div><span>逾期</span><strong data-warning={metrics.overdueCount > 0} key={metrics.overdueCount}>{metrics.overdueCount}</strong><small>需要优先处理</small></div>
+          <div><span>今天到期</span><strong key={metrics.dueTodayCount}>{metrics.dueTodayCount}</strong><small>尚未完成</small></div>
+          <div className="output-review-summary__progress"><span><span>执行进度</span><b key={progress}>{progress}%</b></span><div aria-label={`今日执行进度 ${progress}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div></div>
         </div>
       </section>
-      {featured ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
+      {queue.length > 0 ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
         <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>优先处理</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>
-        <div className="output-review-workbench"><OutputReviewCard item={featured} onComplete={onComplete} onOpen={onOpen} /></div>
+        <section aria-label="选择优先处理任务" className="output-review-task-picker">
+          {queue.length > 1 ? <div className="output-review-task-picker__controls">
+            <span>左右滑动选择任务 · {queue.length} 项</span>
+            <div>
+              <button aria-label="上一项复习任务" onClick={() => slideTask(-1)} type="button">←</button>
+              <button aria-label="下一项复习任务" onClick={() => slideTask(1)} type="button">→</button>
+            </div>
+          </div> : null}
+          <div aria-label="左右滑动浏览复习任务" className="output-review-task-picker__track" ref={taskTrack} tabIndex={0}>
+            {queue.map((item, index) => <div aria-label={`${index + 1} / ${queue.length}：${item.knowledgePoint.title}`} className="output-review-task-picker__slide" key={item.knowledgePoint.id} role="group">
+              <OutputReviewCard item={item} onComplete={onComplete} onOpen={onOpen} />
+            </div>)}
+          </div>
+        </section>
         <div className="output-review-followup-actions">
           <button className="output-review-followups__all" onClick={onShowAll} type="button">查看全部计划 <ArrowUpRightIcon size={14} /></button>
           {onShowHeatmap ? (
