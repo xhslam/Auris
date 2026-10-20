@@ -12,7 +12,7 @@
 ## 已完成验证
 
 - 扩大回归：221 个 Vitest 文件、3,356 项测试通过，包含 Notes、Nia、Review 与新会话时序回归。
-- 全仓 ESLint：0 errors，18 项既有 warnings；`npm run typecheck:source` 通过。
+- 全仓 ESLint：0 errors，18 项既有 warnings；完整 `npm run typecheck`（routes/source/tests/all）通过。
 - 桌面 IPC 合约：127 invokes / 130 handlers；修改的 CJS 语法检查通过。
 - 对 Git 跟踪文件执行既有敏感字面量规则检查，通过；日志隐藏匹配值，不上传临时凭据或用户 profile。
 - 原生 helper、Next 生产构建、Markdown 产物门禁、runtime 组装及隐私审计通过。
@@ -23,7 +23,16 @@
 
 ## 本地安装与后续记录
 
-以上验证针对待安装包；本地替换采用单个可回退进程完成预检、暂存校验、正常退出、备份、换入及启动。安装位置的最终结果会在下方补录。所有测试使用隔离 profile，不清空真实 Vault、Review 或应用配置。
+本地替换已由单个可回退进程完成预检、暂存校验、正常退出、备份、换入及启动。安装完成于 2026-10-21 00:11:16（GMT+8）。所有功能测试使用隔离 profile，不清空真实 Vault、Review 或应用配置。
+
+- 安装位置：`/Applications/Auris.app`，版本 1.0.20，正常用户实例已启动，根路由 HTTP 200。
+- 原 1.0.19 完整备份：`release/backups/Auris-1.0.19-before-review-nia-20261021-001110.app`。
+- 候选包与安装包 app.asar SHA-256 一致：`9afadbc19f1d6ccb0ef8d6c04efa9958f5a845c9d478babb86d4addbb14e8a7d`。
+- 安装后再次通过 strict/deep 签名与权限核验。
+- 安装位置的顺序 Review 和 Notes 复验均通过，无 renderer 错误。Notes 结果保存在忽略目录 `release/review-nia-1.0.20-installed-notes-smoke-serial/`，Review 和安装过程证据保存在本会话工作台。
+- 首次安装位置并行验收曾失败：Review 反向滚动未到预期位置；Notes 检出 React hydration error #418，尽管 Notes 功能步骤均通过。失败日志和证据保留，顺序完整复验通过；未据重跑推定唯一根因，也未将首次失败改写成通过。后续若再次出现，应独立复现并定位。
+- 正常用户桌面截图受本机 computer use 权限限制，未完成桌面截图；已安装路径的真实 Electron 隔离窗口功能测试、进程及根路由检查不受该限制。
+- 源码已推送 GitHub main；`codex/nia-mochi-companion` 已是 main 的祖先，`git branch --no-merged main` 无输出。运行时代码对应 `e97618c`（合并提交），随后提交仅补充文档。
 
 真实 Codex OAuth / OpenAI Realtime 语音连接、自动提醒音频交互及 Windows 实机未在本轮调用或验证；不据单元测试声称这些外部链路已实测。
 
