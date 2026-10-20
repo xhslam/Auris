@@ -77,7 +77,7 @@ expect(JSON.stringify(result)).not.toContain(token);
 
 - [ ] **Step 2: Run the targeted test and verify it fails**
 
-Run: `npm test -- tests/unit/electron/nia/companion/codex-credential.test.ts tests/unit/electron/nia/companion/diagnostics-store.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/codex-credential.test.ts tests/unit/electron/nia/companion/diagnostics-store.test.ts`
 Expected: FAIL because `codex-credential.cjs` does not exist.
 
 - [ ] **Step 3: Implement the broker with injected dependencies**
@@ -99,7 +99,7 @@ Record Mochi commit `faa334001541fc74093288821df5cfbff96f6797`, repository URL, 
 
 - [ ] **Step 5: Run tests and static checks**
 
-Run: `npm test -- tests/unit/electron/nia/companion/codex-credential.test.ts tests/unit/electron/nia/companion/diagnostics-store.test.ts && node --check electron/nia/companion/codex-credential.cjs && node --check electron/nia/companion/diagnostics-store.cjs`  
+Run: `npm test -- tests/unit/electron/nia/companion/codex-credential.test.ts tests/unit/electron/nia/companion/diagnostics-store.test.ts && node --check electron/nia/companion/codex-credential.cjs && node --check electron/nia/companion/diagnostics-store.cjs`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -133,7 +133,7 @@ talk.end();
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/electron/nia/companion/conversation-db.test.ts tests/unit/electron/nia/companion/conversation-lifecycle.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/conversation-db.test.ts tests/unit/electron/nia/companion/conversation-lifecycle.test.ts`
 Expected: FAIL for missing modules.
 
 - [ ] **Step 3: Implement schema and repository**
@@ -146,7 +146,7 @@ Start only on the first persisted turn, read the keep-history preference on ever
 
 - [ ] **Step 5: Run archive tests and syntax checks**
 
-Run: `npm test -- tests/unit/electron/nia/companion/conversation-db.test.ts tests/unit/electron/nia/companion/conversation-lifecycle.test.ts && node --check electron/nia/companion/conversation-db.cjs && node --check electron/nia/companion/conversation-lifecycle.cjs`  
+Run: `npm test -- tests/unit/electron/nia/companion/conversation-db.test.ts tests/unit/electron/nia/companion/conversation-lifecycle.test.ts && node --check electron/nia/companion/conversation-db.cjs && node --check electron/nia/companion/conversation-lifecycle.cjs`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -179,7 +179,7 @@ expect(coordinator.snapshot().sessionId).toBeNull();
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/electron/nia/companion/realtime-coordinator.test.ts tests/unit/nia/companion-contract.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/realtime-coordinator.test.ts tests/unit/nia/companion-contract.test.ts`
 Expected: FAIL for missing contracts.
 
 - [ ] **Step 3: Implement coordinator state machine**
@@ -192,7 +192,7 @@ Define bounded commands, transport reports, normalized snapshots, transcript eve
 
 - [ ] **Step 5: Run tests**
 
-Run: `npm test -- tests/unit/electron/nia/companion/realtime-coordinator.test.ts tests/unit/nia/companion-contract.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/realtime-coordinator.test.ts tests/unit/nia/companion-contract.test.ts`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -221,7 +221,7 @@ Assert role-specific channel allowlists, sender identity checks, bounded payload
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/electron/nia/companion/companion-ipc.test.ts tests/unit/electron/nia/companion/companion-preload.test.ts tests/unit/nia/companion-bridge.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/companion-ipc.test.ts tests/unit/electron/nia/companion/companion-preload.test.ts tests/unit/nia/companion-bridge.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement IPC roles**
@@ -230,7 +230,7 @@ Companion bridge may request open/SDP, report transport frames and pointer bound
 
 - [ ] **Step 4: Run bridge and existing IPC contract tests**
 
-Run: `npm test -- tests/unit/electron/nia/companion tests/unit/nia/companion-bridge.test.ts tests/unit/quality/desktop-ipc-contract.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion tests/unit/nia/companion-bridge.test.ts tests/unit/quality/desktop-ipc-contract.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -254,7 +254,7 @@ Assert transparent/frameless/non-resizable/skip-taskbar options, screen-saver al
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/electron/nia/companion/companion-position.test.ts tests/unit/electron/nia/companion/companion-window.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/companion-position.test.ts tests/unit/electron/nia/companion/companion-window.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement placement and window service**
@@ -263,7 +263,7 @@ Inject Electron primitives for tests. Load `/nia/companion` through the existing
 
 - [ ] **Step 4: Run tests and syntax checks**
 
-Run: `npm test -- tests/unit/electron/nia/companion/companion-position.test.ts tests/unit/electron/nia/companion/companion-window.test.ts && node --check electron/nia/companion/companion-window.cjs`  
+Run: `npm test -- tests/unit/electron/nia/companion/companion-position.test.ts tests/unit/electron/nia/companion/companion-window.test.ts && node --check electron/nia/companion/companion-window.cjs`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -289,7 +289,7 @@ Test offer → main SDP proxy → answer, `session.updated` confirmation, data-c
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/nia/pending-utterances.test.ts tests/component/nia/companion-runtime.test.tsx`  
+Run: `npm test -- tests/unit/nia/pending-utterances.test.ts tests/component/nia/companion-runtime.test.tsx`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement the browser transport**
@@ -302,7 +302,7 @@ Render only the companion runtime/avatar root, no Auris desktop frame. Keep it m
 
 - [ ] **Step 5: Run tests and lint**
 
-Run: `npm test -- tests/unit/nia/pending-utterances.test.ts tests/component/nia/companion-runtime.test.tsx && npx eslint src/components/nia/companion src/app/nia/companion/page.tsx`  
+Run: `npm test -- tests/unit/nia/pending-utterances.test.ts tests/component/nia/companion-runtime.test.tsx && npx eslint src/components/nia/companion src/app/nia/companion/page.tsx`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -328,7 +328,7 @@ Assert idle breath/blink, pointer-only eye following, listening halo, attending 
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/nia/nia-avatar-rig.test.ts tests/component/nia/nia-avatar-canvas.test.tsx`  
+Run: `npm test -- tests/unit/nia/nia-avatar-rig.test.ts tests/component/nia/nia-avatar-canvas.test.tsx`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement the Nia light-body rig**
@@ -341,7 +341,7 @@ Provide close, copy, open-history, review start, and snooze controls. Bubble con
 
 - [ ] **Step 5: Run visual component tests and lint**
 
-Run: `npm test -- tests/unit/nia/nia-avatar-rig.test.ts tests/component/nia/nia-avatar-canvas.test.tsx && npx eslint src/components/nia/companion`  
+Run: `npm test -- tests/unit/nia/nia-avatar-rig.test.ts tests/component/nia/nia-avatar-canvas.test.tsx && npx eslint src/components/nia/companion`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -367,7 +367,7 @@ Assert startup order, main-window close hides rather than quits, companion remai
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/electron/nia/companion/main-wiring.test.ts tests/unit/electron/nia/companion/companion-shortcuts.test.ts tests/unit/platform/desktop-window-behavior.test.ts`  
+Run: `npm test -- tests/unit/electron/nia/companion/main-wiring.test.ts tests/unit/electron/nia/companion/companion-shortcuts.test.ts tests/unit/platform/desktop-window-behavior.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Compose services in main**
@@ -376,7 +376,7 @@ Initialize one diagnostics store, one settings repository, one conversation repo
 
 - [ ] **Step 4: Run syntax and lifecycle tests**
 
-Run: `node --check electron/main.cjs && npm test -- tests/unit/electron/nia/companion tests/unit/platform/desktop-window-behavior.test.ts`  
+Run: `node --check electron/main.cjs && npm test -- tests/unit/electron/nia/companion tests/unit/platform/desktop-window-behavior.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -407,7 +407,7 @@ Assert the sidebar Nia route, deterministic hydration, top status, central avata
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/component/nia/nia-control-center.test.tsx tests/component/runtime/desktop-app-sidebar.test.tsx`  
+Run: `npm test -- tests/component/nia/nia-control-center.test.tsx tests/component/runtime/desktop-app-sidebar.test.tsx`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement the subscription hook and page**
@@ -420,7 +420,7 @@ Use pure/near black, one translucent material level, Auris violet-blue accents, 
 
 - [ ] **Step 5: Run page regression and build**
 
-Run: `npm test -- tests/component/nia tests/component/runtime/desktop-app-sidebar.test.tsx tests/unit/nia && npx eslint src/components/nia src/features/nia/use-nia-companion.ts src/app/nia && npm run build`  
+Run: `npm test -- tests/component/nia tests/component/runtime/desktop-app-sidebar.test.tsx tests/unit/nia && npx eslint src/components/nia src/features/nia/use-nia-companion.ts src/app/nia && npm run build`
 Expected: PASS; build includes `/nia` and `/nia/companion`.
 
 - [ ] **Step 6: Commit**
@@ -447,7 +447,7 @@ Cover list, open turns, search, provenance/time labels, cut-turn rendering, expo
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/component/nia/nia-history-drawer.test.tsx tests/unit/electron/nia/companion/companion-ipc.test.ts`  
+Run: `npm test -- tests/component/nia/nia-history-drawer.test.tsx tests/unit/electron/nia/companion/companion-ipc.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement history UI and main handlers**
@@ -456,7 +456,7 @@ Use text nodes/React escaping only, bounded query/result sizes, main-selected ex
 
 - [ ] **Step 4: Run tests and lint**
 
-Run: `npm test -- tests/component/nia/nia-history-drawer.test.tsx tests/unit/electron/nia/companion && npx eslint src/components/nia/nia-history-drawer.tsx`  
+Run: `npm test -- tests/component/nia/nia-history-drawer.test.tsx tests/unit/electron/nia/companion && npx eslint src/components/nia/nia-history-drawer.tsx`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -487,7 +487,7 @@ Cover a separately projected bounded due set (up to 32 items, sorted by urgency)
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/unit/electron/nia/companion/review-snapshot.test.ts tests/unit/electron/nia/companion/reminder-scheduler.test.ts tests/unit/nia/nia-review-projection.test.ts tests/component/nia/nia-reminder-settings.test.tsx`  
+Run: `npm test -- tests/unit/electron/nia/companion/review-snapshot.test.ts tests/unit/electron/nia/companion/reminder-scheduler.test.ts tests/unit/nia/nia-review-projection.test.ts tests/component/nia/nia-reminder-settings.test.tsx`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement snapshot sync and scheduler**
@@ -504,7 +504,7 @@ Replace the Task 9 Review reminder placeholder by mounting `NiaReminderSettings`
 
 - [ ] **Step 5: Run tests**
 
-Run: `npm test -- tests/unit/electron/nia/companion tests/component/desktop/desktop-island-sync-host.test.tsx tests/component/nia/nia-reminder-settings.test.tsx`  
+Run: `npm test -- tests/unit/electron/nia/companion tests/component/desktop/desktop-island-sync-host.test.tsx tests/component/nia/nia-reminder-settings.test.tsx`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -536,7 +536,7 @@ Assert due trigger → Realtime reuse/wake → brief spoken request → voice/bu
 
 - [ ] **Step 2: Verify tests fail**
 
-Run: `npm test -- tests/integration/nia-review-companion.test.ts tests/component/review/output-review-page.test.tsx`  
+Run: `npm test -- tests/integration/nia-review-companion.test.ts tests/component/review/output-review-page.test.tsx`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement reminder conversation request and tools**
@@ -549,7 +549,7 @@ Mount `NiaCompanionSyncHost` once in the desktop frame to project confirmed memo
 
 - [ ] **Step 4: Run integration and Review regressions**
 
-Run: `npm test -- tests/integration/nia-review-companion.test.ts tests/component/review tests/unit/output-review`  
+Run: `npm test -- tests/integration/nia-review-companion.test.ts tests/component/review tests/unit/output-review`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -575,7 +575,7 @@ Scan Nia Live sources to assert there is no `OPENAI_API_KEY`, no `/api/nia/realt
 
 - [ ] **Step 2: Verify the test fails against the old path**
 
-Run: `npm test -- tests/unit/nia/nia-live-auth-boundary.test.ts`  
+Run: `npm test -- tests/unit/nia/nia-live-auth-boundary.test.ts`
 Expected: FAIL because the existing API-key route and renderer direct call remain.
 
 - [ ] **Step 3: Remove/migrate old consumers**
@@ -584,7 +584,7 @@ Delete the server route, replace the old hook with the shared companion hook or 
 
 - [ ] **Step 4: Run security, packaging, and build checks**
 
-Run: `npm test -- tests/unit/nia/nia-live-auth-boundary.test.ts tests/unit/electron/desktop-packaging.test.ts && npm run security:secrets && npm run build`  
+Run: `npm test -- tests/unit/nia/nia-live-auth-boundary.test.ts tests/unit/electron/desktop-packaging.test.ts && npm run security:secrets && npm run build`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -619,17 +619,17 @@ Implement the passive user-opened UI, replace the Task 9 Diagnostics placeholder
 
 - [ ] **Step 3: Run the complete targeted suite**
 
-Run: `npm test -- tests/unit/electron/nia/companion tests/unit/nia tests/component/nia tests/integration/nia-review-companion.test.ts tests/component/review tests/unit/output-review`  
+Run: `npm test -- tests/unit/electron/nia/companion tests/unit/nia tests/component/nia tests/integration/nia-review-companion.test.ts tests/component/review tests/unit/output-review`
 Expected: PASS.
 
 - [ ] **Step 4: Run static and production checks**
 
-Run: `node --check electron/main.cjs && node --check electron/nia/companion-preload.cjs && npx eslint src/app/nia src/components/nia src/features/nia electron/nia/companion && git diff --check && npm run build && npm run quality:desktop-ipc && npm run security:secrets`  
+Run: `node --check electron/main.cjs && node --check electron/nia/companion-preload.cjs && npx eslint src/app/nia src/components/nia src/features/nia electron/nia/companion && git diff --check && npm run build && npm run quality:desktop-ipc && npm run security:secrets`
 Expected: PASS, allowing only explicitly documented pre-existing repository warnings.
 
 - [ ] **Step 5: Run the Electron/macOS smoke test**
 
-Run: `npm run nia:companion-smoke`  
+Run: `npm run nia:companion-smoke`
 Expected: PASS; no persistent validation processes remain.
 
 - [ ] **Step 6: Perform manual visual/interaction verification**
