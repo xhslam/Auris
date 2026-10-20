@@ -26,6 +26,15 @@ describe("Nia conversation lifecycle", () => {
     expect(store.rows.map((row) => (row as { type?: string }).type)).toEqual(["begin", "tool", "say"]);
   });
 
+  it("does not carry tools from an empty ended session into a new conversation", () => {
+    const store = fakeStore();
+    const talk = createConversationLifecycle({ store, personaId: "nia" });
+    talk.tool("old_tool", "old-call");
+    talk.end();
+    talk.file("user", "新的对话");
+    expect(store.rows.map((row) => (row as { type?: string }).type)).toEqual(["begin", "say"]);
+  });
+
   it("ends before persona changes and allows a fresh conversation after deletion", () => {
     const store = fakeStore();
     const talk = createConversationLifecycle({ store, personaId: "nia", now: () => 10 });
@@ -51,6 +60,7 @@ describe("Nia conversation lifecycle", () => {
     expect(talk.file("user", "恢复记录")).toBe(true);
     talk.setSaving(false);
     expect(talk.file("nia", "关闭后不再记录")).toBe(false);
+    expect(talk.tool("private_tool", "private-call")).toBe(false);
     expect(store.rows.map((row) => (row as { type?: string }).type)).toEqual(["begin", "say"]);
   });
 });

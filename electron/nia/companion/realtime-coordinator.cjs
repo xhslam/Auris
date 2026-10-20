@@ -39,6 +39,7 @@ function createRealtimeCoordinator({
   let disposed = false;
   let lastConfig = null;
   const listeners = new Set();
+  const closeWaiters = new Set();
 
   function snapshot() {
     return Object.freeze({
@@ -75,17 +76,17 @@ function createRealtimeCoordinator({
     if (closeTimer !== null) clearTimeoutImpl(closeTimer);
     closeTimer = null;
     closingGeneration = null;
-    if (conversation.isLive?.()) conversation.end(at);
+    conversation.end(at); // Also clears queued tools in an empty conversation.
+    for (const resolve of closeWaiters) resolve();
+    closeWaiters.clear();
   }
 
   function armCloseGrace(expectedGeneration) {
     if (closeTimer !== null) clearTimeoutImpl(closeTimer);
     closingGeneration = expectedGeneration;
     closeTimer = setTimeoutImpl(() => {
-      closeTimer = null;
       if (closingGeneration !== expectedGeneration) return;
-      closingGeneration = null;
-      if (conversation.isLive?.()) conversation.end(now());
+      finishClosing(now());
     }, closeGraceMs);
   }
 
@@ -113,12 +114,15 @@ function createRealtimeCoordinator({
   async function open({ reason = "wake", replace = false } = {}) {
     if (disposed) return false;
     if (!replace && ["opening", "listening", "attending", "thinking", "speaking", "working"].includes(state)) return true;
-    if (closingGeneration !== null) finishClosing();
     const requested = ++generation;
     state = "opening";
     sessionId = null;
     expiresAt = null;
     publish();
+    // Keep the prior conversation alive for its final flush before a new
+    // transport can start. A subsequent rest invalidates this queued wake too.
+    if (closingGeneration !== null) await new Promise((resolve) => closeWaiters.add(resolve));
+    if (disposed || requested !== generation) return false;
     const auth = await credentialBroker.read();
     if (disposed || requested !== generation) return false;
     if (!auth?.ok) {
@@ -161,13 +165,15 @@ function createRealtimeCoordinator({
       case "tool":
         conversation.tool(report.name, report.callId, report.status ?? "arrived", report.at ?? now());
         break;
-      case "closed":
+      case "closed": {
+        const wasClosing = report.generation === closingGeneration;
         cancelRotation();
         finishClosing(report.at ?? now());
         sessionId = null;
         expiresAt = null;
-        state = "resting";
+        if (!wasClosing || state !== "opening") state = "resting";
         break;
+      }
       case "failed":
         state = "failed";
         note(report.code ?? "REALTIME_FAILED", report.message ?? "Realtime failed.", report.recovery ?? "Rest Nia, then wake her again.", report.detail);
@@ -231,16 +237,21 @@ function createRealtimeCoordinator({
 
   function rest(reason = "user") {
     if (disposed) return;
+    // Repeated stops must neither discard the old transcript flush nor extend it.
+    if (state === "resting" && closingGeneration !== null) return;
     cancelRotation();
     const oldGeneration = generation;
-    try { transport.send({ type: "close", generation: oldGeneration, reason }); } catch { /* best effort */ }
-    armCloseGrace(oldGeneration);
+    // Invalidate pending credential reads and all future state/opened reports.
+    // Only final transcript/tool/closed reports retain the bounded grace window.
+    generation += 1;
+    if (closingGeneration === null) armCloseGrace(oldGeneration);
     sessionId = null;
     expiresAt = null;
     pendingText = null;
     pendingReminder = null;
     muted = false;
     state = "resting";
+    try { transport.send({ type: "close", generation: closingGeneration ?? oldGeneration, reason }); } catch { /* best effort */ }
     publish();
   }
 
@@ -255,11 +266,9 @@ function createRealtimeCoordinator({
     if (disposed) return;
     disposed = true;
     cancelRotation();
-    if (closeTimer !== null) clearTimeoutImpl(closeTimer);
-    closeTimer = null;
-    closingGeneration = null;
-    try { transport.send({ type: "close", generation, reason: "quit" }); } catch { /* best effort */ }
-    if (conversation.isLive?.()) conversation.end(now());
+    const transportGeneration = closingGeneration ?? generation;
+    finishClosing(now());
+    try { transport.send({ type: "close", generation: transportGeneration, reason: "quit" }); } catch { /* best effort */ }
     listeners.clear();
     lastConfig = null;
   }

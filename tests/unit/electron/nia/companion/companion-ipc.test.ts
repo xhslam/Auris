@@ -56,9 +56,34 @@ describe("Nia companion IPC", () => {
     expect(service.sessionCount()).toBe(1);
     const sdp = await ipcMain.handlers.get(COMMAND_CHANNEL)!(event, { command: "sdp", payload: { sessionId: open.sessionId, offer: "v=0" } });
     expect(sdp).toEqual({ ok: true, answer: "v=0" });
+    expect(service.sessionCount()).toBe(0);
+    const replay = await ipcMain.handlers.get(COMMAND_CHANNEL)!(event, { command: "sdp", payload: { sessionId: open.sessionId, offer: "v=0" } });
+    expect(replay).toMatchObject({ ok: false, error: { code: "REALTIME_SESSION_INVALID" } });
     expect(sent).toHaveLength(0);
     service.send({ type: "opened", generation: 1, sessionId: open.sessionId });
     expect(sent).toEqual([{ type: "opened", generation: 1, sessionId: open.sessionId }]);
+  });
+
+  it("rejects an expired session handle before proxying SDP", async () => {
+    const ipcMain = fakeIpcMain();
+    let now = 1_800_000_000_000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const proxyRealtimeSdp = vi.fn(async () => ({ ok: true, answer: "v=0" }));
+    try {
+      const service = createCompanionIpc({
+        ipcMain, companionWindow: { window: () => null }, isTrustedSender: () => true,
+        readCredential: async () => ({ ok: true, credential: {} }),
+        exchangeRealtimeSession: async () => ({ ok: true, session: {}, expiresAt: now + 1_000 }),
+        proxyRealtimeSdp,
+      });
+      service.register();
+      const command = ipcMain.handlers.get(COMMAND_CHANNEL)!;
+      const opened = await command({}, { command: "open-session" }) as { sessionId: string };
+      now += 1_001;
+      expect(await command({}, { command: "sdp", payload: { sessionId: opened.sessionId, offer: "v=0" } })).toMatchObject({ ok: false, error: { code: "REALTIME_SESSION_INVALID" } });
+      expect(proxyRealtimeSdp).not.toHaveBeenCalled();
+      expect(service.sessionCount()).toBe(0);
+    } finally { clock.mockRestore(); }
   });
 
   it("rejects untrusted commands and forwards only validated reports", async () => {

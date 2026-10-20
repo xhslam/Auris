@@ -94,11 +94,13 @@ function createCompanionIpc({
       if (!token || offer.length === 0 || offer.length > MAX_OFFER_LENGTH) {
         return { ok: false, error: { code: "REALTIME_SDP_INVALID", message: "The WebRTC offer is invalid." } };
       }
+      pruneHandles();
       const entry = sessionHandles.get(token);
       if (!entry) return { ok: false, error: { code: "REALTIME_SESSION_INVALID", message: "The Realtime session handle is no longer valid." } };
-      const result = await proxyRealtimeSdp({ offer, session: entry.session });
-      if (!result?.ok) sessionHandles.delete(token);
-      return result;
+      // A session handle is a single SDP exchange, not a reusable credential.
+      // Consume before awaiting the network to reject concurrent replays too.
+      sessionHandles.delete(token);
+      return proxyRealtimeSdp({ offer, session: entry.session });
     }
     if (command === "pointer-capture") {
       return companionWindow.setPointerCapture?.(payload.enabled === true) ?? false;

@@ -38,7 +38,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
 
   function tool(name, callId, status = "arrived", at = now()) {
     if (typeof name !== "string" || typeof callId !== "string") return false;
-    if (!conversationId && !saving) return false;
+    if (!saving || !keeps(wearing)) return false;
     const record = { callId, name, status, at };
     if (!conversationId) {
       pendingTools.push(record);
@@ -48,6 +48,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
   }
 
   function end(endedAt = now()) {
+    pendingTools.length = 0;
     if (!conversationId) return false;
     store.end(conversationId, endedAt);
     conversationId = null;
