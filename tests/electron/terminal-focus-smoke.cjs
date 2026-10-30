@@ -31,17 +31,24 @@ async function main() {
   fs.writeFileSync(path.join(shellHome, ".zshrc"), "PROMPT='auris-smoke> '\n");
   const env = { ...process.env, ZDOTDIR: shellHome, AURIS_PACKAGED_SMOKE: "1", AURIS_PACKAGED_SMOKE_USER_DATA: userData };
   delete env.ELECTRON_RUN_AS_NODE;
+  const packagedApp = process.argv.includes("--app") ? path.resolve(process.argv[process.argv.indexOf("--app") + 1]) : null;
   const port = 34919;
-  const url = `http://127.0.0.1:${port}`;
-  const log = fs.openSync(path.join(output, "next.log"), "w");
-  const server = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port), "--hostname", "127.0.0.1"], { cwd: root, env, stdio: ["ignore", log, log] });
+  let url = `http://127.0.0.1:${port}`;
+  let server, log;
+  if (packagedApp) {
+    delete env.SHADOWING_DESKTOP_URL;
+  } else {
+    log = fs.openSync(path.join(output, "next.log"), "w");
+    server = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port), "--hostname", "127.0.0.1"], { cwd: root, env, stdio: ["ignore", log, log] });
+  }
   const evidence = { startedAt: new Date().toISOString(), checks: [], errors: [], profile };
   let app;
   const save = () => fs.writeFileSync(path.join(output, "evidence.json"), JSON.stringify(evidence, null, 2));
   try {
-    await expect.poll(async () => { try { return (await fetch(url)).status; } catch { return 0; } }, { timeout: 30000 }).toBe(200);
-    env.SHADOWING_DESKTOP_URL = url;
-    const packagedApp = process.argv.includes("--app") ? path.resolve(process.argv[process.argv.indexOf("--app") + 1]) : null;
+    if (!packagedApp) {
+      await expect.poll(async () => { try { return (await fetch(url)).status; } catch { return 0; } }, { timeout: 30000 }).toBe(200);
+      env.SHADOWING_DESKTOP_URL = url;
+    }
     app = await _electron.launch(packagedApp ? {
       executablePath: path.join(packagedApp, "Contents/MacOS/Auris"), args: [note], env, timeout: 60000,
     } : { args: [path.join(root, "electron/main.cjs"), "--dev", note], env, timeout: 60000 });
@@ -50,6 +57,7 @@ async function main() {
       page = app.windows().find((candidate) => /\/notes(?:[/?#]|$)/.test(candidate.url()));
       return Boolean(page);
     }, { timeout: 60000 }).toBe(true);
+    if (packagedApp) url = new URL(page.url()).origin;
     page.on("pageerror", (error) => evidence.errors.push(error.message));
     page.setDefaultTimeout(20000);
     await page.locator(".ProseMirror p").first().waitFor({ timeout: 60000 });
@@ -155,7 +163,7 @@ async function main() {
   } finally {
     save();
     if (app) await app.close().catch(() => {});
-    server.kill("SIGTERM"); fs.closeSync(log);
+    server?.kill("SIGTERM"); if (log !== undefined) fs.closeSync(log);
   }
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });
