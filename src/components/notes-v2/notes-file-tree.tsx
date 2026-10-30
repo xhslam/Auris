@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, JSX } from "react";
-import { useMemo, useRef, useState, useCallback } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState, useCallback } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import {
   NotesFileTreeContextMenu,
@@ -23,6 +23,8 @@ type TreeNode = {
   name: string;
   path: string;
 };
+
+export type NotesFileTreeHandle = { collapseAll: () => void };
 
 type NotesFileTreeProps = {
   activePath: string | null;
@@ -191,7 +193,7 @@ function getObsidianDisplayName(node: TreeNode) {
   return node.name.replace(/\.[^.]+$/, "");
 }
 
-export function NotesFileTree({
+export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>(function NotesFileTree({
   activePath,
   entries,
   onOpenPath,
@@ -204,13 +206,22 @@ export function NotesFileTree({
   onMovePath,
   collapseAllByDefault = false,
   variant = "default",
-}: NotesFileTreeProps) {
+}: NotesFileTreeProps, ref) {
   const tree = useMemo(() => createTree(entries), [entries]);
   const existingPaths = useMemo(
     () => entries.map((entry) => entry.path),
     [entries],
   );
   const [expandedPaths, setExpandedPaths] = useState<Record<string, boolean>>({});
+  const [bulkCollapsed, setBulkCollapsed] = useState(false);
+  useImperativeHandle(ref, () => ({
+    collapseAll() {
+      // Override default/active-path expansion too, including folders hidden by
+      // the current filter. Manual expansion still works after a bulk collapse.
+      setBulkCollapsed(true);
+      setExpandedPaths({});
+    },
+  }), []);
   const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
   const draggedPathRef = useRef<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -293,7 +304,7 @@ export function NotesFileTree({
     // fully collapsed (the bottom-left Workspace popover). Otherwise a freshly
     // created note — which becomes the active path — stays buried inside a
     // collapsed folder, so it looks like nothing was created.
-    const defaultExpanded = hasActiveDescendant(node, activePath)
+    const defaultExpanded = bulkCollapsed ? false : hasActiveDescendant(node, activePath)
       ? true
       : collapseAllByDefault
         ? false
@@ -312,6 +323,7 @@ export function NotesFileTree({
           style={nodeStyle}
         >
           <button
+            aria-expanded={isExpanded}
             className="notes-v2__tree-directory"
             data-drop-target={dropTarget === node.path ? "true" : undefined}
             draggable={Boolean(onMovePath)}
@@ -437,4 +449,4 @@ export function NotesFileTree({
       )}
     </>
   );
-}
+});

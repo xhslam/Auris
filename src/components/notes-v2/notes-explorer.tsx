@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { NotesFileTree } from "./notes-file-tree";
+import { useRef, useState } from "react";
+import { NotesFileTree, type NotesFileTreeHandle } from "./notes-file-tree";
+import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import type { NotesWorkbenchProps } from "./notes-workbench";
 
 type Props = Pick<NotesWorkbenchProps,
@@ -13,11 +14,16 @@ type Props = Pick<NotesWorkbenchProps,
 /** Reuses Auris's vault operations; the explorer never writes files itself. */
 export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, directoryInfo, onPickDirectory, ...tree }: Props) {
   const [query, setQuery] = useState("");
+  const treeRef = useRef<NotesFileTreeHandle>(null);
   const configured = directoryInfo?.isConfigured !== false;
   const needle = query.trim().toLocaleLowerCase();
+  const visibleEntries = tree.entries.filter((entry) =>
+    entry.kind === "directory" || getFormatDescriptor(entry.path).id === "markdown" ||
+    /\.(?:avif|bmp|gif|heic|heif|ico|jpe?g|png|svgz?|tiff?|webp)$/i.test(entry.path),
+  );
   const entries = needle
-    ? tree.entries.filter((entry) => entry.path.toLocaleLowerCase().includes(needle))
-    : tree.entries;
+    ? visibleEntries.filter((entry) => entry.path.toLocaleLowerCase().includes(needle))
+    : visibleEntries;
 
   return (
     <aside aria-label="笔记文件栏" className="notes-explorer">
@@ -28,6 +34,9 @@ export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, di
       <div className="notes-explorer__actions" role="toolbar" aria-label="文件操作">
         <button type="button" disabled={!configured || isLoading} onClick={() => tree.onCreateNoteInPath?.("")} title="新建 Markdown 文件" aria-label="新建 Markdown 文件">＋ 文档</button>
         <button type="button" disabled={!configured || isLoading} onClick={() => tree.onCreateFolderInPath?.("")} title="新建文件夹" aria-label="新建文件夹">＋ 文件夹</button>
+        <button type="button" onClick={() => treeRef.current?.collapseAll()} disabled={!configured || isLoading} title="折叠全部文件夹" aria-label="折叠全部文件夹">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5" y="2" width="9" height="9" rx="1" stroke="currentColor" /><rect x="2" y="5" width="9" height="9" rx="1" fill="var(--notes-surface)" stroke="currentColor" /><path d="M4 9.5h5" stroke="currentColor" /></svg>
+        </button>
         <button type="button" onClick={onRefresh} disabled={isLoading} title="刷新文件" aria-label="刷新文件">↻</button>
       </div>
       <label className="notes-explorer__search">
@@ -39,7 +48,7 @@ export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, di
           <div className="notes-explorer__empty"><p>打开一个文件夹，开始写作。</p><button type="button" onClick={onPickDirectory}>打开笔记文件夹</button></div>
         ) : isLoading && !tree.entries.length ? <p className="notes-explorer__hint" role="status">正在加载文件…</p> : (
           <>
-            <NotesFileTree {...tree} entries={entries} key={directoryInfo?.vaultPath ?? "vault"} variant="obsidian" />
+            <NotesFileTree {...tree} ref={treeRef} entries={entries} key={directoryInfo?.vaultPath ?? "vault"} variant="obsidian" />
             {!entries.length ? <p className="notes-explorer__hint">{needle ? "没有匹配的文件" : "文件夹为空，点击上方新建文档。"}</p> : null}
           </>
         )}
