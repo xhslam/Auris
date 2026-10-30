@@ -30,4 +30,4 @@ Electron 零间隔逐键输入暴露出富文本同步的时序问题：父级�
 
 新增 `keeps input that arrives immediately after a source commit`：以父组件布局阶段注入新输入来复现两个时点交错。将实现临时恢复为原 passive effect 时该测试失败，恢复修复后通过；外部文件更新与光标/滚动保持的既有测试仍通过。
 
-最终 Electron 生产构建验证使用临时 profile 和临时 Vault：打开现有 Markdown、零间隔逐键输入、Mod+S 保存后逐字检查磁盘、新建根目录 Markdown、右键重命名、确认删除、收起文件栏后点击 Notes 重新展开均通过。没有读取或改写用户笔记。全仓 ESLint 完成，0 errors；修改文件定向 ESLint 无 warning。当前仅修改源码，未打包或替换 `/Applications/Auris.app`。
+最终 Electron 生产构建验证使用临时 profile 和临时 Vault：打开现有 Markdown、零间隔逐键输入、Mod+S 保存后逐字检查磁盘、新建根目录 Markdown、右键重命名、确认删除、收起文件栏后点击 Notes 重新展开均通过。没有读取或改写用户笔记。全仓 ESLint 完成，0 errors；修改文件定向 ESLint 无 warning。初次验收时仅修改源码。随后按用户要求整合至 main 并安装为 1.0.23，见 `../releases/auris-1.0.23-local-install-2026-10-31.md`。
