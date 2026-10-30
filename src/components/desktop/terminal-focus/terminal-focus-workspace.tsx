@@ -11,6 +11,7 @@ import { useNotesTerminalSessions, type NotesTerminalSession } from "@/component
 import { NotesTerminalTranscript } from "@/components/notes-v2/terminal/notes-terminal-transcript";
 import { terminalTabGlyph } from "@/components/notes-v2/terminal/notes-terminal-options";
 import { DEFAULT_FOCUS_LAYOUT, normalizeFocusLayout, normalizeWeights, resizeTracks, TERMINAL_FOCUS_LAYOUT_KEY, TERMINAL_FOCUS_GAP, TERMINAL_FOCUS_LIMIT, TERMINAL_FOCUS_SCOPE, type FocusLayout } from "./terminal-focus-layout";
+import { TerminalProjectDialog } from "./terminal-project-dialog";
 import "./terminal-focus.css";
 
 const STATUS_LABELS = { starting: "启动中", running: "运行中", exited: "已退出", failed: "失败" } as const;
@@ -39,7 +40,7 @@ function SessionPane({ session, active, hidden, singlePane, registerHost, activa
       </div>
     </header>
     <div className="terminal-focus__pane-host" ref={hostRef} />
-    <footer className="terminal-focus__pane-footer"><span title={session.cwd ?? undefined}>{session.cwd || "正在连接本地 Shell"}</span><span>{session.backend === "pipe" ? "管道回退 · 非完整 TTY" : STATUS_LABELS[session.status]}</span></footer>
+    <footer className="terminal-focus__pane-footer"><span title={session.cwd ? `启动目录：${session.cwd}` : undefined}>{session.cwd || "正在连接本地 Shell"}</span><span>{session.backend === "pipe" ? "管道回退 · 非完整 TTY" : STATUS_LABELS[session.status]}</span></footer>
   </section>;
 }
 
@@ -84,6 +85,7 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
   const [typography, setTypography] = useState(DEFAULT_NOTES_TYPOGRAPHY);
   const [layout, setLayout] = useState<FocusLayout>(DEFAULT_FOCUS_LAYOUT);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [projectPickerOpen, setProjectPickerOpen] = useState(false);
   const [singlePane, setSinglePane] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -94,7 +96,7 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
   const toggleSearch = useCallback(() => setSearchOpen((open) => !open), []);
   const terminal = useNotesTerminalSessions({
     enabled: Boolean(bridge), terminalBridge: bridge, workspaceInstanceId: TERMINAL_FOCUS_SCOPE,
-    multiPane: true, singlePane, maxSessions: TERMINAL_FOCUS_LIMIT, strictWorkspaceScope: true,
+    multiPane: true, singlePane, autoCreateSession: false, maxSessions: TERMINAL_FOCUS_LIMIT, strictWorkspaceScope: true,
     sessionIdPrefix: "focus-term", onSearch: toggleSearch,
   });
   const { sessions, activeSessionId, activeSession, setActiveSessionId, hostRef, setSearchQuery } = terminal;
@@ -134,9 +136,9 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
   const runMenu = (action: () => unknown) => { setContextMenu(null); void action(); };
 
   return <div className="notes-v2 notes-v2--minimal terminal-focus" data-notes-theme={theme} style={notesTypographyCssVars(typography) as CSSProperties}>
-    <aside className="terminal-focus__sidebar" aria-label="终端会话">
+    <aside className="terminal-focus__sidebar" aria-label="终端会话" inert={projectPickerOpen}>
       <div className="terminal-focus__sidebar-heading"><TerminalWindow size={18} /><h1>终端模式</h1><span>{sessions.length}/8</span>
-        <ToolButton label="新建终端" disabled={!bridge || terminal.isRestoring || terminal.isMaxed} onClick={terminal.createSession}><Plus size={17} /></ToolButton>
+        <ToolButton label="新建终端" disabled={!bridge || terminal.isRestoring || terminal.isMaxed} onClick={() => setProjectPickerOpen(true)}><Plus size={17} /></ToolButton>
       </div>
       <div className="terminal-focus__session-list" role="tablist" aria-label="终端会话列表" aria-orientation="vertical">
         {sessions.map((session) => <button key={session.id} type="button" role="tab" aria-selected={session.id === activeSessionId}
@@ -147,7 +149,7 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
       </div>
       <div className="terminal-focus__sidebar-bottom"><span>最多同时展示 8 个终端</span><span>切换页面不会结束运行中的会话</span></div>
     </aside>
-    <main className="terminal-focus__main" aria-label="专注终端工作区">
+    <main className="terminal-focus__main" aria-label="专注终端工作区" inert={projectPickerOpen}>
       <header className="terminal-focus__toolbar">
         <span className="terminal-focus__workspace-title">{singlePane ? "单屏专注" : "分屏工作台"}</span>
         <label className="terminal-focus__layout-picker">布局<select aria-label="终端分屏列数" value={layout.columns} onChange={(event) => {
@@ -185,13 +187,18 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
           {rowWeights.slice(0, -1).map((_, index) => <TrackSeparator key={`row-${index}`} axis="row" index={index} weights={rowWeights} singlePane={singlePane} onResize={(weights) => setLayout((previous) => ({ ...previous, rowWeights: weights }))} />)}
         </div>
         {!sessions.length && <div className="terminal-focus__empty"><TerminalWindow size={32} /><h2>{!ready ? "正在连接桌面终端…" : terminal.isRestoring ? "正在恢复终端会话…" : bridge ? "开始一个终端会话" : "终端仅在 Auris 桌面端可用"}</h2>
-          <p>{bridge ? "使用本机默认 Shell，启动目录沿用 Notes 的工作区安全策略。" : "请在桌面应用中打开终端模式。"}</p>
-          {bridge && <button type="button" disabled={terminal.isRestoring} onClick={terminal.createSession}>新建终端</button>}
+          <p>{bridge ? "选择文件夹或最近项目，在对应目录启动本机默认 Shell。" : "请在桌面应用中打开终端模式。"}</p>
+          {bridge && <button type="button" disabled={terminal.isRestoring} onClick={() => setProjectPickerOpen(true)}>新建终端</button>}
         </div>}
       </div>
       {transcriptOpen && canTranscript && bridge && <NotesTerminalTranscript bridge={bridge} sessionId={activeSessionId} id={transcriptId} />}
       <footer className="terminal-focus__footer"><span>{activeSession?.shell ?? "本地 Shell"}</span><span>{singlePane ? "1" : sessions.length} 个可见 · {sessions.length} 个会话</span><span>拖动分隔线调整布局 · 双击还原比例</span></footer>
     </main>
+    {projectPickerOpen && bridge && <TerminalProjectDialog bridge={bridge} onClose={() => setProjectPickerOpen(false)} onCreate={(cwd) => {
+      if (terminal.isMaxed || terminal.isRestoring) return;
+      setProjectPickerOpen(false);
+      terminal.createSession(cwd);
+    }} />}
     {contextMenu && <div ref={menuRef} className="terminal-focus__context-menu" role="menu" aria-label="终端操作" tabIndex={-1} style={{ left: Math.max(0, contextMenu.x), top: Math.max(0, contextMenu.y) }} onKeyDown={(event) => { if (event.key === "Escape") { setContextMenu(null); terminal.focusActiveSession(); } }}>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.copyActiveSelection)}>复制选区</button>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.pasteIntoActiveSession)}>粘贴</button>

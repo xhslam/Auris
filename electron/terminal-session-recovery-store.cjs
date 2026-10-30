@@ -14,7 +14,7 @@ function normalizePositiveInteger(value, fallback) {
 function normalizeDescriptor(value) {
   if (!value || typeof value !== "object") return null;
   const id = typeof value.id === "string" ? value.id.trim() : "";
-  const cwd = typeof value.cwd === "string" ? value.cwd.trim() : "";
+  const cwd = typeof value.cwd === "string" ? value.cwd : "";
   const shell = typeof value.shell === "string" ? value.shell.trim() : "";
   const workspaceInstanceId =
     typeof value.workspaceInstanceId === "string"

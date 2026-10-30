@@ -18,6 +18,11 @@ async function main() {
   fs.mkdirSync(output, { recursive: true });
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), "auris-terminal-focus-"));
   const vault = path.join(profile, "vault");
+  const projectA = path.join(profile, "中文 项目 A");
+  const projectB = path.join(profile, "项目 B ");
+  fs.mkdirSync(path.join(profile, "项目 B")); // Unselected sibling must never replace the selected trailing-space cwd.
+  const denied = path.join(profile, "not-selected");
+  for (const directory of [projectA, projectB, denied]) fs.mkdirSync(directory);
   const userData = path.join(profile, "user-data");
   fs.mkdirSync(vault); fs.mkdirSync(userData);
   const note = path.join(vault, "terminal-smoke.md");
@@ -69,11 +74,47 @@ async function main() {
     await page.getByRole("heading", { name: "终端模式", exact: true }).waitFor();
     await expect(page.getByRole("link", { name: "终端模式", exact: true })).toBeVisible();
     const live = () => page.evaluate(async (scope) => (await window.shadowingDesktop.terminal.list()).filter((record) => record.workspaceInstanceId === scope && record.backend), scope);
+    await expect(page.getByRole("heading", { name: "开始一个终端会话" })).toBeVisible();
+    assert.equal((await live()).length, 0);
+    // Exercise the actual IPC handler with deterministic native-dialog results.
+    // No production test bypass is added, and arbitrary renderer grants remain impossible.
+    await app.evaluate(({ dialog }, choices) => {
+      dialog.showOpenDialog = async () => choices.shift() ?? { canceled: true, filePaths: [] };
+    }, [{ canceled: true, filePaths: [] }, { canceled: false, filePaths: [projectA] }, { canceled: false, filePaths: [projectB] }]);
+    const openNew = () => page.getByRole("button", { name: "新建终端", exact: true }).first().click();
+    await openNew();
+    await page.getByRole("button", { name: "选择文件夹…", exact: true }).click();
+    await expect(page.getByRole("button", { name: "选择文件夹…", exact: true })).toBeEnabled();
+    assert.equal((await live()).length, 0);
+    evidence.checks.push("Cancelling native project selection starts no Shell");
+    await page.getByRole("button", { name: "选择文件夹…", exact: true }).click();
     await expect.poll(async () => (await live()).length).toBe(1);
-    for (let count = 2; count <= 8; count++) {
-      await page.getByRole("button", { name: "新建终端", exact: true }).click();
+    assert.equal((await live())[0].cwd, fs.realpathSync(projectA));
+    await openNew();
+    await expect(page.getByRole("dialog").getByRole("button", { name: /中文 项目 A/ })).toBeVisible();
+    await page.screenshot({ path: path.join(output, "terminal-project-picker.png") });
+    await page.getByRole("button", { name: "选择文件夹…", exact: true }).click();
+    await expect.poll(async () => (await live()).length).toBe(2);
+    assert.equal((await live())[1].cwd, fs.realpathSync(projectB));
+    for (let count = 3; count <= 8; count++) {
+      await openNew();
+      await page.getByRole("dialog").getByRole("button", { name: /中文 项目 A/ }).click();
       await expect.poll(async () => (await live()).length).toBe(count);
     }
+    const unauthorized = await page.evaluate(async ({ denied, scope }) => {
+      try { await window.shadowingDesktop.terminal.create({ cwd: denied, workspaceInstanceId: scope, sessionId: "focus-denied-test" }); return false; }
+      catch { return true; }
+    }, { denied, scope });
+    assert.equal(unauthorized, true);
+    assert.equal((await live()).length, 8);
+    evidence.checks.push("Outside-Vault cwd starts only after native selection; recents reuse grants; arbitrary IPC cwd rejected");
+    const notesProbe = await page.evaluate(async ({ projectA }) => {
+      const record = await window.shadowingDesktop.terminal.create({ cwd: projectA, workspaceInstanceId: "smoke-notes", sessionId: "notes-project-policy-probe" });
+      await window.shadowingDesktop.terminal.kill(record.id);
+      return record.cwd;
+    }, { projectA });
+    assert.equal(fs.realpathSync(notesProbe), fs.realpathSync(vault));
+    evidence.checks.push("Terminal project grants do not broaden Notes cwd or change its Vault");
     await expect(page.getByRole("button", { name: "新建终端", exact: true })).toBeDisabled();
     const initial = await live();
     assert.equal(initial.every((record) => record.backend === "pty"), true, "Must use real PTY, not pipe fallback");
@@ -90,6 +131,14 @@ async function main() {
       return records.every((record, index) => new RegExp(`(?:^|[\\r\\n])AURIS_FOCUS_${index}_中文[\\r\\n]`).test(stripVTControlCharacters(record.output ?? "")));
     }, { timeout: 20000 }).toBe(true);
     evidence.checks.push("Keyboard input, independent output and Unicode work in all eight panels");
+    await page.locator(".terminal-focus__pane").nth(0).locator(".xterm-helper-textarea").focus();
+    await page.keyboard.insertText("pwd"); await page.keyboard.press("Enter");
+    await expect.poll(async () => stripVTControlCharacters((await live())[0].output ?? "").split(/\r?\n/).includes(fs.realpathSync(projectA))).toBe(true);
+    evidence.checks.push("Actual Shell pwd matches the independently selected project");
+    await page.locator(".terminal-focus__pane").nth(1).locator(".xterm-helper-textarea").focus();
+    await page.keyboard.insertText("pwd"); await page.keyboard.press("Enter");
+    await expect.poll(async () => stripVTControlCharacters((await live())[1].output ?? "").split(/\r?\n/).includes(fs.realpathSync(projectB))).toBe(true);
+    evidence.checks.push("Trailing-space project cwd is preserved at real PTY spawn, never the unselected sibling");
     await page.getByLabel("终端分屏列数").selectOption("4");
     const before = await live();
     const separator = page.getByRole("separator", { name: "调整第 1 列宽度" });
@@ -148,6 +197,35 @@ async function main() {
     await expect(page.locator(".terminal-focus__pane:visible")).toHaveCount(8);
     assert.deepEqual((await live()).map((record) => record.id), initial.map((record) => record.id));
     evidence.checks.push("Notes navigation leaves PTYs alive; terminal route reattaches same eight sessions");
+    assert.deepEqual((await live()).map((record) => record.cwd), initial.map((record) => record.cwd));
+    const previousThirdId = initial[2].id;
+    await page.getByRole("button", { name: "重启 Terminal 3", exact: true }).click();
+    await expect.poll(async () => (await live()).some((record) => record.id === previousThirdId)).toBe(false);
+    await expect.poll(async () => (await live()).length).toBe(8);
+    const currentThirdId = await page.locator(".terminal-focus__pane").nth(2).getAttribute("data-session-id");
+    assert.equal((await live()).find((record) => record.id === currentThirdId).cwd, fs.realpathSync(projectA));
+    evidence.checks.push("Route restoration and explicit restart preserve each session's original project cwd");
+    const beforeAppRestart = (await live()).map(({ id, cwd }) => ({ id, cwd })).sort((a, b) => a.id.localeCompare(b.id));
+    await app.close();
+    app = await _electron.launch(packagedApp ? {
+      executablePath: path.join(packagedApp, "Contents/MacOS/Auris"), args: [note], env, timeout: 60000,
+    } : { args: [path.join(root, "electron/main.cjs"), "--dev", note], env, timeout: 60000 });
+    await expect.poll(() => {
+      page = app.windows().find((candidate) => /\/notes(?:[/?#]|$)/.test(candidate.url()));
+      return Boolean(page);
+    }, { timeout: 60000 }).toBe(true);
+    page.on("pageerror", (error) => evidence.errors.push(error.message));
+    page.setDefaultTimeout(20000);
+    await page.locator(".ProseMirror p").first().waitFor({ timeout: 60000 });
+    if (packagedApp) url = new URL(page.url()).origin;
+    await page.goto(`${url}/terminal`);
+    await expect.poll(async () => (await live()).length, { timeout: 20000 }).toBe(8);
+    assert.deepEqual((await live()).map(({ id, cwd }) => ({ id, cwd })).sort((a, b) => a.id.localeCompare(b.id)), beforeAppRestart);
+    const restoredSpaceProject = (await live()).find((record) => record.cwd === fs.realpathSync(projectB));
+    await page.locator(`[data-session-id="${restoredSpaceProject.id}"] .xterm-helper-textarea`).focus();
+    await page.keyboard.insertText("pwd"); await page.keyboard.press("Enter");
+    await expect.poll(async () => stripVTControlCharacters((await live()).find((record) => record.id === restoredSpaceProject.id).output ?? "").split(/\r?\n/).includes(fs.realpathSync(projectB))).toBe(true);
+    evidence.checks.push("Full application restart restores project grants and all eight cwd values, including the trailing-space path");
     assert.equal(fs.readFileSync(note, "utf8"), source);
     evidence.checks.push("Temporary Notes fixture remains unchanged");
     evidence.sessions = (await live()).map(({ id, backend, cols, rows }) => ({ id, backend, cols, rows }));

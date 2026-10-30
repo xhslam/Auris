@@ -73,6 +73,7 @@ type UseNotesTerminalSessionsInput = {
   maxSessions?: number;
   strictWorkspaceScope?: boolean;
   sessionIdPrefix?: string;
+  autoCreateSession?: boolean;
 };
 
 function getThemeScope(element?: Element | null) {
@@ -340,6 +341,7 @@ export function useNotesTerminalSessions({
   maxSessions = MAX_SESSIONS,
   strictWorkspaceScope = false,
   sessionIdPrefix = "notes-term",
+  autoCreateSession = true,
 }: UseNotesTerminalSessionsInput) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const sessionHostsRef = useRef(new Map<string, HTMLDivElement>());
@@ -611,7 +613,7 @@ export function useNotesTerminalSessions({
     return pendingInput.join("");
   }, []);
 
-  const createSession = useCallback(() => {
+  const createSession = useCallback((requestedCwd?: string | null) => {
     if (strictWorkspaceScope && !hasLoadedBackendSessions) return;
     const currentVisibleSessions = selectTerminalSessionsForWorkspace(
       sessionsRef.current,
@@ -636,7 +638,7 @@ export function useNotesTerminalSessions({
         ...current,
         {
           backend: null,
-          cwd: null,
+          cwd: typeof requestedCwd === "string" ? requestedCwd : null,
           id: nextId,
           isAlive: true,
           label: createSessionLabel(visibleCurrent),
@@ -874,7 +876,7 @@ export function useNotesTerminalSessions({
           exit: pendingExitRef.current.get(session.id) ?? { sessionId: session.id, exitCode: null, errorMessage: current?.status === "failed" ? "Terminal startup failed" : null },
         } : await terminalBridge.resume({
           cols: terminal.cols || DEFAULT_COLS,
-          cwd,
+          cwd: session.cwd ?? cwd,
           rows: terminal.rows || DEFAULT_ROWS,
           sessionId: session.id,
           workspaceInstanceId: session.workspaceInstanceId,
@@ -976,11 +978,11 @@ export function useNotesTerminalSessions({
     }
 
     if (visibleSessions.length > 0) activatedScopesRef.current.add(scopeKey);
-    else if (!activatedScopesRef.current.has(scopeKey)) {
+    else if (autoCreateSession && !activatedScopesRef.current.has(scopeKey)) {
       activatedScopesRef.current.add(scopeKey);
       createSession();
     }
-  }, [createSession, enabled, hasLoadedBackendSessions, scopeKey, terminalBridge, visible, visibleSessions.length]);
+  }, [autoCreateSession, createSession, enabled, hasLoadedBackendSessions, scopeKey, terminalBridge, visible, visibleSessions.length]);
 
   useEffect(() => {
     const nextActiveSessionId = selectActiveTerminalSessionId(

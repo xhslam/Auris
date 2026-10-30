@@ -44,6 +44,22 @@ function createFakePty(): FakePty {
 }
 
 describe("terminal-session-manager", () => {
+  it("preserves an authorized cwd with trailing spaces at the actual spawn boundary", () => {
+    const pty = createFakePty();
+    const spawn = vi.fn(() => pty);
+    const selected = "/projects/customer ";
+    const manager = createTerminalSessionManager({ platform: "darwin", env: { SHELL: "/bin/zsh" }, homedir: () => "/home", cwdExistsSync: () => true, ptyBackend: { spawn } });
+    expect(manager.createSession({ cwd: selected, requireCwd: true }).cwd).toBe(selected);
+    expect(spawn).toHaveBeenCalledWith("/bin/zsh", [], expect.objectContaining({ cwd: selected }));
+  });
+
+  it("does not fall back to home when a required project cwd becomes unavailable", () => {
+    const spawn = vi.fn(() => createFakePty());
+    const manager = createTerminalSessionManager({ homedir: () => "/home", cwdExistsSync: () => false, ptyBackend: { spawn } });
+    expect(() => manager.createSession({ cwd: "/projects/deleted", requireCwd: true })).toThrow("已失效");
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
   it("uses the same COMSPEC cmd default as VMark rather than forcing PowerShell", () => {
     const pty = createFakePty();
     const spawnPty = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);

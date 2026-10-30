@@ -177,6 +177,7 @@ const {
 } = require("./release-tag-preparer.cjs");
 const { createTerminalSessionRecoveryStore } = require("./terminal-session-recovery-store.cjs");
 const { createTerminalSessionCatalog } = require("./terminal-session-catalog.cjs");
+const { createTerminalProjectDirectories, TERMINAL_FOCUS_SCOPE } = require("./terminal-project-directories.cjs");
 const { createTerminalTranscriptService } = require("./terminal-transcript-service.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 const {
@@ -1846,15 +1847,28 @@ function closeTerminalSessionManager() {
   terminalResumeRequests.clear();
 }
 
+function getTerminalProjectDirectories() {
+  return createTerminalProjectDirectories(path.join(app.getPath("userData"), "terminal-project-directories.json"));
+}
+
 async function createTerminalSession(input) {
   const vaultPath = await getVaultPath();
 
-  const record = getTerminalSessionManager().createSession(
-    createTerminalSessionInput(input, {
-      homePath: app.getPath("home"),
-      vaultPath,
-    }),
-  );
+  const spawnInput = createTerminalSessionInput(input, {
+    homePath: app.getPath("home"),
+    vaultPath,
+  });
+  if (input?.workspaceInstanceId === TERMINAL_FOCUS_SCOPE && typeof input.cwd === "string" && input.cwd) {
+    const projects = getTerminalProjectDirectories();
+    spawnInput.requireCwd = true;
+    // Preserve the historical Vault/home policy for old sessions. Any broader
+    // cwd requires a persisted native-picker grant, never renderer assertions.
+    if (projects.has(input.cwd) || path.resolve(input.cwd) !== spawnInput.cwd) {
+      spawnInput.cwd = projects.resolve(input.cwd);
+      projects.touch(input.cwd);
+    }
+  }
+  const record = getTerminalSessionManager().createSession(spawnInput);
   getTerminalSessionCatalog().created(record);
   persistTerminalRecovery();
   return record;
@@ -4041,6 +4055,19 @@ function registerDesktopHandlers() {
     requireTrustedDesktopEvent(event);
     await removeMcpClient(String(clientId), getMcpInstallerOptions());
     return listMcpClients(getMcpInstallerOptions());
+  });
+
+  ipcMain.handle("shadowing:terminal:projects:list", async (event) => {
+    requireTrustedDesktopEvent(event);
+    return getTerminalProjectDirectories().list();
+  });
+  ipcMain.handle("shadowing:terminal:projects:pick", async (event) => {
+    requireTrustedDesktopEvent(event);
+    const owner = BrowserWindow.fromWebContents(event.sender);
+    const options = { title: "选择终端项目文件夹", buttonLabel: "在此文件夹新建终端", properties: ["openDirectory"] };
+    const result = owner ? await dialog.showOpenDialog(owner, options) : await dialog.showOpenDialog(options);
+    if (result.canceled || !result.filePaths?.[0]) return null;
+    return getTerminalProjectDirectories().grantSelectedDirectory(result.filePaths[0]);
   });
 
   ipcMain.handle("shadowing:terminal:create", async (event, input) => {

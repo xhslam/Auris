@@ -310,13 +310,16 @@ function createTerminalSessionManager(options = {}) {
 
     const requestedCwd =
       typeof input.cwd === "string" && input.cwd.trim()
-        ? input.cwd.trim()
+        ? input.cwd
         : homedir();
     // If a caller provided a cwd-existence checker (production code does;
     // unit tests don't), validate the cwd. A configured vault path that no
     // longer exists on disk — e.g. when the project was copied between
     // machines — would otherwise make posix_spawnp throw before any error
     // handler is wired up.
+    if (input.requireCwd === true && cwdExistsSync && !cwdExistsSync(requestedCwd)) {
+      throw new Error("项目启动目录已失效，请重新选择文件夹。");
+    }
     const cwd =
       cwdExistsSync && !cwdExistsSync(requestedCwd)
         ? (() => {

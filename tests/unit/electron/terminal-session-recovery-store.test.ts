@@ -13,6 +13,13 @@ afterEach(() => {
 });
 
 describe("terminal session recovery store", () => {
+  it("preserves trailing spaces in project cwd when saving and restoring", () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "auris-terminal-recovery-")); directories.push(directory);
+    const store = createTerminalSessionRecoveryStore(path.join(directory, "sessions.json"));
+    store.save([{ cwd: "/projects/customer ", id: "focus-term-spaces", shell: "/bin/zsh" }]);
+    expect(store.load()[0].cwd).toBe("/projects/customer ");
+  });
+
   it("persists only recoverable, bounded terminal descriptors", () => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "auris-terminal-recovery-"));
     directories.push(directory);

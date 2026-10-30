@@ -106,3 +106,23 @@
   .terminal-focus__main { padding: 6px 6px 0; }
   .terminal-focus__toolbar { flex-wrap: wrap; flex-basis: auto; min-height: 38px; padding-bottom: 6px; }
 }
+
+/* New terminal project picker: uses the same palette, never a Notes Vault dialog. */
+.terminal-project__backdrop { position: fixed; inset: 0; z-index: 220; display: flex; align-items: center; justify-content: center; padding: 24px; background: #0005; }
+.terminal-project__dialog { width: min(480px, 100%); max-height: min(600px, 85dvh); overflow: auto; padding: 20px; border: 1px solid var(--notes-line); border-radius: 16px; background: var(--notes-terminal-bg); color: var(--notes-text); box-shadow: 0 16px 60px #0004; outline: none; }
+.terminal-project__dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.terminal-project__dialog h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.terminal-project__dialog h3 { margin: 22px 0 8px; font-size: 11px; color: var(--notes-muted); font-weight: 500; }
+.terminal-project__dialog p { font-size: 12px; line-height: 1.65; color: var(--notes-muted); margin: 12px 0; }
+.desktop-app-frame .terminal-focus .terminal-project__dialog header button { display: grid; place-items: center; width: 28px; height: 28px; }
+.desktop-app-frame .terminal-focus button.terminal-project__browse { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px; margin-top: 18px; text-align: left; border: 1px solid var(--notes-line); border-radius: 9px; }
+.terminal-project__dialog ul { list-style: none; padding: 0; margin: 0; }
+.desktop-app-frame .terminal-focus button.terminal-project__recent { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; text-align: left; }
+.terminal-project__recent > svg { flex-shrink: 0; }
+.terminal-project__recent > span { display: grid; gap: 5px; min-width: 0; }
+.terminal-project__recent strong { font-size: 12px; font-weight: 500; }
+.terminal-project__recent small { font-size: 10px; color: var(--notes-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.terminal-project__recent em { flex-shrink: 0; margin-left: auto; font-size: 10px; font-style: normal; }
+.terminal-project__dialog footer { display: flex; justify-content: flex-end; margin-top: 20px; }
+.desktop-app-frame .terminal-focus .terminal-project__dialog footer button { padding: 7px 16px; border: 1px solid var(--notes-line); }
+.terminal-project__dialog p.terminal-project__error { color: var(--notes-text); border-left: 2px solid var(--notes-muted); padding-left: 10px; }

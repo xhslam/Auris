@@ -41,7 +41,9 @@ function createBridge(records: DesktopTerminalSessionRecord[] = []) {
   let exitListener: (event: DesktopTerminalExitEvent) => void = () => {};
   const bridge: DesktopTerminalBridge = {
     create: vi.fn(), list: vi.fn().mockResolvedValue(records),
-    resume: vi.fn(async (input) => record(input.sessionId!)),
+    resume: vi.fn(async (input) => ({ ...record(input.sessionId!), cwd: input.cwd ?? "/workspace" })),
+    listProjectDirectories: vi.fn().mockResolvedValue([]),
+    pickProjectDirectory: vi.fn().mockResolvedValue({ path: "/workspace", name: "workspace", available: true }),
     resize: vi.fn().mockResolvedValue(undefined), kill: vi.fn().mockResolvedValue(undefined), write: vi.fn().mockResolvedValue(undefined),
     onData: vi.fn((listener) => { dataListener = listener; return () => {}; }),
     onExit: vi.fn((listener) => { exitListener = listener; return () => {}; }),
@@ -49,10 +51,14 @@ function createBridge(records: DesktopTerminalSessionRecord[] = []) {
   return { bridge, data: (event: DesktopTerminalDataEvent) => dataListener(event), exit: (event: DesktopTerminalExitEvent) => exitListener(event) };
 }
 function panes() { return document.querySelectorAll<HTMLElement>(".terminal-focus__pane"); }
+async function newTerminal() {
+  await waitFor(() => expect(screen.getAllByRole("button", { name: "新建终端" })[0]).toBeEnabled());
+  fireEvent.click(screen.getAllByRole("button", { name: "新建终端" })[0]);
+  fireEvent.click(await screen.findByRole("button", { name: "选择文件夹…" }));
+}
 async function addToEight(bridge: DesktopTerminalBridge) {
-  await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
-  for (let count = 2; count <= 8; count++) {
-    fireEvent.click(screen.getByRole("button", { name: "新建终端" }));
+  for (let count = 1; count <= 8; count++) {
+    await newTerminal();
     await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(count));
   }
 }
@@ -162,6 +168,7 @@ describe("TerminalFocusWorkspace shared runtime", () => {
   it("shows real process exit, does not label an idle Shell as Agent Done", async () => {
     const { bridge, exit } = createBridge();
     render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal();
     await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
     const id = vi.mocked(bridge.resume).mock.calls[0][0].sessionId!;
     act(() => exit({ sessionId: id, exitCode: 0 }));
@@ -185,6 +192,75 @@ describe("TerminalFocusWorkspace shared runtime", () => {
     expect(bridge.resume).toHaveBeenCalledWith(expect.objectContaining({ sessionId: "focus-term-existing" }));
     expect(panes()).toHaveLength(1);
     expect(screen.getByRole("button", { name: "新建终端" })).toBeEnabled();
+  });
+
+  it("does not auto-start a Shell; cancelling a folder choice creates no session", async () => {
+    const { bridge } = createBridge();
+    vi.mocked(bridge.pickProjectDirectory!).mockResolvedValue(null);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal();
+    await waitFor(() => expect(bridge.pickProjectDirectory).toHaveBeenCalledTimes(1));
+    expect(bridge.resume).not.toHaveBeenCalled();
+    expect(panes()).toHaveLength(0);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "取消新建终端" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("uses a selected outside-Vault project and preserves that cwd when restarting", async () => {
+    const { bridge } = createBridge();
+    vi.mocked(bridge.pickProjectDirectory!).mockResolvedValue({ path: "/projects/中文 项目", name: "中文 项目", available: true });
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal();
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(bridge.resume).mock.calls[0][0].cwd).toBe("/projects/中文 项目");
+    fireEvent.click(screen.getByRole("button", { name: "重启 Terminal 1" }));
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(bridge.resume).mock.calls[1][0].cwd).toBe("/projects/中文 项目");
+  });
+
+  it("starts independent terminals from recent projects without showing the native picker", async () => {
+    const { bridge } = createBridge();
+    vi.mocked(bridge.listProjectDirectories!).mockResolvedValue([
+      { path: "/projects/one", name: "one", available: true },
+      { path: "/projects/two", name: "two", available: true },
+      { path: "/projects/missing", name: "missing", available: false },
+    ]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    for (const [index, name] of ["one", "two"].entries()) {
+      await waitFor(() => expect(screen.getAllByRole("button", { name: "新建终端" })[0]).toBeEnabled());
+      fireEvent.click(screen.getAllByRole("button", { name: "新建终端" })[0]);
+      expect(await screen.findByRole("button", { name: /missing/ })).toBeDisabled();
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${name}`) }));
+      await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(index + 1));
+      expect(vi.mocked(bridge.resume).mock.calls[index][0].cwd).toBe(`/projects/${name}`);
+    }
+    expect(bridge.pickProjectDirectory).not.toHaveBeenCalled();
+    expect(panes()).toHaveLength(2);
+  });
+
+  it("prevents duplicate native pickers and ignores a result after the workspace unmounts", async () => {
+    const { bridge } = createBridge();
+    let resolvePicker!: (project: { path: string; name: string; available: boolean }) => void;
+    vi.mocked(bridge.pickProjectDirectory!).mockImplementation(() => new Promise((resolve) => { resolvePicker = resolve; }));
+    const view = render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal();
+    const browse = screen.getByRole("button", { name: "正在选择文件夹…" });
+    expect(browse).toBeDisabled();
+    fireEvent.click(browse); fireEvent.click(browse);
+    expect(bridge.pickProjectDirectory).toHaveBeenCalledTimes(1);
+    view.unmount();
+    await act(async () => resolvePicker({ path: "/projects/late-result", name: "late-result", available: true }));
+    expect(bridge.resume).not.toHaveBeenCalled();
+  });
+
+  it("does not create a terminal when the native picker fails", async () => {
+    const { bridge } = createBridge();
+    vi.mocked(bridge.pickProjectDirectory!).mockRejectedValue(new Error("目录不可用"));
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal();
+    expect(await screen.findByRole("alert")).toHaveTextContent("目录不可用");
+    expect(bridge.resume).not.toHaveBeenCalled();
   });
 
   it("has a desktop-only empty state and tolerates corrupted layout preferences", () => {

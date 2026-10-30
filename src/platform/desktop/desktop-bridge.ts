@@ -220,7 +220,15 @@ export type DesktopTerminalExitEvent = {
   signal?: string | null;
 };
 
+export type DesktopTerminalProjectDirectory = {
+  path: string;
+  name: string;
+  available: boolean;
+};
+
 export type DesktopTerminalBridge = {
+  listProjectDirectories?: () => Promise<DesktopTerminalProjectDirectory[]>;
+  pickProjectDirectory?: () => Promise<DesktopTerminalProjectDirectory | null>;
   transcriptStatus?: () => Promise<{ enabled: boolean }>;
   configureTranscript?: (enabled: boolean) => Promise<{ enabled: boolean }>;
   readTranscript?: (sessionId: string, revision?: string) => Promise<{
