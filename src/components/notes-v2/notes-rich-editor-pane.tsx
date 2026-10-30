@@ -1283,7 +1283,9 @@ export function NotesRichEditorPane({
     wysiwygDocumentSource,
   ]);
 
-  useEffect(() => {
+  // Reconcile a committed source before the next browser input event. A passive
+  // effect can otherwise replay the previous render over a newer transaction.
+  useLayoutEffect(() => {
     const view = viewRef.current;
 
     if (!view || !document || !editableDocument) {

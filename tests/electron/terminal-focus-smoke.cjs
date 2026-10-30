@@ -44,15 +44,24 @@ async function main() {
     delete env.SHADOWING_DESKTOP_URL;
   } else {
     log = fs.openSync(path.join(output, "next.log"), "w");
-    server = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port), "--hostname", "127.0.0.1"], { cwd: root, env, stdio: ["ignore", log, log] });
+    server = spawn(process.execPath, [require.resolve("next/dist/bin/next"), ...(process.argv.includes("--dev-server") ? ["dev", "--webpack"] : ["start"]), "-p", String(port), "--hostname", "127.0.0.1"], { cwd: root, env, stdio: ["ignore", log, log] });
   }
   const evidence = { startedAt: new Date().toISOString(), checks: [], errors: [], profile };
   let app;
   const save = () => fs.writeFileSync(path.join(output, "evidence.json"), JSON.stringify(evidence, null, 2));
   try {
     if (!packagedApp) {
-      await expect.poll(async () => { try { return (await fetch(url)).status; } catch { return 0; } }, { timeout: 30000 }).toBe(200);
+      await expect.poll(async () => { try { return (await fetch(url)).status; } catch { return 0; } }, { timeout: process.argv.includes("--dev-server") ? 120000 : 30000 }).toBe(200);
       env.SHADOWING_DESKTOP_URL = url;
+      if (process.argv.includes("--dev-server")) {
+        // Warm the large Notes and terminal client graphs before the native
+        // startup timeout; this is dev compilation, never a production build.
+        for (const route of ["/notes", "/terminal"]) {
+          const response = await fetch(url + route, { signal: AbortSignal.timeout(120000) });
+          assert.equal(response.status, 200, `Dev route ${route} must compile`);
+          await response.arrayBuffer();
+        }
+      }
     }
     app = await _electron.launch(packagedApp ? {
       executablePath: path.join(packagedApp, "Contents/MacOS/Auris"), args: [note], env, timeout: 60000,
@@ -96,7 +105,14 @@ async function main() {
     await page.getByRole("button", { name: "选择文件夹…", exact: true }).click();
     await expect.poll(async () => (await live()).length).toBe(2);
     assert.equal((await live())[1].cwd, fs.realpathSync(projectB));
-    for (let count = 3; count <= 8; count++) {
+    const recents = page.locator(".terminal-focus__recent-projects");
+    await expect(recents).not.toHaveAttribute("open", "");
+    await recents.locator("summary").click();
+    await page.getByRole("button", { name: "在最近项目 中文 项目 A 中新建终端", exact: true }).click();
+    await expect.poll(async () => (await live()).length).toBe(3);
+    await recents.locator("summary").click();
+    evidence.checks.push("Recent projects are initially collapsed and can create a project terminal directly");
+    for (let count = 4; count <= 8; count++) {
       await openNew();
       await page.getByRole("dialog").getByRole("button", { name: /中文 项目 A/ }).click();
       await expect.poll(async () => (await live()).length).toBe(count);
@@ -120,6 +136,20 @@ async function main() {
     assert.equal(initial.every((record) => record.backend === "pty"), true, "Must use real PTY, not pipe fallback");
     await expect(page.locator(".terminal-focus__pane:visible")).toHaveCount(8);
     evidence.checks.push("8 real PTYs, 8 visible panels, ninth creation disabled");
+    await expect(page.locator(".terminal-focus__project-group")).toHaveCount(2);
+    const projectGroup = page.getByRole("group", { name: `启动项目：${fs.realpathSync(projectA)}`, exact: true });
+    await projectGroup.getByRole("button", { expanded: true }).click();
+    await expect(page.locator(".terminal-focus__pane:visible")).toHaveCount(8);
+    assert.equal((await live()).length, 8);
+    await projectGroup.getByRole("button", { expanded: false }).click();
+    await expect(page.locator('.terminal-focus__session-row[data-visible="true"]')).toHaveCount(8);
+    await expect(page.locator('.terminal-focus__session-row[data-active="true"]')).toHaveCount(1);
+    await page.getByRole("button", { name: "重命名 Terminal 3", exact: true }).click();
+    await page.getByRole("textbox", { name: "重命名 Terminal 3", exact: true }).fill("前端修复");
+    await page.getByRole("button", { name: "保存会话名称", exact: true }).click();
+    await expect(page.getByRole("tab", { name: "前端修复 · Terminal 3", exact: true })).toBeVisible();
+    await expect.poll(async () => (await live()).find((record) => record.id === initial[2].id).customTitle).toBe("前端修复");
+    evidence.checks.push("Sidebar groups by startup projects; collapse preserves PTYs; manual rename persists without shell input");
     for (let index = 0; index < 8; index++) {
       const pane = page.locator(".terminal-focus__pane").nth(index);
       await pane.locator(".xterm-helper-textarea").focus();
@@ -168,6 +198,7 @@ async function main() {
     evidence.checks.push("Native PTY geometry updates for both columns after dragging separator");
     await page.getByRole("button", { name: "专注 Terminal 3", exact: true }).click();
     await expect(page.locator(".terminal-focus__pane:visible")).toHaveCount(1);
+    await expect(page.locator('.terminal-focus__session-row[data-visible="true"]')).toHaveCount(1);
     await page.getByRole("button", { name: "恢复全部分屏", exact: true }).click();
     await expect(page.locator(".terminal-focus__pane:visible")).toHaveCount(8);
     assert.deepEqual((await live()).map((record) => record.id), initial.map((record) => record.id));
@@ -196,7 +227,8 @@ async function main() {
     await page.goto(`${url}/terminal`);
     await expect(page.locator(".terminal-focus__pane:visible")).toHaveCount(8);
     assert.deepEqual((await live()).map((record) => record.id), initial.map((record) => record.id));
-    evidence.checks.push("Notes navigation leaves PTYs alive; terminal route reattaches same eight sessions");
+    await expect(page.getByRole("tab", { name: "前端修复 · Terminal 3", exact: true })).toBeVisible();
+    evidence.checks.push("Notes navigation leaves PTYs alive; terminal route reattaches same eight sessions and manual title");
     assert.deepEqual((await live()).map((record) => record.cwd), initial.map((record) => record.cwd));
     const previousThirdId = initial[2].id;
     await page.getByRole("button", { name: "重启 Terminal 3", exact: true }).click();
@@ -205,7 +237,8 @@ async function main() {
     const currentThirdId = await page.locator(".terminal-focus__pane").nth(2).getAttribute("data-session-id");
     assert.equal((await live()).find((record) => record.id === currentThirdId).cwd, fs.realpathSync(projectA));
     evidence.checks.push("Route restoration and explicit restart preserve each session's original project cwd");
-    const beforeAppRestart = (await live()).map(({ id, cwd }) => ({ id, cwd })).sort((a, b) => a.id.localeCompare(b.id));
+    assert.equal((await live()).find((record) => record.id === currentThirdId).customTitle, "前端修复");
+    const beforeAppRestart = (await live()).map(({ id, cwd, customTitle }) => ({ id, cwd, customTitle: customTitle ?? null })).sort((a, b) => a.id.localeCompare(b.id));
     await app.close();
     app = await _electron.launch(packagedApp ? {
       executablePath: path.join(packagedApp, "Contents/MacOS/Auris"), args: [note], env, timeout: 60000,
@@ -220,12 +253,13 @@ async function main() {
     if (packagedApp) url = new URL(page.url()).origin;
     await page.goto(`${url}/terminal`);
     await expect.poll(async () => (await live()).length, { timeout: 20000 }).toBe(8);
-    assert.deepEqual((await live()).map(({ id, cwd }) => ({ id, cwd })).sort((a, b) => a.id.localeCompare(b.id)), beforeAppRestart);
+    assert.deepEqual((await live()).map(({ id, cwd, customTitle }) => ({ id, cwd, customTitle: customTitle ?? null })).sort((a, b) => a.id.localeCompare(b.id)), beforeAppRestart);
     const restoredSpaceProject = (await live()).find((record) => record.cwd === fs.realpathSync(projectB));
     await page.locator(`[data-session-id="${restoredSpaceProject.id}"] .xterm-helper-textarea`).focus();
     await page.keyboard.insertText("pwd"); await page.keyboard.press("Enter");
     await expect.poll(async () => stripVTControlCharacters((await live()).find((record) => record.id === restoredSpaceProject.id).output ?? "").split(/\r?\n/).includes(fs.realpathSync(projectB))).toBe(true);
-    evidence.checks.push("Full application restart restores project grants and all eight cwd values, including the trailing-space path");
+    await expect(page.getByRole("tab", { name: /^前端修复 · Terminal/ })).toBeVisible();
+    evidence.checks.push("Full application restart restores project grants, manual titles and all eight cwd values, including the trailing-space path");
     assert.equal(fs.readFileSync(note, "utf8"), source);
     evidence.checks.push("Temporary Notes fixture remains unchanged");
     evidence.sessions = (await live()).map(({ id, backend, cols, rows }) => ({ id, backend, cols, rows }));

@@ -12,6 +12,39 @@ function harness() {
 }
 
 describe("terminal-session-catalog", () => {
+  it("persists a live session's manual title without changing process records", () => {
+    const { catalog, live, store } = harness();
+    live.push({ ...descriptor("live-title"), backend: "pty" });
+    expect(catalog.rename("live-title", "  前端修复\n ")).toBe("前端修复");
+    expect(catalog.list().find((item: { id: string }) => item.id === "live-title").customTitle).toBe("前端修复");
+    catalog.persist();
+    expect(store.save).toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({ id: "live-title", customTitle: "前端修复" })]));
+    expect(live[0]).not.toHaveProperty("customTitle");
+  });
+
+  it("retains the title while a dormant record is attached and clears it without resurrecting the saved name", () => {
+    const { store, manager, live } = harness();
+    store.load.mockImplementation(() => [{ ...descriptor("restored-1"), customTitle: "old title" }]);
+    const catalog = createTerminalSessionCatalog({ store, manager });
+    expect(catalog.get("restored-1").customTitle).toBe("old title");
+    catalog.rename("restored-1", null);
+    expect(catalog.get("restored-1").customTitle).toBeNull();
+    live.push({ ...descriptor("restored-1"), backend: "pty" });
+    catalog.created(live[0]);
+    expect(catalog.withTitle(live[0]).customTitle).toBeNull();
+    catalog.persist();
+    expect(store.save).toHaveBeenCalledWith([expect.objectContaining({ id: "restored-1", customTitle: null })]);
+  });
+
+  it("carries a manual title onto a new restarted session id and removes closed metadata", () => {
+    const { catalog, live } = harness();
+    const running = { ...descriptor("restart-new"), backend: "pty", customTitle: "测试验证" };
+    live.push(running); catalog.created(running);
+    expect(catalog.withTitle({ id: "restart-new" }).customTitle).toBe("测试验证");
+    catalog.remove("restart-new");
+    expect(catalog.withTitle({ id: "restart-new" })).not.toHaveProperty("customTitle");
+  });
+
   it("lists dormant recovery descriptors without spawning any shell", () => {
     const { catalog, store, manager } = harness();
     expect(catalog.list()).toEqual([

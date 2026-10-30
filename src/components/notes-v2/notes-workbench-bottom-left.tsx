@@ -27,6 +27,7 @@ type NotesWorkbenchBottomLeftProps = {
   onMovePath?: (sourcePath: string, targetFolderPath: string) => void;
   onOpenBrowser?: () => void;
   onOpenPath: (path: string) => void;
+  onToggleExplorer?: () => void;
   onPickDirectory?: () => void;
   onReturnToFolder?: () => void;
   openPopover: "workspace" | null;
@@ -57,6 +58,7 @@ export function NotesWorkbenchBottomLeft({
   onMovePath,
   onOpenBrowser,
   onOpenPath,
+  onToggleExplorer,
   onPickDirectory,
   onReturnToFolder,
   openPopover,
@@ -107,9 +109,10 @@ export function NotesWorkbenchBottomLeft({
       <button
         aria-label={`Open workspace switcher for ${getDocumentTitle(activeDocument)}`}
         className="notes-v2__active-note-pill"
-        onClick={() =>
-          setOpenPopover(openPopover === "workspace" ? null : "workspace")
-        }
+        onClick={() => {
+          if (onToggleExplorer) onToggleExplorer();
+          else setOpenPopover(openPopover === "workspace" ? null : "workspace");
+        }}
         suppressHydrationWarning
         title={activeDocument?.path ?? directoryInfo?.vaultPath ?? undefined}
         type="button"
@@ -137,7 +140,7 @@ export function NotesWorkbenchBottomLeft({
         <span aria-hidden="true">+</span>
       </button>
 
-      <NotesWorkbenchPopover
+      {!onToggleExplorer ? <NotesWorkbenchPopover
         anchor="bottom-left"
         labelledBy="notes-v2-workspace-popover-title"
         onClose={closePopover}
@@ -173,7 +176,7 @@ export function NotesWorkbenchBottomLeft({
             variant="obsidian"
           />
         </div>
-      </NotesWorkbenchPopover>
+      </NotesWorkbenchPopover> : null}
     </div>
   );
 }

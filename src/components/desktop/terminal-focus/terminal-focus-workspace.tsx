@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from "react";
-import { ArrowClockwise, ArrowsIn, ArrowsOut, ClockCounterClockwise, Copy, MagnifyingGlass, Plus, TerminalWindow, Trash, X, ClipboardText } from "@phosphor-icons/react";
+import { ArrowClockwise, ArrowsIn, ArrowsOut, ClockCounterClockwise, Copy, MagnifyingGlass, TerminalWindow, Trash, X, ClipboardText } from "@phosphor-icons/react";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { useHydratedDesktopBridge } from "@/platform/desktop/use-hydrated-desktop-bridge";
 import type { DesktopTerminalBridge } from "@/platform/desktop/desktop-bridge";
@@ -9,12 +9,13 @@ import { useAppTheme } from "@/features/appearance/use-app-theme";
 import { DEFAULT_NOTES_TYPOGRAPHY, loadNotesTypography, NOTES_TYPOGRAPHY_EVENT, notesTypographyCssVars } from "@/features/notes/formatting/notes-typography";
 import { useNotesTerminalSessions, type NotesTerminalSession } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
 import { NotesTerminalTranscript } from "@/components/notes-v2/terminal/notes-terminal-transcript";
-import { terminalTabGlyph } from "@/components/notes-v2/terminal/notes-terminal-options";
+import { TerminalFocusSidebar } from "./terminal-focus-sidebar";
+import { terminalSessionTitle, TERMINAL_SESSION_STATUS } from "./terminal-session-presentation";
 import { DEFAULT_FOCUS_LAYOUT, normalizeFocusLayout, normalizeWeights, resizeTracks, TERMINAL_FOCUS_LAYOUT_KEY, TERMINAL_FOCUS_GAP, TERMINAL_FOCUS_LIMIT, TERMINAL_FOCUS_SCOPE, type FocusLayout } from "./terminal-focus-layout";
 import { TerminalProjectDialog } from "./terminal-project-dialog";
 import "./terminal-focus.css";
 
-const STATUS_LABELS = { starting: "启动中", running: "运行中", exited: "已退出", failed: "失败" } as const;
+const STATUS_LABELS = TERMINAL_SESSION_STATUS;
 
 function ToolButton({ label, children, onClick, disabled, pressed }: { label: string; children: ReactNode; onClick: () => void; disabled?: boolean; pressed?: boolean }) {
   return <button type="button" className="terminal-focus__tool" aria-label={label} title={label} aria-pressed={pressed} disabled={disabled} onClick={onClick}>{children}</button>;
@@ -26,7 +27,7 @@ function SessionPane({ session, active, hidden, singlePane, registerHost, activa
   activate: (id: string) => void; close: (id: string) => void; restart: (id: string) => void; toggleSingle: (id: string) => void;
 }) {
   const hostRef = useCallback((host: HTMLDivElement | null) => registerHost(session.id, host), [registerHost, session.id]);
-  const title = session.programTitle || session.label;
+  const title = terminalSessionTitle(session);
   return <section className="terminal-focus__pane" data-session-id={session.id} data-active={active} hidden={hidden}
     aria-label={`${title} 终端面板`} onPointerDownCapture={() => activate(session.id)} onFocusCapture={() => activate(session.id)}>
     <header className="terminal-focus__pane-header">
@@ -137,17 +138,14 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
 
   return <div className="notes-v2 notes-v2--minimal terminal-focus" data-notes-theme={theme} style={notesTypographyCssVars(typography) as CSSProperties}>
     <aside className="terminal-focus__sidebar" aria-label="终端会话" inert={projectPickerOpen}>
-      <div className="terminal-focus__sidebar-heading"><TerminalWindow size={18} /><h1>终端模式</h1><span>{sessions.length}/8</span>
-        <ToolButton label="新建终端" disabled={!bridge || terminal.isRestoring || terminal.isMaxed} onClick={() => setProjectPickerOpen(true)}><Plus size={17} /></ToolButton>
-      </div>
-      <div className="terminal-focus__session-list" role="tablist" aria-label="终端会话列表" aria-orientation="vertical">
-        {sessions.map((session) => <button key={session.id} type="button" role="tab" aria-selected={session.id === activeSessionId}
-          className="terminal-focus__session" data-active={session.id === activeSessionId} onClick={() => setActiveSessionId(session.id)} title={session.cwd ?? session.label}>
-          <span className="terminal-focus__session-glyph">{terminalTabGlyph(session.label, session.programTitle)}</span>
-          <span className="terminal-focus__session-info"><strong>{session.programTitle || session.label}</strong><small><span className="terminal-focus__status-dot" data-status={session.status} />{STATUS_LABELS[session.status]}</small></span>
-        </button>)}
-      </div>
-      <div className="terminal-focus__sidebar-bottom"><span>最多同时展示 8 个终端</span><span>切换页面不会结束运行中的会话</span></div>
+      <TerminalFocusSidebar sessions={sessions} activeSessionId={activeSessionId} singlePane={singlePane} bridge={bridge}
+        disabledCreate={!bridge || terminal.isRestoring || terminal.isMaxed} restoring={terminal.isRestoring}
+        onNew={() => setProjectPickerOpen(true)} onActivate={setActiveSessionId} onRename={terminal.renameSession}
+        onCreateInProject={(cwd) => {
+          if (!bridge || terminal.isRestoring || terminal.isMaxed) return;
+          if (cwd === null) setProjectPickerOpen(true);
+          else terminal.createSession(cwd);
+        }} />
     </aside>
     <main className="terminal-focus__main" aria-label="专注终端工作区" inert={projectPickerOpen}>
       <header className="terminal-focus__toolbar">

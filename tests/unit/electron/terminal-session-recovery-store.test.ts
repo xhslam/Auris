@@ -13,6 +13,17 @@ afterEach(() => {
 });
 
 describe("terminal session recovery store", () => {
+  it("restores bounded manual titles and omits cleared titles", () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "auris-terminal-recovery-")); directories.push(directory);
+    const store = createTerminalSessionRecoveryStore(path.join(directory, "sessions.json"));
+    store.save([
+      { cwd: "/project", id: "focus-named", customTitle: "  修复\n前端  " },
+      { cwd: "/other", id: "focus-cleared", customTitle: null },
+    ]);
+    expect(store.load()[0].customTitle).toBe("修复前端");
+    expect(store.load()[1]).not.toHaveProperty("customTitle");
+  });
+
   it("preserves trailing spaces in project cwd when saving and restoring", () => {
     const directory = mkdtempSync(path.join(os.tmpdir(), "auris-terminal-recovery-")); directories.push(directory);
     const store = createTerminalSessionRecoveryStore(path.join(directory, "sessions.json"));

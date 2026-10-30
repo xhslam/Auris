@@ -180,6 +180,7 @@ export type DesktopAiHistoryExport = {
 };
 
 export type DesktopTerminalSessionInput = {
+  customTitle?: string | null;
   cols?: number;
   cwd?: string | null;
   rows?: number;
@@ -189,6 +190,7 @@ export type DesktopTerminalSessionInput = {
 };
 
 export type DesktopTerminalSessionRecord = {
+  customTitle?: string | null;
   // null means a dormant recovery descriptor, not an unverified live PTY.
   backend: "pipe" | "pty" | null;
   ptyPackage?: string | null;
@@ -227,6 +229,7 @@ export type DesktopTerminalProjectDirectory = {
 };
 
 export type DesktopTerminalBridge = {
+  rename?: (sessionId: string, title: string | null) => Promise<{ customTitle: string | null }>;
   listProjectDirectories?: () => Promise<DesktopTerminalProjectDirectory[]>;
   pickProjectDirectory?: () => Promise<DesktopTerminalProjectDirectory | null>;
   transcriptStatus?: () => Promise<{ enabled: boolean }>;

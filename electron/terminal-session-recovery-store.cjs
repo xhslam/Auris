@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { normalizeTerminalTitle } = require("./terminal-session-policy.cjs");
 
 const SESSION_ID = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/;
 const MAX_SESSIONS = 50;
@@ -25,6 +26,7 @@ function normalizeDescriptor(value) {
     cols: normalizePositiveInteger(value.cols, 80),
     cwd,
     id,
+    ...(normalizeTerminalTitle(value.customTitle) ? { customTitle: normalizeTerminalTitle(value.customTitle) } : {}),
     rows: normalizePositiveInteger(value.rows, 24),
     shell: shell && path.isAbsolute(shell) ? shell : null,
     ...(workspaceInstanceId &&

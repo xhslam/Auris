@@ -855,7 +855,7 @@ describe("NotesWorkbench", () => {
     expect(onAcceptPendingMcpEdit).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps the workspace popover focused on the file tree", async () => {
+  it("keeps the file tree in a persistent collapsible explorer", async () => {
     const user = userEvent.setup();
     const documents = [createDocument(), createGrammarDocument()];
 
@@ -869,12 +869,6 @@ describe("NotesWorkbench", () => {
         openTabs={["notes/daily.md"]}
         recentFiles={["notes/grammar.md", "notes/daily.md"]}
       />,
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: /Open workspace switcher for Daily Review/i,
-      }),
     );
 
     const workspaceTree = screen.getByRole("navigation", {
@@ -893,6 +887,10 @@ describe("NotesWorkbench", () => {
     expect(
       screen.queryByText(NOTES_UI_COPY.panels.tags.title),
     ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "收起文件栏" }));
+    expect(screen.queryByRole("navigation", { name: NOTES_UI_COPY.fileTree.ariaLabel })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "展开文件栏" }));
+    expect(screen.getByRole("navigation", { name: NOTES_UI_COPY.fileTree.ariaLabel })).toBeInTheDocument();
   });
 
   it("renders back and forward file history controls", async () => {
@@ -1423,7 +1421,7 @@ describe("NotesWorkbench", () => {
     expect(terminalBridge.kill).not.toHaveBeenCalled();
   });
 
-  it("closes the workspace popover when opening the terminal split", async () => {
+  it("keeps the file explorer beside the terminal split", async () => {
     const user = userEvent.setup();
 
     render(
@@ -1437,15 +1435,7 @@ describe("NotesWorkbench", () => {
       />,
     );
 
-    await user.click(
-      screen.getByRole("button", {
-        name: /Open workspace switcher for Daily Review/i,
-      }),
-    );
-
-    expect(
-      screen.getByRole("dialog", { name: /Workspace/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "笔记文件栏" })).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", {

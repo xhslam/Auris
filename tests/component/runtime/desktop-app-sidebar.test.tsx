@@ -87,10 +87,8 @@ describe("DesktopAppSidebar", () => {
     expect(notes).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("group", { name: "笔记库" })).toBeInTheDocument();
     fireEvent.click(notes);
-    expect(notes).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("group", { name: "笔记库" })).not.toBeInTheDocument();
-    const hiddenVault = screen.getByRole("group", { name: "笔记库", hidden: true });
-    expect(hiddenVault.closest("[inert]")).not.toBeNull();
+    expect(notes).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("group", { name: "笔记库" })).toBeInTheDocument();
     fireEvent.click(notes);
     expect(notes).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("group", { name: "笔记库" })).toBeInTheDocument();

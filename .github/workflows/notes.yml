@@ -36,6 +36,9 @@ on:
       - "tests/unit/output-review/**"
       - "tests/unit/vmark/**"
       - "tests/e2e/review-home.spec.ts"
+      - "tests/electron/notes-terminal-windows-smoke.cjs"
+      - "src/app/globals.css"
+      - "next.config.ts"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
@@ -80,6 +83,9 @@ on:
       - "tests/unit/output-review/**"
       - "tests/unit/vmark/**"
       - "tests/e2e/review-home.spec.ts"
+      - "tests/electron/notes-terminal-windows-smoke.cjs"
+      - "src/app/globals.css"
+      - "next.config.ts"
       - "tests/unit/electron/auris-notes-mcp-server.test.ts"
       - "tests/unit/electron/notes-mcp-bridge.test.ts"
       - "package.json"
@@ -129,3 +135,52 @@ jobs:
           tests/unit/electron/macos-terminal-permissions.test.ts
           tests/unit/electron/auris-notes-mcp-server.test.ts
           tests/unit/electron/notes-mcp-bridge.test.ts
+
+  notes-windows-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      WINDOWS_SMOKE_OUT: ${{ runner.temp }}/notes-terminal-windows
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Prepare evidence directory
+        run: New-Item -ItemType Directory -Force -Path $env:WINDOWS_SMOKE_OUT | Out-Null
+
+      - name: Install dependencies
+        run: |
+          npm ci 2>&1 | Tee-Object -FilePath "$env:WINDOWS_SMOKE_OUT/install.log"
+          exit $LASTEXITCODE
+
+      - name: Build production app
+        run: |
+          npm run build 2>&1 | Tee-Object -FilePath "$env:WINDOWS_SMOKE_OUT/build.log"
+          exit $LASTEXITCODE
+
+      - name: Windows terminal smoke
+        timeout-minutes: 10
+        run: |
+          node tests/electron/notes-terminal-windows-smoke.cjs --out "$env:WINDOWS_SMOKE_OUT" 2>&1 | Tee-Object -FilePath "$env:WINDOWS_SMOKE_OUT/smoke.log"
+          exit $LASTEXITCODE
+
+      # Upload only diagnostics, not the isolated Vault or Electron profile.
+      # Early install/build/launch failures may have logs but no screenshot.
+      - name: Upload Windows terminal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notes-terminal-windows-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.WINDOWS_SMOKE_OUT }}/evidence.json
+            ${{ env.WINDOWS_SMOKE_OUT }}/*.png
+            ${{ env.WINDOWS_SMOKE_OUT }}/*.log
+          if-no-files-found: warn
+          retention-days: 14

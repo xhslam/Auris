@@ -9,7 +9,7 @@ vi.mock("@/features/appearance/use-app-theme", () => ({ useAppTheme: () => "nigh
 vi.mock("@/components/notes-v2/terminal/setupFloatingPrompt", () => ({ setupFloatingPrompt: () => () => {} }));
 const harness = vi.hoisted(() => ({ terminals: [] as Array<{
   textarea: HTMLTextAreaElement; input: (data: string) => void; title: (value: string) => void;
-  key: (event: KeyboardEvent) => boolean; writes: string[]; dispose: ReturnType<typeof vi.fn>; fit: ReturnType<typeof vi.fn>; paste: ReturnType<typeof vi.fn>;
+  key: (event: KeyboardEvent) => boolean; writes: string[]; dispose: ReturnType<typeof vi.fn>; fit: ReturnType<typeof vi.fn<() => void>>; paste: ReturnType<typeof vi.fn>;
 }> , observers: [] as Array<{ callback: () => void; targets: Element[] }> }));
 vi.mock("@xterm/xterm", () => ({ Terminal: class {
   cols = 80; rows = 24; unicode = { activeVersion: "" }; options: object;
@@ -41,7 +41,8 @@ function createBridge(records: DesktopTerminalSessionRecord[] = []) {
   let exitListener: (event: DesktopTerminalExitEvent) => void = () => {};
   const bridge: DesktopTerminalBridge = {
     create: vi.fn(), list: vi.fn().mockResolvedValue(records),
-    resume: vi.fn(async (input) => ({ ...record(input.sessionId!), cwd: input.cwd ?? "/workspace" })),
+    resume: vi.fn(async (input) => ({ ...record(input.sessionId!), cwd: input.cwd ?? "/workspace", customTitle: input.customTitle ?? null })),
+    rename: vi.fn(async (_id, title) => ({ customTitle: title })),
     listProjectDirectories: vi.fn().mockResolvedValue([]),
     pickProjectDirectory: vi.fn().mockResolvedValue({ path: "/workspace", name: "workspace", available: true }),
     resize: vi.fn().mockResolvedValue(undefined), kill: vi.fn().mockResolvedValue(undefined), write: vi.fn().mockResolvedValue(undefined),
@@ -261,6 +262,132 @@ describe("TerminalFocusWorkspace shared runtime", () => {
     await newTerminal();
     expect(await screen.findByRole("alert")).toHaveTextContent("目录不可用");
     expect(bridge.resume).not.toHaveBeenCalled();
+  });
+
+  it("groups sessions by startup project and does not terminate sessions when collapsing a group", async () => {
+    const { bridge } = createBridge([{ ...record("focus-a"), cwd: "/one/auris" }, { ...record("focus-b"), cwd: "/two/auris" }]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(2));
+    const first = screen.getByRole("group", { name: "启动项目：/one/auris" });
+    expect(screen.getByRole("group", { name: "启动项目：/two/auris" })).toBeInTheDocument();
+    fireEvent.click(within(first).getByRole("button", { expanded: true }));
+    expect(within(first).queryByRole("tab")).not.toBeInTheDocument();
+    expect(panes()).toHaveLength(2); expect(bridge.kill).not.toHaveBeenCalled();
+    expect(screen.queryByText("最多同时展示 8 个终端")).not.toBeInTheDocument();
+  });
+
+  it("keeps ordinary status dot-only and distinguishes the current input target from visible panes", async () => {
+    const { bridge } = createBridge(); render(<TerminalFocusWorkspace bridge={bridge} />);
+    await addToEight(bridge);
+    const sidebar = screen.getByRole("complementary", { name: "终端会话" });
+    expect(within(sidebar).queryByText("运行中")).not.toBeInTheDocument();
+    expect(within(sidebar).getAllByRole("img", { name: "运行中" })).toHaveLength(8);
+    expect(document.querySelectorAll('.terminal-focus__session-row[data-visible="true"]')).toHaveLength(8);
+    expect(document.querySelectorAll('.terminal-focus__session-row[data-active="true"]')).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "专注 Terminal 3" }));
+    expect(document.querySelectorAll('.terminal-focus__session-row[data-visible="true"]')).toHaveLength(1);
+    expect(screen.getByRole("tab", { name: /Terminal 3/ })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("renames without writing to the Shell; OSC changes do not replace the manual name, including after restart", async () => {
+    const { bridge } = createBridge(); render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal(); await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    act(() => harness.terminals[0].title("Codex"));
+    expect(screen.getByRole("tab", { name: /^Codex/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重命名 Terminal 1" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "重命名 Terminal 1" }), { target: { value: "前端修复" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存会话名称" }));
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "重命名 Terminal 1" })).not.toBeInTheDocument());
+    expect(screen.getByRole("tab", { name: /^前端修复/ })).toBeInTheDocument();
+    act(() => harness.terminals[0].title("Claude Code"));
+    expect(screen.getByRole("tab", { name: /^前端修复/ })).toBeInTheDocument();
+    expect(bridge.write).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "重启 Terminal 1" }));
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(bridge.resume).mock.calls[1][0].customTitle).toBe("前端修复");
+    expect(screen.getByRole("tab", { name: /^前端修复/ })).toBeInTheDocument();
+  });
+
+  it("cancels rename, restores automatic names when cleared, and keeps a failed save visible", async () => {
+    const { bridge } = createBridge([{ ...record("focus-named"), customTitle: "旧名称" }]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "重命名 Terminal 1" }));
+    const field = screen.getByRole("textbox", { name: "重命名 Terminal 1" });
+    fireEvent.change(field, { target: { value: "未保存" } }); fireEvent.keyDown(field, { key: "Escape" });
+    expect(screen.getByRole("tab", { name: /^旧名称/ })).toBeInTheDocument(); expect(bridge.rename).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "重命名 Terminal 1" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "重命名 Terminal 1" }), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存会话名称" }));
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "重命名 Terminal 1" })).not.toBeInTheDocument());
+    expect(screen.getByRole("tab", { name: /^Shell/ })).toBeInTheDocument();
+    vi.mocked(bridge.rename!).mockRejectedValue(new Error("写入失败"));
+    fireEvent.click(screen.getByRole("button", { name: "重命名 Terminal 1" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "重命名 Terminal 1" }), { target: { value: "不能保存" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存会话名称" }));
+    await screen.findByText("保存失败，请重试。");
+    expect(screen.getByRole("textbox", { name: "重命名 Terminal 1" })).toBeEnabled();
+  });
+
+  it.each(["未保存", ""])("restarts with only the confirmed title while rename %j is pending and later fails", async (draft) => {
+    const { bridge } = createBridge([{ ...record("focus-confirmed"), customTitle: "已保存" }]);
+    let rejectRename!: (error: Error) => void;
+    vi.mocked(bridge.rename!).mockImplementation(() => new Promise((_resolve, reject) => { rejectRename = reject; }));
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "重命名 Terminal 1" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "重命名 Terminal 1" }), { target: { value: draft } });
+    fireEvent.click(screen.getByRole("button", { name: "保存会话名称" }));
+    expect(screen.getByRole("button", { name: "保存会话名称" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "重启 Terminal 1" }));
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(bridge.resume).mock.calls[1][0].customTitle).toBe("已保存");
+    await act(async () => { rejectRename(new Error("持久化失败")); });
+    expect(screen.getByRole("tab", { name: /^已保存/ })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /^未保存/ })).not.toBeInTheDocument();
+    expect(bridge.write).not.toHaveBeenCalled();
+  });
+
+  it("does not steal focus from another terminal after an asynchronous name save", async () => {
+    const { bridge } = createBridge();
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal(); await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    await newTerminal(); await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(2));
+    let resolveRename!: (value: { customTitle: string | null }) => void;
+    vi.mocked(bridge.rename!).mockImplementation(() => new Promise((resolve) => { resolveRename = resolve; }));
+    fireEvent.click(screen.getByRole("button", { name: "重命名 Terminal 1" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "重命名 Terminal 1" }), { target: { value: "保存中" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存会话名称" }));
+    act(() => { harness.terminals[1].textarea.focus(); });
+    expect(document.activeElement).toBe(harness.terminals[1].textarea);
+    await act(async () => { resolveRename({ customTitle: "保存中" }); });
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "重命名 Terminal 1" })).not.toBeInTheDocument());
+    await act(async () => { await new Promise((resolve) => requestAnimationFrame(resolve)); });
+    expect(document.activeElement).toBe(harness.terminals[1].textarea);
+  });
+
+  it("resets an old program title when restarting a plain Shell", async () => {
+    const { bridge } = createBridge(); render(<TerminalFocusWorkspace bridge={bridge} />);
+    await newTerminal(); await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    act(() => harness.terminals[0].title("Codex"));
+    expect(screen.getByRole("tab", { name: /^Codex/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重启 Terminal 1" }));
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("tab", { name: /^Shell/ })).toBeInTheDocument();
+  });
+
+  it("keeps recent projects collapsed until requested and starts a selected recent project directly", async () => {
+    const { bridge } = createBridge();
+    vi.mocked(bridge.listProjectDirectories!).mockResolvedValue([{ path: "/projects/recent", name: "recent", available: true }]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "新建终端" })[0]).toBeEnabled());
+    const details = document.querySelector(".terminal-focus__recent-projects") as HTMLDetailsElement;
+    expect(details.open).toBe(false); expect(bridge.listProjectDirectories).not.toHaveBeenCalled();
+    details.open = true; fireEvent(details, new Event("toggle"));
+    fireEvent.click(await screen.findByRole("button", { name: "在最近项目 recent 中新建终端" }));
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(bridge.resume).mock.calls[0][0].cwd).toBe("/projects/recent");
+    expect(bridge.pickProjectDirectory).not.toHaveBeenCalled();
   });
 
   it("has a desktop-only empty state and tolerates corrupted layout preferences", () => {

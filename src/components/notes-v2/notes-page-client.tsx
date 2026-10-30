@@ -17,26 +17,19 @@ import { sanitizeNoteFileName } from "@/features/notes/note-model";
 import type { DesktopExternalMarkdownFile } from "@/platform/desktop/desktop-bridge";
 import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 import { getFileExportService } from "@/platform/services";
-import { NotesFolderBrowser } from "@/components/notes-v2/notes-folder-browser";
 import {
   folderFromDirectoryInfo,
-  getInitialNotesLocation,
-  getNotesRootLocation,
   isNotesFolderNavigateEvent,
   NOTES_FOLDER_NAVIGATE_EVENT,
-  NOTES_LANDING_VISITED_SESSION_KEY,
   NOTES_ROOT_NAVIGATE_EVENT,
   type NotesFolderLocation,
   type NotesLocation,
   writeLastNotesFolder,
-  writeSessionValue,
 } from "@/components/notes-v2/notes-navigation";
 import { NotesWorkbench } from "@/components/notes-v2/notes-workbench";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesWorkbench } from "@/components/notes-v2/use-notes-workbench";
 import { useNotesDialog } from "@/components/notes-v2/use-notes-dialog";
-import { NotesWelcomeScreen } from "@/components/notes-v2/notes-welcome-screen";
-import { useAppReadingTheme } from "@/features/notes/workbench/use-app-reading-theme";
 import { useAppWindowPreferences } from "@/features/appearance/use-app-window-preferences";
 
 type NotesPageClientProps = {
@@ -58,7 +51,6 @@ function getExternalMarkdownConflictHash(error: unknown) {
 }
 
 export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
-  const theme = useAppReadingTheme();
   const windowPreferences = useAppWindowPreferences();
   const { promptFn, confirmFn, renderDialogs } = useNotesDialog();
   const workbench = useNotesWorkbench({
@@ -101,7 +93,7 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
   } | null>(null);
   const markdownFragmentRequestIdRef = useRef(0);
   const [location, setLocation] = useState<NotesLocation>(() =>
-    getInitialNotesLocation({ hasResumeNote: Boolean(resumeNoteId) }),
+    ({ type: "note", folder: null }),
   );
 
   const updateExternalFiles = useCallback(
@@ -391,11 +383,6 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
   }, [workbench.errorMessage]);
 
   useEffect(() => {
-    if (location.type !== "landing") return;
-    writeSessionValue(NOTES_LANDING_VISITED_SESSION_KEY, "true");
-  }, [location.type]);
-
-  useEffect(() => {
     if (!activeFolder) return;
     writeLastNotesFolder(activeFolder);
   }, [activeFolder]);
@@ -404,11 +391,10 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
     const handleFolderNavigate = (event: Event) => {
       if (!isNotesFolderNavigateEvent(event)) return;
       setActiveExternalFileId(null);
-      setLocation({ type: "folder", folder: event.detail.folder });
+      setLocation({ type: "note", folder: event.detail.folder });
     };
     const handleRootNavigate = () => {
-      setActiveExternalFileId(null);
-      setLocation(getNotesRootLocation());
+      setLocation({ type: "note", folder: folderFromDirectoryInfo(directoryInfoRef.current) });
     };
 
     window.addEventListener(NOTES_FOLDER_NAVIGATE_EVENT, handleFolderNavigate);
@@ -421,36 +407,6 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
       window.removeEventListener(NOTES_ROOT_NAVIGATE_EVENT, handleRootNavigate);
     };
   }, []);
-
-  const openFolder = useCallback((folder: NotesFolderLocation) => {
-    setLocation({ type: "folder", folder });
-  }, []);
-
-  const handleReturnToLanding = useCallback(() => {
-    setActiveExternalFileId(null);
-    setLocation({ type: "landing" });
-  }, []);
-
-  const openNote = useCallback(
-    (path: string, folder = activeFolder) => {
-      setActiveExternalFileId(null);
-      workbench.handleOpenPath(path);
-      setLocation({ type: "note", folder });
-    },
-    [activeFolder, workbench],
-  );
-
-  const handleCreateFile = useCallback(async () => {
-    let folder = folderFromDirectoryInfo(workbench.directoryInfo);
-    if (!workbench.directoryInfo.isConfigured) {
-      const directory = await workbench.handlePickDirectory();
-      if (!directory?.isConfigured) return;
-      folder = folderFromDirectoryInfo(directory);
-    }
-
-    await workbench.handleCreateNote();
-    setLocation({ type: "note", folder });
-  }, [workbench]);
 
   const handleOpenFile = useCallback(async () => {
     if (externalMarkdownBridge) {
@@ -470,31 +426,10 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
     });
   }, [externalMarkdownBridge, handleExternalFileOpen, workbench]);
 
-  const handleOpenFolder = useCallback(async () => {
-    const directory = await workbench.handlePickDirectory();
-    const folder = folderFromDirectoryInfo(directory);
-    if (folder) openFolder(folder);
-  }, [openFolder, workbench]);
-
-  const handleOpenRecent = useCallback(
-    (path: string) => openNote(path, folderFromDirectoryInfo(workbench.directoryInfo)),
-    [openNote, workbench.directoryInfo],
-  );
-
-  const handleCreateInFolder = useCallback(async () => {
-    await workbench.handleCreateNoteInPath("");
-    setLocation({ type: "note", folder: activeFolder });
-  }, [activeFolder, workbench]);
-
   const handleReturnToFolder = useCallback(() => {
-    setActiveExternalFileId(null);
-    const folder = activeFolder ?? folderFromDirectoryInfo(workbench.directoryInfo);
-    if (folder) {
-      openFolder(folder);
-      return;
-    }
-    setLocation({ type: "landing" });
-  }, [activeFolder, openFolder, workbench.directoryInfo]);
+    // The file explorer stays beside the editor; no intermediate folder page.
+    window.dispatchEvent(new Event(NOTES_ROOT_NAVIGATE_EVENT));
+  }, []);
 
   const handleOpenWorkbenchPath = useCallback(
     (path: string) => {
@@ -558,7 +493,7 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
 
       if (vaultRelativePath !== null) {
         queueFragment(vaultRelativePath, target.fragment);
-        openNote(vaultRelativePath, folderFromDirectoryInfo(directoryInfoRef.current));
+        handleOpenWorkbenchPath(vaultRelativePath);
         return;
       }
 
@@ -579,7 +514,7 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
       desktopBridge,
       externalMarkdownBridge,
       handleExternalFileOpen,
-      openNote,
+      handleOpenWorkbenchPath,
       workbench.activePath,
       workbenchDirectoryInfo.vaultPath,
     ],
@@ -766,9 +701,6 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
     goForwardInternal();
   }, [goForwardInternal]);
 
-  const isCurrentFolder =
-    location.type === "folder" &&
-    location.folder.path === workbench.directoryInfo.vaultPath;
   const documents = useMemo(
     () => [
       ...workbench.documents.filter(
@@ -819,30 +751,6 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
         data-entry-view={location.type}
         data-testid="notes-page-frame"
       >
-        {location.type === "landing" ? (
-          <NotesWelcomeScreen
-            documents={workbench.documents}
-            recentFiles={workbench.recentFiles}
-            theme={theme}
-            onCreateFile={handleCreateFile}
-            onOpenFile={handleOpenFile}
-            onOpenFolder={handleOpenFolder}
-            onOpenRecent={handleOpenRecent}
-          />
-        ) : location.type === "folder" ? (
-          <NotesFolderBrowser
-            documents={graphDocuments}
-            errorMessage={workbench.errorMessage}
-            folder={location.folder}
-            isLoading={workbench.isLoading}
-            isReady={isCurrentFolder}
-            onCreateNote={handleCreateInFolder}
-            onEnsureDocuments={workbench.ensureGraphDocuments}
-            onOpenNote={(path) => openNote(path, location.folder)}
-            onReturnToLanding={handleReturnToLanding}
-            theme={theme}
-          />
-        ) : (
           <NotesWorkbench
             activePath={activePath}
             backlinks={activeExternalFile ? [] : workbench.backlinks}
@@ -871,8 +779,15 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
             onCopyWriteConflictDiff={activeExternalFile ? undefined : workbench.handleCopyWriteConflictDiff}
             onClosePath={handleCloseWorkbenchPath}
             onCopyPath={workbench.handleCopyPath}
-            onCreateNote={workbench.handleCreateNote}
-            onCreateNoteInPath={workbench.handleCreateNoteInPath}
+            onCreateNote={() => {
+              setActiveExternalFileId(null);
+              void workbench.handleCreateNote();
+            }}
+            onOpenFile={handleOpenFile}
+            onCreateNoteInPath={(folderPath) => {
+              setActiveExternalFileId(null);
+              void workbench.handleCreateNoteInPath(folderPath);
+            }}
             onCreateFolderInPath={workbench.handleCreateFolderInPath}
             onDeleteActiveNote={handleExternalDeleteActiveNote}
             onDeletePath={workbench.handleDeletePath}
@@ -932,7 +847,6 @@ export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
             onReloadWriteConflict={activeExternalFile ? undefined : workbench.handleReloadWriteConflict}
             writeConflict={activeExternalFile ? null : workbench.writeConflict}
           />
-        )}
       </div>
       {renderDialogs()}
       <Toaster

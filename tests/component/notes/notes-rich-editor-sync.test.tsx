@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NotesEditorPane } from "@/components/notes-v2/notes-editor-pane";
@@ -37,6 +38,29 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("NotesRichEditorPane sync", () => {
+  it("keeps input that arrives immediately after a source commit", () => {
+    const onDocumentChange = vi.fn();
+    function Harness({ source, typeAfterCommit = false }: { source: string; typeAfterCommit?: boolean }) {
+      const document = createDocument(source);
+      useLayoutEffect(() => {
+        if (!typeAfterCommit) return;
+        const host = screen.getByTestId("notes-prosemirror-host") as HTMLDivElement & {
+          __notesRichEditorView?: ProseMirrorEditorView;
+        };
+        const view = host.__notesRichEditorView!;
+        view.dispatch(view.state.tr.insertText(" NEW_INPUT", view.state.doc.content.size - 1));
+      }, [source, typeAfterCommit]);
+      return <NotesEditorPane document={document} documents={[document]} editorMode="wysiwyg" onDocumentChange={onDocumentChange} />;
+    }
+    const { rerender } = render(<Harness source={"# Daily Review\n\nBody"} />);
+    rerender(<Harness source={"# Daily Review\n\nUpdated"} typeAfterCommit />);
+    const host = screen.getByTestId("notes-prosemirror-host") as HTMLDivElement & {
+      __notesRichEditorView?: ProseMirrorEditorView;
+    };
+    expect(host.__notesRichEditorView!.state.doc.textContent).toContain("Updated NEW_INPUT");
+    expect(onDocumentChange).toHaveBeenLastCalledWith(expect.stringContaining("Updated NEW_INPUT"));
+  });
+
   it("does not scroll back to the caret when the same note is updated externally", () => {
     const onDocumentChange = vi.fn();
     const initial = createDocument("# Daily Review\n\nBody");

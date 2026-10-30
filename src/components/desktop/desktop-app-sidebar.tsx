@@ -370,13 +370,6 @@ export function DesktopAppSidebar({
 }: DesktopAppSidebarProps) {
   const resolvedActiveId = activeNavId ?? (activeWorkspace === "home" ? "review" : activeWorkspace);
   const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(readNotesVaultOpen);
-  const toggleNotesVaultOpen = useCallback(() => {
-    setIsNotesVaultOpen((current) => {
-      const next = !current;
-      writeNotesVaultOpen(next);
-      return next;
-    });
-  }, []);
   const handleNotesRootNavigate = useCallback(() => {
     window.dispatchEvent(createNotesRootNavigateEvent());
     setIsNotesVaultOpen(true);
@@ -424,7 +417,7 @@ export function DesktopAppSidebar({
           renderNavGroup(group, resolvedActiveId, onNavigate, {
             notesVaultOpen: showNotesVaultNav,
             onNotesVaultNavigate: handleNotesRootNavigate,
-            onNotesVaultToggle: toggleNotesVaultOpen,
+            onNotesVaultToggle: handleNotesRootNavigate,
           }),
         )}
 

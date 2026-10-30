@@ -480,6 +480,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     stop: () => invoke("shadowing:voice-engine:stop"),
   },
   terminal: {
+    rename: (sessionId, title) => invoke("shadowing:terminal:rename", sessionId, title),
     listProjectDirectories: () => invoke("shadowing:terminal:projects:list"),
     pickProjectDirectory: () => invoke("shadowing:terminal:projects:pick"),
     transcriptStatus: () => invoke("shadowing:terminal:transcript:status"),

@@ -8,6 +8,12 @@ function normalizeTerminalString(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function normalizeTerminalTitle(value) {
+  if (typeof value !== "string") return null;
+  const title = [...value.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim()].slice(0, 64).join("");
+  return title || null;
+}
+
 function normalizeTerminalSize(value, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
@@ -85,6 +91,7 @@ function createTerminalSessionInput(input, context) {
 module.exports = {
   createTerminalSessionInput,
   normalizeTerminalString,
+  normalizeTerminalTitle,
   normalizeTerminalSize,
   normalizeWorkspaceInstanceId,
   resolveTerminalCwd,

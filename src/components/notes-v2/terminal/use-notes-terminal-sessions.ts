@@ -34,6 +34,7 @@ const lastActiveSessionByScope = new Map<string, string>();
 type SessionStatus = "starting" | "running" | "exited" | "failed";
 
 export type NotesTerminalSession = {
+  customTitle?: string | null;
   backend: DesktopTerminalSessionRecord["backend"] | null;
   cwd: string | null;
   id: string;
@@ -222,6 +223,7 @@ function restoreTerminalSessions(records: DesktopTerminalSessionRecord[]) {
     return {
       backend: record.backend,
       cwd: record.cwd,
+      customTitle: record.customTitle ?? null,
       id: record.id,
       isAlive: true,
       label: `Terminal ${index}`,
@@ -695,6 +697,7 @@ export function useNotesTerminalSessions({
         id: nextSessionId,
         isAlive: true,
         shell: null,
+        programTitle: undefined,
         status: "starting",
       } satisfies NotesTerminalSession;
 
@@ -877,6 +880,7 @@ export function useNotesTerminalSessions({
         } : await terminalBridge.resume({
           cols: terminal.cols || DEFAULT_COLS,
           cwd: session.cwd ?? cwd,
+          ...(session.customTitle !== undefined ? { customTitle: session.customTitle } : {}),
           rows: terminal.rows || DEFAULT_ROWS,
           sessionId: session.id,
           workspaceInstanceId: session.workspaceInstanceId,
@@ -908,6 +912,7 @@ export function useNotesTerminalSessions({
         pendingExitRef.current.delete(session.id);
         markSession(session.id, {
           backend: record.backend,
+          customTitle: record.customTitle ?? session.customTitle ?? null,
           cwd: record.cwd,
           isAlive: !earlyExit,
           shell: record.shell,
@@ -1215,6 +1220,25 @@ export function useNotesTerminalSessions({
     [queuePendingInput, queueSessionRestart, terminalBridge],
   );
 
+  const renameSession = useCallback(async (sessionId: string, title: string | null) => {
+    if (!terminalBridge?.rename || !isSessionActive(sessionId)) return false;
+    const current = sessionsRef.current.find((session) => session.id === sessionId);
+    if (!current || current.status === "starting") return false;
+    // A restart may replace this id while the IPC is pending. Keep only the
+    // confirmed title in session state so a new PTY cannot inherit an unsaved
+    // optimistic name (including an unconfirmed clear).
+    try {
+      const result = await terminalBridge.rename(sessionId, title);
+      if (isSessionActive(sessionId)) markSession(sessionId, { customTitle: result.customTitle });
+      return true;
+    } catch (error) {
+      if (isSessionActive(sessionId)) {
+        setStatusMessage(error instanceof Error ? error.message : "终端重命名失败。");
+      }
+      return false;
+    }
+  }, [isSessionActive, markSession, terminalBridge]);
+
   const clearActiveSession = useCallback(() => {
     if (!activeSessionId) {
       return;
@@ -1311,6 +1335,7 @@ export function useNotesTerminalSessions({
     closeActiveSession,
     closeSession,
     restartSession,
+    renameSession,
     registerSessionHost,
     copyActiveSelection,
     createSession,

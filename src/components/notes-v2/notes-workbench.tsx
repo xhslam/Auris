@@ -12,6 +12,8 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { NotesExplorer } from "./notes-explorer";
+import { NOTES_ROOT_NAVIGATE_EVENT, NOTES_FOLDER_NAVIGATE_EVENT } from "./notes-navigation";
 import { NotesBreadcrumbBar } from "@/components/notes-v2/notes-breadcrumb-bar";
 import {
   NotesCommandPalette,
@@ -21,7 +23,6 @@ import { NotesWorkbenchCenter } from "@/components/notes-v2/notes-workbench-cent
 import { NotesEmbeddedBrowser } from "@/components/notes-v2/notes-embedded-browser";
 import { NotesWriteConflictDialog } from "@/components/notes-v2/notes-write-conflict-dialog";
 import { NotesMcpEditReviewDialog } from "@/components/notes-v2/notes-mcp-edit-review-dialog";
-import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesCommandInfrastructure } from "@/components/notes-v2/use-notes-command-infrastructure";
 import { NotesWorkbenchBottomLeft } from "@/components/notes-v2/notes-workbench-bottom-left";
 import { NotesWorkbenchBottomRight } from "@/components/notes-v2/notes-workbench-bottom-right";
@@ -154,6 +155,7 @@ export type NotesWorkbenchProps = {
   onOpenPath: (path: string) => void;
   onOpenWikiLink?: (target: string) => void;
   onPickDirectory?: () => void;
+  onOpenFile?: () => void;
   onRebuildIndex?: () => void;
   onRefresh?: () => void;
   onRefreshDesktopCommands?: () => void;
@@ -252,6 +254,7 @@ export function NotesWorkbench({
   onOpenPath,
   onOpenWikiLink,
   onPickDirectory,
+  onOpenFile,
   onRebuildIndex,
   onRefresh,
   onRefreshDesktopCommands,
@@ -283,6 +286,16 @@ export function NotesWorkbench({
   pendingMcpEdit = null,
   writeConflict = null,
 }: NotesWorkbenchProps) {
+  const [explorerOpen, setExplorerOpen] = useState(true);
+  useEffect(() => {
+    const open = () => setExplorerOpen(true);
+    window.addEventListener(NOTES_ROOT_NAVIGATE_EVENT, open);
+    window.addEventListener(NOTES_FOLDER_NAVIGATE_EVENT, open);
+    return () => {
+      window.removeEventListener(NOTES_ROOT_NAVIGATE_EVENT, open);
+      window.removeEventListener(NOTES_FOLDER_NAVIGATE_EVENT, open);
+    };
+  }, []);
   const notesLocale = useNotesLocale();
   const activeWorkspaceInstanceId = useWorkspaceInstancesStore(
     (state) => state.activeWorkspaceInstanceId,
@@ -876,7 +889,7 @@ export function NotesWorkbench({
   return (
     <>
       <section
-        className="notes-v2 notes-v2--minimal"
+        className="notes-v2 notes-v2--minimal notes-v2--explorer"
         data-notes-theme={readingTheme}
         data-focus-mode={viewPreferences.focusMode ? "true" : "false"}
         data-focus-dim={(["standard", "strong", "stronger"] as const)[windowPreferences.focusDim]}
@@ -902,8 +915,18 @@ export function NotesWorkbench({
         }
       >
         <div className="notes-v2__minimal-workspace">
+          {explorerOpen ? <NotesExplorer
+            activePath={activePath} entries={entries} directoryInfo={directoryInfo}
+            onOpenPath={onOpenPath} onCreateNoteInPath={onCreateNoteInPath}
+            onCreateFolderInPath={onCreateFolderInPath} onDeletePath={onDeletePath}
+            onRenamePath={onRenamePath} onRevealPath={onRevealPath}
+            onMovePath={onMovePath} onCopyPath={onCopyPath}
+            onPickDirectory={onPickDirectory} onRefresh={onRefresh} isLoading={isLoading}
+            onOpenFile={onOpenFile} onCollapse={() => setExplorerOpen(false)}
+          /> : null}
           <main className="notes-v2__minimal-canvas">
             <div className="notes-v2__editor-navigation">
+              {!explorerOpen ? <button className="notes-explorer__reopen" type="button" onClick={() => setExplorerOpen(true)} aria-label="展开文件栏">☰</button> : null}
               <NotesBreadcrumbBar
                 path={activeDocument?.path ?? null}
                 vaultName={directoryInfo?.directoryName}
@@ -963,19 +986,6 @@ export function NotesWorkbench({
               </aside>
             </>
           ) : null}
-          {!isBrowserPaneOpen &&
-          !terminalVisible &&
-          !rightSidebarCollapsed &&
-          rightSidebarMode === "properties" ? (
-            <aside
-              aria-label={NOTES_UI_COPY.rightDock.properties.label}
-              className="notes-v2__minimal-properties-pane"
-              role="region"
-            >
-              <span>{NOTES_UI_COPY.rightDock.properties.label}</span>
-            </aside>
-          ) : null}
-
           {terminalActivated ? (
             <>
               <div
@@ -1020,6 +1030,7 @@ export function NotesWorkbench({
 
         <div className="notes-v2__status-footer">
           <NotesWorkbenchBottomLeft
+            onToggleExplorer={() => setExplorerOpen((open) => !open)}
             activeDocument={activeDocument}
             activePath={activePath}
             canGoBack={canGoBack}

@@ -4,7 +4,6 @@ import { NotesPageClient } from "@/components/notes-v2/notes-page-client";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import {
   createNotesFolderNavigateEvent,
-  readLastNotesFolder,
 } from "@/components/notes-v2/notes-navigation";
 import { NEW_NOTE_BODY_PLACEHOLDER } from "@/features/notes/documents/note-editing-source";
 import { clearAllPendingNoteSaves } from "@/features/notes/workbench/notes-pending-saves";
@@ -251,48 +250,23 @@ describe("NotesPageClient", () => {
     vi.useRealTimers();
   });
 
-  it("returns from a folder to the welcome page via 起点 and can reopen the folder and its notes", async () => {
+  it("opens the file explorer directly and keeps it beside the editor", async () => {
+    getDesktopBridgeMock.mockReturnValue(createDesktopBridgeWithDelayedRefresh());
     render(<NotesPageClient />);
-
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
-
-    expect(screen.getByTestId("desktop-app-frame")).toBeInTheDocument();
-    expect(screen.getByTestId("notes-page-frame")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /打开文件夹/ })).toBeInTheDocument();
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /打开文件夹/ }));
-      await vi.runAllTimersAsync();
-    });
-
-    expect(screen.getByRole("heading", { name: "English Vault" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "打开笔记 Rhythm Drill" })).toBeInTheDocument();
-
-    const folder = readLastNotesFolder();
-    expect(folder?.path).toBe("C:/vault");
-    const tools = screen.getByRole("button", { name: "起点" }).parentElement!;
-    expect(Array.from(tools.children).map((child) => child.textContent)).toEqual([
-      "搜索", "起点", expect.stringContaining("最近修改"), "",
-    ]);
-
-    fireEvent.click(screen.getByRole("button", { name: "起点" }));
-    expect(screen.getByTestId("notes-page-frame")).toHaveAttribute("data-entry-view", "landing");
-    expect(screen.getByRole("button", { name: /打开文件夹/ })).toBeInTheDocument();
-    expect(readLastNotesFolder()).toEqual(folder);
-
-    await act(async () => {
-      window.dispatchEvent(createNotesFolderNavigateEvent(folder!));
-      await vi.runAllTimersAsync();
-    });
-    expect(screen.getByTestId("notes-page-frame")).toHaveAttribute("data-entry-view", "folder");
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "打开笔记 Rhythm Drill" }));
-      await vi.runAllTimersAsync();
-    });
+    await act(async () => { await vi.runAllTimersAsync(); });
+    expect(screen.getByRole("complementary", { name: "笔记文件栏" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "起点" })).not.toBeInTheDocument();
     expect(screen.getByTestId("notes-page-frame")).toHaveAttribute("data-entry-view", "note");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "rhythm-drill.md" }));
+      await vi.runAllTimersAsync();
+    });
     expect(screen.getByText(/Repeat the rhythm phrase/)).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "笔记文件栏" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "收起文件栏" }));
+    expect(screen.queryByRole("complementary", { name: "笔记文件栏" })).not.toBeInTheDocument();
+    act(() => { window.dispatchEvent(createNotesFolderNavigateEvent({ id: "vault", name: "English Vault", path: "C:/vault" })); });
+    expect(screen.getByRole("complementary", { name: "笔记文件栏" })).toBeInTheDocument();
   });
 
   it("loads every vault note before presenting the relationship graph", async () => {

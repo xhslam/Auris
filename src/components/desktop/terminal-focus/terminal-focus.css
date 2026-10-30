@@ -37,14 +37,39 @@
 .terminal-focus__sidebar-heading { display: flex; align-items: center; gap: 8px; padding: 0 6px; }
 .terminal-focus__sidebar-heading h1 { margin: 0; flex: 1; font-size: 13px; font-weight: 600; }
 .terminal-focus__sidebar-heading > span { color: var(--notes-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
-.terminal-focus__session-list { margin-top: 18px; flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 5px; }
-.desktop-app-frame .terminal-focus button.terminal-focus__session { display: flex; align-items: center; flex: 0 0 auto; gap: 10px; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 12px; padding: 11px 10px; }
-.desktop-app-frame .terminal-focus button.terminal-focus__session[data-active="true"] { background: color-mix(in srgb, var(--notes-text) 9%, transparent); border-color: var(--notes-line); }
-.terminal-focus__session-glyph { display: grid; place-items: center; flex: 0 0 28px; height: 28px; border: 1px solid var(--notes-line); border-radius: 8px; font-size: 13px; }
-.terminal-focus__session-info { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.terminal-focus__session-list { margin-top: 18px; flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+.terminal-focus__project-group { min-width: 0; }
+.terminal-focus__project-heading { display: flex; align-items: center; gap: 2px; margin-bottom: 5px; }
+.desktop-app-frame .terminal-focus button.terminal-focus__project-toggle { display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1; padding: 5px 2px; text-align: left; color: var(--notes-muted); font-size: 10px; }
+.terminal-focus__project-toggle > svg { flex-shrink: 0; }
+.terminal-focus__project-toggle > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.terminal-focus__project-toggle > small { margin-left: auto; font-size: 9px; }
+.desktop-app-frame .terminal-focus button.terminal-focus__project-add { width: 22px; height: 22px; display: grid; place-items: center; flex-shrink: 0; color: var(--notes-muted); }
+.terminal-focus__session-row { display: flex; align-items: center; min-width: 0; margin: 3px 0; border-radius: 8px; border: 1px solid transparent; }
+.terminal-focus__session-row[data-active="true"] { background: color-mix(in srgb, var(--notes-text) 9%, transparent); border-color: var(--notes-line); }
+.desktop-app-frame .terminal-focus button.terminal-focus__session { display: flex; align-items: center; flex: 1; gap: 8px; min-width: 0; text-align: left; padding: 10px 4px 10px 9px; border-radius: 7px; background: transparent; }
+.desktop-app-frame .terminal-focus button.terminal-focus__session:hover { background: color-mix(in srgb, var(--notes-text) 5%, transparent); }
+.terminal-focus__session-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
 .terminal-focus__session-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; }
-.terminal-focus__session-info small { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--notes-muted); }
-.terminal-focus__sidebar-bottom { display: grid; gap: 6px; padding: 16px 6px 0; color: var(--notes-muted); font-size: 10px; }
+.terminal-focus__session-info small { font-size: 10px; color: var(--notes-muted); }
+.terminal-focus__visible-marker { flex-shrink: 0; opacity: .55; color: var(--notes-muted); }
+.terminal-focus__session-row[data-active="true"] .terminal-focus__visible-marker { opacity: 1; color: var(--notes-text); }
+.desktop-app-frame .terminal-focus button.terminal-focus__rename-button { display: grid; place-items: center; width: 24px; height: 26px; flex-shrink: 0; margin-right: 3px; opacity: .35; color: var(--notes-muted); }
+.terminal-focus__session-row:hover .terminal-focus__rename-button, .terminal-focus__session-row:focus-within .terminal-focus__rename-button { opacity: 1; }
+.terminal-focus__sidebar-empty { margin: 6px; color: var(--notes-muted); font-size: 11px; }
+.terminal-focus__rename-form { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 5px; min-width: 0; width: 100%; }
+.terminal-focus__rename-form input { flex: 1 1 80px; min-width: 0; width: 100%; border: 1px solid var(--notes-line); border-radius: 4px; padding: 6px; background: var(--notes-terminal-bg); color: var(--notes-text); font: inherit; font-size: 11px; }
+.terminal-focus__rename-form > div { display: flex; gap: 3px; margin-left: auto; }
+.desktop-app-frame .terminal-focus .terminal-focus__rename-form button { width: 24px; height: 24px; display: grid; place-items: center; }
+.terminal-focus__rename-form > span { width: 100%; font-size: 10px; color: var(--notes-text); }
+.terminal-focus__recent-projects { flex: 0 1 auto; max-height: 32%; overflow-y: auto; border-top: 1px solid var(--notes-line); margin-top: 12px; padding: 8px 3px 0; color: var(--notes-muted); font-size: 10px; }
+.terminal-focus__recent-projects summary { padding: 5px; cursor: pointer; user-select: none; }
+.terminal-focus__recent-projects p { padding: 0 5px; line-height: 1.6; }
+.desktop-app-frame .terminal-focus .terminal-focus__recent-projects button { display: flex; align-items: center; gap: 6px; padding: 8px 5px; width: 100%; text-align: left; font-size: 11px; }
+.terminal-focus__recent-projects button > svg { flex-shrink: 0; }
+.terminal-focus__recent-projects button > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.terminal-focus__recent-projects button small { flex-shrink: 0; font-size: 9px; margin-left: auto; }
+.terminal-focus__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .terminal-focus__main { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 8px 10px 0; overflow: hidden; }
 .terminal-focus__toolbar { display: flex; align-items: center; flex: 0 0 38px; gap: 6px; min-width: 0; }
 .terminal-focus__workspace-title { font-size: 11px; color: var(--notes-muted); margin-right: 8px; white-space: nowrap; }

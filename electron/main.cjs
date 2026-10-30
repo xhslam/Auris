@@ -38,6 +38,7 @@ const {
   createTerminalSessionInput,
   normalizeTerminalSize,
   normalizeTerminalString,
+  normalizeTerminalTitle,
 } = require("./terminal-session-policy.cjs");
 const { createNotesMcpBridge } = require("./notes-mcp-bridge.cjs");
 const {
@@ -1869,16 +1870,17 @@ async function createTerminalSession(input) {
     }
   }
   const record = getTerminalSessionManager().createSession(spawnInput);
+  if (input?.customTitle !== undefined) record.customTitle = normalizeTerminalTitle(input.customTitle);
   getTerminalSessionCatalog().created(record);
   persistTerminalRecovery();
-  return record;
+  return getTerminalSessionCatalog().withTitle(record);
 }
 
 function resumeTerminalSession(input) {
   const sessionId = requireTerminalSessionId(input?.sessionId);
   const manager = getTerminalSessionManager();
   const existing = manager.listSessions().find((item) => item.id === sessionId) ?? manager.getEndedSession(sessionId);
-  if (existing) return Promise.resolve(existing);
+  if (existing) return Promise.resolve(getTerminalSessionCatalog().withTitle(existing));
   if (terminalResumeRequests.has(sessionId)) return terminalResumeRequests.get(sessionId);
   const descriptor = getTerminalSessionCatalog().get(sessionId);
   // The public app has no explicit-shell setting; saved shell paths describe
@@ -4095,6 +4097,23 @@ function registerDesktopHandlers() {
       cols: normalizeTerminalSize(size?.cols, 80),
       rows: normalizeTerminalSize(size?.rows, 24),
     });
+  });
+
+  ipcMain.handle("shadowing:terminal:rename", async (event, sessionId, title) => {
+    requireTrustedDesktopEvent(event);
+    const id = requireTerminalSessionId(sessionId);
+    const catalog = getTerminalSessionCatalog();
+    const record = catalog.list().find((item) => item.id === id) ?? getTerminalSessionManager().getEndedSession(id);
+    if (!record || record.workspaceInstanceId !== TERMINAL_FOCUS_SCOPE) throw new Error("此终端会话不支持重命名。");
+    const previousTitle = catalog.withTitle(record).customTitle ?? null;
+    const customTitle = catalog.rename(id, title);
+    try {
+      catalog.persist();
+    } catch (error) {
+      catalog.rename(id, previousTitle);
+      throw error;
+    }
+    return { customTitle };
   });
 
   ipcMain.handle("shadowing:terminal:kill", async (event, sessionId) => {
