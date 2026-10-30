@@ -40,3 +40,5 @@ Electron 零间隔逐键输入暴露出富文本同步的时序问题：父级�
 工具栏新增“折叠全部文件夹”图标按钮。复核同一固定 VMark 提交的 `FileExplorer/useFileExplorerOpenState.ts` 批量折叠行为后，沿用 Auris 自有树结构，以 ref 暴露批量折叠操作，同时覆盖默认展开及活动笔记自动展开；搜索中未呈现的目录也会保持折叠。手动展开及再次折叠仍正常，当前编辑文档不关闭。没有复制上游代码。
 
 新增 3 项交互回归覆盖类型白名单、大小写/多重后缀、空文件夹、嵌套/活动目录、重复折叠与搜索隐藏目录；结合文件树、页面、工作台回归 4 文件 / 63 项通过。源码类型检查与定向 ESLint 通过。
+
+1.0.24 安装验收：生产构建、runtime/standalone 组装、隐私检查与 ad-hoc 深度签名验证通过；安装位置的隔离 Electron 复验确认一键折叠和类型过滤生效，现有读写/新建/重命名/删除仍正常。已安装 `/Applications/Auris.app`；旧 1.0.23 备份 `/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.23-before-1.0.24-20261031-012740.app`。安装与构建 app.asar SHA-256 相同：`094194b43143c15acde63055ee975f895a14a1191bb86131dcda0e9a5fd27948`。证据位于 `release/verification-1.0.24/`。未推送或发布远端。
