@@ -73,6 +73,13 @@ export const DESKTOP_NAV_ITEMS: DesktopNavItem[] = [
     runtimeWorkspace: "notes",
   },
   {
+    description: "专注终端、多会话与可调分屏",
+    group: "primary",
+    href: "/terminal",
+    id: "terminal",
+    label: "终端模式",
+  },
+  {
     description: "快速捕捉灵感闪念",
     group: "primary",
     href: "/flash",

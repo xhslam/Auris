@@ -67,6 +67,12 @@ type UseNotesTerminalSessionsInput = {
   visible?: boolean;
   workspaceInstanceId?: string | null;
   onSearch?: () => void;
+  /** Opt-in focus workspace; Notes retains its single-host behavior. */
+  multiPane?: boolean;
+  singlePane?: boolean;
+  maxSessions?: number;
+  strictWorkspaceScope?: boolean;
+  sessionIdPrefix?: string;
 };
 
 function getThemeScope(element?: Element | null) {
@@ -329,8 +335,19 @@ export function useNotesTerminalSessions({
   terminalBridge = null,
   workspaceInstanceId = null,
   onSearch,
+  multiPane = false,
+  singlePane = false,
+  maxSessions = MAX_SESSIONS,
+  strictWorkspaceScope = false,
+  sessionIdPrefix = "notes-term",
 }: UseNotesTerminalSessionsInput) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const sessionHostsRef = useRef(new Map<string, HTMLDivElement>());
+  const limit = Math.max(1, Math.min(8, maxSessions));
+  const multiPaneRef = useRef(multiPane);
+  multiPaneRef.current = multiPane;
+  const singlePaneRef = useRef(singlePane);
+  singlePaneRef.current = singlePane;
   const entriesRef = useRef<Map<string, TerminalEntry>>(new Map());
   const initializingSessionIdsRef = useRef<Set<string>>(new Set());
   const invalidatedSessionIdsRef = useRef<Set<string>>(new Set());
@@ -373,8 +390,10 @@ export function useNotesTerminalSessions({
   }, []);
 
   const createRendererSessionId = useCallback(
-    () => `notes-term-${nextSessionIdRef.current++}`,
-    [],
+    () => sessionIdPrefix === "notes-term"
+      ? `notes-term-${nextSessionIdRef.current++}`
+      : `${sessionIdPrefix}-${crypto.randomUUID()}`,
+    [sessionIdPrefix],
   );
 
   useEffect(() => {
@@ -390,7 +409,10 @@ export function useNotesTerminalSessions({
     void loadNotesTerminalRuntime().catch(() => undefined);
     void terminalBridge
       .list()
-      .then((records) => {
+      .then((allRecords) => {
+        const records = strictWorkspaceScope
+          ? allRecords.filter((record) => record.workspaceInstanceId === workspaceInstanceId).slice(0, limit)
+          : allRecords;
         if (cancelled) {
           return;
         }
@@ -416,7 +438,7 @@ export function useNotesTerminalSessions({
     return () => {
       cancelled = true;
     };
-  }, [enabled, terminalBridge]);
+  }, [enabled, limit, strictWorkspaceScope, terminalBridge, workspaceInstanceId]);
 
   useEffect(() => {
     sessionsRef.current = sessions;
@@ -432,6 +454,7 @@ export function useNotesTerminalSessions({
     (sessionId: string) => {
       if (!visibleSessions.some(({ id }) => id === sessionId)) return;
       lastActiveSessionByScope.set(scopeKey, sessionId);
+      activeSessionIdRef.current = sessionId;
       setActiveSessionId(sessionId);
     },
     [scopeKey, visibleSessions],
@@ -450,6 +473,24 @@ export function useNotesTerminalSessions({
     initializingSessionIdsRef.current.delete(sessionId);
   }, []);
 
+  const isSessionDisplayed = useCallback((sessionId: string) => {
+    return visibleRef.current && (multiPaneRef.current && !singlePaneRef.current
+      ? sessionHostsRef.current.has(sessionId)
+      : activeSessionIdRef.current === sessionId);
+  }, []);
+
+  // Stable DOM hosts survive layout/focus changes. Moving an existing xterm
+  // must never create another Shell or discard its screen state.
+  const registerSessionHost = useCallback((sessionId: string, host: HTMLDivElement | null) => {
+    if (host) {
+      sessionHostsRef.current.set(sessionId, host);
+      const entry = entriesRef.current.get(sessionId);
+      if (entry && entry.container.parentElement !== host) host.appendChild(entry.container);
+    } else {
+      sessionHostsRef.current.delete(sessionId);
+    }
+  }, []);
+
   const fitSession = useCallback(
     (sessionId: string) => {
       const entry = entriesRef.current.get(sessionId);
@@ -461,7 +502,7 @@ export function useNotesTerminalSessions({
       if (entry.fitFrame !== null) return;
       entry.fitFrame = requestAnimationFrame(() => {
         entry.fitFrame = null;
-        if (!visibleRef.current || activeSessionIdRef.current !== sessionId || !entry.container.isConnected) return;
+        if (!isSessionDisplayed(sessionId) || !entry.container.isConnected) return;
         try {
           entry.fitAddon.fit();
           const cols = entry.terminal.cols || DEFAULT_COLS;
@@ -473,7 +514,7 @@ export function useNotesTerminalSessions({
           // final geometry after a drag, and never resize a hidden/inactive PTY.
           entry.resizeTimer = setTimeout(() => {
             entry.resizeTimer = null;
-            if (!visibleRef.current || activeSessionIdRef.current !== sessionId || entriesRef.current.get(sessionId) !== entry) return;
+            if (!isSessionDisplayed(sessionId) || entriesRef.current.get(sessionId) !== entry) return;
             entry.lastResize = sizeKey;
             void terminalBridge.resize(sessionId, { cols, rows }).catch(() => {
               entry.lastResize = null;
@@ -484,14 +525,18 @@ export function useNotesTerminalSessions({
         }
       });
     },
-    [terminalBridge],
+    [isSessionDisplayed, terminalBridge],
   );
 
   const showActiveSession = useCallback(
     (sessionId: string | null, fromCompletion = false) => {
-      if (fromCompletion && sessionId !== activeSessionIdRef.current) return;
+      if (fromCompletion && sessionId !== activeSessionIdRef.current) {
+        if (multiPaneRef.current && sessionId && isSessionDisplayed(sessionId)) fitSession(sessionId);
+        return;
+      }
       entriesRef.current.forEach((entry, id) => {
-        entry.container.style.display = id === sessionId ? "block" : "none";
+        entry.container.style.display = multiPaneRef.current ? (isSessionDisplayed(id) ? "block" : "none") : (id === sessionId ? "block" : "none");
+        if (multiPaneRef.current && isSessionDisplayed(id)) fitSession(id);
         entry.container.dataset.active = id === sessionId ? "true" : "false";
       });
 
@@ -510,7 +555,7 @@ export function useNotesTerminalSessions({
         }
       }
     },
-    [fitSession],
+    [fitSession, isSessionDisplayed],
   );
 
   // VMark updates running/hidden xterm options without replacing its screen.
@@ -524,7 +569,7 @@ export function useNotesTerminalSessions({
         entry.terminal.options.fontFamily = getTerminalFontFamily(entry.container);
         entry.terminal.options.drawBoldTextInBrightColors =
           getTerminalThemeId(entry.container) !== "solarized";
-        if (visibleRef.current && activeSessionIdRef.current === id) fitSession(id);
+        if (isSessionDisplayed(id)) fitSession(id);
       }
     };
     const observer = new MutationObserver(syncPresentation);
@@ -535,7 +580,7 @@ export function useNotesTerminalSessions({
       });
     }
     return () => observer.disconnect();
-  }, [fitSession, terminalBridge]);
+  }, [fitSession, isSessionDisplayed, terminalBridge]);
 
   const disposeEntry = useCallback((sessionId: string) => {
     const entry = entriesRef.current.get(sessionId);
@@ -567,11 +612,12 @@ export function useNotesTerminalSessions({
   }, []);
 
   const createSession = useCallback(() => {
+    if (strictWorkspaceScope && !hasLoadedBackendSessions) return;
     const currentVisibleSessions = selectTerminalSessionsForWorkspace(
       sessionsRef.current,
       workspaceInstanceId,
     );
-    if (currentVisibleSessions.length >= MAX_SESSIONS) {
+    if (currentVisibleSessions.length >= limit) {
       return;
     }
 
@@ -582,7 +628,7 @@ export function useNotesTerminalSessions({
         current,
         workspaceInstanceId,
       );
-      if (visibleCurrent.length >= MAX_SESSIONS) {
+      if (visibleCurrent.length >= limit) {
         return current;
       }
 
@@ -605,7 +651,7 @@ export function useNotesTerminalSessions({
 
     setActiveSessionId(nextId);
     lastActiveSessionByScope.set(scopeKey, nextId);
-  }, [createRendererSessionId, scopeKey, workspaceInstanceId]);
+  }, [createRendererSessionId, hasLoadedBackendSessions, limit, scopeKey, strictWorkspaceScope, workspaceInstanceId]);
 
   const markSession = useCallback(
     (sessionId: string, patch: Partial<NotesTerminalSession>) => {
@@ -670,7 +716,7 @@ export function useNotesTerminalSessions({
     async (session: NotesTerminalSession) => {
       if (
         !terminalBridge ||
-        !hostRef.current ||
+        !(multiPane ? sessionHostsRef.current.get(session.id) : hostRef.current) ||
         entriesRef.current.has(session.id) ||
         initializingSessionIdsRef.current.has(session.id) ||
         invalidatedSessionIdsRef.current.has(session.id)
@@ -681,9 +727,9 @@ export function useNotesTerminalSessions({
       initializingSessionIdsRef.current.add(session.id);
       const container = document.createElement("div");
       container.className = "notes-v2__terminal-xterm";
-      container.style.display = session.id === activeSessionIdRef.current ? "block" : "none";
+      container.style.display = multiPane ? (isSessionDisplayed(session.id) ? "block" : "none") : (session.id === activeSessionIdRef.current ? "block" : "none");
       container.dataset.active = session.id === activeSessionIdRef.current ? "true" : "false";
-      hostRef.current.appendChild(container);
+      (multiPane ? sessionHostsRef.current.get(session.id)! : hostRef.current!).appendChild(container);
 
       try {
         const [
@@ -741,6 +787,7 @@ export function useNotesTerminalSessions({
         // the key so it does not also send raw bytes to the shell.
         terminal.attachCustomKeyEventHandler(createNotesTerminalKeyHandler({
           hasSelection: () => terminal.hasSelection(),
+          sessionShortcutCount: limit,
           copy: () => copyHandlerRef.current(),
           paste: () => pasteHandlerRef.current(),
           clear: () => { terminal.clear(); terminal.scrollToBottom(); },
@@ -751,7 +798,7 @@ export function useNotesTerminalSessions({
             try { window.localStorage.setItem(TERMINAL_FONT_SIZE_STORAGE, String(fontSizeRef.current)); } catch {}
             for (const [id, entry] of entriesRef.current) {
               entry.terminal.options.fontSize = fontSizeRef.current;
-              if (id === activeSessionIdRef.current) fitSession(id);
+              if (isSessionDisplayed(id)) fitSession(id);
             }
           },
           selectSession: (index) => {
@@ -764,7 +811,7 @@ export function useNotesTerminalSessions({
         });
 
         terminal.open(container);
-        if (visibleRef.current) fitAddon.fit();
+        if (isSessionDisplayed(session.id)) fitAddon.fit();
         const inputQueue = createPtyInputQueue(
           (data) => terminalBridge.write(session.id, data),
           (error) => {
@@ -914,6 +961,9 @@ export function useNotesTerminalSessions({
       showActiveSession,
       terminalBridge,
       fitSession,
+      isSessionDisplayed,
+      multiPane,
+      limit,
       scopeKey,
       workspaceInstanceId,
     ],
@@ -954,13 +1004,15 @@ export function useNotesTerminalSessions({
 
     // Dormant restored tabs (and other workspaces) do not run shells until
     // selected. Switching back to a running entry keeps its screen and PTY.
-    const session = visibleSessions.find(({ id }) => id === activeSessionId);
-    if (session && (session.status === "starting" || pendingExitRef.current.has(session.id))) void initializeSession(session);
-  }, [activeSessionId, enabled, initializeSession, terminalBridge, visible, visibleSessions]);
+    const targets = multiPane && !singlePane ? visibleSessions : visibleSessions.filter(({ id }) => id === activeSessionId);
+    for (const session of targets) {
+      if (session.status === "starting" || pendingExitRef.current.has(session.id)) void initializeSession(session);
+    }
+  }, [activeSessionId, enabled, initializeSession, multiPane, singlePane, terminalBridge, visible, visibleSessions]);
 
   useEffect(() => {
     showActiveSession(activeSessionId);
-  }, [activeSessionId, showActiveSession, visible]);
+  }, [activeSessionId, showActiveSession, singlePane, visible]);
 
   useEffect(() => {
     if (!terminalBridge) {
@@ -1026,14 +1078,17 @@ export function useNotesTerminalSessions({
     }
 
     const observer = new ResizeObserver(() => {
-      if (activeSessionId && visibleRef.current) {
+      if (multiPane) {
+        for (const id of sessionHostsRef.current.keys()) if (isSessionDisplayed(id)) fitSession(id);
+      } else if (activeSessionId && visibleRef.current) {
         fitSession(activeSessionId);
       }
     });
     observer.observe(host);
+    if (multiPane) for (const paneHost of sessionHostsRef.current.values()) observer.observe(paneHost);
 
     return () => observer.disconnect();
-  }, [activeSessionId, fitSession]);
+  }, [activeSessionId, fitSession, isSessionDisplayed, multiPane, singlePane, visibleSessions]);
 
   useEffect(() => {
     const entry = activeSessionId
@@ -1252,11 +1307,15 @@ export function useNotesTerminalSessions({
     activeSession: visibleSessions.find((session) => session.id === activeSessionId) ?? null,
     clearActiveSession,
     closeActiveSession,
+    closeSession,
+    restartSession,
+    registerSessionHost,
     copyActiveSelection,
     createSession,
     focusActiveSession,
     hostRef,
-    isMaxed: visibleSessions.length >= MAX_SESSIONS,
+    isMaxed: visibleSessions.length >= limit,
+    isRestoring: Boolean(enabled && terminalBridge && !hasLoadedBackendSessions),
     pasteIntoActiveSession,
     restartActiveSession,
     searchQuery,

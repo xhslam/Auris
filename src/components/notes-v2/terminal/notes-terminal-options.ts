@@ -56,6 +56,7 @@ type KeyActions = {
   zoom: (delta: number | null) => void;
   selectSession: (index: number) => void;
   hasSelection: () => boolean;
+  sessionShortcutCount?: number;
 };
 
 /** Terminal-local shortcuts. Do not copy VMark's IME gate without its paired
@@ -93,7 +94,7 @@ export function createNotesTerminalKeyHandler(actions: KeyActions, platform = ge
       case "-": return consume(() => actions.zoom(-2));
       case "0": return consume(() => actions.zoom(null));
       default:
-        return /^[1-5]$/.test(key) ? consume(() => actions.selectSession(Number(key) - 1)) : true;
+        return /^[1-8]$/.test(key) && Number(key) <= (actions.sessionShortcutCount ?? 5) ? consume(() => actions.selectSession(Number(key) - 1)) : true;
     }
   };
 }

@@ -154,6 +154,13 @@ function NavGlyph({ itemId }: { itemId: DesktopNavItem["id"] }) {
           />
         </svg>
       );
+    case "terminal":
+      return (
+        <svg aria-hidden="true" className="desktop-app-sidebar__glyph" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
+          <path d="m7 9 3 3-3 3m6 0h4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+        </svg>
+      );
     case "notes":
       return (
         <svg
