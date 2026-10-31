@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, JSX } from "react";
+import { CaretRight, FileText, FileImage, Folder } from "@phosphor-icons/react";
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState, useCallback } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import {
@@ -47,6 +48,9 @@ type NotesFileTreeProps = {
    */
   collapseAllByDefault?: boolean;
   variant?: "default" | "obsidian";
+  /** Explorer-only presentation; shared pickers retain their existing layout. */
+  showIcons?: boolean;
+  filterActive?: boolean;
 };
 
 const MOVE_DRAG_MIME = "application/x-notes-vault-path";
@@ -206,6 +210,8 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
   onMovePath,
   collapseAllByDefault = false,
   variant = "default",
+  showIcons = false,
+  filterActive = false,
 }: NotesFileTreeProps, ref) {
   const tree = useMemo(() => createTree(entries), [entries]);
   const existingPaths = useMemo(
@@ -309,7 +315,7 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
       : collapseAllByDefault
         ? false
         : depth < 1;
-    const isExpanded = expandedPaths[node.path] ?? defaultExpanded;
+    const isExpanded = filterActive || (expandedPaths[node.path] ?? defaultExpanded);
     const nodeStyle = {
       "--notes-tree-indent": `${depth * 16}px`,
     } as CSSProperties;
@@ -323,12 +329,13 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
           style={nodeStyle}
         >
           <button
+            title={node.path}
             aria-expanded={isExpanded}
             className="notes-v2__tree-directory"
             data-drop-target={dropTarget === node.path ? "true" : undefined}
             draggable={Boolean(onMovePath)}
             onClick={() =>
-              setExpandedPaths((current) => ({
+              !filterActive && setExpandedPaths((current) => ({
                 ...current,
                 [node.path]: !isExpanded,
               }))
@@ -346,8 +353,9 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
               className="notes-v2__tree-caret"
               data-expanded={isExpanded ? "true" : "false"}
             >
-              ›
+              {showIcons ? <CaretRight size={12} /> : "›"}
             </span>
+            {showIcons ? <Folder size={16} aria-hidden="true" className="notes-explorer__entry-icon" /> : null}
             <span className="notes-v2__tree-name">{node.name}</span>
           </button>
 
@@ -394,6 +402,9 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
           }
           type="button"
         >
+          {showIcons ? (isEditableFile
+            ? <FileText size={16} aria-hidden="true" className="notes-explorer__entry-icon" />
+            : <FileImage size={16} aria-hidden="true" className="notes-explorer__entry-icon" />) : null}
           <span className="notes-v2__tree-name">
             {variant === "obsidian" ? getObsidianDisplayName(node) : node.name}
           </span>

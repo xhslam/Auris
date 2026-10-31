@@ -18184,37 +18184,79 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   pointer-events: none;
 }
 
-/* Notes: persistent file explorer and editor share one workspace. */
+/* Notes: persistent file explorer and editor share one workspace.
+   Scoped here: shared pickers and folder browser keep their own presentation. */
 .desktop-app-frame .notes-v2--explorer .notes-v2__minimal-workspace { gap: 0; }
 .desktop-app-frame .notes-v2--explorer .notes-explorer {
   display: flex; flex-direction: column; flex: 0 0 clamp(220px, 23vw, 320px);
-  min-height: 0; min-width: 0; padding: 20px 8px 68px;
+  min-height: 0; min-width: 0; padding: 16px 8px 68px;
   background: var(--notes-surface); color: var(--notes-text);
-  border-right: 1px solid var(--notes-line); font-size: 13px;
+  border-right: 1px solid var(--notes-line); font-size: 14px;
 }
-.desktop-app-frame .notes-v2--explorer .notes-explorer button {
+.desktop-app-frame .notes-v2--explorer .notes-explorer :is(button, summary) {
   appearance: none; background: transparent; color: inherit; border: 0;
-  border-radius: 4px; box-shadow: none; min-height: 28px; padding: 4px 8px;
+  border-radius: 6px; box-shadow: none; min-height: 32px; padding: 4px 8px;
   font: inherit; cursor: pointer; transform: none;
+  display: flex; align-items: center; gap: 8px;
 }
-.desktop-app-frame .notes-v2--explorer .notes-explorer button:hover { background: color-mix(in srgb, var(--notes-text) 7%, transparent); }
-.desktop-app-frame .notes-v2--explorer .notes-explorer button:disabled { opacity: .45; cursor: default; }
-.desktop-app-frame .notes-v2--explorer .notes-explorer :is(button, input):focus-visible { outline: 2px solid var(--notes-accent); outline-offset: -2px; }
-.notes-explorer__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 8px; }
-.notes-explorer__header > span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.notes-explorer__actions { display: flex; gap: 4px; padding: 0 0 12px; }
-.notes-explorer__search { display: block; padding: 0 4px 12px; }
-.desktop-app-frame .notes-v2--explorer .notes-explorer__search input { width: 100%; min-width: 0; border: 1px solid var(--notes-line); border-radius: 5px; padding: 6px 8px; background: var(--notes-bg); color: var(--notes-text); font: inherit; }
-.notes-explorer__files { flex: 1; min-height: 0; overflow: auto; }
-.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__file-tree { padding: 0; background: transparent; font-size: 13px; overflow: visible; }
-.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-file,
-.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-directory { width: 100%; border: 0; border-radius: 4px; text-align: left; font-weight: 400; padding-block: 4px; }
-.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-file { padding-inline-start: calc(24px + var(--notes-tree-indent, 0px)); }
-.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-file[data-active="true"] { background: color-mix(in srgb, var(--notes-accent) 10%, transparent); color: var(--notes-text); box-shadow: inset 2px 0 var(--notes-accent); }
-.notes-explorer__hint, .notes-explorer__empty { padding: 8px; color: var(--notes-muted); line-height: 1.6; }
-.notes-explorer__footer { border-top: 1px solid var(--notes-line); padding-top: 8px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer :is(button, summary):hover { background: color-mix(in srgb, var(--notes-text) 5%, transparent); }
+.desktop-app-frame .notes-v2--explorer .notes-explorer button:disabled { opacity: .55; cursor: default; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer :is(button, input, summary):focus-visible { outline: 2px solid var(--notes-accent); outline-offset: -2px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 12px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__heading { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__eyebrow { color: var(--notes-muted); font-size: 12px; font-weight: 400; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__title { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__icon-button { flex: 0 0 32px; width: 32px; justify-content: center; padding: 4px; color: var(--notes-muted); }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__actions { display: flex; align-items: center; gap: 4px; padding: 0 4px 8px; color: var(--notes-muted); }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__actions > button { font-size: 12px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__more { position: relative; margin-inline-start: auto; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__more summary { list-style: none; width: 32px; justify-content: center; padding: 4px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__more summary::-webkit-details-marker { display: none; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__menu {
+  position: absolute; inset-inline-end: 0; top: calc(100% + 4px); z-index: 20;
+  width: max-content; padding: 4px; border-radius: 8px;
+  border: 1px solid var(--notes-line); background: var(--notes-surface); color: var(--notes-text);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--notes-text) 10%, transparent);
+}
+.desktop-app-frame .notes-v2--explorer .notes-explorer__menu button { width: 100%; font-size: 12px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__search {
+  display: flex; align-items: center; gap: 4px; min-height: 32px; margin: 0 4px 12px; padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--notes-line) 65%, transparent); border-radius: 6px;
+  background: color-mix(in srgb, var(--notes-bg) 45%, transparent); color: var(--notes-muted);
+}
+.desktop-app-frame .notes-v2--explorer .notes-explorer__search > svg { flex-shrink: 0; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__search input {
+  width: 100%; min-width: 0; height: 32px; border: 0; border-radius: 4px; padding: 4px;
+  background: transparent; color: var(--notes-text); font: inherit; font-size: 12px; box-shadow: none;
+}
+.desktop-app-frame .notes-v2--explorer .notes-explorer__search input::placeholder { color: var(--notes-muted); opacity: 1; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__search input::-webkit-search-cancel-button { display: none; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__search .notes-explorer__icon-button { min-height: 24px; height: 24px; width: 24px; flex-basis: 24px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__files { flex: 1; min-height: 0; overflow: auto; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__file-tree { padding: 0; background: transparent; font-size: 14px; overflow: visible; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-node::before { display: none; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer :is(.notes-v2__tree-file, .notes-v2__tree-directory) {
+  display: flex; align-items: center; gap: 4px; width: 100%; min-height: 32px; border: 0; border-radius: 6px;
+  text-align: start; font-weight: 400; padding-block: 4px; padding-inline-end: 8px; color: var(--notes-text);
+}
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-directory { padding-inline-start: calc(4px + var(--notes-tree-indent, 0px)); font-weight: 500; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-file { padding-inline-start: calc(20px + var(--notes-tree-indent, 0px)); }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-file[data-active="true"] {
+  background: color-mix(in srgb, var(--notes-text) 8%, transparent); color: var(--notes-text); box-shadow: none; font-weight: 500;
+}
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-file[data-active="true"]:hover { background: color-mix(in srgb, var(--notes-text) 11%, transparent); }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-explorer__entry-icon { flex: 0 0 16px; color: var(--notes-muted); margin-inline-end: 4px; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-caret { display: flex; align-items: center; justify-content: center; flex: 0 0 12px; width: 12px; font-size: 12px; color: var(--notes-muted); transition: transform 120ms ease; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-extension { color: var(--notes-muted); font-size: 12px; font-weight: 400; letter-spacing: 0; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer :is(.notes-explorer__hint, .notes-explorer__empty) { padding: 8px; color: var(--notes-muted); font-size: 12px; line-height: 1.6; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__footer { display: flex; flex-wrap: wrap; gap: 4px; border-top: 1px solid var(--notes-line); padding: 8px 4px 0; }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__footer button { font-size: 12px; color: var(--notes-muted); }
 .notes-v2--explorer .notes-v2__editor-navigation { display: flex; align-items: center; gap: 8px; }
 .desktop-app-frame .notes-v2--explorer .notes-explorer__reopen { background: transparent; border: 0; color: var(--notes-muted); cursor: pointer; }
+@media (prefers-reduced-motion: reduce) {
+  .desktop-app-frame .notes-v2--explorer .notes-explorer .notes-v2__tree-caret { transition: none; }
+}
 @media (max-width: 760px) {
   .desktop-app-frame .notes-v2--explorer .notes-explorer { flex-basis: 200px; }
 }

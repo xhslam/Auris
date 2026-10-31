@@ -15,6 +15,11 @@ const entries = [
   { kind: "directory", path: "empty", name: "empty", mtime: null, size: null } as VaultEntry,
 ];
 
+function collapseAll() {
+  fireEvent.click(screen.getByText("更多文件操作").closest("summary")!);
+  fireEvent.click(screen.getByRole("button", { name: "折叠全部文件夹" }));
+}
+
 function setup() {
   const onOpenPath = vi.fn();
   render(<NotesExplorer activePath="notes/sub/draft.md" entries={entries}
@@ -26,10 +31,10 @@ describe("NotesExplorer", () => {
   it("shows only Markdown, images and folders, including empty folders", () => {
     setup();
     for (const name of ["draft.md", "guide.MARKDOWN", "image.PNG", "diagram.svg", "photo.heic", "animation.webp", "empty"]) {
-      expect(screen.getByRole("button", { name, exact: true })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
     for (const name of ["data.json", "text.txt", "table.csv", "sound.mp3", "video.mp4", "paper.pdf", "fake.png.zip"]) {
-      expect(screen.queryByRole("button", { name, exact: true })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "json" } });
     expect(screen.getByText("没有匹配的文件")).toBeInTheDocument();
@@ -38,16 +43,16 @@ describe("NotesExplorer", () => {
 
   it("collapses nested and active folders without closing the active document", () => {
     const { onOpenPath } = setup();
-    const collapse = screen.getByRole("button", { name: "折叠全部文件夹" });
+
     expect(screen.getByRole("button", { name: "draft.md" })).toBeInTheDocument();
-    fireEvent.click(collapse);
+    collapseAll();
     expect(screen.getByRole("button", { name: /notes/ })).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("button", { name: "draft.md" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /notes/ }));
     expect(screen.getByRole("button", { name: /sub/ })).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(screen.getByRole("button", { name: /sub/ }));
     expect(screen.getByRole("button", { name: "draft.md" })).toBeInTheDocument();
-    fireEvent.click(collapse);
+    collapseAll();
     expect(screen.queryByRole("button", { name: "draft.md" })).not.toBeInTheDocument();
     expect(onOpenPath).not.toHaveBeenCalled();
   });
@@ -55,9 +60,49 @@ describe("NotesExplorer", () => {
   it("also collapses folders hidden by the current search", () => {
     setup();
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "image" } });
-    fireEvent.click(screen.getByRole("button", { name: "折叠全部文件夹" }));
+    collapseAll();
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "" } });
     expect(screen.getByRole("button", { name: /notes/ })).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("button", { name: "draft.md" })).not.toBeInTheDocument();
   });
+  it("reveals search matches without overwriting the previous expansion state", () => {
+    setup();
+    collapseAll();
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "draft" } });
+    expect(screen.getByRole("button", { name: "draft.md" })).toBeVisible();
+    expect(screen.getByRole("button", { name: /notes/ })).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("button", { name: "清空筛选" }));
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+    expect(screen.getByRole("button", { name: /notes/ })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "draft.md" })).not.toBeInTheDocument();
+  });
+
+  it("exposes low-frequency actions and full folder names", () => {
+    setup();
+    expect(screen.getByText("更多文件操作")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /notes/ })).toHaveAttribute("title", "notes");
+    fireEvent.click(screen.getByText("更多文件操作").closest("summary")!);
+    expect(screen.getByRole("button", { name: "刷新文件" })).toHaveAttribute("title", "刷新文件");
+  });
+
+  it("clears with Escape and restores focus after a menu action", () => {
+    setup();
+    const search = screen.getByRole("searchbox");
+    fireEvent.change(search, { target: { value: "  draft  " } });
+    expect(screen.getByRole("button", { name: "draft.md" })).toBeVisible();
+    fireEvent.keyDown(search, { key: "Escape" });
+    expect(search).toHaveValue("");
+    expect(search).toHaveFocus();
+    collapseAll();
+    expect(screen.getByText("更多文件操作").closest("summary")).toHaveFocus();
+  });
+
+  it("does not count hidden files as visible search results", () => {
+    render(<NotesExplorer activePath={null} entries={[file(".private/secret.md")]}
+      onOpenPath={vi.fn()} onCollapse={vi.fn()} />);
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "secret" } });
+    expect(screen.getByRole("status")).toHaveTextContent("没有匹配的文件");
+    expect(screen.queryByRole("button", { name: "secret.md" })).not.toBeInTheDocument();
+  });
+
 });
