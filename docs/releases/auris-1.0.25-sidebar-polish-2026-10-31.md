@@ -20,3 +20,13 @@
 - **严格 UI smoke 最后仍失败**：捕获 React #418 水合告警，不能声称无 renderer error。开发模式堆栈指向未修改的 `DesktopNotesVaultNav`：服务端生成笔记库占位分组，客户端初始桥接分支移除该分组。该组件不在本轮 diff；未扩张本轮范围修复它。生产版同样记录一次告警，已知限制随本地交付保留。
 
 原始构建、测试、UI smoke 日志与截图归档于忽略的 `release/verification-1.0.25/`。本地替换须先备份旧 App，核对安装与构建 app.asar 一致，具体结果将在安装后补充；不清空或迁移用户数据。
+
+
+## 安装与推送结果（2026-10-31 11:42 GMT+8）
+
+- 产品提交 `1c2e08e` 已推送 GitHub `origin/main`，之前四个本地提交同步到达远端。没有打标签或发布 Release。
+- `/Applications/Auris.app` 已替换并启动为 1.0.25。旧 1.0.24 备份：`/Users/apple/Desktop/大学markdown/release/backups/Auris-1.0.24-before-1.0.25-20261031-114134.app`。
+- 构建与安装 app.asar SHA-256 均为 `8e0b2baa5ad304e52eee8b51641f0a9f20589edd834185bb6371e5f03ab9292a`；安装位置严格深度签名和隐私 entitlements 检查通过。
+- 正常用户实例 PID 41328 保持运行，Renderer、GPU、网络及原生灵动岛进程启动。Review `/` 与 `/notes` 的本地服务均返回 HTTP 200。
+- 安装位置再以独立 profile/Vault 运行同一 UI smoke：六主题、两档宽度及全部功能断言通过；最后仍因 React #418 告警严格退出失败，未屏蔽或放宽断言。测试实例已退出，正常用户实例保留。
+- 首次安装尝试的脚本误用了 macOS pgrep 不支持的非捕获组正则，导致启动检测误判并自动回退旧包；修正为兼容正则后，重新正常退出、备份、替换和启动成功。首轮回退记录与最终安装证据都保存在 `release/verification-1.0.25/`，没有强制终止应用或清空用户数据。
