@@ -573,4 +573,361 @@ describe("terminal-session-manager", () => {
 
     expect(resizeLogs).toHaveLength(1);
   });
+
+  it("handles agent hook events and manages agentState, unread, and token mapping", () => {
+    const pty = createFakePty();
+    const token = "11111111-2222-3333-4444-555555555555";
+    const manager = createTerminalSessionManager({
+      env: { SHELL: "/bin/zsh" },
+      homedir: () => "/Users/test",
+      platform: "darwin",
+      ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+      sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+    });
+
+    const session = manager.createSession({ sessionId: "term-agent-1" });
+    expect(session.agentState).toBe("idle");
+    expect(session.unread).toBe(false);
+
+    const emittedStates: any[] = [];
+    manager.onAgentState((event: any) => emittedStates.push(event));
+
+    // 1. UserPromptSubmit -> working
+    const handled1 = manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "UserPromptSubmit",
+      token,
+      ts: Date.now(),
+    });
+    expect(handled1).toBe(true);
+    expect(manager.listSessions()[0].agentState).toBe("working");
+    expect(manager.listSessions()[0].agentKind).toBe("claude");
+    expect(manager.listSessions()[0].unread).toBe(false);
+
+    // 2. Notification (permission_prompt) -> waiting
+    manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "Notification",
+      notificationType: "permission_prompt",
+      token,
+      ts: Date.now(),
+    });
+    expect(manager.listSessions()[0].agentState).toBe("waiting");
+    expect(manager.listSessions()[0].unread).toBe(true);
+
+    // 3. PostToolUse -> back to working
+    manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "PostToolUse",
+      token,
+      ts: Date.now(),
+    });
+    expect(manager.listSessions()[0].agentState).toBe("working");
+
+    // 4. Notification with idle_prompt -> ignored, stays working
+    manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "Notification",
+      notificationType: "idle_prompt",
+      token,
+      ts: Date.now(),
+    });
+    expect(manager.listSessions()[0].agentState).toBe("working");
+
+    // 5. Stop -> done, unread: true
+    manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "Stop",
+      token,
+      ts: Date.now(),
+    });
+    expect(manager.listSessions()[0].agentState).toBe("done");
+    expect(manager.listSessions()[0].unread).toBe(true);
+
+    // 6. clearUnread -> unread becomes false
+    manager.clearUnread("term-agent-1");
+    expect(manager.listSessions()[0].unread).toBe(false);
+
+    // 7. SessionEnd -> idle
+    manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "SessionEnd",
+      token,
+      ts: Date.now(),
+    });
+    expect(manager.listSessions()[0].agentState).toBe("idle");
+
+    // 8. Forged or unknown token -> rejected without modifying state
+    const forged = manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "UserPromptSubmit",
+      token: "unknown-token-fake",
+      ts: Date.now(),
+    });
+    expect(forged).toBe(false);
+    expect(manager.listSessions()[0].agentState).toBe("idle");
+  });
+
+  it("falls back from working to idle when pty is silent for working heartbeat timeout", () => {
+    vi.useFakeTimers();
+    try {
+      const pty = createFakePty();
+      const token = "22222222-3333-4444-5555-666666666666";
+      const manager = createTerminalSessionManager({
+        env: { SHELL: "/bin/zsh" },
+        homedir: () => "/Users/test",
+        platform: "darwin",
+        ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+        sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+      });
+
+      manager.createSession({ sessionId: "term-heartbeat" });
+      manager.handleAgentHookEvent({
+        agent: "claude",
+        event: "UserPromptSubmit",
+        token,
+        ts: Date.now(),
+      });
+      expect(manager.listSessions()[0].agentState).toBe("working");
+
+      // Advance 29s -> still working
+      vi.advanceTimersByTime(29_000);
+      expect(manager.listSessions()[0].agentState).toBe("working");
+
+      // PTY emits spinner data -> resets heartbeat
+      pty.emitData("spinner\r\n");
+      vi.advanceTimersByTime(20_000);
+      expect(manager.listSessions()[0].agentState).toBe("working");
+
+      // Advance remaining 10s + 1s -> timeout fires, drops to idle
+      vi.advanceTimersByTime(11_000);
+      expect(manager.listSessions()[0].agentState).toBe("idle");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  describe("waiting confirmation key observation window", () => {
+    it("drops to idle when user writes confirmation key (rejection path) without sustained burst output", () => {
+      vi.useFakeTimers();
+      try {
+        const pty = createFakePty();
+        const token = "33333333-4444-5555-6666-777777777777";
+        const manager = createTerminalSessionManager({
+          env: { SHELL: "/bin/zsh" },
+          homedir: () => "/Users/test",
+          platform: "darwin",
+          ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+          sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+        });
+
+        manager.createSession({ sessionId: "term-waiting-reject" });
+        manager.handleAgentHookEvent({
+          agent: "claude",
+          event: "Notification",
+          notificationType: "permission_prompt",
+          token,
+          ts: Date.now(),
+        });
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+        expect(manager.listSessions()[0].unread).toBe(true);
+
+        // User types confirmation key "3" (Option 3: No / Reject)
+        manager.write("term-waiting-reject", "3");
+        // Output produces quick rejection text (burst duration < 1.5s)
+        pty.emitData("3\r\nRejected by user\r\n");
+
+        // Advance before window closes
+        vi.advanceTimersByTime(2_500);
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+
+        // 3s window expires with no sustained >=1.5s burst -> drops to idle
+        vi.advanceTimersByTime(600);
+        expect(manager.listSessions()[0].agentState).toBe("idle");
+        expect(manager.listSessions()[0].unread).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("returns to working when user writes confirmation key and pty outputs burst >= 1.5s (approval path)", () => {
+      vi.useFakeTimers();
+      try {
+        const pty = createFakePty();
+        const token = "33333333-4444-5555-6666-777777777778";
+        const manager = createTerminalSessionManager({
+          env: { SHELL: "/bin/zsh" },
+          homedir: () => "/Users/test",
+          platform: "darwin",
+          ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+          sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+        });
+
+        manager.createSession({ sessionId: "term-waiting-approve" });
+        manager.handleAgentHookEvent({
+          agent: "claude",
+          event: "Notification",
+          notificationType: "permission_prompt",
+          token,
+          ts: Date.now(),
+        });
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+
+        // User writes Enter key to approve
+        manager.write("term-waiting-approve", "\r");
+
+        // Initial output begins immediately
+        pty.emitData("Executing tool...\r\n");
+        vi.advanceTimersByTime(800);
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+
+        // Continuous output spans >= 1500ms
+        vi.advanceTimersByTime(750);
+        pty.emitData("Still running command chunk 2...\r\n");
+
+        // Duration is now 1550ms -> triggers transition to working immediately
+        expect(manager.listSessions()[0].agentState).toBe("working");
+        expect(manager.listSessions()[0].unread).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("keeps waiting when only pty output arrives without user confirmation key", () => {
+      vi.useFakeTimers();
+      try {
+        const pty = createFakePty();
+        const token = "33333333-4444-5555-6666-777777777779";
+        const manager = createTerminalSessionManager({
+          env: { SHELL: "/bin/zsh" },
+          homedir: () => "/Users/test",
+          platform: "darwin",
+          ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+          sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+        });
+
+        manager.createSession({ sessionId: "term-waiting-no-key" });
+        manager.handleAgentHookEvent({
+          agent: "claude",
+          event: "Notification",
+          notificationType: "permission_prompt",
+          token,
+          ts: Date.now(),
+        });
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+
+        // User writes arrow keys (escape sequence \x1b[A) - does NOT count as confirmation key
+        manager.write("term-waiting-no-key", "\x1b[A");
+
+        // Output happens without confirmation key
+        pty.emitData("Background spinner data...\r\n");
+        vi.advanceTimersByTime(1_500);
+        pty.emitData("More background data...\r\n");
+        vi.advanceTimersByTime(2_500);
+
+        // Must remain waiting, no switch
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+        expect(manager.listSessions()[0].unread).toBe(true);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("cancels observation window when hook event arrives during window", () => {
+      vi.useFakeTimers();
+      try {
+        const pty = createFakePty();
+        const token = "33333333-4444-5555-6666-77777777777a";
+        const manager = createTerminalSessionManager({
+          env: { SHELL: "/bin/zsh" },
+          homedir: () => "/Users/test",
+          platform: "darwin",
+          ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+          sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+        });
+
+        manager.createSession({ sessionId: "term-waiting-hook-cancel" });
+        manager.handleAgentHookEvent({
+          agent: "claude",
+          event: "Notification",
+          notificationType: "permission_prompt",
+          token,
+          ts: Date.now(),
+        });
+        expect(manager.listSessions()[0].agentState).toBe("waiting");
+
+        // User writes key "1"
+        manager.write("term-waiting-hook-cancel", "1");
+
+        // 1s later, PostToolUse hook arrives from Claude
+        vi.advanceTimersByTime(1_000);
+        manager.handleAgentHookEvent({
+          agent: "claude",
+          event: "PostToolUse",
+          token,
+          ts: Date.now(),
+        });
+        expect(manager.listSessions()[0].agentState).toBe("working");
+
+        // Advance 5s (past the original 3s window) -> must NOT reset to idle
+        vi.advanceTimersByTime(5_000);
+        expect(manager.listSessions()[0].agentState).toBe("working");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  it("forces agentState to idle and unread to false when session exits", () => {
+    const pty = createFakePty();
+    const token = "44444444-5555-6666-7777-888888888888";
+    const manager = createTerminalSessionManager({
+      env: { SHELL: "/bin/zsh" },
+      homedir: () => "/Users/test",
+      platform: "darwin",
+      ptyBackend: { spawn: vi.fn<(...args: unknown[]) => typeof pty>(() => pty) },
+      sessionEnvironment: () => ({ AURIS_TRANSCRIPT_TOKEN: token }),
+    });
+
+    manager.createSession({ sessionId: "term-exit-cleanup" });
+    manager.handleAgentHookEvent({
+      agent: "claude",
+      event: "UserPromptSubmit",
+      token,
+      ts: Date.now(),
+    });
+    expect(manager.listSessions()[0].agentState).toBe("working");
+
+    // Child process exits
+    pty.emitExit(0);
+    // Session is ended
+    const ended = manager.getEndedSession("term-exit-cleanup");
+    expect(ended?.agentState).toBe("idle");
+    expect(ended?.unread).toBe(false);
+  });
+
+  it("sanitizes ELECTRON_RUN_AS_NODE and all other ELECTRON_ variables from child pty environment", () => {
+    const pty = createFakePty();
+    const spawn = vi.fn<(...args: unknown[]) => typeof pty>(() => pty);
+    const manager = createTerminalSessionManager({
+      platform: "darwin",
+      env: {
+        SHELL: "/bin/zsh",
+        PATH: "/usr/bin",
+        ELECTRON_RUN_AS_NODE: "1",
+        ELECTRON_NO_ASAR: "1",
+        ELECTRON_ENABLE_LOGGING: "true",
+        USER: "apple",
+      },
+      cwdExistsSync: () => true,
+      ptyBackend: { spawn },
+    });
+    manager.createSession({ cwd: "/workspace" });
+    const spawnedEnv = (spawn.mock.calls[0] as any)[2].env;
+    expect(spawnedEnv.ELECTRON_RUN_AS_NODE).toBeUndefined();
+    expect(spawnedEnv.ELECTRON_NO_ASAR).toBeUndefined();
+    expect(spawnedEnv.ELECTRON_ENABLE_LOGGING).toBeUndefined();
+    expect(spawnedEnv.USER).toBe("apple");
+    expect(spawnedEnv.TERM_PROGRAM).toBe("auris");
+  });
 });

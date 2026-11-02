@@ -21,4 +21,12 @@ describe("terminal focus layout", () => {
     expect(extreme[2]).toBeCloseTo(.08);
     expect(resizeTracks([.5, .5], 0, NaN)).toEqual([.5, .5]);
   });
+  it("normalizes sidebarCollapsed preference safely", () => {
+    expect(normalizeFocusLayout(null).sidebarCollapsed).toBe(false);
+    expect(normalizeFocusLayout({}).sidebarCollapsed).toBe(false);
+    expect(normalizeFocusLayout({ sidebarCollapsed: true }).sidebarCollapsed).toBe(true);
+    expect(normalizeFocusLayout({ sidebarCollapsed: false }).sidebarCollapsed).toBe(false);
+    expect(normalizeFocusLayout({ sidebarCollapsed: "true" }).sidebarCollapsed).toBe(false);
+    expect(normalizeFocusLayout({ sidebarCollapsed: 1 }).sidebarCollapsed).toBe(false);
+  });
 });

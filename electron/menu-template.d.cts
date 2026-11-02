@@ -19,6 +19,7 @@ declare namespace menuTemplate {
     onOpenWorkspace?: () => unknown;
     onRevealDownloads?: () => unknown;
     onNotesCommand?: (command: string) => unknown;
+    onQuitAndStopAllTasks?: () => unknown;
   };
   function createApplicationMenuTemplate(options: {
     callbacks: Callbacks;

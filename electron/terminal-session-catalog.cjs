@@ -24,7 +24,17 @@ function createTerminalSessionCatalog({ store, manager }) {
     return [
       ...[...descriptors().values()]
         .filter((record) => !liveIds.has(record.id))
-        .map((record) => ({ ...record, backend: null, ptyPackage: null, output: "", outputSequence: 0 })),
+        .map((record) => ({
+          ...record,
+          backend: null,
+          ptyPackage: null,
+          output: "",
+          outputSequence: 0,
+          agentState: "idle",
+          agentStateUpdatedAt: Date.now(),
+          agentKind: null,
+          unread: false,
+        })),
       ...live,
     ].map(withTitle);
   }

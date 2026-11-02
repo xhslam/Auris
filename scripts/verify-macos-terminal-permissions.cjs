@@ -20,7 +20,7 @@ function verifyMacosTerminalPermissions(appPath, { requireSignature = false } = 
     if (!value.trim()) throw new Error(`Missing usage description: ${key}`);
   }
   const probe = spawnSync("/usr/bin/codesign", ["-d", "--entitlements", ":-", appPath], { encoding: "utf8" });
-  if (probe.status !== 0) {
+  if (probe.status !== 0 || !probe.stdout || !probe.stdout.trim()) {
     if (requireSignature) throw new Error("Cannot verify macOS terminal permissions without an app signature.");
     console.log("[macos-terminal-permissions] usage descriptions verified; unsigned local package entitlements remain unverified.");
     return { signed: false };

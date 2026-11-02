@@ -397,4 +397,153 @@ describe("TerminalFocusWorkspace shared runtime", () => {
     expect(screen.getByText("终端仅在 Auris 桌面端可用")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "新建终端" })).toBeDisabled();
   });
+
+  it("pastes an image from desktop clipboard into the active terminal", async () => {
+    const { bridge } = createBridge([record("focus-term-img")]);
+    (window as unknown as { shadowingDesktop?: { clipboard?: { readImage?: () => Promise<{ filePath: string } | null>; readText?: () => Promise<string> } } }).shadowingDesktop = {
+      clipboard: {
+        readImage: vi.fn().mockResolvedValue({ filePath: "/tmp/auris-terminal-images/screenshot with space.png" }),
+        readText: vi.fn().mockResolvedValue(""),
+      },
+    };
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "粘贴到当前终端" }));
+    await waitFor(() => {
+      expect(harness.terminals[0].paste).toHaveBeenCalledWith('"/tmp/auris-terminal-images/screenshot with space.png"');
+    });
+    delete (window as unknown as { shadowingDesktop?: unknown }).shadowingDesktop;
+  });
+
+  it("handles dropping image files onto a pane with drag-over visual feedback", async () => {
+    const { bridge } = createBridge([record("focus-term-drop")]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    const pane = panes()[0];
+
+    fireEvent.dragEnter(pane, { dataTransfer: { types: ["Files"] } });
+    expect(pane).toHaveAttribute("data-drag-over", "true");
+
+    const imageFile = new File(["dummy"], "screenshot.png", { type: "image/png" });
+    Object.defineProperty(imageFile, "path", { value: "/Users/apple/Desktop/photo.png" });
+
+    fireEvent.drop(pane, {
+      dataTransfer: {
+        files: [imageFile],
+        types: ["Files"],
+      },
+    });
+
+    expect(pane).toHaveAttribute("data-drag-over", "false");
+    await waitFor(() => {
+      expect(harness.terminals[0].paste).toHaveBeenCalledWith("/Users/apple/Desktop/photo.png");
+    });
+  });
+
+  it("handles native paste event containing an image file on the terminal pane", async () => {
+    const { bridge } = createBridge([record("focus-term-paste-event")]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    const pane = panes()[0];
+
+    const imageFile = new File(["dummy"], "pasted-image.png", { type: "image/png" });
+    Object.defineProperty(imageFile, "path", { value: "/Users/apple/Pictures/My Cat.png" });
+
+    fireEvent.paste(pane, {
+      clipboardData: {
+        files: [imageFile],
+      },
+    });
+
+    await waitFor(() => {
+      expect(harness.terminals[0].paste).toHaveBeenCalledWith('"/Users/apple/Pictures/My Cat.png"');
+    });
+  });
+
+  it("adds a file to the active terminal using the toolbar button", async () => {
+    const { bridge } = createBridge([record("focus-term-add-file")]);
+    (window as unknown as { shadowingDesktop?: { system?: { pickFile?: () => Promise<string | null> } } }).shadowingDesktop = {
+      system: {
+        pickFile: vi.fn().mockResolvedValue("/Users/apple/Desktop/my project/data.csv"),
+      },
+    };
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "添加文件到当前终端" }));
+    await waitFor(() => {
+      expect(harness.terminals[0].paste).toHaveBeenCalledWith('"/Users/apple/Desktop/my project/data.csv"');
+    });
+    delete (window as unknown as { shadowingDesktop?: unknown }).shadowingDesktop;
+  });
+
+  it("handles dropping non-image code files onto a pane", async () => {
+    const { bridge } = createBridge([record("focus-term-drop-code")]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+    await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(1));
+    const pane = panes()[0];
+
+    const codeFile = new File(["const x = 1;"], "index.ts", { type: "text/typescript" });
+    Object.defineProperty(codeFile, "path", { value: "/Users/apple/project/src/index.ts" });
+
+    fireEvent.drop(pane, {
+      dataTransfer: {
+        files: [codeFile],
+        types: ["Files"],
+      },
+    });
+
+    await waitFor(() => {
+      expect(harness.terminals[0].paste).toHaveBeenCalledWith("/Users/apple/project/src/index.ts");
+    });
+  });
+
+  it("toggles the session sidebar from the toolbar and persists to layout preferences", async () => {
+    const { bridge } = createBridge([record("term-1")]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+
+    const toggleBtn = screen.getByRole("button", { name: "收起侧边栏" });
+    expect(toggleBtn).toBeInTheDocument();
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "true");
+    expect(toggleBtn).toHaveAttribute("aria-controls", "terminal-focus-sidebar");
+
+    const sidebar = screen.getByRole("complementary", { name: "终端会话" });
+    expect(sidebar).not.toHaveAttribute("hidden");
+
+    // Click to collapse
+    fireEvent.click(toggleBtn);
+
+    expect(screen.getByRole("button", { name: "展开侧边栏" })).toHaveAttribute("aria-expanded", "false");
+    expect(sidebar).toHaveAttribute("hidden");
+    const container = sidebar.closest(".terminal-focus");
+    expect(container).toHaveAttribute("data-sidebar-collapsed", "true");
+    expect(JSON.parse(localStorage.getItem(TERMINAL_FOCUS_LAYOUT_KEY) || "{}")).toMatchObject({ sidebarCollapsed: true });
+
+    // Click to restore
+    fireEvent.click(screen.getByRole("button", { name: "展开侧边栏" }));
+    expect(screen.getByRole("button", { name: "收起侧边栏" })).toHaveAttribute("aria-expanded", "true");
+    expect(sidebar).not.toHaveAttribute("hidden");
+    expect(container).toHaveAttribute("data-sidebar-collapsed", "false");
+    expect(JSON.parse(localStorage.getItem(TERMINAL_FOCUS_LAYOUT_KEY) || "{}")).toMatchObject({ sidebarCollapsed: false });
+  });
+
+  it("preserves sidebarCollapsed preference when changing column layout", async () => {
+    const { bridge } = createBridge([record("term-1")]);
+    render(<TerminalFocusWorkspace bridge={bridge} />);
+
+    const sidebar = screen.getByRole("complementary", { name: "终端会话" });
+
+    // Collapse sidebar first
+    const toggleBtn = screen.getByRole("button", { name: "收起侧边栏" });
+    fireEvent.click(toggleBtn);
+
+    // Change columns via select
+    const select = screen.getByLabelText("终端分屏列数");
+    fireEvent.change(select, { target: { value: "3" } });
+
+    // Sidebar remains collapsed
+    expect(sidebar).toHaveAttribute("hidden");
+    expect(screen.getByRole("button", { name: "展开侧边栏" })).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem(TERMINAL_FOCUS_LAYOUT_KEY) || "{}")).toMatchObject({ columns: 3, sidebarCollapsed: true });
+  });
 });

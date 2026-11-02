@@ -60,6 +60,8 @@ asarUnpack:
   - "**/node_modules/node-pty/**"
   - "**/node_modules/@homebridge/node-pty-prebuilt-multiarch/**"
   - "**/*.node"
+  - "**/electron/terminal-daemon/**"
+  - "**/electron/terminal-*.cjs"
 mac:
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.inherit.plist

@@ -43,3 +43,64 @@ export function isTerminalPaneVisible(id: string, activeId: string | null, singl
 }
 
 export const TERMINAL_SESSION_STATUS = { starting: "启动中", running: "运行中", exited: "已退出", failed: "失败" } as const;
+
+export type DerivedSessionStatus =
+  | "failed"
+  | "exited"
+  | "starting"
+  | "running"
+  | "agent-working"
+  | "agent-waiting"
+  | "agent-done-unread"
+  | "agent-done-read"
+  | "agent-idle";
+
+export function derivedSessionStatus(
+  session: Pick<NotesTerminalSession, "status" | "agentState" | "agentKind" | "unread">,
+): DerivedSessionStatus {
+  if (session.status === "failed") return "failed";
+  if (session.status === "exited") return "exited";
+  if (session.status === "starting") return "starting";
+
+  const isSupportedAgent =
+    session.agentKind === "claude-code" ||
+    session.agentKind === "codex" ||
+    (session.agentState && session.agentState !== "idle");
+
+  if (isSupportedAgent) {
+    const agentState = session.agentState ?? "idle";
+    if (agentState === "error") return "failed";
+    if (agentState === "working") return "agent-working";
+    if (agentState === "waiting") return "agent-waiting";
+    if (agentState === "done") {
+      return session.unread ? "agent-done-unread" : "agent-done-read";
+    }
+    return "agent-idle";
+  }
+
+  return "running";
+}
+
+export function derivedSessionStatusLabel(
+  session: Pick<NotesTerminalSession, "status" | "agentState" | "agentKind" | "unread">,
+): string {
+  if (session.status === "failed") return "失败";
+  if (session.status === "exited") return "已退出";
+  if (session.status === "starting") return "启动中";
+
+  const isSupportedAgent =
+    session.agentKind === "claude-code" ||
+    session.agentKind === "codex" ||
+    (session.agentState && session.agentState !== "idle");
+
+  if (isSupportedAgent) {
+    const agentState = session.agentState ?? "idle";
+    if (agentState === "error") return "出错";
+    if (agentState === "working") return "工作中";
+    if (agentState === "waiting") return "等待确认";
+    if (agentState === "done") return session.unread ? "已完成（未读）" : "已完成";
+    return "空闲";
+  }
+
+  return "运行中";
+}

@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const fsSync = require("node:fs");
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { fileURLToPath } = require("node:url");
 const {
   app,
   BrowserWindow,
@@ -12,6 +13,7 @@ const {
   ipcMain,
   Menu,
   nativeImage,
+  Notification,
   protocol,
   safeStorage,
   screen,
@@ -28,6 +30,12 @@ const {
   createDefaultRuntimeState,
   createRuntimeStateRepository,
 } = require("./runtime-state-db.cjs");
+const {
+  createRemoteTerminalSessionManager,
+} = require("./terminal-remote-session-manager.cjs");
+const {
+  resolveTerminalDaemonPaths,
+} = require("./terminal-daemon-paths.cjs");
 const {
   createTerminalSessionManager,
 } = require("./terminal-session-manager.cjs");
@@ -180,6 +188,7 @@ const { createTerminalSessionRecoveryStore } = require("./terminal-session-recov
 const { createTerminalSessionCatalog } = require("./terminal-session-catalog.cjs");
 const { createTerminalProjectDirectories, TERMINAL_FOCUS_SCOPE } = require("./terminal-project-directories.cjs");
 const { createTerminalTranscriptService } = require("./terminal-transcript-service.cjs");
+const { createTerminalAgentStatusService } = require("./terminal-agent-status-service.cjs");
 const { createCloseAttemptTracker } = require("./close-attempt-tracker.cjs");
 const {
   collectMarkdownOpenPaths,
@@ -268,6 +277,8 @@ const STARTUP_LOG_PATH = path.join(DESKTOP_LOG_ROOT, "electron-startup.log");
 const NEXT_PROCESS_LOG_PATH = path.join(DESKTOP_LOG_ROOT, "electron-next.log");
 const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
+const TERMINAL_AGENT_STATE_CHANNEL = "shadowing:terminal:agent-state";
+const TERMINAL_ACTIVATE_SESSION_CHANNEL = "shadowing:terminal:activate-session";
 const DESKTOP_ISLAND_CACHE_FILE = "auris-desktop-island-snapshot.json";
 
 let mainWindow = null;
@@ -294,6 +305,10 @@ const terminalResumeRequests = new Map();
 let terminalTranscriptService = null;
 let notesRecoveryStore = null;
 let terminalSessionUnsubscribers = [];
+let terminalAgentStatusService = null;
+let terminalVisibleSessionIds = new Set();
+let terminalActiveSessionId = null;
+const terminalNotificationCooldowns = new Map();
 let voiceEngineRuntime = null;
 let aiViewManager = null;
 let notesMcpBridge = null;
@@ -1119,6 +1134,7 @@ function createDefaultDesktopConfig() {
     knownVaultRoots: [],
     mcp: createDefaultMcpPolicy(),
     pluginsEnabled: {},
+    terminalNotificationsEnabled: true,
     videoLibraryPath: null,
     vaultPath: null,
   };
@@ -1739,6 +1755,112 @@ function sendTerminalEvent(channel, payload) {
   mainWindow.webContents.send(channel, payload);
 }
 
+function getTerminalAgentStatusService() {
+  if (terminalAgentStatusService) {
+    return terminalAgentStatusService;
+  }
+  terminalAgentStatusService = createTerminalAgentStatusService({
+    logger: writeStartupLog,
+  });
+  terminalAgentStatusService.onEvent((event) => {
+    try {
+      getTerminalSessionManager().handleAgentHookEvent(event);
+    } catch (error) {
+      writeStartupLog(`terminal:agent-hook-dispatch-error: ${error?.message || error}`);
+    }
+  });
+  return terminalAgentStatusService;
+}
+
+function updateTerminalBadgeCount() {
+  if (!terminalSessionManager) {
+    if (typeof app.setBadgeCount === "function") app.setBadgeCount(0);
+    if (process.platform === "darwin" && app.dock) app.dock.setBadge("");
+    return;
+  }
+  const sessions = terminalSessionManager.listSessions();
+  let count = 0;
+  for (const session of sessions) {
+    if (session.agentState === "waiting") {
+      count++;
+    } else if (session.agentState === "done" && session.unread) {
+      count++;
+    }
+  }
+  if (typeof app.setBadgeCount === "function") {
+    app.setBadgeCount(count);
+  }
+  if (process.platform === "darwin" && app.dock) {
+    app.dock.setBadge(count > 0 ? String(count) : "");
+  }
+}
+
+function dispatchTerminalAgentNotification(payload) {
+  const { sessionId, agentState } = payload;
+  if (agentState !== "waiting" && agentState !== "done") {
+    return;
+  }
+
+  if (desktopConfig.terminalNotificationsEnabled === false) {
+    return;
+  }
+
+  const now = Date.now();
+  const cooldownUntil = terminalNotificationCooldowns.get(sessionId) ?? 0;
+  if (now < cooldownUntil) {
+    return;
+  }
+
+  const session = terminalSessionManager?.listSessions().find((s) => s.id === sessionId);
+  if (!session || (session.agentState !== "waiting" && session.agentState !== "done")) {
+    return;
+  }
+
+  const isWindowFocused = mainWindow && !mainWindow.isDestroyed() && mainWindow.isFocused();
+  const isVisiblePane = terminalVisibleSessionIds.has(sessionId);
+  if (isWindowFocused && isVisiblePane) {
+    return;
+  }
+
+  terminalNotificationCooldowns.set(sessionId, now + 3000);
+
+  const projectName = session.cwd ? (path.basename(session.cwd) || session.cwd) : "默认目录";
+  const agentName = session.agentKind || "Claude Code";
+  const title = session.customTitle || `${agentName} · ${projectName}`;
+  const body = session.agentState === "waiting" ? "等待确认操作" : "已完成当前任务";
+
+  if (process.platform === "darwin" && session.agentState === "waiting" && !isWindowFocused) {
+    try {
+      app.dock?.bounce?.("informational");
+    } catch {
+      // ignore
+    }
+  }
+
+  if (Notification.isSupported()) {
+    try {
+      const notification = new Notification({
+        title,
+        body,
+        silent: false,
+      });
+
+      notification.on("click", () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.show();
+          mainWindow.focus();
+          sendTerminalEvent(TERMINAL_ACTIVATE_SESSION_CHANNEL, { sessionId });
+        }
+      });
+
+      notification.show();
+    } catch (err) {
+      writeStartupLog(`terminal:notification-error ${err?.message || err}`);
+    }
+  }
+}
+
 function getTerminalTranscriptService() {
   if (!terminalTranscriptService) {
     terminalTranscriptService = createTerminalTranscriptService({
@@ -1754,27 +1876,21 @@ function getTerminalSessionManager() {
     return terminalSessionManager;
   }
 
-  terminalSessionManager = createTerminalSessionManager({
-    sessionEnvironment: (sessionId) => getTerminalTranscriptService().sessionEnvironment(sessionId),
+  const transcriptService = getTerminalTranscriptService();
+  const daemonPaths = resolveTerminalDaemonPaths({
+    isPackaged: app.isPackaged,
+    channel: app.isPackaged ? "packaged" : "dev",
+  });
+
+  terminalSessionManager = createRemoteTerminalSessionManager({
+    paths: daemonPaths,
+    appVersion: app.getVersion(),
+    logger: writeStartupLog,
     onSessionRemoved: (sessionId) => {
       terminalSessionCatalog?.remove(sessionId);
-      getTerminalTranscriptService().forget(sessionId);
+      transcriptService.forget(sessionId);
+      updateTerminalBadgeCount();
     },
-    cwdExistsSync: (candidate) => {
-      // Defensive existence check: if the cwd (typically a configured vault
-      // path that may have moved between machines) is gone, the manager will
-      // fall back to the user's home directory instead of letting
-      // posix_spawnp throw at the renderer.
-      if (typeof candidate !== "string" || !candidate.trim()) {
-        return false;
-      }
-      try {
-        return fsSync.statSync(candidate).isDirectory();
-      } catch {
-        return false;
-      }
-    },
-    logger: writeStartupLog,
   });
   terminalSessionUnsubscribers = [
     terminalSessionManager.onData((payload) =>
@@ -1783,10 +1899,22 @@ function getTerminalSessionManager() {
     terminalSessionManager.onExit((payload) => {
       persistTerminalRecovery();
       sendTerminalEvent(TERMINAL_EXIT_CHANNEL, payload);
+      updateTerminalBadgeCount();
+    }),
+    terminalSessionManager.onAgentState((payload) => {
+      sendTerminalEvent(TERMINAL_AGENT_STATE_CHANNEL, payload);
+      updateTerminalBadgeCount();
+      dispatchTerminalAgentNotification(payload);
+    }),
+    terminalSessionManager.onDaemonStatus((payload) => {
+      sendTerminalEvent("shadowing:terminal:daemon-status", payload);
     }),
   ];
-  // Restore tab descriptors on list, not processes. Only the selected tab
-  // calls resume, so a cold open does not spawn other workspaces' shells.
+
+  terminalSessionManager.connect().catch((err) => {
+    writeStartupLog(`terminal:remote-connect-error ${err?.message || err}`);
+  });
+
   return terminalSessionManager;
 }
 function getNotesMcpBridge() {
@@ -1841,8 +1969,10 @@ function closeTerminalSessionManager() {
     }
   });
   terminalSessionUnsubscribers = [];
+  terminalNotificationCooldowns.clear();
+  updateTerminalBadgeCount();
   persistTerminalRecovery();
-  terminalSessionManager?.killAll();
+  terminalSessionManager?.dispose?.();
   terminalSessionManager = null;
   terminalSessionCatalog = null;
   terminalResumeRequests.clear();
@@ -1869,18 +1999,34 @@ async function createTerminalSession(input) {
       projects.touch(input.cwd);
     }
   }
-  const record = getTerminalSessionManager().createSession(spawnInput);
+
+  const transcriptService = getTerminalTranscriptService();
+  const transcriptEnv = transcriptService.sessionEnvironment(spawnInput.sessionId || "temp");
+  spawnInput.env = {
+    ...(spawnInput.env || {}),
+    ...transcriptEnv,
+  };
+  if (transcriptEnv.AURIS_TRANSCRIPT_TOKEN) {
+    spawnInput.token = transcriptEnv.AURIS_TRANSCRIPT_TOKEN;
+  }
+
+  const record = await getTerminalSessionManager().createSession(spawnInput);
   if (input?.customTitle !== undefined) record.customTitle = normalizeTerminalTitle(input.customTitle);
   getTerminalSessionCatalog().created(record);
   persistTerminalRecovery();
   return getTerminalSessionCatalog().withTitle(record);
 }
 
-function resumeTerminalSession(input) {
+async function resumeTerminalSession(input) {
   const sessionId = requireTerminalSessionId(input?.sessionId);
   const manager = getTerminalSessionManager();
+  await manager.ensureConnected?.();
   const existing = manager.listSessions().find((item) => item.id === sessionId) ?? manager.getEndedSession(sessionId);
-  if (existing) return Promise.resolve(getTerminalSessionCatalog().withTitle(existing));
+  if (existing) {
+    const fromSequence = typeof input?.fromSequence === "number" ? input.fromSequence : 0;
+    await manager.resumeSession({ sessionId, fromSequence });
+    return getTerminalSessionCatalog().withTitle(existing);
+  }
   if (terminalResumeRequests.has(sessionId)) return terminalResumeRequests.get(sessionId);
   const descriptor = getTerminalSessionCatalog().get(sessionId);
   // The public app has no explicit-shell setting; saved shell paths describe
@@ -2371,6 +2517,7 @@ async function readDesktopConfig() {
         parsed && typeof parsed.pluginsEnabled === "object" && parsed.pluginsEnabled
           ? parsed.pluginsEnabled
           : {},
+      terminalNotificationsEnabled: parsed?.terminalNotificationsEnabled !== false,
       videoLibraryPath:
         parsed && typeof parsed.videoLibraryPath === "string" && parsed.videoLibraryPath.trim()
           ? parsed.videoLibraryPath
@@ -2398,6 +2545,7 @@ async function writeDesktopConfig(nextConfig) {
     knownVaultRoots: normalizeKnownVaultRoots(nextConfig.knownVaultRoots),
     mcp: normalizeMcpPolicy(nextConfig.mcp),
     pluginsEnabled: nextConfig.pluginsEnabled ?? {},
+    terminalNotificationsEnabled: nextConfig.terminalNotificationsEnabled !== false,
     videoLibraryPath: nextConfig.videoLibraryPath ?? null,
     vaultPath: nextConfig.vaultPath ?? null,
   };
@@ -3814,6 +3962,9 @@ function installApplicationMenu() {
       onOpenHome: () => navigateToRoute("/"),
       onOpenNotes: () => navigateToRoute("/notes"),
       onOpenWorkspace: () => navigateToRoute("/workspace"),
+      onQuitAndStopAllTasks: () => {
+        void quitAndStopAllTasks();
+      },
       onRevealDownloads: () => {
         void shell.openPath(getDownloadsDirectoryInfo().directoryPath);
       },
@@ -4009,6 +4160,71 @@ function registerDesktopHandlers() {
     return clipboard.readText();
   });
 
+  ipcMain.handle("shadowing:clipboard:read-image", async (event) => {
+    requireTrustedDesktopEvent(event);
+
+    const image = clipboard.readImage();
+    if (!image.isEmpty()) {
+      const pngBuffer = image.toPNG();
+      if (pngBuffer && pngBuffer.length > 0) {
+        const tempDir = path.join(app.getPath("temp"), "auris-terminal-images");
+        await fs.mkdir(tempDir, { recursive: true });
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        const randomSuffix = crypto.randomBytes(3).toString("hex");
+        const filePath = path.join(
+          tempDir,
+          `terminal-image-${timestamp}-${randomSuffix}.png`,
+        );
+        await fs.writeFile(filePath, pngBuffer);
+        return { filePath, isTemporary: true };
+      }
+    }
+
+    if (process.platform === "darwin") {
+      const fileUrl = clipboard.read("public.file-url");
+      if (fileUrl && fileUrl.startsWith("file://")) {
+        try {
+          const filePath = fileURLToPath(fileUrl);
+          if (fsSync.existsSync(filePath)) {
+            return { filePath, isTemporary: false };
+          }
+        } catch {}
+      }
+    }
+
+    if (process.platform === "win32") {
+      try {
+        const raw = clipboard.readBuffer("FileNameW");
+        if (raw && raw.length > 0) {
+          const rawStr = raw.toString("utf16le").replace(/\0+$/, "");
+          if (fsSync.existsSync(rawStr)) {
+            return { filePath: rawStr, isTemporary: false };
+          }
+        }
+      } catch {}
+    }
+
+    const text = clipboard.readText()?.trim();
+    if (text) {
+      let candidatePath = text;
+      if (candidatePath.startsWith("file://")) {
+        try {
+          candidatePath = fileURLToPath(candidatePath);
+        } catch {}
+      }
+      if (
+        path.isAbsolute(candidatePath) &&
+        fsSync.existsSync(candidatePath)
+      ) {
+        return { filePath: candidatePath, isTemporary: false };
+      }
+    }
+
+    return null;
+  });
+
   ipcMain.handle("shadowing:review-mcp:set-ready", (event, ready) => {
     requireTrustedDesktopEvent(event);
     if (event.sender !== mainWindow?.webContents) throw new Error("Review MCP requires the main workspace.");
@@ -4137,6 +4353,48 @@ function registerDesktopHandlers() {
     const id = requireTerminalSessionId(sessionId);
     if (revision !== undefined && (typeof revision !== "string" || !/^[a-f0-9]{64}$/.test(revision))) throw new Error("Invalid transcript revision.");
     return getTerminalTranscriptService().read(id, revision);
+  });
+
+  ipcMain.handle("shadowing:terminal:clear-unread", async (event, sessionId) => {
+    requireTrustedDesktopEvent(event);
+    const id = requireTerminalSessionId(sessionId);
+    getTerminalSessionManager().clearUnread(id);
+    updateTerminalBadgeCount();
+  });
+
+  ipcMain.handle("shadowing:terminal:visible-panes", async (event, payload) => {
+    requireTrustedDesktopEvent(event);
+    terminalActiveSessionId = typeof payload?.activeSessionId === "string" ? payload.activeSessionId : null;
+    terminalVisibleSessionIds = new Set(
+      Array.isArray(payload?.visibleSessionIds)
+        ? payload.visibleSessionIds.filter((id) => typeof id === "string")
+        : []
+    );
+  });
+
+  ipcMain.handle("shadowing:terminal:notifications:get-enabled", async (event) => {
+    requireTrustedDesktopEvent(event);
+    return desktopConfig.terminalNotificationsEnabled !== false;
+  });
+
+  ipcMain.handle("shadowing:terminal:notifications:set-enabled", async (event, enabled) => {
+    requireTrustedDesktopEvent(event);
+    const nextValue = enabled !== false;
+    await writeDesktopConfig({
+      ...desktopConfig,
+      terminalNotificationsEnabled: nextValue,
+    });
+    return nextValue;
+  });
+
+  ipcMain.handle("shadowing:terminal:daemon:status", async (event) => {
+    requireTrustedDesktopEvent(event);
+    return terminalSessionManager?.getDaemonStatus?.() || { connected: false };
+  });
+
+  ipcMain.handle("shadowing:terminal:daemon:upgrade", async (event) => {
+    requireTrustedDesktopEvent(event);
+    return terminalSessionManager?.upgradeDaemonNow?.();
   });
 
   ipcMain.handle("shadowing:plugins:list", async () => {
@@ -4859,16 +5117,18 @@ async function detectSingleSystemBinary(name) {
 }
 
 async function pickSystemFile(options) {
+  const properties = (options && options.properties) || (options && options.multiple ? ["openFile", "multiSelections"] : ["openFile"]);
   const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
-    properties: ["openFile"],
+    properties,
     title: (options && options.title) || "选择文件",
+    buttonLabel: (options && options.buttonLabel) || undefined,
   });
 
   if (result.canceled || result.filePaths.length === 0) {
     return null;
   }
 
-  return result.filePaths[0];
+  return options && options.multiple ? result.filePaths : result.filePaths[0];
 }
 
 app.whenReady().then(async () => {
@@ -4883,6 +5143,7 @@ app.whenReady().then(async () => {
     writeStartupLog(`app:shell-path-error ${error?.message ?? error}`);
   }
   await readDesktopConfig();
+  // Do not modify global Claude Code settings automatically at startup.
   const desktopIslandNativeHost = new MacDesktopIslandNativeHost({
     app,
     appRoot: PROJECT_ROOT,
@@ -4978,7 +5239,57 @@ app.on("window-all-closed", async () => {
   }
 });
 
-app.on("before-quit", async () => {
+let isQuittingConfirmed = false;
+
+async function quitAndStopAllTasks() {
+  isQuittingConfirmed = true;
+  try {
+    await terminalSessionManager?.shutdownForce?.();
+  } catch {
+    /* ignore */
+  }
+  app.quit();
+}
+
+app.on("before-quit", async (event) => {
+  if (!isQuittingConfirmed) {
+    const sessions = terminalSessionManager?.listSessions() || [];
+    const runningSessions = sessions.filter((s) => s.backend === "pty" || s.process);
+    if (runningSessions.length > 0) {
+      event.preventDefault();
+      const waitingCount = runningSessions.filter((s) => s.agentState === "waiting").length;
+      const waitingText = waitingCount > 0 ? ` (${waitingCount} 个在等你确认)` : "";
+      const message = `还有 ${runningSessions.length} 个任务在后台运行${waitingText}`;
+      const detail = "选择「仅退出界面」，后台任务将继续运行，重新打开应用后将自动接回。";
+
+      const win = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+      const choice = dialog.showMessageBoxSync(win, {
+        type: "question",
+        buttons: ["仅退出界面", "停止全部并退出", "取消"],
+        defaultId: 0,
+        cancelId: 2,
+        title: "退出 Auris",
+        message,
+        detail,
+      });
+
+      if (choice === 0) {
+        // 仅退出界面
+        isQuittingConfirmed = true;
+        app.quit();
+      } else if (choice === 1) {
+        // 停止全部并退出
+        await quitAndStopAllTasks();
+      } else {
+        // 取消退出
+        return;
+      }
+      return;
+    } else {
+      terminalSessionManager?.shutdownIfEmpty?.().catch(() => {});
+    }
+  }
+
   niaCompanionReminderScheduler?.stop?.();
   niaCompanionReminderScheduler = null;
   niaCompanionCoordinator?.dispose?.();

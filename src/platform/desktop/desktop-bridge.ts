@@ -35,6 +35,7 @@ export type DesktopCommandRunResult = {
 };
 
 export type DesktopClipboardBridge = {
+  readImage?: () => Promise<{ filePath: string; isTemporary?: boolean } | null>;
   readText?: () => Promise<string>;
   writeHtml?: (html: string, text: string) => Promise<void>;
   writeText: (text: string) => Promise<void>;
@@ -189,6 +190,16 @@ export type DesktopTerminalSessionInput = {
   workspaceInstanceId?: string | null;
 };
 
+export type DesktopTerminalAgentState = "idle" | "working" | "waiting" | "done" | "error";
+
+export type DesktopTerminalAgentStateEvent = {
+  sessionId: string;
+  agentState: DesktopTerminalAgentState;
+  agentStateUpdatedAt: number;
+  agentKind: string | null;
+  unread: boolean;
+};
+
 export type DesktopTerminalSessionRecord = {
   customTitle?: string | null;
   // null means a dormant recovery descriptor, not an unverified live PTY.
@@ -205,6 +216,10 @@ export type DesktopTerminalSessionRecord = {
   rows?: number;
   shell: string | null;
   workspaceInstanceId?: string | null;
+  agentState?: DesktopTerminalAgentState;
+  agentStateUpdatedAt?: number;
+  agentKind?: string | null;
+  unread?: boolean;
 };
 
 export type DesktopTerminalDataEvent = {
@@ -246,11 +261,36 @@ export type DesktopTerminalBridge = {
   resume: (input: DesktopTerminalSessionInput) => Promise<DesktopTerminalSessionRecord>;
   onData: (listener: (event: DesktopTerminalDataEvent) => void) => () => void;
   onExit: (listener: (event: DesktopTerminalExitEvent) => void) => () => void;
+  clearUnread?: (sessionId: string) => Promise<void>;
+  reportVisiblePanes?: (payload: { activeSessionId: string | null; visibleSessionIds: string[] }) => Promise<void>;
+  getNotificationsEnabled?: () => Promise<boolean>;
+  setNotificationsEnabled?: (enabled: boolean) => Promise<boolean>;
+  onAgentState?: (listener: (event: DesktopTerminalAgentStateEvent) => void) => () => void;
+  onActivateSession?: (listener: (event: { sessionId: string }) => void) => () => void;
   resize: (
     sessionId: string,
     size: { cols: number; rows: number },
   ) => Promise<void>;
   write: (sessionId: string, data: string) => Promise<void>;
+  getDaemonStatus?: () => Promise<{
+    connected: boolean;
+    protocolCompatible: boolean;
+    daemonAppVersion: string | null;
+    daemonProtocolVersion: number | null;
+    activeSessionsCount: number;
+    waitingSessionsCount: number;
+    needsUpgrade: boolean;
+  }>;
+  upgradeDaemon?: () => Promise<void>;
+  onDaemonStatus?: (listener: (status: {
+    connected: boolean;
+    protocolCompatible: boolean;
+    daemonAppVersion: string | null;
+    daemonProtocolVersion: number | null;
+    activeSessionsCount: number;
+    waitingSessionsCount: number;
+    needsUpgrade: boolean;
+  }) => void) => () => void;
 };
 
 export type DesktopDownloadsDirectoryInfo = {
@@ -723,7 +763,11 @@ export type DesktopBridge = {
       didOpen: boolean;
       targetUrl: string | null;
     }>;
-    pickFile?: (options?: { title?: string }) => Promise<string | null>;
+    pickFile?: {
+      (options?: { title?: string; multiple?: false; properties?: string[] }): Promise<string | null>;
+      (options: { title?: string; multiple: true; properties?: string[] }): Promise<string[] | null>;
+      (options?: { title?: string; multiple?: boolean; properties?: string[] }): Promise<string | string[] | null>;
+    };
   };
 
   voiceEngine: {

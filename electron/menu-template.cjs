@@ -49,6 +49,10 @@ function createApplicationMenuTemplate(options) {
         label: "Show Downloads Folder",
       },
       { type: "separator" },
+      {
+        click: () => callbacks.onQuitAndStopAllTasks?.(),
+        label: "退出并停止所有任务",
+      },
       isMac ? { role: "close" } : { role: "quit" },
     ],
   };
@@ -112,6 +116,11 @@ function createApplicationMenuTemplate(options) {
         { role: "hideOthers" },
         { role: "unhide" },
         { type: "separator" },
+        {
+          accelerator: "CmdOrCtrl+Alt+Q",
+          click: () => callbacks.onQuitAndStopAllTasks?.(),
+          label: "退出并停止所有任务",
+        },
         { role: "quit" },
       ],
     },

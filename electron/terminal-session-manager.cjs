@@ -7,6 +7,32 @@ const DEFAULT_COLS = 80;
 const DEFAULT_ROWS = 24;
 const MAX_OUTPUT_BUFFER_LENGTH = 200_000;
 const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+const WORKING_HEARTBEAT_TIMEOUT_MS = 30_000;
+const WAITING_OBSERVATION_WINDOW_MS = 3_000;
+const WAITING_BURST_REQUIRED_MS = 1_500;
+
+function isConfirmationKey(data) {
+  if (typeof data !== "string") {
+    data = String(data ?? "");
+  }
+  // Enter / Return
+  if (data === "\r" || data === "\n" || data === "\r\n") {
+    return true;
+  }
+  // Standalone Esc key only (length 1). Escape sequences like arrow keys (\x1b[A) do not count.
+  if (data === "\x1b") {
+    return true;
+  }
+  // Digits 1-9
+  if (/^[1-9]$/.test(data)) {
+    return true;
+  }
+  // Choice letters y, n, Y, N
+  if (/^[ynYN]$/.test(data)) {
+    return true;
+  }
+  return false;
+}
 
 let nextSessionNumber = 1;
 
@@ -113,20 +139,32 @@ function isUtf8Locale(locale) {
   return /(?:utf-?8)/i.test(String(locale ?? ""));
 }
 
+function sanitizeTerminalEnvironment(env) {
+  const cleanEnv = {};
+  for (const [key, value] of Object.entries(env ?? {})) {
+    if (/^ELECTRON_/i.test(key)) {
+      continue;
+    }
+    cleanEnv[key] = value;
+  }
+  return cleanEnv;
+}
+
 function createTerminalEnvironment(baseEnv, cwd, platform) {
-  const effectiveLocale = baseEnv.LC_ALL || baseEnv.LC_CTYPE || baseEnv.LANG;
+  const sanitizedEnv = sanitizeTerminalEnvironment(baseEnv);
+  const effectiveLocale = sanitizedEnv.LC_ALL || sanitizedEnv.LC_CTYPE || sanitizedEnv.LANG;
   const localeFallback = platform === "darwin" ? "en_US.UTF-8" : "C.UTF-8";
   const localeEnv =
     platform !== "win32" && !isUtf8Locale(effectiveLocale)
       ? {
           LANG: localeFallback,
           LC_CTYPE: localeFallback,
-          ...(baseEnv.LC_ALL ? { LC_ALL: localeFallback } : {}),
+          ...(sanitizedEnv.LC_ALL ? { LC_ALL: localeFallback } : {}),
         }
       : {};
 
   return {
-    ...baseEnv,
+    ...sanitizedEnv,
     ...localeEnv,
     EDITOR: "auris",
     SHADOWING_WORKSPACE: cwd,
@@ -249,14 +287,230 @@ function createTerminalSessionManager(options = {}) {
   // from another machine) silently falls back to the user's home directory
   // instead of crashing posix_spawnp.
   const cwdExistsSync = options.cwdExistsSync ?? null;
+  const tokenToSession = new Map();
+  const heartbeatTimers = new Map();
+  const waitingObservationWindows = new Map();
+
+  function cancelWaitingObservationWindow(sessionId) {
+    if (waitingObservationWindows.has(sessionId)) {
+      clearTimeout(waitingObservationWindows.get(sessionId).timer);
+      waitingObservationWindows.delete(sessionId);
+    }
+  }
+
+  function startWaitingObservationWindow(sessionId) {
+    cancelWaitingObservationWindow(sessionId);
+    const timer = setTimeout(() => {
+      waitingObservationWindows.delete(sessionId);
+      const session = sessions.get(sessionId);
+      if (session && session.agentState === "waiting") {
+        updateAgentState(sessionId, {
+          agentState: "idle",
+          unread: false,
+        });
+      }
+    }, WAITING_OBSERVATION_WINDOW_MS);
+
+    waitingObservationWindows.set(sessionId, {
+      timer,
+      firstOutputTime: null,
+      lastOutputTime: null,
+    });
+  }
+
+  function clearSessionTimers(sessionId) {
+    if (heartbeatTimers.has(sessionId)) {
+      clearTimeout(heartbeatTimers.get(sessionId));
+      heartbeatTimers.delete(sessionId);
+    }
+    cancelWaitingObservationWindow(sessionId);
+  }
+
+  function updateAgentState(sessionId, patch) {
+    const session = sessions.get(sessionId);
+    if (!session) return;
+    let changed = false;
+
+    if (patch.agentState !== undefined && session.agentState !== patch.agentState) {
+      session.agentState = patch.agentState;
+      session.agentStateUpdatedAt = Date.now();
+      changed = true;
+    }
+    if (patch.agentKind !== undefined && session.agentKind !== patch.agentKind) {
+      session.agentKind = patch.agentKind;
+      changed = true;
+    }
+    if (patch.unread !== undefined && session.unread !== patch.unread) {
+      session.unread = patch.unread;
+      changed = true;
+    }
+
+    if (!session.agentStateUpdatedAt) {
+      session.agentStateUpdatedAt = Date.now();
+    }
+
+    if (session.agentState !== "working") {
+      if (heartbeatTimers.has(sessionId)) {
+        clearTimeout(heartbeatTimers.get(sessionId));
+        heartbeatTimers.delete(sessionId);
+      }
+    } else {
+      resetWorkingHeartbeat(sessionId);
+    }
+
+    if (session.agentState !== "waiting") {
+      cancelWaitingObservationWindow(sessionId);
+    }
+
+    if (changed) {
+      emitter.emit("agent-state", {
+        agentKind: session.agentKind ?? null,
+        agentState: session.agentState,
+        agentStateUpdatedAt: session.agentStateUpdatedAt,
+        sessionId,
+        unread: session.unread,
+      });
+    }
+  }
+
+  function resetWorkingHeartbeat(sessionId) {
+    if (heartbeatTimers.has(sessionId)) {
+      clearTimeout(heartbeatTimers.get(sessionId));
+    }
+    const timer = setTimeout(() => {
+      heartbeatTimers.delete(sessionId);
+      const session = sessions.get(sessionId);
+      if (session && session.agentState === "working") {
+        updateAgentState(sessionId, {
+          agentState: "idle",
+          unread: false,
+        });
+      }
+    }, WORKING_HEARTBEAT_TIMEOUT_MS);
+    heartbeatTimers.set(sessionId, timer);
+  }
+
+  function handleWaitingOutputData(sessionId) {
+    const window = waitingObservationWindows.get(sessionId);
+    if (!window) {
+      // Waiting state with no user confirmation key pressed yet: keep waiting, do not switch
+      return;
+    }
+
+    const now = Date.now();
+    if (window.firstOutputTime === null) {
+      window.firstOutputTime = now;
+      window.lastOutputTime = now;
+    } else {
+      window.lastOutputTime = now;
+      if (window.lastOutputTime - window.firstOutputTime >= WAITING_BURST_REQUIRED_MS) {
+        cancelWaitingObservationWindow(sessionId);
+        updateAgentState(sessionId, {
+          agentState: "working",
+          unread: false,
+        });
+      }
+    }
+  }
+
+  function handleAgentHookEvent(event) {
+    if (!event || typeof event.token !== "string") return false;
+    const sessionId = tokenToSession.get(event.token);
+    if (!sessionId) return false;
+    const session = sessions.get(sessionId);
+    if (!session) return false;
+
+    // Hook events cancel any pending observation window and supersede state
+    cancelWaitingObservationWindow(sessionId);
+    if (!session) return false;
+
+    const agentKind = event.agent === "claude" ? "claude" : event.agent === "codex" ? "codex" : null;
+    const eventName = event.event;
+
+    switch (eventName) {
+      case "UserPromptSubmit":
+        updateAgentState(sessionId, {
+          agentKind,
+          agentState: "working",
+          unread: false,
+        });
+        break;
+
+      case "Notification":
+        if (event.notificationType === "idle_prompt") {
+          break;
+        }
+        updateAgentState(sessionId, {
+          agentKind,
+          agentState: "waiting",
+          unread: true,
+        });
+        break;
+
+      case "PostToolUse":
+        if (session.agentState === "waiting") {
+          updateAgentState(sessionId, {
+            agentKind,
+            agentState: "working",
+            unread: false,
+          });
+        }
+        break;
+
+      case "Stop":
+        updateAgentState(sessionId, {
+          agentKind,
+          agentState: "done",
+          unread: true,
+        });
+        break;
+
+      case "StopFailure":
+        updateAgentState(sessionId, {
+          agentKind,
+          agentState: "error",
+          unread: true,
+        });
+        break;
+
+      case "SessionEnd":
+        updateAgentState(sessionId, {
+          agentKind,
+          agentState: "idle",
+          unread: false,
+        });
+        break;
+
+      default:
+        break;
+    }
+    return true;
+  }
+
+  function clearUnread(sessionId) {
+    const session = sessions.get(sessionId);
+    if (session && session.unread) {
+      updateAgentState(sessionId, { unread: false });
+    }
+  }
 
   function removeSession(sessionId) {
+    const session = sessions.get(sessionId);
+    if (session?.token) {
+      tokenToSession.delete(session.token);
+    }
+    clearSessionTimers(sessionId);
     sessions.delete(sessionId);
     options.onSessionRemoved?.(sessionId);
   }
 
   function emitExit(sessionId, exitCode, signal, errorMessage = null) {
     const session = sessions.get(sessionId);
+    if (session) {
+      clearSessionTimers(sessionId);
+      session.agentState = "idle";
+      session.unread = false;
+    }
     // Pipe error/exit notifications can both fire for the same failure.
     if (!session && endedSessions.has(sessionId)) return;
     const exit = {
@@ -284,6 +538,12 @@ function createTerminalSessionManager(options = {}) {
         -MAX_OUTPUT_BUFFER_LENGTH,
       );
       session.outputSequence = (session.outputSequence ?? 0) + 1;
+
+      if (session.agentState === "working") {
+        resetWorkingHeartbeat(sessionId);
+      } else if (session.agentState === "waiting") {
+        handleWaitingOutputData(sessionId);
+      }
     }
     emitter.emit("data", {
       data: normalizedData,
@@ -333,9 +593,23 @@ function createTerminalSessionManager(options = {}) {
     const shell = requestedShell ?? resolveDefaultShell(platform, env);
     const cols = normalizePositiveInteger(input.cols, DEFAULT_COLS);
     const rows = normalizePositiveInteger(input.rows, DEFAULT_ROWS);
+    const envOverrides = {
+      ...(typeof input.env === "object" && input.env !== null ? input.env : {}),
+      ...(options.sessionEnvironment?.(sessionId) || {}),
+    };
+    const token =
+      typeof input.token === "string" && input.token.trim()
+        ? input.token.trim()
+        : typeof envOverrides.AURIS_TRANSCRIPT_TOKEN === "string"
+          ? envOverrides.AURIS_TRANSCRIPT_TOKEN
+          : null;
+    if (token) {
+      envOverrides.AURIS_TRANSCRIPT_TOKEN = token;
+      tokenToSession.set(token, sessionId);
+    }
     const childEnv = {
       ...createTerminalEnvironment(env, cwd, platform),
-      ...options.sessionEnvironment?.(sessionId),
+      ...envOverrides,
     };
     const workspaceInstanceId =
       typeof input.workspaceInstanceId === "string" &&
@@ -380,6 +654,9 @@ function createTerminalSessionManager(options = {}) {
       if (pty) {
         logger?.(`terminal:${sessionId}:pty-ready ${candidate.name}`);
         sessions.set(sessionId, {
+          agentKind: null,
+          agentState: "idle",
+          agentStateUpdatedAt: Date.now(),
           backend: "pty",
           cols,
           cwd,
@@ -387,6 +664,8 @@ function createTerminalSessionManager(options = {}) {
           ptyPackage: candidate.name,
           rows,
           shell,
+          token,
+          unread: false,
           output: "",
           outputSequence: 0,
           workspaceInstanceId,
@@ -398,12 +677,17 @@ function createTerminalSessionManager(options = {}) {
         });
 
         return {
+          agentKind: null,
+          agentState: "idle",
+          agentStateUpdatedAt: Date.now(),
           backend: "pty",
           cols,
           cwd,
           id: sessionId,
           rows,
           shell,
+          token,
+          unread: false,
           output: "",
           outputSequence: 0,
           ptyPackage: candidate.name,
@@ -462,6 +746,9 @@ function createTerminalSessionManager(options = {}) {
     }
 
     sessions.set(sessionId, {
+      agentKind: null,
+      agentState: "idle",
+      agentStateUpdatedAt: Date.now(),
       backend: "pipe",
       cols,
       cwd,
@@ -469,6 +756,8 @@ function createTerminalSessionManager(options = {}) {
       process: child,
       rows,
       shell,
+      token,
+      unread: false,
       output: "",
       outputSequence: 0,
       workspaceInstanceId,
@@ -487,12 +776,17 @@ function createTerminalSessionManager(options = {}) {
     });
 
     return {
+      agentKind: null,
+      agentState: "idle",
+      agentStateUpdatedAt: Date.now(),
       backend: "pipe",
       cols,
       cwd,
       id: sessionId,
       rows,
       shell,
+      token,
+      unread: false,
       output: "",
       outputSequence: 0,
       ptyPackage: null,
@@ -511,6 +805,10 @@ function createTerminalSessionManager(options = {}) {
 
   function write(sessionId, data) {
     const session = getSession(sessionId);
+    if (session.agentState === "waiting" && isConfirmationKey(data)) {
+      startWaitingObservationWindow(sessionId);
+    }
+
     if (session.backend === "pty") {
       session.process.write(String(data));
       return;
@@ -567,6 +865,9 @@ function createTerminalSessionManager(options = {}) {
 
   function serializeSession(id, session) {
     return {
+      agentKind: session.agentKind ?? null,
+      agentState: session.agentState ?? "idle",
+      agentStateUpdatedAt: session.agentStateUpdatedAt ?? 0,
       backend: session.backend,
       cols: session.cols ?? DEFAULT_COLS,
       cwd: session.cwd,
@@ -578,6 +879,8 @@ function createTerminalSessionManager(options = {}) {
       outputSequence: session.outputSequence ?? 0,
       rows: session.rows ?? DEFAULT_ROWS,
       shell: session.shell,
+      token: session.token ?? null,
+      unread: Boolean(session.unread),
       workspaceInstanceId: session.workspaceInstanceId ?? null,
     };
   }
@@ -595,12 +898,20 @@ function createTerminalSessionManager(options = {}) {
     return () => emitter.off("exit", listener);
   }
 
+  function onAgentState(listener) {
+    emitter.on("agent-state", listener);
+    return () => emitter.off("agent-state", listener);
+  }
+
   return {
+    clearUnread,
     createSession,
+    handleAgentHookEvent,
     kill,
     killAll,
     listSessions,
     getEndedSession: (sessionId) => endedSessions.get(sessionId) ?? null,
+    onAgentState,
     onData,
     onExit,
     resize,

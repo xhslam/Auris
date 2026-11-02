@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { groupTerminalSessions, isTerminalPaneVisible, normalizeSessionTitle, terminalProjectName, terminalSessionTitle } from "@/components/desktop/terminal-focus/terminal-session-presentation";
+import {
+  derivedSessionStatus,
+  derivedSessionStatusLabel,
+  groupTerminalSessions,
+  isTerminalPaneVisible,
+  normalizeSessionTitle,
+  terminalProjectName,
+  terminalSessionTitle,
+} from "@/components/desktop/terminal-focus/terminal-session-presentation";
 import type { NotesTerminalSession } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
 
 const session = (id: string, cwd: string | null): NotesTerminalSession => ({ id, cwd, backend: "pty", isAlive: true, label: `Terminal ${id}`, shell: "/bin/zsh", status: "running", workspaceInstanceId: "focus" });
@@ -39,5 +47,36 @@ describe("terminal sidebar presentation", () => {
     expect(normalizeSessionTitle("  \u0000修复\n前端  ")).toBe("修复前端");
     expect(normalizeSessionTitle("  ")).toBeNull();
     expect([...normalizeSessionTitle("😀".repeat(100))!]).toHaveLength(64);
+  });
+  it("derives orthogonal agent states for supported agents while retaining process status for plain shells", () => {
+    // Process-level priority overrides
+    expect(derivedSessionStatus({ status: "failed", agentState: "working", agentKind: "claude-code", unread: false })).toBe("failed");
+    expect(derivedSessionStatusLabel({ status: "failed", agentState: "working", agentKind: "claude-code", unread: false })).toBe("失败");
+    expect(derivedSessionStatus({ status: "exited", agentState: "waiting", agentKind: "claude-code", unread: false })).toBe("exited");
+    expect(derivedSessionStatusLabel({ status: "exited", agentState: "waiting", agentKind: "claude-code", unread: false })).toBe("已退出");
+    expect(derivedSessionStatus({ status: "starting", agentState: "idle", agentKind: "claude-code", unread: false })).toBe("starting");
+
+    // Plain shell with no agent stays "running"
+    expect(derivedSessionStatus({ status: "running", agentState: "idle", agentKind: null, unread: false })).toBe("running");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "idle", agentKind: null, unread: false })).toBe("运行中");
+
+    // Claude Code agent states
+    expect(derivedSessionStatus({ status: "running", agentState: "working", agentKind: "claude-code", unread: false })).toBe("agent-working");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "working", agentKind: "claude-code", unread: false })).toBe("工作中");
+
+    expect(derivedSessionStatus({ status: "running", agentState: "waiting", agentKind: "claude-code", unread: true })).toBe("agent-waiting");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "waiting", agentKind: "claude-code", unread: true })).toBe("等待确认");
+
+    expect(derivedSessionStatus({ status: "running", agentState: "done", agentKind: "claude-code", unread: true })).toBe("agent-done-unread");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "done", agentKind: "claude-code", unread: true })).toBe("已完成（未读）");
+
+    expect(derivedSessionStatus({ status: "running", agentState: "done", agentKind: "claude-code", unread: false })).toBe("agent-done-read");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "done", agentKind: "claude-code", unread: false })).toBe("已完成");
+
+    expect(derivedSessionStatus({ status: "running", agentState: "idle", agentKind: "claude-code", unread: false })).toBe("agent-idle");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "idle", agentKind: "claude-code", unread: false })).toBe("空闲");
+
+    expect(derivedSessionStatus({ status: "running", agentState: "error", agentKind: "claude-code", unread: false })).toBe("failed");
+    expect(derivedSessionStatusLabel({ status: "running", agentState: "error", agentKind: "claude-code", unread: false })).toBe("出错");
   });
 });

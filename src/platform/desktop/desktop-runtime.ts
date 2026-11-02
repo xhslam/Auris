@@ -66,7 +66,8 @@ function hasValidClipboardBridge(bridge: Partial<DesktopBridge>) {
   return (
     !bridge.clipboard ||
     (isFunction(bridge.clipboard.writeText) &&
-      (!bridge.clipboard.writeHtml || isFunction(bridge.clipboard.writeHtml)))
+      (!bridge.clipboard.writeHtml || isFunction(bridge.clipboard.writeHtml)) &&
+      (!bridge.clipboard.readImage || isFunction(bridge.clipboard.readImage)))
   );
 }
 
@@ -153,6 +154,13 @@ export function isDesktopBridge(value: unknown): value is DesktopBridge {
           isFunction(bridge.terminal.resume) &&
           isFunction(bridge.terminal.onData) &&
           isFunction(bridge.terminal.onExit) &&
+          (!bridge.terminal.onAgentState || isFunction(bridge.terminal.onAgentState)) &&
+          (!bridge.terminal.onActivateSession || isFunction(bridge.terminal.onActivateSession)) &&
+          (!bridge.terminal.clearUnread || isFunction(bridge.terminal.clearUnread)) &&
+          (!bridge.terminal.reportVisiblePanes || isFunction(bridge.terminal.reportVisiblePanes)) &&
+          (!bridge.terminal.getDaemonStatus || isFunction(bridge.terminal.getDaemonStatus)) &&
+          (!bridge.terminal.upgradeDaemon || isFunction(bridge.terminal.upgradeDaemon)) &&
+          (!bridge.terminal.onDaemonStatus || isFunction(bridge.terminal.onDaemonStatus)) &&
           isFunction(bridge.terminal.resize) &&
           isFunction(bridge.terminal.write))) &&
       bridge.vault &&

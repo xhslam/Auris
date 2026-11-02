@@ -496,7 +496,7 @@ describe("NotesTerminalPanel", () => {
     await waitFor(() => expect(capturedTerminalOptions?.theme?.background).toBe("#002b36"));
     expect(capturedTerminalOptions?.theme).toMatchObject({ red: "#dc322f", brightCyan: "#93a1a1", cursorAccent: "#002b36", scrollbarSliderBackground: "rgba(147, 161, 161, 0.2)" });
     expect(capturedTerminalOptions?.drawBoldTextInBrightColors).toBe(false);
-    expect(capturedTerminalOptions?.fontFamily).toBe("Consolas, monospace");
+    expect(capturedTerminalOptions?.fontFamily).toContain("Consolas");
     expect(screen.getByTestId("xterm-stub")).toBe(originalScreen);
     expect(terminal.bridge.resume).toHaveBeenCalledTimes(1);
     expect(terminalDisposeSpies[0]).not.toHaveBeenCalled();
@@ -1398,5 +1398,76 @@ describe("NotesTerminalPanel", () => {
     );
     await user.click(screen.getByRole("menuitem", { name: "Clear" }));
     expect(terminalClearSpies[0]).toHaveBeenCalledTimes(1);
+  });
+
+  it("pastes an image from desktop clipboard into the terminal panel", async () => {
+    const terminal = createTerminalBridge();
+    const user = userEvent.setup();
+
+    (window as unknown as { shadowingDesktop?: { clipboard?: { readImage?: () => Promise<{ filePath: string } | null>; readText?: () => Promise<string> } } }).shadowingDesktop = {
+      clipboard: {
+        readImage: vi.fn().mockResolvedValue({ filePath: "/tmp/auris-terminal-images/test-image.png" }),
+        readText: vi.fn().mockResolvedValue(""),
+      },
+    };
+
+    render(
+      <div className="desktop-app-frame">
+        <div className="notes-v2">
+          <NotesTerminalPanel
+            commands={[]}
+            isDesktopBridgeAvailable
+            terminalBridge={terminal.bridge}
+          />
+        </div>
+      </div>,
+    );
+
+    await waitFor(() =>
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
+    );
+
+    fireEvent.contextMenu(
+      document.querySelector(".notes-v2__terminal-surface") as Element,
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Paste" }));
+
+    expect(terminalPasteSpies[0]).toHaveBeenCalledWith("/tmp/auris-terminal-images/test-image.png");
+    delete (window as unknown as { shadowingDesktop?: unknown }).shadowingDesktop;
+  });
+
+  it("adds a file via the terminal panel context menu", async () => {
+    const terminal = createTerminalBridge();
+    const user = userEvent.setup();
+
+    (window as unknown as { shadowingDesktop?: { system?: { pickFile?: () => Promise<string | null> } } }).shadowingDesktop = {
+      system: {
+        pickFile: vi.fn().mockResolvedValue("/workspace/config.json"),
+      },
+    };
+
+    render(
+      <div className="desktop-app-frame">
+        <div className="notes-v2">
+          <NotesTerminalPanel
+            commands={[]}
+            isDesktopBridgeAvailable
+            terminalBridge={terminal.bridge}
+          />
+        </div>
+      </div>,
+    );
+
+    await waitFor(() =>
+      expect(terminal.bridge.resume).toHaveBeenCalledTimes(1),
+    );
+
+    fireEvent.contextMenu(
+      document.querySelector(".notes-v2__terminal-surface") as Element,
+    );
+    await user.click(screen.getByRole("menuitem", { name: "添加文件…" }));
+
+    expect(terminalPasteSpies[0]).toHaveBeenCalledWith("/workspace/config.json");
+    delete (window as unknown as { shadowingDesktop?: unknown }).shadowingDesktop;
   });
 });

@@ -8,8 +8,14 @@ export type FocusLayout = {
   columns: number;
   columnWeights: number[];
   rowWeights: number[];
+  sidebarCollapsed?: boolean;
 };
-export const DEFAULT_FOCUS_LAYOUT: FocusLayout = { columns: 2, columnWeights: [], rowWeights: [] };
+export const DEFAULT_FOCUS_LAYOUT: FocusLayout = {
+  columns: 2,
+  columnWeights: [],
+  rowWeights: [],
+  sidebarCollapsed: false,
+};
 
 export function normalizeWeights(values: unknown, count: number): number[] {
   if (!count) return [];
@@ -24,10 +30,12 @@ export function normalizeFocusLayout(value: unknown): FocusLayout {
   if (!value || typeof value !== "object") return { ...DEFAULT_FOCUS_LAYOUT };
   const raw = value as Partial<FocusLayout>;
   const columns = Number.isInteger(raw.columns) && raw.columns! >= 1 && raw.columns! <= 4 ? raw.columns! : 2;
+  const sidebarCollapsed = typeof raw.sidebarCollapsed === "boolean" ? raw.sidebarCollapsed : false;
   return {
     columns,
     columnWeights: normalizeWeights(raw.columnWeights, columns),
     rowWeights: Array.isArray(raw.rowWeights) && raw.rowWeights.length <= 8 ? normalizeWeights(raw.rowWeights, raw.rowWeights.length) : [],
+    sidebarCollapsed,
   };
 }
 

@@ -3,6 +3,9 @@ const VAULT_CHANGED_CHANNEL = "shadowing:vault:changed";
 const NOTES_MCP_REQUEST_CHANNEL = "shadowing:notes-mcp:request";
 const TERMINAL_DATA_CHANNEL = "shadowing:terminal:data";
 const TERMINAL_EXIT_CHANNEL = "shadowing:terminal:exit";
+const TERMINAL_AGENT_STATE_CHANNEL = "shadowing:terminal:agent-state";
+const TERMINAL_ACTIVATE_SESSION_CHANNEL = "shadowing:terminal:activate-session";
+const TERMINAL_DAEMON_STATUS_CHANNEL = "shadowing:terminal:daemon-status";
 const UPDATES_STATE_CHANNEL = "shadowing:updates:state";
 const EXTERNAL_MARKDOWN_OPEN_CHANNEL = "shadowing:external-markdown:open";
 const {
@@ -314,6 +317,7 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
     run: (commandId) => invoke("shadowing:commands:run", commandId),
   },
   clipboard: {
+    readImage: () => invoke("shadowing:clipboard:read-image"),
     readText: () => invoke("shadowing:clipboard:read-text"),
     writeHtml: (html, text) =>
       invoke("shadowing:clipboard:write-html", html, text),
@@ -514,8 +518,48 @@ contextBridge.exposeInMainWorld("shadowingDesktop", {
         ipcRenderer.removeListener(TERMINAL_EXIT_CHANNEL, handler);
       };
     },
+    onAgentState: (listener) => {
+      if (typeof listener !== "function") {
+        return () => undefined;
+      }
+
+      const handler = (_event, payload) => listener(payload);
+      ipcRenderer.on(TERMINAL_AGENT_STATE_CHANNEL, handler);
+
+      return () => {
+        ipcRenderer.removeListener(TERMINAL_AGENT_STATE_CHANNEL, handler);
+      };
+    },
+    onActivateSession: (listener) => {
+      if (typeof listener !== "function") {
+        return () => undefined;
+      }
+
+      const handler = (_event, payload) => listener(payload);
+      ipcRenderer.on(TERMINAL_ACTIVATE_SESSION_CHANNEL, handler);
+
+      return () => {
+        ipcRenderer.removeListener(TERMINAL_ACTIVATE_SESSION_CHANNEL, handler);
+      };
+    },
+    clearUnread: (sessionId) => invoke("shadowing:terminal:clear-unread", sessionId),
+    reportVisiblePanes: (payload) => invoke("shadowing:terminal:visible-panes", payload),
+    getNotificationsEnabled: () => invoke("shadowing:terminal:notifications:get-enabled"),
+    setNotificationsEnabled: (enabled) => invoke("shadowing:terminal:notifications:set-enabled", enabled),
     resize: (sessionId, size) => invoke("shadowing:terminal:resize", sessionId, size),
     write: (sessionId, data) => invoke("shadowing:terminal:write", sessionId, data),
+    getDaemonStatus: () => invoke("shadowing:terminal:daemon:status"),
+    upgradeDaemon: () => invoke("shadowing:terminal:daemon:upgrade"),
+    onDaemonStatus: (listener) => {
+      if (typeof listener !== "function") {
+        return () => undefined;
+      }
+      const handler = (_event, payload) => listener(payload);
+      ipcRenderer.on(TERMINAL_DAEMON_STATUS_CHANNEL, handler);
+      return () => {
+        ipcRenderer.removeListener(TERMINAL_DAEMON_STATUS_CHANNEL, handler);
+      };
+    },
   },
   updates: {
     check: () => invoke("shadowing:updates:check"),
