@@ -17,7 +17,16 @@ import { DEFAULT_NOTES_TYPOGRAPHY } from "@/features/notes/formatting/notes-typo
 
 export const DEFAULT_TERMINAL_FONT_SIZE = 13;
 export const TERMINAL_FONT_SIZE_STORAGE = "auris.notes.terminal.font-size";
-type TerminalPlatform = "windows" | "macos" | "linux";
+
+export const DEFAULT_TERMINAL_LINE_HEIGHT = 1.4;
+export const TERMINAL_LINE_HEIGHT_STORAGE = "auris.notes.terminal.line-height";
+export const TERMINAL_LINE_HEIGHT_OPTIONS = [1.2, 1.3, 1.4, 1.5, 1.6] as const;
+
+export const DEFAULT_TERMINAL_WEBGL = true;
+export const TERMINAL_WEBGL_STORAGE = "auris.notes.terminal.webgl";
+export const TERMINAL_SETTINGS_EVENT = "auris:notes-terminal-settings";
+
+export type TerminalPlatform = "windows" | "macos" | "linux";
 
 export function getTerminalPlatform(): TerminalPlatform {
   if (typeof navigator === "undefined") return "windows";
@@ -26,11 +35,33 @@ export function getTerminalPlatform(): TerminalPlatform {
   return "windows";
 }
 
+export function broadcastTerminalSettings(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(TERMINAL_SETTINGS_EVENT));
+}
+
+export function getPlatformTerminalFontFallback(platform: TerminalPlatform = getTerminalPlatform()): string {
+  switch (platform) {
+    case "macos":
+      return 'ui-monospace, "SF Mono", Menlo, "PingFang SC", "Hiragino Sans GB"';
+    case "windows":
+      return '"Cascadia Mono", Consolas, "Microsoft YaHei UI"';
+    case "linux":
+      return 'monospace, "Noto Sans Mono CJK SC"';
+  }
+}
+
 export function preferredTerminalFontStack(preferred: string, platform = getTerminalPlatform()) {
-  // The former shipping font stack was a coding-font preference, not a native
-  // default. Match VMark's system tail while retaining explicit custom stacks.
-  if (preferred && preferred !== DEFAULT_NOTES_TYPOGRAPHY.fontMono) return preferred;
-  return platform === "linux" ? "monospace" : "ui-monospace, monospace";
+  const fallback = getPlatformTerminalFontFallback(platform);
+  const trimmed = preferred.trim();
+  if (!trimmed || trimmed === DEFAULT_NOTES_TYPOGRAPHY.fontMono) {
+    return fallback;
+  }
+  if (trimmed.includes(fallback)) {
+    return trimmed;
+  }
+  const cleanPreferred = trimmed.replace(/,\s*monospace\s*$/i, "").trim();
+  return cleanPreferred ? `${cleanPreferred}, ${fallback}` : fallback;
 }
 
 export function clampTerminalFontSize(value: number) {
@@ -45,6 +76,60 @@ export function loadTerminalFontSize() {
   } catch {
     return DEFAULT_TERMINAL_FONT_SIZE;
   }
+}
+
+export function clampTerminalLineHeight(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_TERMINAL_LINE_HEIGHT;
+  const rounded = Math.round(value * 10) / 10;
+  return Math.min(1.6, Math.max(1.2, rounded));
+}
+
+export function loadTerminalLineHeight(): number {
+  if (typeof window === "undefined") return DEFAULT_TERMINAL_LINE_HEIGHT;
+  try {
+    const saved = window.localStorage.getItem(TERMINAL_LINE_HEIGHT_STORAGE);
+    return saved === null ? DEFAULT_TERMINAL_LINE_HEIGHT : clampTerminalLineHeight(Number(saved));
+  } catch {
+    return DEFAULT_TERMINAL_LINE_HEIGHT;
+  }
+}
+
+export function saveTerminalLineHeight(value: number): void {
+  if (typeof window === "undefined") return;
+  const clamped = clampTerminalLineHeight(value);
+  try {
+    window.localStorage.setItem(TERMINAL_LINE_HEIGHT_STORAGE, String(clamped));
+  } catch {}
+  broadcastTerminalSettings();
+}
+
+export function terminalLineHeightIndex(lineHeight: number): number {
+  const clamped = clampTerminalLineHeight(lineHeight);
+  const idx = TERMINAL_LINE_HEIGHT_OPTIONS.findIndex((val) => Math.abs(val - clamped) < 0.05);
+  return idx >= 0 ? idx : 2;
+}
+
+export function terminalLineHeightFromIndex(index: number): number {
+  if (index < 0 || index >= TERMINAL_LINE_HEIGHT_OPTIONS.length) return DEFAULT_TERMINAL_LINE_HEIGHT;
+  return TERMINAL_LINE_HEIGHT_OPTIONS[index];
+}
+
+export function loadTerminalWebglEnabled(): boolean {
+  if (typeof window === "undefined") return DEFAULT_TERMINAL_WEBGL;
+  try {
+    const saved = window.localStorage.getItem(TERMINAL_WEBGL_STORAGE);
+    return saved === null ? DEFAULT_TERMINAL_WEBGL : saved === "true";
+  } catch {
+    return DEFAULT_TERMINAL_WEBGL;
+  }
+}
+
+export function saveTerminalWebglEnabled(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(TERMINAL_WEBGL_STORAGE, enabled ? "true" : "false");
+  } catch {}
+  broadcastTerminalSettings();
 }
 
 type KeyActions = {

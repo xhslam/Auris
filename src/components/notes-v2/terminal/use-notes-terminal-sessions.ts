@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { SearchAddon } from "@xterm/addon-search";
+import type { WebglAddon } from "@xterm/addon-webgl";
 import type { Terminal } from "@xterm/xterm";
 import {
   DEFAULT_APP_THEME,
@@ -13,7 +14,18 @@ import { verifiedMonoStack } from "./verified-terminal-mono-stack";
 import { createPtyInputQueue, type PtyInputQueue } from "./pty-input-queue";
 import { setupFloatingPrompt } from "./setupFloatingPrompt";
 import { loadNotesTerminalRuntime } from "./notes-terminal-runtime";
-import { clampTerminalFontSize, createNotesTerminalKeyHandler, DEFAULT_TERMINAL_FONT_SIZE, loadTerminalFontSize, preferredTerminalFontStack, TERMINAL_FONT_SIZE_STORAGE } from "./notes-terminal-options";
+import {
+  clampTerminalFontSize,
+  createNotesTerminalKeyHandler,
+  DEFAULT_TERMINAL_FONT_SIZE,
+  loadTerminalFontSize,
+  loadTerminalLineHeight,
+  loadTerminalWebglEnabled,
+  preferredTerminalFontStack,
+  TERMINAL_FONT_SIZE_STORAGE,
+  TERMINAL_SETTINGS_EVENT,
+} from "./notes-terminal-options";
+import { formatTerminalPath } from "./notes-terminal-path";
 import type {
   DesktopTerminalBridge,
   DesktopTerminalDataEvent,
@@ -44,15 +56,23 @@ export type NotesTerminalSession = {
   shell: string | null;
   status: SessionStatus;
   workspaceInstanceId: string | null;
+  agentState?: "idle" | "working" | "waiting" | "done" | "error";
+  agentStateUpdatedAt?: number;
+  agentKind?: string | null;
+  unread?: boolean;
 };
 
 type TerminalEntry = {
   container: HTMLDivElement;
   fitAddon: FitAddon;
   searchAddon: SearchAddon;
+  webglAddon: WebglAddon | null;
+  webglContextLost: boolean;
   terminal: Terminal;
   inputQueue: PtyInputQueue;
   cleanupFloatingPrompt: () => void;
+  cleanupPasteListener?: () => void;
+  cleanupFocusListener?: () => void;
   outputReady: boolean;
   outputSequence: number | null;
   exitWritten: boolean;
@@ -230,6 +250,10 @@ function restoreTerminalSessions(records: DesktopTerminalSessionRecord[]) {
       shell: record.shell,
       status: "starting" as const,
       workspaceInstanceId: record.workspaceInstanceId ?? null,
+      agentState: record.agentState ?? "idle",
+      agentStateUpdatedAt: record.agentStateUpdatedAt ?? Date.now(),
+      agentKind: record.agentKind ?? null,
+      unread: record.unread ?? false,
     };
   });
 }
@@ -331,6 +355,41 @@ async function readTextFromClipboard(): Promise<string | null> {
   return null;
 }
 
+async function readImageFromClipboard(): Promise<{ filePath: string } | null> {
+  if (
+    typeof window !== "undefined" &&
+    window.shadowingDesktop?.clipboard?.readImage
+  ) {
+    try {
+      const result = await window.shadowingDesktop.clipboard.readImage();
+      if (result && typeof result.filePath === "string" && result.filePath.trim()) {
+        return { filePath: result.filePath.trim() };
+      }
+    } catch {
+      // Fall through to the web Clipboard API below.
+    }
+  }
+
+  if (typeof navigator !== "undefined" && navigator.clipboard?.read) {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        for (const type of item.types) {
+          const blob = await item.getType(type);
+          const path = (blob as unknown as { path?: string }).path;
+          if (path && typeof path === "string" && path.trim()) {
+            return { filePath: path.trim() };
+          }
+        }
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
 export function useNotesTerminalSessions({
   cwd = null,
   enabled,
@@ -363,6 +422,7 @@ export function useNotesTerminalSessions({
   // initializeSession) can always reach the latest paste/copy callbacks
   // without re-binding on every render.
   const pasteHandlerRef = useRef<() => void>(() => {});
+  const pasteIntoSessionRef = useRef<(sessionId: string, explicitContent?: string) => Promise<void>>(async () => {});
   const copyHandlerRef = useRef<() => void>(() => {});
   const pendingInputRef = useRef<Map<string, string[]>>(new Map());
   const pendingOutputRef = useRef<Map<string, DesktopTerminalDataEvent[]>>(new Map());
@@ -370,6 +430,9 @@ export function useNotesTerminalSessions({
   const focusIntentRef = useRef<{ sessionId: string; element: Element | null } | null>(null);
   const pendingExitRef = useRef<Map<string, DesktopTerminalExitEvent>>(new Map());
   const fontSizeRef = useRef(loadTerminalFontSize());
+  const lineHeightRef = useRef(loadTerminalLineHeight());
+  const webglEnabledRef = useRef(loadTerminalWebglEnabled());
+  const webglAddonClassRef = useRef<typeof WebglAddon | null>(null);
   const searchHandlerRef = useRef(onSearch);
   searchHandlerRef.current = onSearch;
   const activatedScopesRef = useRef(new Set<string>());
@@ -483,6 +546,42 @@ export function useNotesTerminalSessions({
       : activeSessionIdRef.current === sessionId);
   }, []);
 
+  const loadWebglAddonForEntry = useCallback((entry: TerminalEntry) => {
+    if (entry.webglAddon) return;
+    const WebglClass = webglAddonClassRef.current;
+    if (!WebglClass) return;
+    try {
+      const addon = new WebglClass();
+      addon.onContextLoss(() => {
+        try {
+          addon.dispose();
+        } catch {
+          // ignore
+        }
+        if (entry.webglAddon === addon) {
+          entry.webglAddon = null;
+        }
+        entry.webglContextLost = true;
+      });
+      entry.terminal.loadAddon(addon);
+      entry.webglAddon = addon;
+      entry.webglContextLost = false;
+    } catch {
+      // WebGL 初始化抛错时静默回退 DOM, 不要弹错误
+      entry.webglAddon = null;
+    }
+  }, []);
+
+  const disposeWebglAddonForEntry = useCallback((entry: TerminalEntry) => {
+    if (!entry.webglAddon) return;
+    try {
+      entry.webglAddon.dispose();
+    } catch {
+      // ignore
+    }
+    entry.webglAddon = null;
+  }, []);
+
   // Stable DOM hosts survive layout/focus changes. Moving an existing xterm
   // must never create another Shell or discard its screen state.
   const registerSessionHost = useCallback((sessionId: string, host: HTMLDivElement | null) => {
@@ -490,10 +589,17 @@ export function useNotesTerminalSessions({
       sessionHostsRef.current.set(sessionId, host);
       const entry = entriesRef.current.get(sessionId);
       if (entry && entry.container.parentElement !== host) host.appendChild(entry.container);
+      if (entry && isSessionDisplayed(sessionId) && webglEnabledRef.current && !entry.webglContextLost) {
+        loadWebglAddonForEntry(entry);
+      }
     } else {
       sessionHostsRef.current.delete(sessionId);
+      const entry = entriesRef.current.get(sessionId);
+      if (entry) {
+        disposeWebglAddonForEntry(entry);
+      }
     }
-  }, []);
+  }, [isSessionDisplayed, loadWebglAddonForEntry, disposeWebglAddonForEntry]);
 
   const fitSession = useCallback(
     (sessionId: string) => {
@@ -539,9 +645,21 @@ export function useNotesTerminalSessions({
         return;
       }
       entriesRef.current.forEach((entry, id) => {
-        entry.container.style.display = multiPaneRef.current ? (isSessionDisplayed(id) ? "block" : "none") : (id === sessionId ? "block" : "none");
-        if (multiPaneRef.current && isSessionDisplayed(id)) fitSession(id);
+        const displayed = multiPaneRef.current ? isSessionDisplayed(id) : id === sessionId;
+        entry.container.style.display = displayed ? "block" : "none";
+        if (multiPaneRef.current && displayed) fitSession(id);
         entry.container.dataset.active = id === sessionId ? "true" : "false";
+
+        if (displayed && visibleRef.current && webglEnabledRef.current) {
+          if (entry.webglContextLost && id === sessionId) {
+            entry.webglContextLost = false;
+            loadWebglAddonForEntry(entry);
+          } else if (!entry.webglContextLost) {
+            loadWebglAddonForEntry(entry);
+          }
+        } else {
+          disposeWebglAddonForEntry(entry);
+        }
       });
 
       if (sessionId && visibleRef.current) {
@@ -559,7 +677,7 @@ export function useNotesTerminalSessions({
         }
       }
     },
-    [fitSession, isSessionDisplayed],
+    [fitSession, isSessionDisplayed, loadWebglAddonForEntry, disposeWebglAddonForEntry],
   );
 
   // VMark updates running/hidden xterm options without replacing its screen.
@@ -570,7 +688,23 @@ export function useNotesTerminalSessions({
     const syncPresentation = () => {
       for (const [id, entry] of entriesRef.current) {
         entry.terminal.options.theme = getTerminalTheme(entry.container);
-        entry.terminal.options.fontFamily = getTerminalFontFamily(entry.container);
+        const newFontFamily = getTerminalFontFamily(entry.container);
+        const fontChanged = entry.terminal.options.fontFamily !== newFontFamily;
+        if (fontChanged) {
+          entry.terminal.options.fontFamily = newFontFamily;
+          const webgl = entry.webglAddon;
+          if (webgl && typeof webgl.clearTextureAtlas === "function") {
+            if (typeof document !== "undefined" && document.fonts?.ready) {
+              void document.fonts.ready.then(() => {
+                webgl.clearTextureAtlas();
+              }).catch(() => {
+                webgl.clearTextureAtlas();
+              });
+            } else {
+              webgl.clearTextureAtlas();
+            }
+          }
+        }
         entry.terminal.options.drawBoldTextInBrightColors =
           getTerminalThemeId(entry.container) !== "solarized";
         if (isSessionDisplayed(id)) fitSession(id);
@@ -583,7 +717,11 @@ export function useNotesTerminalSessions({
         attributeFilter: ["data-notes-theme", "data-app-theme", "class", "style"],
       });
     }
-    return () => observer.disconnect();
+    window.addEventListener("auris:notes-typography", syncPresentation);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("auris:notes-typography", syncPresentation);
+    };
   }, [fitSession, isSessionDisplayed, terminalBridge]);
 
   const disposeEntry = useCallback((sessionId: string) => {
@@ -597,11 +735,14 @@ export function useNotesTerminalSessions({
     if (entry.resizeTimer !== null) clearTimeout(entry.resizeTimer);
     entry.inputQueue.close();
     entry.cleanupFloatingPrompt();
+    entry.cleanupPasteListener?.();
+    entry.cleanupFocusListener?.();
+    disposeWebglAddonForEntry(entry);
     entry.terminal.dispose();
     entry.container.remove();
     entriesRef.current.delete(sessionId);
     initializingSessionIdsRef.current.delete(sessionId);
-  }, []);
+  }, [disposeWebglAddonForEntry]);
 
   const queuePendingInput = useCallback((sessionId: string, data: string) => {
     const current = pendingInputRef.current.get(sessionId) ?? [];
@@ -647,6 +788,10 @@ export function useNotesTerminalSessions({
           shell: null,
           status: "starting",
           workspaceInstanceId,
+          agentState: "idle",
+          agentStateUpdatedAt: Date.now(),
+          agentKind: null,
+          unread: false,
         },
       ];
       sessionsRef.current = nextSessions;
@@ -738,8 +883,9 @@ export function useNotesTerminalSessions({
 
       try {
         const [
-          { Terminal }, { FitAddon }, { SearchAddon }, { WebLinksAddon }, { Unicode11Addon },
+          { Terminal }, { FitAddon }, { SearchAddon }, { WebLinksAddon }, { Unicode11Addon }, { WebglAddon },
         ] = await loadNotesTerminalRuntime();
+        webglAddonClassRef.current = WebglAddon;
 
         if (!isSessionActive(session.id) || !container.isConnected) {
           container.remove();
@@ -758,7 +904,8 @@ export function useNotesTerminalSessions({
           fontSize: fontSizeRef.current,
           fontWeight: "normal",
           fontWeightBold: "bold",
-          lineHeight: 1.2,
+          lineHeight: lineHeightRef.current,
+          letterSpacing: 0,
           scrollback: 5000,
           scrollOnUserInput: false,
           theme: getTerminalTheme(container),
@@ -826,13 +973,46 @@ export function useNotesTerminalSessions({
             setStatusMessage(`Terminal write failed: ${error instanceof Error ? error.message : String(error)}`);
           },
         );
+        const handleCapturePaste = (event: ClipboardEvent) => {
+          const files = event.clipboardData?.files;
+          if (files && files.length > 0) {
+            event.preventDefault();
+            event.stopPropagation();
+            const paths = Array.from(files)
+              .map((file) => (file as { path?: string }).path)
+              .filter(Boolean) as string[];
+            if (paths.length > 0) {
+              void pasteIntoSessionRef.current(
+                session.id,
+                paths.map(formatTerminalPath).join(" "),
+              );
+            } else {
+              void pasteIntoSessionRef.current(session.id);
+            }
+          }
+        };
+        container.addEventListener("paste", handleCapturePaste, true);
+
+        const handleFocusIn = () => {
+          const currentEntry = entriesRef.current.get(session.id);
+          if (currentEntry?.webglContextLost && isSessionDisplayed(session.id) && webglEnabledRef.current) {
+            currentEntry.webglContextLost = false;
+            loadWebglAddonForEntry(currentEntry);
+          }
+        };
+        container.addEventListener("focusin", handleFocusIn);
+
         entriesRef.current.set(session.id, {
           container,
           fitAddon,
           searchAddon,
+          webglAddon: null,
+          webglContextLost: false,
           terminal,
           inputQueue,
           cleanupFloatingPrompt: setupFloatingPrompt({ term: terminal, container }),
+          cleanupPasteListener: () => container.removeEventListener("paste", handleCapturePaste, true),
+          cleanupFocusListener: () => container.removeEventListener("focusin", handleFocusIn),
           outputReady: false,
           outputSequence: null,
           exitWritten: false,
@@ -840,6 +1020,11 @@ export function useNotesTerminalSessions({
           resizeTimer: null,
           lastResize: null,
         });
+
+        const entry = entriesRef.current.get(session.id)!;
+        if (isSessionDisplayed(session.id) && webglEnabledRef.current) {
+          loadWebglAddonForEntry(entry);
+        }
 
         // Listen before awaiting the backend; starting input uses the existing queue.
         terminal.onData((data) => {
@@ -895,7 +1080,6 @@ export function useNotesTerminalSessions({
           return;
         }
 
-        const entry = entriesRef.current.get(session.id)!;
         if (record.output) terminal.write(record.output);
         // Apply the snapshot first, then only live chunks past its boundary.
         // This also catches data emitted before xterm's import/open completed.
@@ -918,6 +1102,10 @@ export function useNotesTerminalSessions({
           shell: record.shell,
           status: earlyExit ? (earlyExit.errorMessage ? "failed" : "exited") : "running",
           workspaceInstanceId: record.workspaceInstanceId ?? session.workspaceInstanceId,
+          ...(record.agentState !== undefined ? { agentState: record.agentState } : {}),
+          ...(record.agentStateUpdatedAt !== undefined ? { agentStateUpdatedAt: record.agentStateUpdatedAt } : {}),
+          ...(record.agentKind !== undefined ? { agentKind: record.agentKind } : {}),
+          ...(record.unread !== undefined ? { unread: record.unread } : {}),
         });
         setStatusMessage(null);
         if (earlyExit) {
@@ -969,6 +1157,7 @@ export function useNotesTerminalSessions({
       terminalBridge,
       fitSession,
       isSessionDisplayed,
+      loadWebglAddonForEntry,
       multiPane,
       limit,
       scopeKey,
@@ -1071,11 +1260,29 @@ export function useNotesTerminalSessions({
       });
     });
 
+    const removeAgentListener = terminalBridge.onAgentState?.((event) => {
+      markSession(event.sessionId, {
+        agentState: event.agentState,
+        agentStateUpdatedAt: event.agentStateUpdatedAt,
+        agentKind: event.agentKind,
+        unread: event.unread,
+      });
+    });
+
+    const removeActivateListener = terminalBridge.onActivateSession?.((event) => {
+      if (sessionsRef.current.some(({ id }) => id === event.sessionId)) {
+        setActiveSessionId(event.sessionId);
+        lastActiveSessionByScope.set(scopeKey, event.sessionId);
+      }
+    });
+
     return () => {
       removeDataListener();
       removeExitListener();
+      removeAgentListener?.();
+      removeActivateListener?.();
     };
-  }, [markSession, terminalBridge]);
+  }, [markSession, scopeKey, terminalBridge]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -1125,6 +1332,9 @@ export function useNotesTerminalSessions({
         if (entry.resizeTimer !== null) clearTimeout(entry.resizeTimer);
         entry.inputQueue.close();
         entry.cleanupFloatingPrompt();
+        entry.cleanupPasteListener?.();
+        entry.cleanupFocusListener?.();
+        disposeWebglAddonForEntry(entry);
         entry.terminal.dispose();
         entry.container.remove();
       });
@@ -1136,7 +1346,53 @@ export function useNotesTerminalSessions({
     };
 
     return disposeAllEntries;
-  }, [invalidateSession]);
+  }, [disposeWebglAddonForEntry, invalidateSession]);
+
+  useEffect(() => {
+    for (const [id, entry] of entriesRef.current) {
+      if (isSessionDisplayed(id) && webglEnabledRef.current && !entry.webglContextLost) {
+        loadWebglAddonForEntry(entry);
+      } else {
+        disposeWebglAddonForEntry(entry);
+      }
+    }
+  }, [isSessionDisplayed, visible, loadWebglAddonForEntry, disposeWebglAddonForEntry]);
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      const nextLineHeight = loadTerminalLineHeight();
+      const nextWebgl = loadTerminalWebglEnabled();
+
+      const lineHeightChanged = lineHeightRef.current !== nextLineHeight;
+      if (lineHeightChanged) {
+        lineHeightRef.current = nextLineHeight;
+      }
+
+      const webglChanged = webglEnabledRef.current !== nextWebgl;
+      if (webglChanged) {
+        webglEnabledRef.current = nextWebgl;
+      }
+
+      for (const [id, entry] of entriesRef.current) {
+        if (lineHeightChanged) {
+          entry.terminal.options.lineHeight = nextLineHeight;
+          if (isSessionDisplayed(id)) fitSession(id);
+        }
+        if (webglChanged) {
+          if (nextWebgl && isSessionDisplayed(id) && !entry.webglContextLost) {
+            loadWebglAddonForEntry(entry);
+          } else if (!nextWebgl) {
+            disposeWebglAddonForEntry(entry);
+          }
+        }
+      }
+    };
+
+    window.addEventListener(TERMINAL_SETTINGS_EVENT, handleSettingsChange);
+    return () => {
+      window.removeEventListener(TERMINAL_SETTINGS_EVENT, handleSettingsChange);
+    };
+  }, [fitSession, isSessionDisplayed, loadWebglAddonForEntry, disposeWebglAddonForEntry]);
 
   const closeSession = useCallback(
     (sessionId: string) => {
@@ -1271,32 +1527,53 @@ export function useNotesTerminalSessions({
       });
   }, [activeSessionId]);
 
-  const pasteIntoActiveSession = useCallback(async () => {
-    if (!activeSessionId) {
-      return;
-    }
+  const pasteIntoSession = useCallback(
+    async (sessionId: string, explicitContent?: string) => {
+      try {
+        let contentToPaste: string | null = explicitContent ?? null;
 
-    try {
-      const clipboardText = await readTextFromClipboard();
+        if (!contentToPaste) {
+          const imageResult = await readImageFromClipboard();
+          if (imageResult?.filePath) {
+            contentToPaste = formatTerminalPath(imageResult.filePath);
+          } else {
+            contentToPaste = await readTextFromClipboard();
+          }
+        }
 
-      if (!clipboardText) {
+        if (!contentToPaste) {
+          return;
+        }
+
+        const entry = entriesRef.current.get(sessionId);
+        const current = sessionsRef.current.find(({ id }) => id === sessionId);
+        if (entry && current?.status === "running") {
+          // xterm owns bracketed-paste mode; raw bridge.write loses its markers.
+          entry.terminal.paste(contentToPaste);
+        } else {
+          writeInputToSession(sessionId, contentToPaste);
+        }
+        if (visibleRef.current && activeSessionIdRef.current === sessionId) {
+          entriesRef.current.get(sessionId)?.terminal.focus();
+        }
+        setStatusMessage(null);
+      } catch {
+        setStatusMessage("Clipboard paste failed.");
+      }
+    },
+    [writeInputToSession],
+  );
+
+  const pasteIntoActiveSession = useCallback(
+    async (explicitContent?: string) => {
+      if (!activeSessionId) {
         return;
       }
 
-      const entry = entriesRef.current.get(activeSessionId);
-      const current = sessionsRef.current.find(({ id }) => id === activeSessionId);
-      if (entry && current?.status === "running") {
-        // xterm owns bracketed-paste mode; raw bridge.write loses its markers.
-        entry.terminal.paste(clipboardText);
-      } else writeInputToSession(activeSessionId, clipboardText);
-      if (visibleRef.current && activeSessionIdRef.current === activeSessionId) {
-        entriesRef.current.get(activeSessionId)?.terminal.focus();
-      }
-      setStatusMessage(null);
-    } catch {
-      setStatusMessage("Clipboard paste failed.");
-    }
-  }, [activeSessionId, writeInputToSession]);
+      await pasteIntoSession(activeSessionId, explicitContent);
+    },
+    [activeSessionId, pasteIntoSession],
+  );
 
   // Keep the refs consumed by the xterm key handler (installed once per
   // session in initializeSession) pointed at the latest paste/copy callbacks.
@@ -1304,10 +1581,12 @@ export function useNotesTerminalSessions({
     pasteHandlerRef.current = () => {
       void pasteIntoActiveSession();
     };
+    pasteIntoSessionRef.current = (sessionId, explicitContent) =>
+      pasteIntoSession(sessionId, explicitContent);
     copyHandlerRef.current = () => {
       copyActiveSelection();
     };
-  }, [copyActiveSelection, pasteIntoActiveSession]);
+  }, [copyActiveSelection, pasteIntoActiveSession, pasteIntoSession]);
 
   const selectAllActiveSession = useCallback(() => {
     if (!activeSessionId) {
@@ -1328,10 +1607,49 @@ export function useNotesTerminalSessions({
     entriesRef.current.get(activeSessionId)?.terminal.focus();
   }, [activeSessionId]);
 
+  const pickAndInsertFile = useCallback(
+    async (sessionId?: string) => {
+      const targetSessionId = sessionId || activeSessionId;
+      if (!targetSessionId) return;
+
+      try {
+        let selected: string | string[] | null = null;
+        if (
+          typeof window !== "undefined" &&
+          window.shadowingDesktop?.system?.pickFile
+        ) {
+          selected = await window.shadowingDesktop.system.pickFile({
+            title: "选择要添加到终端的文件",
+            multiple: true,
+          });
+        }
+
+        if (selected) {
+          const formatted = Array.isArray(selected)
+            ? selected.map(formatTerminalPath).join(" ")
+            : formatTerminalPath(selected);
+          await pasteIntoSession(targetSessionId, formatted);
+        }
+      } catch {
+        setStatusMessage("选择文件失败。");
+      }
+    },
+    [activeSessionId, pasteIntoSession],
+  );
+
+  const clearUnread = useCallback(
+    (sessionId: string) => {
+      markSession(sessionId, { unread: false });
+      terminalBridge?.clearUnread?.(sessionId).catch(() => undefined);
+    },
+    [markSession, terminalBridge],
+  );
+
   return {
     activeSessionId,
     activeSession: visibleSessions.find((session) => session.id === activeSessionId) ?? null,
     clearActiveSession,
+    clearUnread,
     closeActiveSession,
     closeSession,
     restartSession,
@@ -1344,6 +1662,8 @@ export function useNotesTerminalSessions({
     isMaxed: visibleSessions.length >= limit,
     isRestoring: Boolean(enabled && terminalBridge && !hasLoadedBackendSessions),
     pasteIntoActiveSession,
+    pasteIntoSession,
+    pickAndInsertFile,
     restartActiveSession,
     searchQuery,
     selectAllActiveSession,

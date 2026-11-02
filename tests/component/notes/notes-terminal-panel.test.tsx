@@ -164,6 +164,14 @@ vi.mock("@xterm/addon-web-links", () => ({
   },
 }));
 
+vi.mock("@xterm/addon-webgl", () => ({
+  WebglAddon: class {
+    onContextLoss = vi.fn(() => ({ dispose() {} }));
+    dispose = vi.fn();
+    clearTextureAtlas = vi.fn();
+  },
+}));
+
 type TerminalBridgeHarness = {
   bridge: DesktopTerminalBridge;
   emitExit: (event: DesktopTerminalExitEvent) => void;
@@ -476,9 +484,9 @@ describe("NotesTerminalPanel", () => {
       </div>,
     );
     await waitFor(() => expect(terminal.bridge.resume).toHaveBeenCalledTimes(1));
-    expect(capturedTerminalOptions).toMatchObject({ fontSize: 13, lineHeight: 1.2, cursorStyle: "bar", minimumContrastRatio: 4.5 });
+    expect(capturedTerminalOptions).toMatchObject({ fontSize: 13, lineHeight: 1.4, cursorStyle: "bar", minimumContrastRatio: 4.5 });
     expect(capturedTerminalOptions?.theme?.red).toBe("#c33820");
-    expect(capturedTerminalOptions?.fontFamily).toBe("Menlo, monospace");
+    expect(capturedTerminalOptions?.fontFamily).toContain("Menlo");
     const originalScreen = screen.getByTestId("xterm-stub");
     view.rerender(
       <div className="notes-v2" data-notes-theme="solarized" style={{ "--notes-bg": "#002b36", "--notes-text": "#93a1a1", "--notes-editor-font-mono": "Consolas, monospace" } as CSSProperties}>

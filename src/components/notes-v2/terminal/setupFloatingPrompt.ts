@@ -157,7 +157,7 @@ export function setupFloatingPrompt({ term, container, schedule }: SetupOptions)
     button.title = label;
     overlay.style.fontFamily = term.options.fontFamily ?? "";
     overlay.style.fontSize = `${term.options.fontSize ?? 13}px`;
-    overlay.style.lineHeight = String(term.options.lineHeight ?? 1.2);
+    overlay.style.lineHeight = String(term.options.lineHeight ?? 1.4);
     overlay.style.color = resolved.foreground;
     overlay.style.backgroundColor = resolved.background;
     overlay.hidden = false;

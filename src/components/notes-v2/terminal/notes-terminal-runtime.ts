@@ -7,6 +7,7 @@ function importTerminalRuntime() {
     import("@xterm/addon-search"),
     import("@xterm/addon-web-links"),
     import("@xterm/addon-unicode11"),
+    import("@xterm/addon-webgl"),
   ]);
 }
 

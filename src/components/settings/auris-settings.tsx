@@ -58,6 +58,14 @@ import {
   markdownLayoutUiSelects,
   saveNotesMarkdownLayout,
 } from "@/features/notes/formatting/notes-markdown-layout";
+import {
+  loadTerminalLineHeight,
+  loadTerminalWebglEnabled,
+  saveTerminalLineHeight,
+  saveTerminalWebglEnabled,
+  terminalLineHeightFromIndex,
+  terminalLineHeightIndex,
+} from "@/components/notes-v2/terminal/notes-terminal-options";
 
 /* ------------------------------------------------------------------ */
 /* Accent system                                                       */
@@ -370,7 +378,7 @@ const INITIAL_SELECTS: Selects = {
   panelPosition: 0,
   panelSize: 2,
   termFontSize: 1,
-  termLineHeight: 1,
+  termLineHeight: 2,
   cursorStyle: 0,
   scrollback: 1,
   terminalBell: 1,
@@ -413,6 +421,7 @@ const SETTINGS_EXPORT_TOGGLE_KEYS = [
   "normalizeEllipsis",
   "collapseNewlines",
   "skipReferenceSections",
+  "webgl",
 ] as const;
 
 const SETTINGS_EXPORT_SELECT_KEYS = [
@@ -426,6 +435,7 @@ const SETTINGS_EXPORT_SELECT_KEYS = [
   "cjkLetterSpacing",
   "editorWidth",
   "tabSize",
+  "termLineHeight",
   "quoteStyle",
   "quoteToggleBehavior",
   "limitConsecutivePunct",
@@ -903,7 +913,32 @@ export function AurisSettings({ accent }: { accent?: string }) {
     saveNotesMarkdownLayout(next);
   }, [selects]);
 
-  /* --- selecting a swatch persists + broadcasts to the notes workbench --- */
+  /* --- 终端偏好：GPU 加速与行距，加载回填，改动持久化 --- */
+  const termSettingsSaveInitRef = useRef(true);
+  const lastTermSettingsJsonRef = useRef("");
+  useEffect(() => {
+    const webgl = loadTerminalWebglEnabled();
+    const lineHeight = loadTerminalLineHeight();
+    const termLineHeight = terminalLineHeightIndex(lineHeight);
+    lastTermSettingsJsonRef.current = JSON.stringify({ webgl, termLineHeight });
+    setToggles((prev) => ({ ...prev, webgl }));
+    setSelects((prev) => ({ ...prev, termLineHeight }));
+  }, []);
+  useEffect(() => {
+    if (termSettingsSaveInitRef.current) {
+      termSettingsSaveInitRef.current = false;
+      return;
+    }
+    const currentWebgl = toggles.webgl !== false;
+    const currentLineHeight = terminalLineHeightFromIndex(selects.termLineHeight ?? 2);
+    const json = JSON.stringify({ webgl: currentWebgl, termLineHeight: selects.termLineHeight });
+    if (json === lastTermSettingsJsonRef.current) return;
+    lastTermSettingsJsonRef.current = json;
+    saveTerminalWebglEnabled(currentWebgl);
+    saveTerminalLineHeight(currentLineHeight);
+  }, [toggles.webgl, selects.termLineHeight]);
+
+    /* --- selecting a swatch persists + broadcasts to the notes workbench --- */
   const handleSetTheme = useCallback((id: string) => {
     setTheme(id);
     if (isAppThemeId(id)) {
@@ -2183,8 +2218,16 @@ function buildPanel(
             title: "终端偏好",
             rows: [
               {
-                kind: "note",
-                text: "终端会话目前使用经过验证的内置配置。Shell、布局、字体、渲染、响铃和无障碍偏好尚未形成完整的持久化与运行时映射，因此暂不显示可切换控件，以避免产生无效配置。",
+                kind: "toggle" as const,
+                key: "webgl",
+                label: "GPU 加速",
+                desc: "启用 WebGL 加速终端文本与字符网格渲染，降低 CPU 负载。当前可见会话启用，隐藏或休眠时自动释放上下文。",
+              },
+              {
+                kind: "select" as const,
+                key: "termLineHeight",
+                label: "行距",
+                options: ["1.2", "1.3", "1.4（默认）", "1.5", "1.6"],
               },
             ],
           },

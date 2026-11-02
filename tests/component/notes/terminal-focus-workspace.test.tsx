@@ -32,6 +32,7 @@ vi.mock("@xterm/addon-fit", () => ({ FitAddon: class { entry?: typeof harness.te
 vi.mock("@xterm/addon-search", () => ({ SearchAddon: class { findNext() {} clearDecorations() {} } }));
 vi.mock("@xterm/addon-web-links", () => ({ WebLinksAddon: class {} }));
 vi.mock("@xterm/addon-unicode11", () => ({ Unicode11Addon: class {} }));
+vi.mock("@xterm/addon-webgl", () => ({ WebglAddon: class { onContextLoss() { return { dispose() {} }; } dispose() {} clearTextureAtlas() {} } }));
 
 function record(id: string, scope = TERMINAL_FOCUS_SCOPE): DesktopTerminalSessionRecord {
   return { id, backend: "pty", cwd: "/workspace", shell: "/bin/zsh", workspaceInstanceId: scope, cols: 80, rows: 24 };
