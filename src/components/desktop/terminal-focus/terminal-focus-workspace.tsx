@@ -141,9 +141,9 @@ function SessionPane({
         <ToolButton
           label={
             readingMode
-              ? "返回终端模式 (Esc / Mod+Shift+R)"
+              ? "返回终端模式 (Esc / Mod+Alt+R)"
               : hasTranscript
-                ? "阅读模式 (Mod+Shift+R)"
+                ? "阅读模式 (Mod+Alt+R)"
                 : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）"
           }
           disabled={!hasTranscript}
@@ -184,6 +184,7 @@ function SessionPane({
           bridge={bridge}
           sessionId={session.id}
           active={readingMode}
+          agentState={session.agentState}
           onClose={onToggleReadingMode}
         />
       )}

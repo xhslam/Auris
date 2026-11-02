@@ -202,7 +202,7 @@ export function NotesTerminalPanel({
           disabled={!hasTranscript}
           className="notes-v2__terminal-dock-button"
           aria-label={readingMode ? "退出阅读模式" : (hasTranscript ? "阅读模式" : "未检测到 Agent 记录")}
-          title={readingMode ? "退出阅读模式 (Esc / Mod+Shift+R)" : (hasTranscript ? "阅读模式 (Mod+Shift+R)" : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）")}
+          title={readingMode ? "退出阅读模式 (Esc / Mod+Alt+R)" : (hasTranscript ? "阅读模式 (Mod+Alt+R)" : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）")}
           data-active={readingMode ? "true" : "false"}
           onClick={toggleReadingMode}
         >
@@ -308,9 +308,9 @@ export function NotesTerminalPanel({
                 data-active={readingMode ? "true" : "false"}
                 title={
                   readingMode
-                    ? "退出阅读模式 (Esc / Mod+Shift+R)"
+                    ? "退出阅读模式 (Esc / Mod+Alt+R)"
                     : hasTranscript
-                      ? "阅读模式 (Mod+Shift+R)"
+                      ? "阅读模式 (Mod+Alt+R)"
                       : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）"
                 }
                 onClick={toggleReadingMode}
@@ -381,6 +381,7 @@ export function NotesTerminalPanel({
                 bridge={terminalBridge}
                 sessionId={activeSessionId}
                 active={readingMode}
+                agentState={activeSession?.agentState}
                 onClose={() => setReadingMode(false)}
               />
             ) : null}

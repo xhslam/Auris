@@ -136,7 +136,7 @@ describe("NotesTerminalReader", () => {
     );
   });
 
-  it("exits reading mode on Escape key and Mod+Shift+R shortcut", async () => {
+  it("exits reading mode on Escape key and Mod+Alt+R shortcut", async () => {
     const handleClose = vi.fn();
     render(
       <NotesTerminalReader
@@ -153,14 +153,107 @@ describe("NotesTerminalReader", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(handleClose).toHaveBeenCalledTimes(1);
 
-    // Press Mod+Shift+R (metaKey + shiftKey + 'r')
-    fireEvent.keyDown(window, { key: "r", shiftKey: true, metaKey: true });
+    // Press Mod+Alt+R (metaKey + altKey + 'r')
+    fireEvent.keyDown(window, { key: "r", altKey: true, metaKey: true });
     expect(handleClose).toHaveBeenCalledTimes(2);
 
     // Clicking top-left "返回终端" button
     const backBtn = screen.getByRole("button", { name: /返回终端/ });
     fireEvent.click(backBtn);
     expect(handleClose).toHaveBeenCalledTimes(3);
+  });
+
+  it("shows waiting banner when agentState is waiting and hides when left waiting", async () => {
+    const { rerender } = render(
+      <NotesTerminalReader
+        bridge={mockBridge}
+        sessionId="session-1"
+        active={true}
+        agentState="idle"
+        onClose={vi.fn()}
+      />
+    );
+
+    await screen.findByText("User Prompt");
+    expect(screen.queryByText("等待你确认 · 按 Esc 回到终端")).toBeNull();
+
+    // Transition to 'waiting' via bridge event
+    act(() => {
+      agentStateCallback?.({ sessionId: "session-1", agentState: "waiting" });
+    });
+    expect(screen.getByText("等待你确认 · 按 Esc 回到终端")).toBeInTheDocument();
+
+    // Transition to 'working'
+    act(() => {
+      agentStateCallback?.({ sessionId: "session-1", agentState: "working" });
+    });
+    expect(screen.queryByText("等待你确认 · 按 Esc 回到终端")).toBeNull();
+
+    // Rerender with initial waiting prop
+    act(() => {
+      rerender(
+        <NotesTerminalReader
+          bridge={mockBridge}
+          sessionId="session-1"
+          active={true}
+          agentState="waiting"
+          onClose={vi.fn()}
+        />
+      );
+    });
+    expect(screen.getByText("等待你确认 · 按 Esc 回到终端")).toBeInTheDocument();
+  });
+
+  it("renders latest 50 turns by default and expands on clicking load more", async () => {
+    const manyMessages = Array.from({ length: 65 }, (_, i) => ({
+      id: `turn-${i}`,
+      text: `Message content ${i}`,
+    }));
+    mockReadTranscript.mockResolvedValueOnce({
+      revision: "rev-many",
+      messages: manyMessages,
+    });
+
+    render(
+      <NotesTerminalReader
+        bridge={mockBridge}
+        sessionId="session-1"
+        active={true}
+        onClose={vi.fn()}
+      />
+    );
+
+    await screen.findByText("Message content 64");
+    // Message 0 should not be in the document because visibleCount is 50 (messages 15..64 are shown)
+    expect(screen.queryByText("Message content 0")).toBeNull();
+    expect(screen.getByText("Message content 15")).toBeInTheDocument();
+
+    // Load more button
+    const loadMoreBtn = screen.getByRole("button", {
+      name: /加载更早的记录（共 65 轮，已显示最近 50 轮）/,
+    });
+    expect(loadMoreBtn).toBeInTheDocument();
+
+    // Click load more
+    fireEvent.click(loadMoreBtn);
+    expect(screen.getByText("Message content 0")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /加载更早的记录/ })).toBeNull();
+  });
+
+  it("displays restrained notice without unhandled errors when readTranscript fails", async () => {
+    mockReadTranscript.mockRejectedValueOnce(new Error("File not found or permission denied"));
+
+    render(
+      <NotesTerminalReader
+        bridge={mockBridge}
+        sessionId="session-err"
+        active={true}
+        onClose={vi.fn()}
+      />
+    );
+
+    const notice = await screen.findByText("暂无执行记录或记录不可用");
+    expect(notice).toBeInTheDocument();
   });
 
   it("refreshes on agent state done/working and never calls resize IPC", async () => {

@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { ArrowLeft, Check, Copy, Image as ImageIcon } from "@phosphor-icons/react";
-import type { DesktopTerminalBridge } from "@/platform/desktop/desktop-bridge";
+import type { DesktopTerminalAgentState, DesktopTerminalBridge } from "@/platform/desktop/desktop-bridge";
 import { parseNotesMarkdownAst } from "@/features/notes/markdown/notes-markdown-dialect";
 import {
   loadTerminalReaderFontSize,
@@ -255,24 +255,32 @@ export function NotesTerminalReader({
   bridge,
   sessionId,
   active = true,
+  agentState: initialAgentState = null,
   onClose,
 }: {
   bridge: DesktopTerminalBridge;
   sessionId: string | null;
   active?: boolean;
+  agentState?: DesktopTerminalAgentState | null;
   onClose: () => void;
 }) {
   const [messages, setMessages] = useState<TranscriptTurn[]>([]);
   const [fontSize, setFontSize] = useState(() => loadTerminalReaderFontSize());
   const [visibleCount, setVisibleCount] = useState(50);
   const [hasNewReplies, setHasNewReplies] = useState(false);
-  const [isWorking, setIsWorking] = useState(false);
+  const [agentState, setAgentState] = useState<DesktopTerminalAgentState | null>(initialAgentState);
+  const [isWorking, setIsWorking] = useState(initialAgentState === "working");
   const [error, setError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
   const revisionRef = useRef<string | undefined>(undefined);
   const prevMessagesLengthRef = useRef(0);
+
+  useEffect(() => {
+    setAgentState(initialAgentState ?? null);
+    setIsWorking(initialAgentState === "working");
+  }, [initialAgentState]);
 
   // Sync font size from settings
   useEffect(() => {
@@ -321,6 +329,7 @@ export function NotesTerminalReader({
     if (!active || !sessionId || !bridge.onAgentState) return;
     const unsub = bridge.onAgentState((event) => {
       if (event.sessionId !== sessionId) return;
+      setAgentState(event.agentState);
       setIsWorking(event.agentState === "working");
       if (event.agentState === "done" || event.agentState === "working") {
         void fetchTranscript();
@@ -378,7 +387,7 @@ export function NotesTerminalReader({
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length, scrollToBottom]);
 
-  // Global Esc & Mod+Shift+R shortcut to exit
+  // Global Esc & Mod+Alt+R shortcut to exit
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!active) return;
@@ -390,7 +399,8 @@ export function NotesTerminalReader({
       }
       if (
         event.key.toLowerCase() === "r" &&
-        event.shiftKey &&
+        event.altKey &&
+        !event.shiftKey &&
         (event.metaKey || event.ctrlKey)
       ) {
         event.preventDefault();
@@ -417,7 +427,7 @@ export function NotesTerminalReader({
             type="button"
             className="terminal-reader__btn"
             onClick={onClose}
-            title="返回终端模式 (Esc 或 Mod+Shift+R)"
+            title="返回终端模式 (Esc 或 Mod+Alt+R)"
           >
             <ArrowLeft size={14} aria-hidden="true" />
             <span>返回终端</span>
@@ -431,6 +441,16 @@ export function NotesTerminalReader({
           <span>{fontSize}px</span>
         </div>
       </header>
+
+      {agentState === "waiting" && (
+        <aside
+          className="terminal-reader__waiting-banner"
+          role="status"
+          aria-live="polite"
+        >
+          <span>等待你确认 · 按 Esc 回到终端</span>
+        </aside>
+      )}
 
       <div
         className="terminal-reader__scroll-area"

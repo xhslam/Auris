@@ -54,6 +54,20 @@
   gap: 8px;
 }
 
+.terminal-reader__waiting-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--notes-accent, #c7a86a);
+  background: color-mix(in srgb, var(--notes-accent, #c7a86a) 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--notes-accent, #c7a86a) 25%, transparent);
+  user-select: none;
+}
+
 .terminal-reader__btn {
   display: inline-flex;
   align-items: center;

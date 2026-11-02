@@ -79,6 +79,8 @@ type TerminalEntry = {
   fitFrame: number | null;
   resizeTimer: ReturnType<typeof setTimeout> | null;
   lastResize: string | null;
+  lastFittedWidth?: number;
+  lastFittedHeight?: number;
 };
 
 type UseNotesTerminalSessionsInput = {
@@ -630,6 +632,8 @@ export function useNotesTerminalSessions({
         if (!isSessionDisplayed(sessionId) || !entry.container.isConnected) return;
         try {
           entry.fitAddon.fit();
+          entry.lastFittedWidth = entry.container.clientWidth;
+          entry.lastFittedHeight = entry.container.clientHeight;
           const cols = entry.terminal.cols || DEFAULT_COLS;
           const rows = entry.terminal.rows || DEFAULT_ROWS;
           const sizeKey = `${cols}x${rows}`;
@@ -1319,6 +1323,45 @@ export function useNotesTerminalSessions({
 
     return () => observer.disconnect();
   }, [activeSessionId, fitSession, isSessionDisplayed, multiPane, singlePane, visibleSessions]);
+
+  // Catch-up fit on exiting reading mode: only if dimensions changed during reading
+  const prevReadingSessionsRef = useRef(readingSessions);
+  useEffect(() => {
+    const prev = prevReadingSessionsRef.current;
+    prevReadingSessionsRef.current = readingSessions;
+
+    const checkCatchUp = (sessionId: string) => {
+      const entry = entriesRef.current.get(sessionId);
+      if (!entry || !entry.container.isConnected || !isSessionDisplayed(sessionId)) return;
+      const currentWidth = entry.container.clientWidth;
+      const currentHeight = entry.container.clientHeight;
+      const sizeChanged =
+        entry.lastFittedWidth === undefined ||
+        entry.lastFittedWidth !== currentWidth ||
+        entry.lastFittedHeight === undefined ||
+        entry.lastFittedHeight !== currentHeight;
+      if (sizeChanged && currentWidth > 0 && currentHeight > 0) {
+        fitSession(sessionId);
+      }
+    };
+
+    if (prev === true && readingSessions !== true) {
+      if (multiPaneRef.current) {
+        for (const id of sessionHostsRef.current.keys()) checkCatchUp(id);
+      } else if (activeSessionId) {
+        checkCatchUp(activeSessionId);
+      }
+    } else if (prev instanceof Set) {
+      for (const id of prev) {
+        const stillReading =
+          readingSessions === true ||
+          (readingSessions instanceof Set && readingSessions.has(id));
+        if (!stillReading) {
+          checkCatchUp(id);
+        }
+      }
+    }
+  }, [activeSessionId, fitSession, isSessionDisplayed, readingSessions]);
 
   useEffect(() => {
     const entry = activeSessionId

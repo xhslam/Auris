@@ -198,6 +198,15 @@ export function createNotesTerminalKeyHandler(actions: KeyActions, platform = ge
       action();
       return false;
     };
+    // Mod+Alt+R: toggle terminal reading mode (avoids CmdOrCtrl+Shift+R which collides with Electron forceReload role)
+    if (
+      key === "r" &&
+      event.altKey &&
+      !event.shiftKey &&
+      (platform === "macos" ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey)
+    ) {
+      if (actions.toggleReadingMode) return consume(actions.toggleReadingMode);
+    }
     if (event.altKey) return true;
     if (key === "insert" && !event.metaKey && event.ctrlKey !== event.shiftKey) {
       if (event.shiftKey) return consume(actions.paste);
@@ -215,11 +224,7 @@ export function createNotesTerminalKeyHandler(actions: KeyActions, platform = ge
       case "k": return consume(actions.clear);
       case "a": return consume(actions.selectAll);
       case "f": return event.shiftKey && platform !== "linux" ? true : consume(actions.search);
-      case "r":
-        if (event.shiftKey && actions.toggleReadingMode) {
-          return consume(actions.toggleReadingMode);
-        }
-        return true;
+      case "r": return true;
       case "+":
       case "=": return consume(() => actions.zoom(2));
       case "-": return consume(() => actions.zoom(-2));

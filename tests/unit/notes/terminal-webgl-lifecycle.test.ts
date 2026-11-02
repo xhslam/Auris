@@ -283,4 +283,41 @@ describe("WebGL Addon Lifecycle & Fault Tolerance", () => {
     await onFontChange("Menlo, monospace");
     expect(clearAtlasCalls).toBe(1);
   });
+
+  it("does not dispose or reload WebglAddon when toggling reading mode", () => {
+    let disposeCalls = 0;
+    class MockWebglAddon {
+      dispose() {
+        disposeCalls++;
+      }
+      onContextLoss() {
+        return { dispose() {} };
+      }
+    }
+
+    const mockTerminal: TestTerminal = { loadAddon: vi.fn() };
+    const initialAddon = new MockWebglAddon();
+    const entry: TestEntry = {
+      terminal: mockTerminal,
+      webglAddon: initialAddon,
+      webglContextLost: false,
+    };
+
+    // Reading mode hides xterm using visibility: hidden; pointer-events: none;
+    // but the session remains displayed in DOM and host node stays connected.
+    // It must NOT trigger disposeWebglAddonForEntry.
+    let isReadingMode = false;
+
+    // Toggle reading mode ON
+    isReadingMode = true;
+    expect(isReadingMode).toBe(true);
+    expect(entry.webglAddon).toBe(initialAddon);
+    expect(disposeCalls).toBe(0);
+
+    // Toggle reading mode OFF
+    isReadingMode = false;
+    expect(entry.webglAddon).toBe(initialAddon);
+    expect(disposeCalls).toBe(0);
+    expect(mockTerminal.loadAddon).not.toHaveBeenCalled();
+  });
 });

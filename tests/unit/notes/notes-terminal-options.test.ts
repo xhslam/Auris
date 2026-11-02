@@ -128,7 +128,7 @@ describe("VMark terminal presentation and key policy", () => {
     expect(terminalReaderFontSizeFromIndex(4)).toBe(18);
     window.localStorage.removeItem(TERMINAL_READER_FONT_SIZE_STORAGE);
   });
-  it("handles Mod+Shift+R chord for toggleReadingMode without capturing regular Ctrl+R", () => {
+  it("handles Mod+Alt+R chord for toggleReadingMode without capturing regular Ctrl+R or Cmd+Shift+R (forceReload)", () => {
     const toggleReadingMode = vi.fn();
     const actions = {
       copy: vi.fn(),
@@ -143,12 +143,21 @@ describe("VMark terminal presentation and key policy", () => {
     };
     const handler = createNotesTerminalKeyHandler(actions, "macos");
 
-    // Regular Ctrl+R / Cmd+R without Shift should not trigger toggleReadingMode
+    // Regular Ctrl+R / Cmd+R should not trigger toggleReadingMode
     expect(handler(new KeyboardEvent("keydown", { key: "r", metaKey: true }))).toBe(true);
     expect(toggleReadingMode).not.toHaveBeenCalled();
 
-    // Cmd+Shift+R should trigger toggleReadingMode
-    expect(handler(new KeyboardEvent("keydown", { key: "r", metaKey: true, shiftKey: true }))).toBe(false);
+    // Cmd+Shift+R (Electron forceReload) must NOT be captured by terminal
+    expect(handler(new KeyboardEvent("keydown", { key: "r", metaKey: true, shiftKey: true }))).toBe(true);
+    expect(toggleReadingMode).not.toHaveBeenCalled();
+
+    // Cmd+Alt+R should trigger toggleReadingMode
+    expect(handler(new KeyboardEvent("keydown", { key: "r", metaKey: true, altKey: true }))).toBe(false);
     expect(toggleReadingMode).toHaveBeenCalledTimes(1);
+
+    // Windows/Linux Ctrl+Alt+R should trigger toggleReadingMode
+    const winHandler = createNotesTerminalKeyHandler(actions, "windows");
+    expect(winHandler(new KeyboardEvent("keydown", { key: "r", ctrlKey: true, altKey: true }))).toBe(false);
+    expect(toggleReadingMode).toHaveBeenCalledTimes(2);
   });
 });
