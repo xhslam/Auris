@@ -1,47 +1,194 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from "react";
-import { ArrowClockwise, ArrowsIn, ArrowsOut, ClockCounterClockwise, Copy, MagnifyingGlass, TerminalWindow, Trash, X, ClipboardText } from "@phosphor-icons/react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type PointerEvent,
+} from "react";
+import { ArrowClockwise, ArrowsIn, ArrowsOut, BookOpenText, ClockCounterClockwise, Copy, MagnifyingGlass, SidebarSimple, TerminalWindow, Trash, X, ClipboardText, FilePlus } from "@phosphor-icons/react";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { useHydratedDesktopBridge } from "@/platform/desktop/use-hydrated-desktop-bridge";
 import type { DesktopTerminalBridge } from "@/platform/desktop/desktop-bridge";
 import { useAppTheme } from "@/features/appearance/use-app-theme";
 import { DEFAULT_NOTES_TYPOGRAPHY, loadNotesTypography, NOTES_TYPOGRAPHY_EVENT, notesTypographyCssVars } from "@/features/notes/formatting/notes-typography";
+import { formatTerminalPath } from "@/components/notes-v2/terminal/notes-terminal-path";
 import { useNotesTerminalSessions, type NotesTerminalSession } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
 import { NotesTerminalTranscript } from "@/components/notes-v2/terminal/notes-terminal-transcript";
+import { NotesTerminalReader } from "@/components/notes-v2/terminal/notes-terminal-reader";
 import { TerminalFocusSidebar } from "./terminal-focus-sidebar";
-import { terminalSessionTitle, TERMINAL_SESSION_STATUS } from "./terminal-session-presentation";
+import {
+  derivedSessionStatus,
+  derivedSessionStatusLabel,
+  terminalSessionTitle,
+} from "./terminal-session-presentation";
 import { DEFAULT_FOCUS_LAYOUT, normalizeFocusLayout, normalizeWeights, resizeTracks, TERMINAL_FOCUS_LAYOUT_KEY, TERMINAL_FOCUS_GAP, TERMINAL_FOCUS_LIMIT, TERMINAL_FOCUS_SCOPE, type FocusLayout } from "./terminal-focus-layout";
 import { TerminalProjectDialog } from "./terminal-project-dialog";
 import "./terminal-focus.css";
 
-const STATUS_LABELS = TERMINAL_SESSION_STATUS;
-
-function ToolButton({ label, children, onClick, disabled, pressed }: { label: string; children: ReactNode; onClick: () => void; disabled?: boolean; pressed?: boolean }) {
-  return <button type="button" className="terminal-focus__tool" aria-label={label} title={label} aria-pressed={pressed} disabled={disabled} onClick={onClick}>{children}</button>;
+function ToolButton({ label, children, onClick, disabled, pressed, expanded, controls }: {
+  label: string; children: ReactNode; onClick: () => void; disabled?: boolean; pressed?: boolean; expanded?: boolean; controls?: string;
+}) {
+  return <button type="button" className="terminal-focus__tool" aria-label={label} title={label} aria-pressed={pressed} aria-expanded={expanded} aria-controls={controls} disabled={disabled} onClick={onClick}>{children}</button>;
 }
 
-function SessionPane({ session, active, hidden, singlePane, registerHost, activate, close, restart, toggleSingle }: {
-  session: NotesTerminalSession; active: boolean; hidden: boolean; singlePane: boolean;
+function SessionPane({
+  session,
+  active,
+  hidden,
+  singlePane,
+  registerHost,
+  activate,
+  close,
+  restart,
+  toggleSingle,
+  pasteIntoSession,
+  bridge,
+  readingMode,
+  onToggleReadingMode,
+}: {
+  session: NotesTerminalSession;
+  active: boolean;
+  hidden: boolean;
+  singlePane: boolean;
   registerHost: (id: string, host: HTMLDivElement | null) => void;
-  activate: (id: string) => void; close: (id: string) => void; restart: (id: string) => void; toggleSingle: (id: string) => void;
+  activate: (id: string) => void;
+  close: (id: string) => void;
+  restart: (id: string) => void;
+  toggleSingle: (id: string) => void;
+  pasteIntoSession: (id: string, explicitContent?: string) => void;
+  bridge: DesktopTerminalBridge | null;
+  readingMode: boolean;
+  onToggleReadingMode: () => void;
 }) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [hasTranscript, setHasTranscript] = useState(Boolean(session.agentKind));
   const hostRef = useCallback((host: HTMLDivElement | null) => registerHost(session.id, host), [registerHost, session.id]);
   const title = terminalSessionTitle(session);
-  return <section className="terminal-focus__pane" data-session-id={session.id} data-active={active} hidden={hidden}
-    aria-label={`${title} 终端面板`} onPointerDownCapture={() => activate(session.id)} onFocusCapture={() => activate(session.id)}>
+  const status = derivedSessionStatus(session);
+  const statusLabel = derivedSessionStatusLabel(session);
+
+  useEffect(() => {
+    if (session.agentKind) {
+      setHasTranscript(true);
+      return;
+    }
+    if (!bridge?.readTranscript) return;
+    let cancelled = false;
+    bridge.readTranscript(session.id).then((res) => {
+      if (!cancelled && res !== null) setHasTranscript(true);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [bridge, session.id, session.agentKind]);
+
+  return <section className="terminal-focus__pane" data-session-id={session.id} data-active={active} data-drag-over={isDragOver} hidden={hidden}
+    aria-label={`${title} 终端面板`} onPointerDownCapture={() => activate(session.id)} onFocusCapture={() => activate(session.id)}
+    onDragEnter={(event) => {
+      if (event.dataTransfer?.types?.includes("Files")) setIsDragOver(true);
+    }}
+    onDragOver={(event) => {
+      if (event.dataTransfer?.types?.includes("Files")) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+        if (!isDragOver) setIsDragOver(true);
+      }
+    }}
+    onDragLeave={(event) => {
+      if (event.currentTarget.contains(event.relatedTarget as Node)) return;
+      setIsDragOver(false);
+    }}
+    onDrop={(event) => {
+      setIsDragOver(false);
+      const files = Array.from(event.dataTransfer?.files || []);
+      if (files.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        activate(session.id);
+        const paths = files
+          .map((file) => (file as { path?: string }).path || file.name)
+          .filter(Boolean);
+        if (paths.length > 0) {
+          pasteIntoSession(session.id, paths.map(formatTerminalPath).join(" "));
+        }
+      }
+    }}
+    onPaste={(event) => {
+      const files = Array.from(event.clipboardData?.files || []);
+      if (files.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        activate(session.id);
+        const paths = files
+          .map((file) => (file as { path?: string }).path)
+          .filter(Boolean) as string[];
+        if (paths.length > 0) {
+          pasteIntoSession(session.id, paths.map(formatTerminalPath).join(" "));
+          return;
+        }
+        pasteIntoSession(session.id);
+      }
+    }}>
     <header className="terminal-focus__pane-header">
       <button className="terminal-focus__pane-title" type="button" onClick={() => activate(session.id)} title={session.cwd ?? title}>
-        <span className="terminal-focus__status-dot" data-status={session.status} /><span>{title}</span>
+        <span className="terminal-focus__status-dot" data-status={status} /><span>{title}</span>
       </button>
       <div className="terminal-focus__pane-tools">
+        <ToolButton
+          label={
+            readingMode
+              ? "返回终端模式 (Esc / Mod+Shift+R)"
+              : hasTranscript
+                ? "阅读模式 (Mod+Shift+R)"
+                : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）"
+          }
+          disabled={!hasTranscript}
+          pressed={readingMode}
+          onClick={onToggleReadingMode}
+        >
+          <BookOpenText size={14} />
+        </ToolButton>
         <ToolButton label={`重启 ${session.label}`} onClick={() => restart(session.id)}><ArrowClockwise size={14} /></ToolButton>
         <ToolButton label={singlePane ? "恢复分屏" : `专注 ${session.label}`} onClick={() => toggleSingle(session.id)}>{singlePane ? <ArrowsIn size={14} /> : <ArrowsOut size={14} />}</ToolButton>
         <ToolButton label={`关闭 ${session.label}`} onClick={() => close(session.id)}><X size={14} /></ToolButton>
       </div>
     </header>
-    <div className="terminal-focus__pane-host" ref={hostRef} />
-    <footer className="terminal-focus__pane-footer"><span title={session.cwd ? `启动目录：${session.cwd}` : undefined}>{session.cwd || "正在连接本地 Shell"}</span><span>{session.backend === "pipe" ? "管道回退 · 非完整 TTY" : STATUS_LABELS[session.status]}</span></footer>
+    <div
+      className="terminal-focus__pane-body"
+      style={{
+        position: "relative",
+        flex: "1 1 0%",
+        minHeight: 0,
+        minWidth: 0,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        className="terminal-focus__pane-host"
+        ref={hostRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          visibility: readingMode ? "hidden" : "visible",
+          pointerEvents: readingMode ? "none" : "auto",
+        }}
+      />
+      {readingMode && bridge && (
+        <NotesTerminalReader
+          bridge={bridge}
+          sessionId={session.id}
+          active={readingMode}
+          onClose={onToggleReadingMode}
+        />
+      )}
+    </div>
+    <footer className="terminal-focus__pane-footer"><span title={session.cwd ? `启动目录：${session.cwd}` : undefined}>{session.cwd || "正在连接本地 Shell"}</span><span>{session.backend === "pipe" ? "管道回退 · 非完整 TTY" : statusLabel}</span></footer>
   </section>;
 }
 
@@ -95,12 +242,80 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
   const menuRef = useRef<HTMLDivElement>(null);
   const transcriptId = useId();
   const toggleSearch = useCallback(() => setSearchOpen((open) => !open), []);
+  const [readingSessions, setReadingSessions] = useState<Set<string>>(() => new Set());
+  const toggleReadingMode = useCallback((id: string) => {
+    setReadingSessions((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
   const terminal = useNotesTerminalSessions({
     enabled: Boolean(bridge), terminalBridge: bridge, workspaceInstanceId: TERMINAL_FOCUS_SCOPE,
     multiPane: true, singlePane, autoCreateSession: false, maxSessions: TERMINAL_FOCUS_LIMIT, strictWorkspaceScope: true,
     sessionIdPrefix: "focus-term", onSearch: toggleSearch,
+    readingSessions, onToggleReadingMode: toggleReadingMode,
   });
-  const { sessions, activeSessionId, activeSession, setActiveSessionId, hostRef, setSearchQuery } = terminal;
+  const {
+    sessions,
+    activeSessionId,
+    activeSession,
+    setActiveSessionId,
+    hostRef,
+    setSearchQuery,
+    clearUnread,
+  } = terminal;
+
+  const visibleSessionIdsKey = sessions
+    .filter((s) => !singlePane || s.id === activeSessionId)
+    .map((s) => s.id)
+    .join(",");
+
+  const visibleSessionIds = useMemo(
+    () => (visibleSessionIdsKey ? visibleSessionIdsKey.split(",") : []),
+    [visibleSessionIdsKey],
+  );
+
+  const [daemonStatus, setDaemonStatus] = useState<{
+    connected: boolean;
+    needsUpgrade: boolean;
+    activeSessionsCount: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!bridge?.getDaemonStatus) return;
+    bridge.getDaemonStatus().then(setDaemonStatus).catch(() => {});
+    if (bridge.onDaemonStatus) {
+      return bridge.onDaemonStatus((status) => {
+        setDaemonStatus(status);
+      });
+    }
+  }, [bridge]);
+
+  useEffect(() => {
+    bridge?.reportVisiblePanes?.({
+      activeSessionId,
+      visibleSessionIds,
+    }).catch(() => undefined);
+  }, [bridge, activeSessionId, visibleSessionIds]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      if (typeof document !== "undefined" && document.hasFocus()) {
+        for (const session of sessions) {
+          if (visibleSessionIds.includes(session.id) && session.unread) {
+            clearUnread(session.id);
+          }
+        }
+      }
+    };
+    onFocus();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [clearUnread, sessions, visibleSessionIds]);
 
   useEffect(() => {
     try { setLayout(normalizeFocusLayout(JSON.parse(localStorage.getItem(TERMINAL_FOCUS_LAYOUT_KEY) ?? "null"))); } catch { /* Corrupt preferences must not block Shell startup. */ }
@@ -136,8 +351,8 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
   const toggleSingle = (id: string) => { setActiveSessionId(id); setSinglePane((value) => !value); };
   const runMenu = (action: () => unknown) => { setContextMenu(null); void action(); };
 
-  return <div className="notes-v2 notes-v2--minimal terminal-focus" data-notes-theme={theme} style={notesTypographyCssVars(typography) as CSSProperties}>
-    <aside className="terminal-focus__sidebar" aria-label="终端会话" inert={projectPickerOpen}>
+  return <div className="notes-v2 notes-v2--minimal terminal-focus" data-notes-theme={theme} data-sidebar-collapsed={layout.sidebarCollapsed ? "true" : "false"} style={notesTypographyCssVars(typography) as CSSProperties}>
+    <aside id="terminal-focus-sidebar" className="terminal-focus__sidebar" aria-label="终端会话" inert={projectPickerOpen || layout.sidebarCollapsed} hidden={layout.sidebarCollapsed}>
       <TerminalFocusSidebar sessions={sessions} activeSessionId={activeSessionId} singlePane={singlePane} bridge={bridge}
         disabledCreate={!bridge || terminal.isRestoring || terminal.isMaxed} restoring={terminal.isRestoring}
         onNew={() => setProjectPickerOpen(true)} onActivate={setActiveSessionId} onRename={terminal.renameSession}
@@ -149,18 +364,62 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
     </aside>
     <main className="terminal-focus__main" aria-label="专注终端工作区" inert={projectPickerOpen}>
       <header className="terminal-focus__toolbar">
+        <ToolButton
+          label={layout.sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+          expanded={!layout.sidebarCollapsed}
+          controls="terminal-focus-sidebar"
+          onClick={() => setLayout((previous) => ({ ...previous, sidebarCollapsed: !previous.sidebarCollapsed }))}
+        >
+          <SidebarSimple size={16} />
+        </ToolButton>
         <span className="terminal-focus__workspace-title">{singlePane ? "单屏专注" : "分屏工作台"}</span>
         <label className="terminal-focus__layout-picker">布局<select aria-label="终端分屏列数" value={layout.columns} onChange={(event) => {
-          setLayout({ columns: Number(event.target.value), columnWeights: [], rowWeights: [] }); setSinglePane(false);
+          setLayout((prev) => ({ ...prev, columns: Number(event.target.value), columnWeights: [], rowWeights: [] })); setSinglePane(false);
         }}>{[1, 2, 3, 4].map((count) => <option key={count} value={count}>{count} 列</option>)}</select></label>
         <ToolButton label={singlePane ? "恢复全部分屏" : "专注当前终端"} pressed={singlePane} disabled={!activeSession} onClick={() => setSinglePane((value) => !value)}>{singlePane ? <ArrowsIn size={16} /> : <ArrowsOut size={16} />}</ToolButton>
         <div className="terminal-focus__toolbar-spacer" />
         <ToolButton label="搜索当前终端" pressed={searchOpen} disabled={!activeSession} onClick={toggleSearch}><MagnifyingGlass size={16} /></ToolButton>
         <ToolButton label="复制选区" disabled={!activeSession} onClick={terminal.copyActiveSelection}><Copy size={16} /></ToolButton>
         <ToolButton label="粘贴到当前终端" disabled={!activeSession} onClick={() => void terminal.pasteIntoActiveSession()}><ClipboardText size={16} /></ToolButton>
+        <ToolButton label="添加文件到当前终端" disabled={!activeSession} onClick={() => void terminal.pickAndInsertFile()}><FilePlus size={16} /></ToolButton>
         <ToolButton label="清空当前终端" disabled={!activeSession} onClick={terminal.clearActiveSession}><Trash size={16} /></ToolButton>
         {canTranscript && <ToolButton label="Agent 执行记录" pressed={transcriptOpen} disabled={!activeSession} onClick={() => setTranscriptOpen((value) => !value)}><ClockCounterClockwise size={16} /></ToolButton>}
       </header>
+      {daemonStatus?.needsUpgrade && (
+        <div
+          role="status"
+          className="terminal-focus__upgrade-banner"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 16px",
+            background: "rgba(234, 179, 8, 0.12)",
+            borderBottom: "1px solid rgba(234, 179, 8, 0.28)",
+            color: "var(--app-foreground, #e5e5e5)",
+            fontSize: "12px",
+            lineHeight: "1.4",
+          }}
+        >
+          <span>后台服务版本较旧，{daemonStatus.activeSessionsCount} 个任务在运行，结束后自动升级</span>
+          <button
+            type="button"
+            onClick={() => void bridge?.upgradeDaemon?.()}
+            style={{
+              padding: "4px 10px",
+              background: "rgba(234, 179, 8, 0.22)",
+              border: "1px solid rgba(234, 179, 8, 0.4)",
+              borderRadius: "4px",
+              color: "inherit",
+              cursor: "pointer",
+              fontSize: "11px",
+              fontWeight: 500,
+            }}
+          >
+            停止全部任务并升级
+          </button>
+        </div>
+      )}
       {searchOpen && <div className="notes-v2__terminal-search terminal-focus__search" role="search" aria-label="搜索当前终端内容">
         <MagnifyingGlass size={15} /><input ref={searchRef} aria-label="搜索终端内容" placeholder="搜索当前终端…" value={terminal.searchQuery} onChange={(event) => setSearchQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") { setSearchOpen(false); terminal.focusActiveSession(); } }} />
         <ToolButton label="关闭搜索" onClick={() => { setSearchOpen(false); terminal.focusActiveSession(); }}><X size={15} /></ToolButton>
@@ -180,7 +439,9 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
         }}>
           {sessions.map((session) => <SessionPane key={session.id} session={session} active={session.id === activeSessionId}
             hidden={singlePane && session.id !== activeSessionId} singlePane={singlePane} registerHost={terminal.registerSessionHost}
-            activate={setActiveSessionId} close={terminal.closeSession} restart={terminal.restartSession} toggleSingle={toggleSingle} />)}
+            activate={setActiveSessionId} close={terminal.closeSession} restart={terminal.restartSession} toggleSingle={toggleSingle}
+            pasteIntoSession={terminal.pasteIntoSession} bridge={bridge} readingMode={readingSessions.has(session.id)}
+            onToggleReadingMode={() => toggleReadingMode(session.id)} />)}
           {columnWeights.slice(0, -1).map((_, index) => <TrackSeparator key={`column-${index}`} axis="column" index={index} weights={columnWeights} singlePane={singlePane} onResize={(weights) => setLayout((previous) => ({ ...previous, columnWeights: weights }))} />)}
           {rowWeights.slice(0, -1).map((_, index) => <TrackSeparator key={`row-${index}`} axis="row" index={index} weights={rowWeights} singlePane={singlePane} onResize={(weights) => setLayout((previous) => ({ ...previous, rowWeights: weights }))} />)}
         </div>
@@ -200,6 +461,7 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
     {contextMenu && <div ref={menuRef} className="terminal-focus__context-menu" role="menu" aria-label="终端操作" tabIndex={-1} style={{ left: Math.max(0, contextMenu.x), top: Math.max(0, contextMenu.y) }} onKeyDown={(event) => { if (event.key === "Escape") { setContextMenu(null); terminal.focusActiveSession(); } }}>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.copyActiveSelection)}>复制选区</button>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.pasteIntoActiveSession)}>粘贴</button>
+      <button type="button" role="menuitem" onClick={() => runMenu(terminal.pickAndInsertFile)}>添加文件…</button>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.selectAllActiveSession)}>全选</button>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.clearActiveSession)}>清空终端</button>
       <button type="button" role="menuitem" onClick={() => runMenu(terminal.restartActiveSession)}>重启当前终端</button>

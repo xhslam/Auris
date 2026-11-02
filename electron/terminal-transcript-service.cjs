@@ -5,18 +5,80 @@ const path = require("node:path");
 const { randomUUID, createHash } = require("node:crypto");
 const LIMIT = 2 * 1024 * 1024;
 
+function cleanUserPrompt(prompt) {
+  if (typeof prompt !== "string") return null;
+  let text = prompt.trim();
+  const match = text.match(/<USER_REQUEST>([\s\S]*?)<\/USER_REQUEST>/i);
+  if (match) {
+    text = match[1].trim();
+  }
+  return text || null;
+}
+
+function extractToolNames(value) {
+  const names = [];
+  if (Array.isArray(value.tool_calls)) {
+    for (const call of value.tool_calls) {
+      const name = call?.name || call?.function?.name || call?.tool_name;
+      if (typeof name === "string" && name.trim()) names.push(name.trim());
+    }
+  }
+  return names;
+}
+
+function extractUserPrompt(value) {
+  if (value.type === "USER_INPUT" && typeof value.content === "string") {
+    return cleanUserPrompt(value.content);
+  }
+  if (value.type === "user") {
+    if (typeof value.text === "string") return cleanUserPrompt(value.text);
+    if (Array.isArray(value.message?.content)) {
+      const texts = value.message.content
+        .filter((part) => part?.type === "text" && typeof part.text === "string")
+        .map((part) => part.text);
+      if (texts.length) return cleanUserPrompt(texts.join("\n"));
+    }
+  }
+  if (value.type === "response_item" && value.payload?.role === "user") {
+    if (Array.isArray(value.payload.content)) {
+      const texts = value.payload.content
+        .filter((part) => part?.type === "input_text" && typeof part.text === "string")
+        .map((part) => part.text);
+      if (texts.length) return cleanUserPrompt(texts.join("\n"));
+    }
+  }
+  return null;
+}
+
 function parseTranscript(data) {
   const messages = new Map();
   const lines = data.split("\n");
   lines.pop(); // An incomplete final record must wait for the next read.
+  let pendingPrompt = null;
+  let pendingTools = [];
   for (const [lineIndex, line] of lines.entries()) {
     try {
       const value = JSON.parse(line);
+      const prompt = extractUserPrompt(value);
+      if (prompt) {
+        pendingPrompt = prompt;
+        pendingTools = [];
+        continue;
+      }
+      const tools = extractToolNames(value);
+      if (tools.length) {
+        pendingTools.push(...tools);
+      }
       // Antigravity's persisted trajectory is not a Claude/Codex message envelope.
       // Only completed model replies are public text; thinking and tool_calls stay private.
       if (value.type === "PLANNER_RESPONSE" && value.source === "MODEL" && value.status === "DONE" && typeof value.content === "string") {
         const id = `antigravity:${value.step_index ?? value.created_at ?? lineIndex}`;
-        messages.set(id, { id, text: value.content.slice(0, 100_000) });
+        const item = { id, text: value.content.slice(0, 100_000) };
+        if (pendingPrompt) item.userPrompt = pendingPrompt;
+        if (pendingTools.length) item.toolCalls = [...pendingTools];
+        pendingPrompt = null;
+        pendingTools = [];
+        messages.set(id, item);
         continue;
       }
       const message = value.type === "assistant" ? value.message :
@@ -25,7 +87,12 @@ function parseTranscript(data) {
       message.content.forEach((part, index) => {
         if (!["text", "output_text"].includes(part?.type) || typeof part.text !== "string") return;
         const id = `${value.uuid ?? message.id ?? value.timestamp ?? lineIndex}:${index}`;
-        messages.set(id, { id, text: part.text.slice(0, 100_000) });
+        const item = { id, text: part.text.slice(0, 100_000) };
+        if (pendingPrompt) item.userPrompt = pendingPrompt;
+        if (pendingTools.length) item.toolCalls = [...pendingTools];
+        pendingPrompt = null;
+        pendingTools = [];
+        messages.set(id, item);
       });
     } catch { /* Unknown, malformed and partial records do not stop following messages. */ }
   }
@@ -120,6 +187,7 @@ function createTerminalTranscriptService({ directory, homeDirectory, env = proce
     { directory: path.join(antigravity, "antigravity-cli", "brain"), pattern: /^[a-f0-9-]{36}\/\.system_generated\/logs\/transcript(?:_full)?\.jsonl$/i },
   ];
   const bindings = new Map();
+  const sessionStates = new Map();
   let generation = 0;
   const marker = path.join(directory, "enabled");
   const isEnabled = () => fs.existsSync(marker);
@@ -129,6 +197,7 @@ function createTerminalTranscriptService({ directory, homeDirectory, env = proce
     fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
     if (fs.realpathSync(directory) !== directory) throw new Error("Transcript directory must not be a symlink.");
     if (!enabled) {
+      sessionStates.clear();
       try { fs.unlinkSync(marker); } catch (error) { if (error.code !== "ENOENT") throw error; }
       for (const token of bindings.values()) {
         try { fs.unlinkSync(path.join(directory, `${token}.json`)); } catch (error) { if (error.code !== "ENOENT") throw error; }
@@ -172,6 +241,7 @@ function createTerminalTranscriptService({ directory, homeDirectory, env = proce
   function forget(sessionId) {
     const token = bindings.get(sessionId);
     bindings.delete(sessionId);
+    sessionStates.delete(sessionId);
     if (token) { try { fs.unlinkSync(path.join(directory, `${token}.json`)); } catch {} }
   }
   async function read(sessionId, previous) {
@@ -182,10 +252,112 @@ function createTerminalTranscriptService({ directory, homeDirectory, env = proce
       const binding = await readRegularFile(path.join(directory, `${token}.json`), 65536);
       const file = JSON.parse(binding.data).path;
       if (typeof file !== "string" || !path.isAbsolute(file)) throw new Error("Invalid transcript path.");
-      const snapshot = await readRegularFile(file, LIMIT, roots, previous);
-      if (bindings.get(sessionId) !== token || generation !== currentGeneration || !isEnabled()) return null;
-      // Paths and opaque binding tokens never cross the IPC boundary.
-      return { revision: snapshot.revision, messages: snapshot.data === null ? null : parseTranscript(snapshot.data) };
+      const canonical = await fsp.realpath(file);
+      const rootList = await Promise.all(roots.map(({ directory: d }) => fsp.realpath(d).catch(() => null)));
+      if (path.extname(canonical) !== ".jsonl" || !rootList.some((root, index) => root && confined(root, canonical) &&
+        (!roots[index].pattern || roots[index].pattern.test(path.relative(root, canonical).split(path.sep).join("/"))))) {
+        throw new Error("Transcript outside CLI session directories.");
+      }
+      const before = await fsp.stat(canonical);
+      if (!before.isFile()) throw new Error("Transcript must be a regular file.");
+      const handle = await fsp.open(canonical, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+      try {
+        const stat = await handle.stat();
+        if (!stat.isFile() || stat.dev !== before.dev || stat.ino !== before.ino) {
+          throw new Error("Transcript file changed during open.");
+        }
+        const revision = createHash("sha256").update(`${canonical}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`).digest("hex");
+        if (previous === revision) return { revision, messages: null };
+
+        let state = sessionStates.get(sessionId);
+        const canIncrement = state &&
+          state.canonical === canonical &&
+          state.dev === stat.dev &&
+          state.ino === stat.ino &&
+          stat.size >= state.lastOffset;
+
+        if (!canIncrement) {
+          state = {
+            canonical,
+            dev: stat.dev,
+            ino: stat.ino,
+            lastOffset: 0,
+            leftover: "",
+            messages: new Map(),
+            pendingPrompt: null,
+            pendingTools: [],
+          };
+          sessionStates.set(sessionId, state);
+        }
+
+        let offset = state.lastOffset;
+        if (!canIncrement && stat.size > LIMIT) {
+          offset = Math.max(0, stat.size - LIMIT);
+        }
+        const bytesToRead = Math.max(0, stat.size - offset);
+        const buffer = Buffer.alloc(bytesToRead);
+        const { bytesRead } = await handle.read(buffer, 0, bytesToRead, offset);
+        let chunk = buffer.subarray(0, bytesRead).toString("utf8");
+
+        if (!canIncrement && offset > 0) {
+          chunk = chunk.includes("\n") ? chunk.slice(chunk.indexOf("\n") + 1) : "";
+        } else if (state.leftover) {
+          chunk = state.leftover + chunk;
+        }
+
+        const lastNewline = chunk.lastIndexOf("\n");
+        if (lastNewline !== -1) {
+          state.leftover = chunk.slice(lastNewline + 1);
+          const lines = chunk.slice(0, lastNewline).split("\n");
+          for (const line of lines) {
+            try {
+              const value = JSON.parse(line);
+              const prompt = extractUserPrompt(value);
+              if (prompt) {
+                state.pendingPrompt = prompt;
+                state.pendingTools = [];
+                continue;
+              }
+              const tools = extractToolNames(value);
+              if (tools.length) {
+                state.pendingTools.push(...tools);
+              }
+              if (value.type === "PLANNER_RESPONSE" && value.source === "MODEL" && value.status === "DONE" && typeof value.content === "string") {
+                const id = `antigravity:${value.step_index ?? value.created_at ?? state.messages.size}`;
+                const item = { id, text: value.content.slice(0, 100_000) };
+                if (state.pendingPrompt) item.userPrompt = state.pendingPrompt;
+                if (state.pendingTools.length) item.toolCalls = [...state.pendingTools];
+                state.pendingPrompt = null;
+                state.pendingTools = [];
+                state.messages.set(id, item);
+                continue;
+              }
+              const message = value.type === "assistant" ? value.message :
+                value.type === "response_item" && value.payload?.type === "message" ? value.payload : null;
+              if (message?.role !== "assistant" || !Array.isArray(message.content)) continue;
+              message.content.forEach((part, index) => {
+                if (!["text", "output_text"].includes(part?.type) || typeof part.text !== "string") return;
+                const id = `${value.uuid ?? message.id ?? value.timestamp ?? state.messages.size}:${index}`;
+                const item = { id, text: part.text.slice(0, 100_000) };
+                if (state.pendingPrompt) item.userPrompt = state.pendingPrompt;
+                if (state.pendingTools.length) item.toolCalls = [...state.pendingTools];
+                state.pendingPrompt = null;
+                state.pendingTools = [];
+                state.messages.set(id, item);
+              });
+            } catch {}
+          }
+        } else {
+          state.leftover = chunk;
+        }
+        state.lastOffset = stat.size;
+
+        if (bindings.get(sessionId) !== token || generation !== currentGeneration || !isEnabled()) return null;
+        // Paths and opaque binding tokens never cross the IPC boundary.
+        return { revision, messages: [...state.messages.values()].slice(-100) };
+      } finally {
+        await handle.close();
+      }
     } catch (error) {
       if (error.code === "ENOENT") return null;
       throw new Error("执行记录不可用：请检查 CLI 生命周期钩子与本地会话目录。", { cause: error });

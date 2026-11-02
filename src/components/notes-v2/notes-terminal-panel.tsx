@@ -8,11 +8,12 @@ import {
   useId,
   type MouseEvent,
 } from "react";
-import { ClockCounterClockwise, Plus, ArrowClockwise, Trash, X } from "@phosphor-icons/react";
+import { BookOpenText, ClockCounterClockwise, Plus, ArrowClockwise, Trash, X } from "@phosphor-icons/react";
 import { terminalTabGlyph } from "./terminal/notes-terminal-options";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesTerminalSessions } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
 import { NotesTerminalTranscript } from "./terminal/notes-terminal-transcript";
+import { NotesTerminalReader } from "./terminal/notes-terminal-reader";
 import type {
   DesktopCommandRecord,
   DesktopTerminalBridge,
@@ -55,6 +56,10 @@ export function NotesTerminalPanel({
   const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const toggleSearch = useCallback(() => setSearchOpen((open) => !open), []);
+  const [readingMode, setReadingMode] = useState(false);
+  const toggleReadingMode = useCallback(() => {
+    setReadingMode((m) => !m);
+  }, []);
   const {
     activeSession,
     activeSessionId,
@@ -66,6 +71,7 @@ export function NotesTerminalPanel({
     hostRef,
     isMaxed,
     pasteIntoActiveSession,
+    pickAndInsertFile,
     restartActiveSession,
     searchQuery,
     selectAllActiveSession,
@@ -80,7 +86,27 @@ export function NotesTerminalPanel({
     visible,
     workspaceInstanceId,
     onSearch: toggleSearch,
+    readingSessions: readingMode,
+    onToggleReadingMode: toggleReadingMode,
   });
+  const [hasTranscript, setHasTranscript] = useState(Boolean(activeSession?.agentKind));
+  useEffect(() => {
+    if (activeSession?.agentKind) {
+      setHasTranscript(true);
+      return;
+    }
+    if (!terminalBridge?.readTranscript || !activeSessionId) {
+      setHasTranscript(false);
+      return;
+    }
+    let cancelled = false;
+    terminalBridge.readTranscript(activeSessionId).then((res) => {
+      if (!cancelled) setHasTranscript(res !== null);
+    }).catch(() => {
+      if (!cancelled) setHasTranscript(false);
+    });
+    return () => { cancelled = true; };
+  }, [terminalBridge, activeSessionId, activeSession?.agentKind]);
   const closeSession = useCallback(() => {
     closeActiveSession();
     if (sessions.length === 1) onClosePanel?.();
@@ -171,6 +197,17 @@ export function NotesTerminalPanel({
         </button>
       </div>
       <div className="notes-v2__terminal-session-actions">
+        <button
+          type="button"
+          disabled={!hasTranscript}
+          className="notes-v2__terminal-dock-button"
+          aria-label={readingMode ? "退出阅读模式" : (hasTranscript ? "阅读模式" : "未检测到 Agent 记录")}
+          title={readingMode ? "退出阅读模式 (Esc / Mod+Shift+R)" : (hasTranscript ? "阅读模式 (Mod+Shift+R)" : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）")}
+          data-active={readingMode ? "true" : "false"}
+          onClick={toggleReadingMode}
+        >
+          <BookOpenText aria-hidden="true" size={14} />
+        </button>
         {transcriptToggle}
         <button
           aria-label={NOTES_UI_COPY.panels.terminal.restartSession}
@@ -265,6 +302,21 @@ export function NotesTerminalPanel({
             </div>
 
             <div className="notes-v2__terminal-actions">
+              <button
+                type="button"
+                disabled={!hasTranscript}
+                data-active={readingMode ? "true" : "false"}
+                title={
+                  readingMode
+                    ? "退出阅读模式 (Esc / Mod+Shift+R)"
+                    : hasTranscript
+                      ? "阅读模式 (Mod+Shift+R)"
+                      : "未检测到 Agent 记录（仅支持 Claude Code、Codex 或 Antigravity 会话）"
+                }
+                onClick={toggleReadingMode}
+              >
+                {readingMode ? "退出阅读" : "阅读模式"}
+              </button>
               {transcriptToggle}
               <button onClick={() => restartActiveSession()} type="button">
                 {NOTES_UI_COPY.panels.terminal.restartSession}
@@ -311,12 +363,27 @@ export function NotesTerminalPanel({
             data-transcript-open={transcriptOpen ? "true" : "false"}
             onContextMenu={handleTerminalContextMenu}
             onMouseDown={() => focusActiveSession()}
+            style={{ position: "relative" }}
           >
             <div
               className="notes-v2__terminal-host"
               data-testid="notes-terminal-host"
               ref={hostRef}
+              style={{
+                width: "100%",
+                height: "100%",
+                visibility: readingMode ? "hidden" : "visible",
+                pointerEvents: readingMode ? "none" : "auto",
+              }}
             />
+            {readingMode && terminalBridge ? (
+              <NotesTerminalReader
+                bridge={terminalBridge}
+                sessionId={activeSessionId}
+                active={readingMode}
+                onClose={() => setReadingMode(false)}
+              />
+            ) : null}
             {visible && transcriptOpen ? <NotesTerminalTranscript bridge={terminalBridge} sessionId={activeSessionId} id={transcriptRegionId} /> : null}
           </div>
           {contextMenu ? (
@@ -345,6 +412,13 @@ export function NotesTerminalPanel({
                 type="button"
               >
                 {NOTES_UI_COPY.panels.terminal.contextMenu.paste}
+              </button>
+              <button
+                onClick={() => runContextMenuAction(pickAndInsertFile)}
+                role="menuitem"
+                type="button"
+              >
+                添加文件…
               </button>
               <button
                 onClick={() => runContextMenuAction(selectAllActiveSession)}

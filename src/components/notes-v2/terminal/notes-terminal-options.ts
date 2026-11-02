@@ -132,6 +132,46 @@ export function saveTerminalWebglEnabled(enabled: boolean): void {
   broadcastTerminalSettings();
 }
 
+export const DEFAULT_TERMINAL_READER_FONT_SIZE = 15;
+export const TERMINAL_READER_FONT_SIZE_STORAGE = "auris.notes.terminal.reader-font-size";
+export const TERMINAL_READER_FONT_SIZE_OPTIONS = [14, 15, 16, 17, 18, 19, 20] as const;
+
+export function clampTerminalReaderFontSize(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_TERMINAL_READER_FONT_SIZE;
+  const rounded = Math.round(value);
+  return Math.min(20, Math.max(14, rounded));
+}
+
+export function loadTerminalReaderFontSize(): number {
+  if (typeof window === "undefined") return DEFAULT_TERMINAL_READER_FONT_SIZE;
+  try {
+    const saved = window.localStorage.getItem(TERMINAL_READER_FONT_SIZE_STORAGE);
+    return saved === null ? DEFAULT_TERMINAL_READER_FONT_SIZE : clampTerminalReaderFontSize(Number(saved));
+  } catch {
+    return DEFAULT_TERMINAL_READER_FONT_SIZE;
+  }
+}
+
+export function saveTerminalReaderFontSize(value: number): void {
+  if (typeof window === "undefined") return;
+  const clamped = clampTerminalReaderFontSize(value);
+  try {
+    window.localStorage.setItem(TERMINAL_READER_FONT_SIZE_STORAGE, String(clamped));
+  } catch {}
+  broadcastTerminalSettings();
+}
+
+export function terminalReaderFontSizeIndex(fontSize: number): number {
+  const clamped = clampTerminalReaderFontSize(fontSize);
+  const idx = TERMINAL_READER_FONT_SIZE_OPTIONS.indexOf(clamped as (typeof TERMINAL_READER_FONT_SIZE_OPTIONS)[number]);
+  return idx >= 0 ? idx : 1;
+}
+
+export function terminalReaderFontSizeFromIndex(index: number): number {
+  if (index < 0 || index >= TERMINAL_READER_FONT_SIZE_OPTIONS.length) return DEFAULT_TERMINAL_READER_FONT_SIZE;
+  return TERMINAL_READER_FONT_SIZE_OPTIONS[index];
+}
+
 type KeyActions = {
   copy: () => void;
   paste: () => void;
@@ -141,6 +181,7 @@ type KeyActions = {
   zoom: (delta: number | null) => void;
   selectSession: (index: number) => void;
   hasSelection: () => boolean;
+  toggleReadingMode?: () => void;
   sessionShortcutCount?: number;
 };
 
@@ -174,6 +215,11 @@ export function createNotesTerminalKeyHandler(actions: KeyActions, platform = ge
       case "k": return consume(actions.clear);
       case "a": return consume(actions.selectAll);
       case "f": return event.shiftKey && platform !== "linux" ? true : consume(actions.search);
+      case "r":
+        if (event.shiftKey && actions.toggleReadingMode) {
+          return consume(actions.toggleReadingMode);
+        }
+        return true;
       case "+":
       case "=": return consume(() => actions.zoom(2));
       case "-": return consume(() => actions.zoom(-2));

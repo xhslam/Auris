@@ -95,6 +95,8 @@ type UseNotesTerminalSessionsInput = {
   strictWorkspaceScope?: boolean;
   sessionIdPrefix?: string;
   autoCreateSession?: boolean;
+  readingSessions?: Set<string> | boolean | null;
+  onToggleReadingMode?: (sessionId: string) => void;
 };
 
 function getThemeScope(element?: Element | null) {
@@ -403,6 +405,8 @@ export function useNotesTerminalSessions({
   strictWorkspaceScope = false,
   sessionIdPrefix = "notes-term",
   autoCreateSession = true,
+  readingSessions = null,
+  onToggleReadingMode,
 }: UseNotesTerminalSessionsInput) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const sessionHostsRef = useRef(new Map<string, HTMLDivElement>());
@@ -435,6 +439,10 @@ export function useNotesTerminalSessions({
   const webglAddonClassRef = useRef<typeof WebglAddon | null>(null);
   const searchHandlerRef = useRef(onSearch);
   searchHandlerRef.current = onSearch;
+  const readingSessionsRef = useRef(readingSessions);
+  readingSessionsRef.current = readingSessions;
+  const toggleReadingModeRef = useRef(onToggleReadingMode);
+  toggleReadingModeRef.current = onToggleReadingMode;
   const activatedScopesRef = useRef(new Set<string>());
   const sessionsRef = useRef<NotesTerminalSession[]>([]);
   const nextSessionIdRef = useRef(1);
@@ -606,6 +614,13 @@ export function useNotesTerminalSessions({
       const entry = entriesRef.current.get(sessionId);
 
       if (!entry || !terminalBridge) {
+        return;
+      }
+
+      if (
+        readingSessionsRef.current === true ||
+        (readingSessionsRef.current instanceof Set && readingSessionsRef.current.has(sessionId))
+      ) {
         return;
       }
 
@@ -945,6 +960,7 @@ export function useNotesTerminalSessions({
           clear: () => { terminal.clear(); terminal.scrollToBottom(); },
           selectAll: () => terminal.selectAll(),
           search: () => searchHandlerRef.current?.(),
+          toggleReadingMode: () => toggleReadingModeRef.current?.(session.id),
           zoom: (delta) => {
             fontSizeRef.current = delta === null ? DEFAULT_TERMINAL_FONT_SIZE : clampTerminalFontSize(fontSizeRef.current + delta);
             try { window.localStorage.setItem(TERMINAL_FONT_SIZE_STORAGE, String(fontSizeRef.current)); } catch {}

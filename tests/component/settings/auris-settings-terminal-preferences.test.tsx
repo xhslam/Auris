@@ -2,18 +2,21 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AurisSettings } from "@/components/settings/auris-settings";
 import {
   loadTerminalLineHeight,
+  loadTerminalReaderFontSize,
   loadTerminalWebglEnabled,
   TERMINAL_LINE_HEIGHT_STORAGE,
+  TERMINAL_READER_FONT_SIZE_STORAGE,
   TERMINAL_WEBGL_STORAGE,
 } from "@/components/notes-v2/terminal/notes-terminal-options";
 
 describe("AurisSettings terminal preferences", () => {
   beforeEach(() => {
     window.localStorage.removeItem(TERMINAL_LINE_HEIGHT_STORAGE);
+    window.localStorage.removeItem(TERMINAL_READER_FONT_SIZE_STORAGE);
     window.localStorage.removeItem(TERMINAL_WEBGL_STORAGE);
   });
 
-  it("persists GPU acceleration toggle and line height controls", async () => {
+  it("persists GPU acceleration toggle, line height, and reader font size controls", async () => {
     render(<AurisSettings />);
 
     // Click "终端" category in settings sidebar
@@ -38,6 +41,16 @@ describe("AurisSettings terminal preferences", () => {
     fireEvent.click(lineHeightSelect);
     await waitFor(() => {
       expect(loadTerminalLineHeight()).toBe(1.5);
+    });
+
+    // Find "阅读模式字号" select button (default 15px（默认）)
+    const readerFontSizeSelect = screen.getByRole("button", { name: /阅读模式字号：15px（默认）/ });
+    expect(readerFontSizeSelect).toBeInTheDocument();
+
+    // Cycle to next (16px)
+    fireEvent.click(readerFontSizeSelect);
+    await waitFor(() => {
+      expect(loadTerminalReaderFontSize()).toBe(16);
     });
   });
 });

@@ -202,4 +202,48 @@ describe("terminal transcripts", () => {
     spawnSync(process.execPath, [script], { input, env: { ...process.env, AURIS_TRANSCRIPT_TOKEN: token } });
     expect(readdirSync(directory)).not.toContain(`${token}.json`);
   });
+
+  it("reads incrementally on file append and falls back to full read when truncated", async () => {
+    const { service, file, bind } = setup();
+    service.configure(true);
+    writeFileSync(file, assistant("first message", "msg1"));
+    bind("session-inc");
+
+    // Initial read
+    const first = await service.read("session-inc");
+    expect(first.messages).toEqual([{ id: "msg1:0", text: "first message" }]);
+
+    // Append second message incrementally
+    writeFileSync(file, assistant("first message", "msg1") + assistant("second message", "msg2"));
+    const second = await service.read("session-inc", first.revision);
+    expect(second.messages).toEqual([
+      { id: "msg1:0", text: "first message" },
+      { id: "msg2:0", text: "second message" },
+    ]);
+
+    // Truncate file (file size becomes smaller than lastOffset) -> should fall back to full read
+    writeFileSync(file, assistant("truncated replacement", "msg3"));
+    const third = await service.read("session-inc", second.revision);
+    expect(third.messages).toEqual([
+      { id: "msg3:0", text: "truncated replacement" },
+    ]);
+  });
+
+  it("extracts user prompt and tool calls into turn objects", () => {
+    const lines = [
+      JSON.stringify({ type: "USER_INPUT", content: "<USER_REQUEST>\n请帮我分析日志\n</USER_REQUEST>" }),
+      JSON.stringify({ type: "PLANNER_RESPONSE", tool_calls: [{ name: "read_file" }, { name: "grep_search" }] }),
+      JSON.stringify({ type: "PLANNER_RESPONSE", source: "MODEL", status: "DONE", step_index: 4, content: "日志分析完成。" }),
+    ].join("\n") + "\n";
+
+    const parsed = parseTranscript(lines);
+    expect(parsed).toEqual([
+      {
+        id: "antigravity:4",
+        text: "日志分析完成。",
+        userPrompt: "请帮我分析日志",
+        toolCalls: ["read_file", "grep_search"],
+      },
+    ]);
+  });
 });

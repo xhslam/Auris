@@ -3,18 +3,25 @@ import { DEFAULT_NOTES_TYPOGRAPHY } from "@/features/notes/formatting/notes-typo
 import {
   clampTerminalFontSize,
   clampTerminalLineHeight,
+  clampTerminalReaderFontSize,
   createNotesTerminalKeyHandler,
   DEFAULT_TERMINAL_LINE_HEIGHT,
+  DEFAULT_TERMINAL_READER_FONT_SIZE,
   DEFAULT_TERMINAL_WEBGL,
   loadTerminalLineHeight,
+  loadTerminalReaderFontSize,
   loadTerminalWebglEnabled,
   preferredTerminalFontStack,
   saveTerminalLineHeight,
+  saveTerminalReaderFontSize,
   saveTerminalWebglEnabled,
   terminalLineHeightFromIndex,
   terminalLineHeightIndex,
+  terminalReaderFontSizeFromIndex,
+  terminalReaderFontSizeIndex,
   terminalTabGlyph,
   TERMINAL_LINE_HEIGHT_STORAGE,
+  TERMINAL_READER_FONT_SIZE_STORAGE,
   TERMINAL_WEBGL_STORAGE,
 } from "@/components/notes-v2/terminal/notes-terminal-options";
 import { verifiedMonoStack } from "@/components/notes-v2/terminal/verified-terminal-mono-stack";
@@ -108,5 +115,40 @@ describe("VMark terminal presentation and key policy", () => {
     expect(createNotesTerminalKeyHandler(actions, "linux")(new KeyboardEvent("keydown", { key: "f", ctrlKey: true }))).toBe(true);
     expect(createNotesTerminalKeyHandler(actions, "macos")(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }))).toBe(true);
     expect(actions.search).not.toHaveBeenCalled();
+  });
+  it("clamps and persists reader font size within 14-20px range", () => {
+    expect(clampTerminalReaderFontSize(12)).toBe(14);
+    expect(clampTerminalReaderFontSize(25)).toBe(20);
+    expect(clampTerminalReaderFontSize(15)).toBe(15);
+    expect(loadTerminalReaderFontSize()).toBe(DEFAULT_TERMINAL_READER_FONT_SIZE);
+
+    saveTerminalReaderFontSize(18);
+    expect(loadTerminalReaderFontSize()).toBe(18);
+    expect(terminalReaderFontSizeIndex(18)).toBe(4);
+    expect(terminalReaderFontSizeFromIndex(4)).toBe(18);
+    window.localStorage.removeItem(TERMINAL_READER_FONT_SIZE_STORAGE);
+  });
+  it("handles Mod+Shift+R chord for toggleReadingMode without capturing regular Ctrl+R", () => {
+    const toggleReadingMode = vi.fn();
+    const actions = {
+      copy: vi.fn(),
+      paste: vi.fn(),
+      clear: vi.fn(),
+      selectAll: vi.fn(),
+      search: vi.fn(),
+      zoom: vi.fn(),
+      selectSession: vi.fn(),
+      hasSelection: () => false,
+      toggleReadingMode,
+    };
+    const handler = createNotesTerminalKeyHandler(actions, "macos");
+
+    // Regular Ctrl+R / Cmd+R without Shift should not trigger toggleReadingMode
+    expect(handler(new KeyboardEvent("keydown", { key: "r", metaKey: true }))).toBe(true);
+    expect(toggleReadingMode).not.toHaveBeenCalled();
+
+    // Cmd+Shift+R should trigger toggleReadingMode
+    expect(handler(new KeyboardEvent("keydown", { key: "r", metaKey: true, shiftKey: true }))).toBe(false);
+    expect(toggleReadingMode).toHaveBeenCalledTimes(1);
   });
 });

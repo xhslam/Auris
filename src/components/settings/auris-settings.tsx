@@ -60,11 +60,15 @@ import {
 } from "@/features/notes/formatting/notes-markdown-layout";
 import {
   loadTerminalLineHeight,
+  loadTerminalReaderFontSize,
   loadTerminalWebglEnabled,
   saveTerminalLineHeight,
+  saveTerminalReaderFontSize,
   saveTerminalWebglEnabled,
   terminalLineHeightFromIndex,
   terminalLineHeightIndex,
+  terminalReaderFontSizeFromIndex,
+  terminalReaderFontSizeIndex,
 } from "@/components/notes-v2/terminal/notes-terminal-options";
 
 /* ------------------------------------------------------------------ */
@@ -318,6 +322,7 @@ const INITIAL_TOGGLES: Toggles = {
   mcpStartOnLaunch: true,
   mcpAutoApprove: false,
   browserAutomationEnabled: false,
+  terminalNotificationsEnabled: true,
   desktopIslandEnabled: true,
   desktopIslandExpandOnHover: true,
   desktopIslandPrivacyMode: false,
@@ -379,6 +384,7 @@ const INITIAL_SELECTS: Selects = {
   panelSize: 2,
   termFontSize: 1,
   termLineHeight: 2,
+  termReaderFontSize: 1,
   cursorStyle: 0,
   scrollback: 1,
   terminalBell: 1,
@@ -436,6 +442,7 @@ const SETTINGS_EXPORT_SELECT_KEYS = [
   "editorWidth",
   "tabSize",
   "termLineHeight",
+  "termReaderFontSize",
   "quoteStyle",
   "quoteToggleBehavior",
   "limitConsecutivePunct",
@@ -636,6 +643,7 @@ export function AurisSettings({ accent }: { accent?: string }) {
   const bridge = useMemo(() => getDesktopBridge()?.notesMcp ?? null, []);
   const desktopIslandBridge = useMemo(() => getDesktopBridge()?.desktopIsland ?? null, []);
   const systemBridge = useMemo(() => getDesktopBridge()?.system ?? null, []);
+  const terminalBridge = useMemo(() => getDesktopBridge()?.terminal ?? null, []);
   const browserSecurityBridge = useMemo(() => {
     const desktop = typeof window !== "undefined" ? window.shadowingDesktop : null;
     const api = desktop?.browserSecurity;
@@ -788,6 +796,19 @@ export function AurisSettings({ accent }: { accent?: string }) {
     return () => { cancelled = true; };
   }, [desktopIslandBridge]);
 
+  useEffect(() => {
+    if (!terminalBridge?.getNotificationsEnabled) return;
+    let cancelled = false;
+    void terminalBridge.getNotificationsEnabled().then((enabled) => {
+      if (cancelled) return;
+      setToggles((prev) => ({
+        ...prev,
+        terminalNotificationsEnabled: enabled,
+      }));
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [terminalBridge]);
+
   /* --- load persisted notes reading theme on mount --- */
   useEffect(() => {
     setTheme(loadAppTheme());
@@ -913,16 +934,18 @@ export function AurisSettings({ accent }: { accent?: string }) {
     saveNotesMarkdownLayout(next);
   }, [selects]);
 
-  /* --- 终端偏好：GPU 加速与行距，加载回填，改动持久化 --- */
+  /* --- 终端偏好：GPU 加速、行距与阅读模式字号，加载回填，改动持久化 --- */
   const termSettingsSaveInitRef = useRef(true);
   const lastTermSettingsJsonRef = useRef("");
   useEffect(() => {
     const webgl = loadTerminalWebglEnabled();
     const lineHeight = loadTerminalLineHeight();
     const termLineHeight = terminalLineHeightIndex(lineHeight);
-    lastTermSettingsJsonRef.current = JSON.stringify({ webgl, termLineHeight });
+    const readerFontSize = loadTerminalReaderFontSize();
+    const termReaderFontSize = terminalReaderFontSizeIndex(readerFontSize);
+    lastTermSettingsJsonRef.current = JSON.stringify({ webgl, termLineHeight, termReaderFontSize });
     setToggles((prev) => ({ ...prev, webgl }));
-    setSelects((prev) => ({ ...prev, termLineHeight }));
+    setSelects((prev) => ({ ...prev, termLineHeight, termReaderFontSize }));
   }, []);
   useEffect(() => {
     if (termSettingsSaveInitRef.current) {
@@ -931,14 +954,20 @@ export function AurisSettings({ accent }: { accent?: string }) {
     }
     const currentWebgl = toggles.webgl !== false;
     const currentLineHeight = terminalLineHeightFromIndex(selects.termLineHeight ?? 2);
-    const json = JSON.stringify({ webgl: currentWebgl, termLineHeight: selects.termLineHeight });
+    const currentReaderFontSize = terminalReaderFontSizeFromIndex(selects.termReaderFontSize ?? 1);
+    const json = JSON.stringify({
+      webgl: currentWebgl,
+      termLineHeight: selects.termLineHeight,
+      termReaderFontSize: selects.termReaderFontSize,
+    });
     if (json === lastTermSettingsJsonRef.current) return;
     lastTermSettingsJsonRef.current = json;
     saveTerminalWebglEnabled(currentWebgl);
     saveTerminalLineHeight(currentLineHeight);
-  }, [toggles.webgl, selects.termLineHeight]);
+    saveTerminalReaderFontSize(currentReaderFontSize);
+  }, [toggles.webgl, selects.termLineHeight, selects.termReaderFontSize]);
 
-    /* --- selecting a swatch persists + broadcasts to the notes workbench --- */
+  /* --- selecting a swatch persists + broadcasts to the notes workbench --- */
   const handleSetTheme = useCallback((id: string) => {
     setTheme(id);
     if (isAppThemeId(id)) {
@@ -993,10 +1022,13 @@ export function AurisSettings({ accent }: { accent?: string }) {
             }));
           }).catch(() => undefined);
         }
+        if (key === "terminalNotificationsEnabled") {
+          void terminalBridge?.setNotificationsEnabled?.(value).catch(() => undefined);
+        }
         return { ...prev, [key]: value };
       });
     },
-    [bridge, browserSecurity.automationToggleAvailable, browserSecurityBridge, desktopIslandBridge],
+    [bridge, browserSecurity.automationToggleAvailable, browserSecurityBridge, desktopIslandBridge, terminalBridge],
   );
 
   const cycleSelect = useCallback((key: string, len: number) => {
@@ -2215,6 +2247,17 @@ function buildPanel(
         title: "终端",
         sections: [
           {
+            title: "终端通知",
+            rows: [
+              {
+                kind: "toggle" as const,
+                key: "terminalNotificationsEnabled",
+                label: "终端完成/等待时发送系统通知",
+                desc: "当会话完成任务或等待确认操作，且窗口失焦或不在当前前台标签时，发出系统通知与角标提示。",
+              },
+            ],
+          },
+          {
             title: "终端偏好",
             rows: [
               {
@@ -2228,6 +2271,12 @@ function buildPanel(
                 key: "termLineHeight",
                 label: "行距",
                 options: ["1.2", "1.3", "1.4（默认）", "1.5", "1.6"],
+              },
+              {
+                kind: "select" as const,
+                key: "termReaderFontSize",
+                label: "阅读模式字号",
+                options: ["14px", "15px（默认）", "16px", "17px", "18px", "19px", "20px"],
               },
             ],
           },
