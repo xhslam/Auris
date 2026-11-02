@@ -1,5 +1,14 @@
+:root {
+  --auris-motion-fast: 120ms;
+  --auris-motion-base: 160ms;
+  --auris-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
 /* Dedicated layout, shared Notes palette and xterm renderer. No new terminal skin. */
 .desktop-app-frame .notes-v2.terminal-focus {
+  --auris-motion-fast: 120ms;
+  --auris-motion-base: 160ms;
+  --auris-ease: cubic-bezier(0.2, 0, 0, 1);
   display: grid;
   grid-template-columns: 190px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
@@ -14,6 +23,16 @@
   color: var(--notes-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 12px;
+  transition: grid-template-columns var(--auris-motion-base, 160ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+.desktop-app-frame .notes-v2.terminal-focus[data-sidebar-collapsed="true"] {
+  grid-template-columns: 0px minmax(0, 1fr);
+}
+.desktop-app-frame .notes-v2.terminal-focus[data-sidebar-collapsed="true"] .terminal-focus__sidebar {
+  display: flex;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 .desktop-app-shell:has(.terminal-focus) .desktop-app-frame__main { height: 100%; min-height: 0; padding: 0; }
 .desktop-app-frame .terminal-focus button {
@@ -33,19 +52,86 @@
 .desktop-app-frame .terminal-focus button:focus-visible,
 .terminal-focus select:focus-visible,
 .terminal-focus [role="separator"]:focus-visible { outline: 2px solid var(--notes-text); outline-offset: -2px; }
-.terminal-focus__sidebar { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 18px 10px 12px; border-right: 1px solid var(--notes-line); }
+.terminal-focus__sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 190px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 18px 10px 12px;
+  border-right: 1px solid var(--notes-line);
+  transition: opacity var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)),
+              visibility var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
+}
 .terminal-focus__sidebar-heading { display: flex; align-items: center; gap: 8px; padding: 0 6px; }
 .terminal-focus__sidebar-heading h1 { margin: 0; flex: 1; font-size: 13px; font-weight: 600; }
 .terminal-focus__sidebar-heading > span { color: var(--notes-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
 .terminal-focus__session-list { margin-top: 18px; flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
 .terminal-focus__project-group { min-width: 0; }
+.terminal-focus__project-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--auris-motion-base, 160ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+.terminal-focus__project-collapse[data-collapsed="true"] {
+  grid-template-rows: 0fr;
+}
+.terminal-focus__project-collapse-inner {
+  overflow: hidden;
+  min-height: 0;
+}
 .terminal-focus__project-heading { display: flex; align-items: center; gap: 2px; margin-bottom: 5px; }
 .desktop-app-frame .terminal-focus button.terminal-focus__project-toggle { display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1; padding: 5px 2px; text-align: left; color: var(--notes-muted); font-size: 10px; }
 .terminal-focus__project-toggle > svg { flex-shrink: 0; }
 .terminal-focus__project-toggle > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.terminal-focus__group-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.terminal-focus__group-badge--waiting {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.terminal-focus__group-badge--done {
+  background: rgba(16, 185, 129, 0.18);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
 .terminal-focus__project-toggle > small { margin-left: auto; font-size: 9px; }
 .desktop-app-frame .terminal-focus button.terminal-focus__project-add { width: 22px; height: 22px; display: grid; place-items: center; flex-shrink: 0; color: var(--notes-muted); }
-.terminal-focus__session-row { display: flex; align-items: center; min-width: 0; margin: 3px 0; border-radius: 8px; border: 1px solid transparent; }
+@keyframes auris-session-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.terminal-focus__session-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 3px 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  animation: auris-session-enter var(--auris-motion-base, 160ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+.terminal-focus__session-row[data-closing="true"] {
+  opacity: 0;
+  transition: opacity var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
+}
 .terminal-focus__session-row[data-active="true"] { background: color-mix(in srgb, var(--notes-text) 9%, transparent); border-color: var(--notes-line); }
 .desktop-app-frame .terminal-focus button.terminal-focus__session { display: flex; align-items: center; flex: 1; gap: 8px; min-width: 0; text-align: left; padding: 10px 4px 10px 9px; border-radius: 7px; background: transparent; }
 .desktop-app-frame .terminal-focus button.terminal-focus__session:hover { background: color-mix(in srgb, var(--notes-text) 5%, transparent); }
@@ -80,18 +166,129 @@
 .desktop-app-frame .terminal-focus button.terminal-focus__tool[aria-pressed="true"] { background: color-mix(in srgb, var(--notes-text) 10%, transparent); }
 .terminal-focus__canvas { flex: 1 1 0; min-height: 0; min-width: 0; overflow: auto; position: relative; }
 .terminal-focus__grid { position: relative; display: grid; gap: var(--terminal-focus-gap, 8px); width: 100%; height: 100%; }
-.terminal-focus__pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; border: 1px solid var(--notes-line); border-radius: 13px; background: var(--notes-terminal-bg); overflow: hidden; }
+@keyframes auris-pane-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes auris-pane-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.terminal-focus__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--notes-line);
+  border-radius: 13px;
+  background: var(--notes-terminal-bg);
+  overflow: hidden;
+  animation: auris-pane-enter var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+.terminal-focus__pane[data-closing="true"] {
+  opacity: 0;
+  transition: opacity var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+.terminal-focus__grid[data-single-pane="true"] .terminal-focus__pane[data-active="true"] {
+  animation: auris-pane-fade-in 100ms var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)) both;
+}
 .terminal-focus__pane[hidden] { display: none; }
 .terminal-focus__pane[data-active="true"] { border-color: color-mix(in srgb, var(--notes-terminal-fg) 40%, var(--notes-line)); }
+.terminal-focus__pane[data-drag-over="true"] { border-color: var(--notes-accent); background: color-mix(in srgb, var(--notes-accent) 6%, var(--notes-terminal-bg)); }
 .terminal-focus__pane-header { display: flex; align-items: center; gap: 8px; flex: 0 0 34px; padding: 0 8px 0 12px; }
 .desktop-app-frame .terminal-focus button.terminal-focus__pane-title { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; text-align: left; padding: 4px 0; background: transparent; }
 .terminal-focus__pane-title > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .terminal-focus__pane-tools { display: flex; align-items: center; gap: 2px; }
 .terminal-focus__pane-tools .terminal-focus__tool { opacity: .5; }
 .terminal-focus__pane:hover .terminal-focus__tool, .terminal-focus__pane:focus-within .terminal-focus__tool { opacity: 1; }
-.terminal-focus__status-dot { display: inline-block; width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: var(--notes-muted); opacity: .65; }
-.terminal-focus__status-dot[data-status="running"] { background: var(--notes-terminal-fg); opacity: .9; }
-.terminal-focus__status-dot[data-status="failed"] { background: #c55b5b; opacity: 1; }
+.terminal-focus__status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--notes-muted);
+  opacity: .5;
+  transition: background-color 150ms var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)),
+              box-shadow 150ms var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+.terminal-focus__status-dot[data-status="running"],
+.terminal-focus__status-dot[data-status="starting"] {
+  background: var(--notes-terminal-fg);
+  opacity: .8;
+}
+.terminal-focus__status-dot[data-status="failed"] {
+  background: #ef4444;
+  opacity: 1;
+}
+.terminal-focus__status-dot[data-status="exited"] {
+  background: var(--notes-muted);
+  opacity: .4;
+}
+.terminal-focus__status-dot[data-status="agent-working"] {
+  background: var(--notes-accent, #3b82f6);
+  opacity: 0.95;
+  animation: terminal-focus-pulse 1.2s ease-in-out infinite;
+}
+.terminal-focus__status-dot[data-status="agent-waiting"] {
+  background: #f59e0b;
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
+}
+.terminal-focus__status-dot[data-status="agent-done-unread"] {
+  background: #10b981;
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
+}
+.terminal-focus__status-dot[data-status="agent-done-read"] {
+  background: var(--notes-muted);
+  opacity: .5;
+}
+.terminal-focus__status-dot[data-status="agent-idle"] {
+  background: var(--notes-muted);
+  opacity: .45;
+}
+
+@keyframes terminal-focus-pulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  .desktop-app-frame .notes-v2.terminal-focus {
+    --auris-motion-fast: 0ms !important;
+    --auris-motion-base: 0ms !important;
+  }
+  .desktop-app-frame .notes-v2.terminal-focus,
+  .terminal-focus__sidebar,
+  .terminal-focus__project-collapse,
+  .terminal-focus__session-row,
+  .terminal-focus__pane,
+  .terminal-focus__status-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+  .terminal-focus__status-dot[data-status="agent-working"] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
 .terminal-focus__pane-host { flex: 1 1 0; min-height: 0; min-width: 0; overflow: hidden; padding: 4px 12px 0; }
 .desktop-app-frame .notes-v2.terminal-focus .notes-v2__terminal-xterm { position: relative; height: 100%; width: 100%; min-width: 0; padding: 0; background: var(--notes-terminal-bg); }
 .desktop-app-frame .notes-v2.terminal-focus .notes-v2__terminal-xterm .xterm { height: 100%; padding: 0; background: var(--notes-terminal-bg); }

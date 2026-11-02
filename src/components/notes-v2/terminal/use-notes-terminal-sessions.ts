@@ -611,11 +611,18 @@ export function useNotesTerminalSessions({
     }
   }, [isSessionDisplayed, loadWebglAddonForEntry, disposeWebglAddonForEntry]);
 
+  const layoutAnimationCountRef = useRef(0);
+  const layoutAnimationSafetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const fitSession = useCallback(
     (sessionId: string) => {
       const entry = entriesRef.current.get(sessionId);
 
       if (!entry || !terminalBridge) {
+        return;
+      }
+
+      if (layoutAnimationCountRef.current > 0) {
         return;
       }
 
@@ -655,6 +662,58 @@ export function useNotesTerminalSessions({
       });
     },
     [isSessionDisplayed, terminalBridge],
+  );
+
+  const performPostAnimationFit = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (layoutAnimationCountRef.current > 0) return;
+      if (multiPaneRef.current) {
+        for (const id of sessionHostsRef.current.keys()) {
+          if (isSessionDisplayed(id)) fitSession(id);
+        }
+      } else if (activeSessionIdRef.current) {
+        fitSession(activeSessionIdRef.current);
+      }
+    });
+  }, [fitSession, isSessionDisplayed]);
+
+  const endLayoutAnimation = useCallback(() => {
+    if (layoutAnimationCountRef.current <= 0) return;
+    layoutAnimationCountRef.current -= 1;
+    if (layoutAnimationCountRef.current === 0) {
+      if (layoutAnimationSafetyTimerRef.current !== null) {
+        clearTimeout(layoutAnimationSafetyTimerRef.current);
+        layoutAnimationSafetyTimerRef.current = null;
+      }
+      performPostAnimationFit();
+    }
+  }, [performPostAnimationFit]);
+
+  const beginLayoutAnimation = useCallback(
+    (durationMs = 160) => {
+      layoutAnimationCountRef.current += 1;
+
+      if (layoutAnimationSafetyTimerRef.current !== null) {
+        clearTimeout(layoutAnimationSafetyTimerRef.current);
+      }
+
+      layoutAnimationSafetyTimerRef.current = setTimeout(() => {
+        layoutAnimationSafetyTimerRef.current = null;
+        if (layoutAnimationCountRef.current > 0) {
+          layoutAnimationCountRef.current = 0;
+          performPostAnimationFit();
+        }
+      }, durationMs + 100);
+
+      let ended = false;
+      return () => {
+        if (!ended) {
+          ended = true;
+          endLayoutAnimation();
+        }
+      };
+    },
+    [endLayoutAnimation, performPostAnimationFit],
   );
 
   const showActiveSession = useCallback(
@@ -1704,9 +1763,19 @@ export function useNotesTerminalSessions({
     [markSession, terminalBridge],
   );
 
+  useEffect(() => {
+    return () => {
+      if (layoutAnimationSafetyTimerRef.current !== null) {
+        clearTimeout(layoutAnimationSafetyTimerRef.current);
+      }
+    };
+  }, []);
+
   return {
     activeSessionId,
     activeSession: visibleSessions.find((session) => session.id === activeSessionId) ?? null,
+    beginLayoutAnimation,
+    endLayoutAnimation,
     clearActiveSession,
     clearUnread,
     closeActiveSession,

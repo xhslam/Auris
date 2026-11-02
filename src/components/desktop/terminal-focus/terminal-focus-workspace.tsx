@@ -50,6 +50,7 @@ function SessionPane({
   pasteIntoSession,
   bridge,
   readingMode,
+  closing,
   onToggleReadingMode,
 }: {
   session: NotesTerminalSession;
@@ -64,6 +65,7 @@ function SessionPane({
   pasteIntoSession: (id: string, explicitContent?: string) => void;
   bridge: DesktopTerminalBridge | null;
   readingMode: boolean;
+  closing?: boolean;
   onToggleReadingMode: () => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -86,7 +88,7 @@ function SessionPane({
     return () => { cancelled = true; };
   }, [bridge, session.id, session.agentKind]);
 
-  return <section className="terminal-focus__pane" data-session-id={session.id} data-active={active} data-drag-over={isDragOver} hidden={hidden}
+  return <section className="terminal-focus__pane" data-session-id={session.id} data-active={active} data-drag-over={isDragOver} data-closing={closing ? "true" : undefined} hidden={hidden}
     aria-label={`${title} 终端面板`} onPointerDownCapture={() => activate(session.id)} onFocusCapture={() => activate(session.id)}
     onDragEnter={(event) => {
       if (event.dataTransfer?.types?.includes("Files")) setIsDragOver(true);
@@ -352,10 +354,30 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
   const toggleSingle = (id: string) => { setActiveSessionId(id); setSinglePane((value) => !value); };
   const runMenu = (action: () => unknown) => { setContextMenu(null); void action(); };
 
+  const [closingSessionIds, setClosingSessionIds] = useState<Set<string>>(() => new Set());
+  const handleCloseSession = useCallback((sessionId: string) => {
+    setClosingSessionIds((prev) => new Set(prev).add(sessionId));
+    setTimeout(() => {
+      terminal.closeSession(sessionId);
+      setClosingSessionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(sessionId);
+        return next;
+      });
+    }, 120);
+  }, [terminal]);
+
+  const toggleSidebar = useCallback(() => {
+    const end = terminal.beginLayoutAnimation(160);
+    setLayout((previous) => ({ ...previous, sidebarCollapsed: !previous.sidebarCollapsed }));
+    setTimeout(end, 160);
+  }, [terminal]);
+
   return <div className="notes-v2 notes-v2--minimal terminal-focus" data-notes-theme={theme} data-sidebar-collapsed={layout.sidebarCollapsed ? "true" : "false"} style={notesTypographyCssVars(typography) as CSSProperties}>
     <aside id="terminal-focus-sidebar" className="terminal-focus__sidebar" aria-label="终端会话" inert={projectPickerOpen || layout.sidebarCollapsed} hidden={layout.sidebarCollapsed}>
       <TerminalFocusSidebar sessions={sessions} activeSessionId={activeSessionId} singlePane={singlePane} bridge={bridge}
         disabledCreate={!bridge || terminal.isRestoring || terminal.isMaxed} restoring={terminal.isRestoring}
+        closingSessionIds={closingSessionIds}
         onNew={() => setProjectPickerOpen(true)} onActivate={setActiveSessionId} onRename={terminal.renameSession}
         onCreateInProject={(cwd) => {
           if (!bridge || terminal.isRestoring || terminal.isMaxed) return;
@@ -369,7 +391,7 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
           label={layout.sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
           expanded={!layout.sidebarCollapsed}
           controls="terminal-focus-sidebar"
-          onClick={() => setLayout((previous) => ({ ...previous, sidebarCollapsed: !previous.sidebarCollapsed }))}
+          onClick={toggleSidebar}
         >
           <SidebarSimple size={16} />
         </ToolButton>
@@ -440,7 +462,7 @@ export function TerminalFocusWorkspace({ bridge, ready = true }: { bridge: Deskt
         }}>
           {sessions.map((session) => <SessionPane key={session.id} session={session} active={session.id === activeSessionId}
             hidden={singlePane && session.id !== activeSessionId} singlePane={singlePane} registerHost={terminal.registerSessionHost}
-            activate={setActiveSessionId} close={terminal.closeSession} restart={terminal.restartSession} toggleSingle={toggleSingle}
+            activate={setActiveSessionId} close={handleCloseSession} closing={closingSessionIds.has(session.id)} restart={terminal.restartSession} toggleSingle={toggleSingle}
             pasteIntoSession={terminal.pasteIntoSession} bridge={bridge} readingMode={readingSessions.has(session.id)}
             onToggleReadingMode={() => toggleReadingMode(session.id)} />)}
           {columnWeights.slice(0, -1).map((_, index) => <TrackSeparator key={`column-${index}`} axis="column" index={index} weights={columnWeights} singlePane={singlePane} onResize={(weights) => setLayout((previous) => ({ ...previous, columnWeights: weights }))} />)}

@@ -387,6 +387,14 @@ export function NotesTerminalReader({
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length, scrollToBottom]);
 
+  const [isExiting, setIsExiting] = useState(false);
+  const handleExit = useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose();
+    }, 120);
+  }, [onClose]);
+
   // Global Esc & Mod+Alt+R shortcut to exit
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -394,7 +402,7 @@ export function NotesTerminalReader({
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
-        onClose();
+        handleExit();
         return;
       }
       if (
@@ -405,12 +413,12 @@ export function NotesTerminalReader({
       ) {
         event.preventDefault();
         event.stopPropagation();
-        onClose();
+        handleExit();
       }
     };
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [active, onClose]);
+  }, [active, handleExit]);
 
   const displayedMessages = messages.slice(-visibleCount);
   const hasMore = messages.length > visibleCount;
@@ -420,13 +428,14 @@ export function NotesTerminalReader({
       className="terminal-reader"
       style={{ fontSize: `${fontSize}px` } as CSSProperties}
       data-testid="terminal-reader"
+      data-exiting={isExiting ? "true" : undefined}
     >
       <header className="terminal-reader__toolbar">
         <div className="terminal-reader__toolbar-left">
           <button
             type="button"
             className="terminal-reader__btn"
-            onClick={onClose}
+            onClick={handleExit}
             title="返回终端模式 (Esc 或 Mod+Alt+R)"
           >
             <ArrowLeft size={14} aria-hidden="true" />

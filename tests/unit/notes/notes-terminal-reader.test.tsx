@@ -149,18 +149,18 @@ describe("NotesTerminalReader", () => {
 
     await screen.findByText("User Prompt");
 
-    // Press Escape
+    // Press Escape (120ms fade-out before onClose)
     fireEvent.keyDown(window, { key: "Escape" });
-    expect(handleClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(handleClose).toHaveBeenCalledTimes(1));
 
     // Press Mod+Alt+R (metaKey + altKey + 'r')
     fireEvent.keyDown(window, { key: "r", altKey: true, metaKey: true });
-    expect(handleClose).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(handleClose).toHaveBeenCalledTimes(2));
 
     // Clicking top-left "返回终端" button
     const backBtn = screen.getByRole("button", { name: /返回终端/ });
     fireEvent.click(backBtn);
-    expect(handleClose).toHaveBeenCalledTimes(3);
+    await waitFor(() => expect(handleClose).toHaveBeenCalledTimes(3));
   });
 
   it("shows waiting banner when agentState is waiting and hides when left waiting", async () => {

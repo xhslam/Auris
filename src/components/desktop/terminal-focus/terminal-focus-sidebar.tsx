@@ -4,7 +4,14 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { CaretDown, CaretRight, Eye, Folder, PencilSimple, Plus, TerminalWindow, Check, X } from "@phosphor-icons/react";
 import type { DesktopTerminalBridge, DesktopTerminalProjectDirectory } from "@/platform/desktop/desktop-bridge";
 import type { NotesTerminalSession } from "@/components/notes-v2/terminal/use-notes-terminal-sessions";
-import { groupTerminalSessions, isTerminalPaneVisible, normalizeSessionTitle, terminalSessionTitle, TERMINAL_SESSION_STATUS } from "./terminal-session-presentation";
+import {
+  derivedSessionStatus,
+  derivedSessionStatusLabel,
+  groupTerminalSessions,
+  isTerminalPaneVisible,
+  normalizeSessionTitle,
+  terminalSessionTitle,
+} from "./terminal-session-presentation";
 
 function SessionRename({ session, onRename, onDone }: {
   session: NotesTerminalSession; onRename: (id: string, title: string | null) => Promise<boolean>; onDone: (restoreFocus?: boolean) => void;
@@ -43,10 +50,30 @@ function SessionRename({ session, onRename, onDone }: {
   </form>;
 }
 
-export function TerminalFocusSidebar({ sessions, activeSessionId, singlePane, bridge, disabledCreate, restoring, onNew, onCreateInProject, onActivate, onRename }: {
-  sessions: NotesTerminalSession[]; activeSessionId: string | null; singlePane: boolean; bridge: DesktopTerminalBridge | null;
-  disabledCreate: boolean; restoring: boolean; onNew: () => void; onCreateInProject: (cwd: string | null) => void;
-  onActivate: (id: string) => void; onRename: (id: string, title: string | null) => Promise<boolean>;
+export function TerminalFocusSidebar({
+  sessions,
+  activeSessionId,
+  singlePane,
+  bridge,
+  disabledCreate,
+  restoring,
+  closingSessionIds,
+  onNew,
+  onCreateInProject,
+  onActivate,
+  onRename,
+}: {
+  sessions: NotesTerminalSession[];
+  activeSessionId: string | null;
+  singlePane: boolean;
+  bridge: DesktopTerminalBridge | null;
+  disabledCreate: boolean;
+  restoring: boolean;
+  closingSessionIds?: Set<string>;
+  onNew: () => void;
+  onCreateInProject: (cwd: string | null) => void;
+  onActivate: (id: string) => void;
+  onRename: (id: string, title: string | null) => Promise<boolean>;
 }) {
   const groups = groupTerminalSessions(sessions);
   const descriptionPrefix = useId();
@@ -85,40 +112,105 @@ export function TerminalFocusSidebar({ sessions, activeSessionId, singlePane, br
       <button type="button" className="terminal-focus__tool" aria-label="新建终端" title="新建终端（最多 8 个）；切换页面不会结束会话" disabled={disabledCreate} onClick={onNew}><Plus size={17} /></button>
     </div>
     <div ref={listRef} className="terminal-focus__session-list" role="tablist" aria-label="按启动项目分组的终端会话" aria-orientation="vertical">
-      {groups.map((group) => <section key={group.key} className="terminal-focus__project-group" role="group" data-project-path={group.cwd ?? ""} aria-label={`启动项目：${group.cwd ?? "默认目录"}`}>
-        <header className="terminal-focus__project-heading">
-          <button type="button" className="terminal-focus__project-toggle" aria-expanded={!collapsed.has(group.key)} title={`启动项目：${group.cwd ?? "默认目录"}`} onClick={() => setCollapsed((previous) => {
-            const next = new Set(previous); if (next.has(group.key)) next.delete(group.key); else next.add(group.key); return next;
-          })}>{collapsed.has(group.key) ? <CaretRight size={11} /> : <CaretDown size={11} />}<Folder size={13} /><span>{group.name}</span><small>{group.sessions.length}</small></button>
-          <button type="button" className="terminal-focus__project-add" aria-label={`在 ${group.cwd ?? "默认目录"} 中新建终端`} title="在此启动项目中新建终端" disabled={disabledCreate} onClick={() => onCreateInProject(group.cwd)}><Plus size={13} /></button>
-        </header>
-        <div hidden={collapsed.has(group.key)}>
-          {group.sessions.map((session) => {
-            const title = terminalSessionTitle(session);
-            const shown = isTerminalPaneVisible(session.id, activeSessionId, singlePane);
-            const exceptional = session.status === "exited" || session.status === "failed";
-            return <div key={session.id} className="terminal-focus__session-row" data-sidebar-session-id={session.id} data-active={session.id === activeSessionId} data-visible={shown}>
-              {editingId === session.id ? <SessionRename session={session} onRename={onRename} onDone={(restoreFocus = true) => {
-                setEditingId((current) => current === session.id ? null : current);
-                if (restoreFocus) requestAnimationFrame(() => {
-                  const row = [...(listRef.current?.querySelectorAll<HTMLElement>("[data-sidebar-session-id]") ?? [])].find((item) => item.dataset.sidebarSessionId === session.id);
-                  row?.querySelector<HTMLButtonElement>('[role="tab"]')?.focus();
-                });
-              }} /> : <>
-                <button type="button" role="tab" aria-selected={session.id === activeSessionId} aria-label={`${title} · ${session.label}`} aria-describedby={`${descriptionPrefix}-${session.id}`}
-                  className="terminal-focus__session" data-active={session.id === activeSessionId} data-visible={shown} onClick={() => onActivate(session.id)} onDoubleClick={() => startRename(session)}
-                  title={`${title}\n启动项目：${session.cwd ?? "默认目录"}\n${TERMINAL_SESSION_STATUS[session.status]} · ${session.id === activeSessionId ? "当前输入" : shown ? "已展示" : "未展示"}`}>
-                  <span className="terminal-focus__status-dot" data-status={session.status} role="img" aria-label={TERMINAL_SESSION_STATUS[session.status]} />
-                  <span className="terminal-focus__session-info"><strong>{title}</strong>{exceptional && <small>{TERMINAL_SESSION_STATUS[session.status]}</small>}</span>
-                  {shown && <Eye size={12} className="terminal-focus__visible-marker" aria-label="已展示" />}
-                  <span id={`${descriptionPrefix}-${session.id}`} className="terminal-focus__sr-only">{TERMINAL_SESSION_STATUS[session.status]} · {shown ? "已展示" : "未展示"}{session.id === activeSessionId ? " · 当前输入" : ""}</span>
-                </button>
-                <button type="button" className="terminal-focus__rename-button" aria-label={`重命名 ${session.label}`} title="重命名（也可双击会话）" disabled={!bridge?.rename || session.status === "starting"} onClick={() => startRename(session)}><PencilSimple size={12} /></button>
-              </>}
-            </div>;
-          })}
-        </div>
-      </section>)}
+      {groups.map((group) => {
+        const waitingCount = group.sessions.filter((s) => derivedSessionStatus(s) === "agent-waiting").length;
+        const unreadDoneCount = group.sessions.filter((s) => derivedSessionStatus(s) === "agent-done-unread").length;
+        return <section key={group.key} className="terminal-focus__project-group" role="group" data-project-path={group.cwd ?? ""} aria-label={`启动项目：${group.cwd ?? "默认目录"}`}>
+          <header className="terminal-focus__project-heading">
+            <button type="button" className="terminal-focus__project-toggle" aria-expanded={!collapsed.has(group.key)} title={`启动项目：${group.cwd ?? "默认目录"}`} onClick={() => setCollapsed((previous) => {
+              const next = new Set(previous); if (next.has(group.key)) next.delete(group.key); else next.add(group.key); return next;
+            })}>
+              {collapsed.has(group.key) ? <CaretRight size={11} /> : <CaretDown size={11} />}
+              <Folder size={13} />
+              <span>{group.name}</span>
+              {waitingCount > 0 && <span className="terminal-focus__group-badge terminal-focus__group-badge--waiting" title={`等待确认: ${waitingCount}`}>等 {waitingCount}</span>}
+              {unreadDoneCount > 0 && <span className="terminal-focus__group-badge terminal-focus__group-badge--done" title={`未读完成: ${unreadDoneCount}`}>成 {unreadDoneCount}</span>}
+              <small>{group.sessions.length}</small>
+            </button>
+            <button type="button" className="terminal-focus__project-add" aria-label={`在 ${group.cwd ?? "默认目录"} 中新建终端`} title="在此启动项目中新建终端" disabled={disabledCreate} onClick={() => onCreateInProject(group.cwd)}><Plus size={13} /></button>
+          </header>
+          <div
+            className="terminal-focus__project-collapse"
+            data-collapsed={collapsed.has(group.key) ? "true" : "false"}
+            aria-hidden={collapsed.has(group.key)}
+          >
+            <div className="terminal-focus__project-collapse-inner">
+              {group.sessions.map((session) => {
+                const title = terminalSessionTitle(session);
+                const shown = isTerminalPaneVisible(session.id, activeSessionId, singlePane);
+                const status = derivedSessionStatus(session);
+                const statusLabel = derivedSessionStatusLabel(session);
+                const exceptional = session.status === "exited" || session.status === "failed" || session.agentState === "waiting" || session.agentState === "working" || (session.agentState === "done" && session.unread);
+                return (
+                  <div
+                    key={session.id}
+                    className="terminal-focus__session-row"
+                    data-sidebar-session-id={session.id}
+                    data-active={session.id === activeSessionId}
+                    data-visible={shown}
+                    data-closing={closingSessionIds?.has(session.id) ? "true" : undefined}
+                  >
+                    {editingId === session.id ? (
+                      <SessionRename
+                        session={session}
+                        onRename={onRename}
+                        onDone={(restoreFocus = true) => {
+                          setEditingId((current) => (current === session.id ? null : current));
+                          if (restoreFocus) {
+                            requestAnimationFrame(() => {
+                              const row = [
+                                ...(listRef.current?.querySelectorAll<HTMLElement>("[data-sidebar-session-id]") ?? []),
+                              ].find((item) => item.dataset.sidebarSessionId === session.id);
+                              row?.querySelector<HTMLButtonElement>('[role="tab"]')?.focus();
+                            });
+                          }
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={session.id === activeSessionId}
+                          aria-label={`${title} · ${session.label}`}
+                          aria-describedby={`${descriptionPrefix}-${session.id}`}
+                          className="terminal-focus__session"
+                          data-active={session.id === activeSessionId}
+                          data-visible={shown}
+                          onClick={() => onActivate(session.id)}
+                          onDoubleClick={() => startRename(session)}
+                          title={`${title}\n启动项目：${session.cwd ?? "默认目录"}\n${statusLabel} · ${session.id === activeSessionId ? "当前输入" : shown ? "已展示" : "未展示"}`}
+                        >
+                          <span className="terminal-focus__status-dot" data-status={status} role="img" aria-label={statusLabel} />
+                          <span className="terminal-focus__session-info">
+                            <strong>{title}</strong>
+                            {exceptional && <small>{statusLabel}</small>}
+                          </span>
+                          {shown && <Eye size={12} className="terminal-focus__visible-marker" aria-label="已展示" />}
+                          <span id={`${descriptionPrefix}-${session.id}`} className="terminal-focus__sr-only">
+                            {statusLabel} · {shown ? "已展示" : "未展示"}
+                            {session.id === activeSessionId ? " · 当前输入" : ""}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          className="terminal-focus__rename-button"
+                          aria-label={`重命名 ${session.label}`}
+                          title="重命名（也可双击会话）"
+                          disabled={!bridge?.rename || session.status === "starting"}
+                          onClick={() => startRename(session)}
+                        >
+                          <PencilSimple size={12} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>;
+      })}
       {!sessions.length && !restoring && <p className="terminal-focus__sidebar-empty">暂无终端会话</p>}
     </div>
     <details className="terminal-focus__recent-projects" onToggle={(event) => setRecentOpen(event.currentTarget.open)}>

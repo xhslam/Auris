@@ -1,5 +1,20 @@
 /* Terminal Reading Mode / 终端阅读模式 */
 
+:root {
+  --auris-motion-fast: 120ms;
+  --auris-motion-base: 160ms;
+  --auris-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes auris-reader-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .terminal-reader {
   position: absolute;
   inset: 0;
@@ -13,6 +28,12 @@
   -webkit-text-autospace: normal;
   overflow: hidden;
   z-index: 10;
+  animation: auris-reader-fade-in var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+
+.terminal-reader[data-exiting="true"] {
+  opacity: 0;
+  transition: opacity var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .terminal-reader__toolbar {
@@ -389,7 +410,9 @@
   cursor: pointer;
   padding: 3px 8px;
   border-radius: 4px;
-  transition: all 0.15s;
+  transition: color var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)),
+              background-color var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1)),
+              border-color var(--auris-motion-fast, 120ms) var(--auris-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .terminal-reader__turn-copy-btn:hover {
@@ -432,4 +455,23 @@
   padding: 48px 16px;
   color: color-mix(in srgb, var(--notes-text, inherit) 65%, transparent);
   font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --auris-motion-fast: 0ms !important;
+    --auris-motion-base: 0ms !important;
+  }
+  .terminal-reader {
+    animation: none !important;
+    transition: none !important;
+  }
+  .terminal-reader[data-exiting="true"] {
+    opacity: 0 !important;
+    transition: none !important;
+  }
+  .terminal-reader__scroll-pill {
+    animation: none !important;
+    transition: none !important;
+  }
 }
