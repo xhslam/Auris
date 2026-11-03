@@ -41,6 +41,59 @@ test('only a Markdown-only suffix inherits the nearest successful main CI', () =
   assert.throws(() => evaluateDocsOnlyCiProvenance(sha, [tested], () => ({ ...docsOnly, files: Array.from({ length: 300 }, (_, i) => ({ filename: `docs/${i}.md`, status: 'modified' })) })), /documentation-only/u);
 });
 
+test('root README-only changes inherit the nearest successful main CI', () => {
+  const base = 'b'.repeat(40);
+  const tested = ci('completed', 'success', base);
+  for (const status of ['added', 'modified', 'removed']) {
+    const comparison = {
+      status: 'ahead', behind_by: 0, total_commits: 1,
+      files: [{ filename: 'README.md', status }],
+    };
+    assert.deepEqual(evaluateDocsOnlyCiProvenance(sha, [tested], (from, to) => {
+      assert.equal(from, base);
+      assert.equal(to, sha);
+      return comparison;
+    }), { runId: 42, testedSha: base, docsOnly: true });
+  }
+});
+
+test('README allowance rejects nested, renamed, unrelated, and mixed source changes', () => {
+  const tested = ci('completed', 'success', 'b'.repeat(40));
+  const readme = { filename: 'README.md', status: 'modified' };
+  const rejected = [
+    [{ filename: 'nested/README.md', status: 'modified' }],
+    [{ filename: 'readme.md', status: 'modified' }],
+    [{ filename: 'README.mdx', status: 'modified' }],
+    [{ filename: 'CHANGELOG.md', status: 'modified' }],
+    [{ ...readme, status: 'renamed', previous_filename: 'OLD.md' }],
+    [{ ...readme, previous_filename: 'OLD.md' }],
+    [readme, { filename: 'src/notes.ts', status: 'modified' }],
+    [readme, { filename: 'scripts/local-update-win.cjs', status: 'modified' }],
+    [readme, { filename: '.github/workflows/notes.yml', status: 'modified' }],
+  ];
+  for (const files of rejected) {
+    assert.throws(() => evaluateDocsOnlyCiProvenance(sha, [tested], () => ({
+      status: 'ahead', behind_by: 0, total_commits: 1, files,
+    })), /documentation-only/u);
+  }
+});
+
+test('README suffix never bypasses a failing or running exact or nearest main CI', () => {
+  const base = 'b'.repeat(40);
+  const older = ci('completed', 'success', 'c'.repeat(40));
+  const comparison = {
+    status: 'ahead', behind_by: 0, total_commits: 1,
+    files: [{ filename: 'README.md', status: 'modified' }],
+  };
+  for (const [status, conclusion] of [['completed', 'failure'], ['in_progress', null]]) {
+    for (const headSha of [sha, base]) {
+      const latest = { ...ci(status, conclusion, headSha), createdAt: '2026-10-05T07:00:00Z' };
+      assert.throws(() => evaluateDocsOnlyCiProvenance(sha, [older, latest], () => comparison),
+        /failure|in_progress/u);
+    }
+  }
+});
+
 test('source fast-forward refuses to continue with stale loaded updater modules', () => {
   const loaded = { updater: 'loaded-updater', timing: 'loaded-timing' };
   assert.doesNotThrow(() => assertUpdaterSnapshot(loaded, { ...loaded }));

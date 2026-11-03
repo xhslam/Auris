@@ -11,7 +11,7 @@ npm run desktop:update:local:win
 
 ## 自动化的门禁与节省时间点
 
-1. 核对仓库 `origin`、`main`、GitHub SHA 和 **同一 SHA 的 Notes CI 完成且成功**。若最新提交仅改 `AGENTS.md` 和 `docs/**/*.md`，且该提交没有 CI，则核对其最近的已验收 main push 祖先：通过 GitHub compare 确认中间每个文件都只在上述文档白名单内，最近一次 Notes CI 必须成功；任何源码、workflow、构建资源变化，或比较不完整，都停止。已有失败/运行中的同 SHA CI 不允许回退到更早绿灯。只执行 `git fetch` + `merge --ff-only`，远端变化或分叉立即停止。
+1. 核对仓库 `origin`、`main`、GitHub SHA 和 **同一 SHA 的 Notes CI 完成且成功**。若最新提交仅改根目录 `AGENTS.md`、根目录 `README.md` 和 `docs/**/*.md` 白名单内的文档，且该提交没有 CI，则核对其最近的已验收 main push 祖先：通过 GitHub compare 确认中间每个文件都只在上述文档白名单内，最近一次 Notes CI 必须成功；任何源码、workflow、构建资源变化，或比较不完整，都停止。已有失败/运行中的同 SHA CI 不允许回退到更早绿灯。只执行 `git fetch` + `merge --ff-only`，远端变化或分叉立即停止。
 2. 对每个新提交从 `package-lock.json` 重装依赖，**不复用无法证明完整性的 `node_modules`**。Windows `npm ci` 若仅因补丁文件 CRLF 触发**特定**校验失败，必须先确认规范化 LF 后的 SHA-256 与仓库钉死的散列完全一致，才修正 `node_modules` 后继续；其他错误不豁免。每次新提交也重新生产编译，防止旧 `.next` 通过松散标记误判为最新构建。
 3. 完整 Notes/VMark 回归由已成功的 GitHub Ubuntu CI 提供；每个新提交 SHA 在本机运行一次 Windows 定向编辑器、Markdown 解析和终端回归（当前 4 文件、49 项），成功状态仅按提交 SHA、依赖锁文件与 Node 版本复用。Windows 全仓单测现有 POSIX 符号链接、权限与路径假设，不能为了表面绿灯静默跳过 CI；定向回归失败也停止。增量构建若唯一失败是旧 `.next` 的 Markdown 标记缺失，只重建一次生成的 `.next`。运行 `desktop:assemble:win`、隐私审计，再以唯一目录运行 `electron-builder --win nsis --x64 --config.npmRebuild=false --publish never`。本地更新只生成 NSIS EXE，不生成或复制不参与安装的 ZIP；`electron-builder.yml` 的正式发布目标仍为 NSIS + ZIP，不受影响。文件锁重试器只作用于本次生成的 `electron/.runtime-node-modules-*` 和本次打包输出；重命名被锁时只复制到**不存在的目标**，不会覆盖任意目录，也不会关闭杀毒软件。
 4. 安装前检查 `app.asar` 版本、Next 资源、MCP sidecar 健康，并以隔离 userData 启动，验证 `/`、`/notes`、`/video` 均返回 200；本地 NSIS 安装包经哈希核对保存到 `release/local-artifacts/<SHA>/<构建批次>/`，同版本不同提交不会覆盖旧包。本地版本号相同**不**代表可跳过：只有之前生成的收据同时匹配提交 SHA、版本和已安装的 exe/asar/Next 关键文件哈希才直接退出。

@@ -96,7 +96,7 @@ function evaluateDocsOnlyCiProvenance(sha, runs, compare) {
     const files = comparison.files;
     if (!Number.isSafeInteger(comparison.total_commits) || comparison.total_commits < 1 || comparison.total_commits > 20 ||
       !Array.isArray(files) || files.length < 1 || files.length >= 300 ||
-      !files.every(file => (file.filename === "AGENTS.md" || /^docs\/.+\.md$/iu.test(file.filename)) &&
+      !files.every(file => (file.filename === "AGENTS.md" || file.filename === "README.md" || /^docs\/.+\.md$/iu.test(file.filename)) &&
         ["added", "modified", "removed"].includes(file.status) && !file.previous_filename)) {
       fail(`Changes since green CI ${run.headSha.slice(0, 8)} are not provably documentation-only; installation stopped`);
     }
