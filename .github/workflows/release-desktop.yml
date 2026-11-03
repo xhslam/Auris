@@ -146,17 +146,17 @@ jobs:
       - name: Build and upload update artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-          CSC_LINK: ${{ matrix.name == 'macOS Apple Silicon' && env.MAC_SIGNING_MODE == 'developer-id' && secrets.MAC_CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.name == 'macOS Apple Silicon' && env.MAC_SIGNING_MODE == 'developer-id' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
         run: |
           set -euo pipefail
           if [[ "$RUNNER_OS" = macOS ]]; then
             if [[ "$MAC_SIGNING_MODE" = developer-id ]]; then
-              npm run desktop:release:build:mac -- --config.forceCodeSigning=true
+              CSC_LINK="${{ secrets.MAC_CSC_LINK }}" CSC_KEY_PASSWORD="${{ secrets.MAC_CSC_KEY_PASSWORD }}" npm run desktop:release:build:mac -- --config.forceCodeSigning=true
             else
+              unset CSC_LINK CSC_KEY_PASSWORD
               CSC_IDENTITY_AUTO_DISCOVERY=false npm run desktop:release:build:mac -- --config.mac.identity=- --config.forceCodeSigning=false
             fi
           else
+            unset CSC_LINK CSC_KEY_PASSWORD
             npm run desktop:release:build:win
           fi
 
