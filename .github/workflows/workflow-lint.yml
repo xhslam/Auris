@@ -1,0 +1,36 @@
+name: Workflow lint
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  push:
+    branches: [main, master]
+    paths:
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate all GitHub Actions workflows
+        env:
+          ACTIONLINT_VERSION: "1.7.12"
+          ACTIONLINT_SHA256: "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+        shell: bash
+        run: |
+          set -euo pipefail
+          tool_dir="$(mktemp -d)"
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}" \
+            --output "$tool_dir/$archive"
+          echo "$ACTIONLINT_SHA256  $tool_dir/$archive" | sha256sum --check --strict
+          tar -xzf "$tool_dir/$archive" -C "$tool_dir" actionlint
+          "$tool_dir/actionlint" -color -shellcheck= -pyflakes=

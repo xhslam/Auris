@@ -1,7 +1,10 @@
+import { createRequire } from "node:module";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const require = createRequire(import.meta.url);
 
 const {
   isPidAlive,
@@ -21,6 +24,7 @@ describe("terminal-daemon-paths", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
     } catch {
@@ -60,6 +64,29 @@ describe("terminal-daemon-paths", () => {
 
     expect(winPaths.daemonSocketPath).toBe("\\\\.\\pipe\\auris-daemon-dev");
     expect(winPaths.agentSocketPath).toBe("\\\\.\\pipe\\auris-agent-dev");
+  });
+
+  it("isolates smoke pipes and state by profile without changing normal pipes", () => {
+    const first = resolveTerminalDaemonPaths({ isolationRoot: tempDir, platform: "win32" });
+    const again = resolveTerminalDaemonPaths({ isolationRoot: tempDir, platform: "win32" });
+    const other = resolveTerminalDaemonPaths({ isolationRoot: path.join(tempDir, "other"), platform: "win32" });
+    expect(first.daemonSocketPath).toBe(again.daemonSocketPath);
+    expect(first.daemonSocketPath).not.toBe(other.daemonSocketPath);
+    expect(first.agentSocketPath).not.toBe(other.agentSocketPath);
+    expect(first.daemonSocketPath).toMatch(/auris-daemon-dev-smoke-[a-f0-9]{16}$/);
+    expect(first.pidPath).toBe(path.join(tempDir, ".auris", "run", "dev", "daemon.pid"));
+    expect(first.logPath).toBe(path.join(tempDir, ".auris", "logs", "daemon.log"));
+  });
+
+  it("shares smoke isolation with child daemons only when the smoke flag is set", () => {
+    vi.stubEnv("AURIS_PACKAGED_SMOKE_USER_DATA", tempDir);
+    vi.stubEnv("AURIS_PACKAGED_SMOKE", "0");
+    const normal = resolveTerminalDaemonPaths({ platform: "win32", channel: "dev" });
+    expect(normal.daemonSocketPath).toBe("\\\\.\\pipe\\auris-daemon-dev");
+    vi.stubEnv("AURIS_PACKAGED_SMOKE", "1");
+    const child = resolveTerminalDaemonPaths({ platform: "win32", channel: "dev" });
+    const parent = resolveTerminalDaemonPaths({ isolationRoot: tempDir, platform: "win32", channel: "dev" });
+    expect(child).toEqual(parent);
   });
 
   it("ensures directory permissions are 0700 on posix", () => {

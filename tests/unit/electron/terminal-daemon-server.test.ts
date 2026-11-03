@@ -1,17 +1,43 @@
+import { createRequire } from "node:module";
 import fs from "node:fs";
 import net from "node:net";
-import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+const require = createRequire(import.meta.url);
 
 const { createTerminalDaemonServer } = require("../../../electron/terminal-daemon/server.cjs");
 const { resolveTerminalDaemonPaths } = require("../../../electron/terminal-daemon-paths.cjs");
 const { formatNdjson, createNdjsonParser } = require("../../../electron/terminal-daemon-protocol.cjs");
 
+type SessionRecord = { id: string };
+type RequestResults = {
+  hello: {
+    protocolVersion: number;
+    compatible: boolean;
+    daemonPid: number;
+    activeSessionsCount: number;
+  };
+  create: SessionRecord;
+  write: boolean;
+  resume: { session: SessionRecord; replayedData: string };
+  list: SessionRecord[];
+  kill: boolean;
+  shutdown: { shuttingDown: boolean; runningCount: number };
+};
+type ServerMessage = {
+  id?: string;
+  ok?: boolean;
+  result?: unknown;
+  error?: string;
+  type?: string;
+};
+type ClientEvent = ServerMessage & { type: "event" };
+
 describe("terminal-daemon-server", () => {
   let tempHome: string;
-  let serverInstance: any = null;
-  let paths: any = null;
+  let serverInstance: ReturnType<typeof createTerminalDaemonServer> | null = null;
+  let paths: ReturnType<typeof resolveTerminalDaemonPaths>;
 
   beforeEach(() => {
     tempHome = fs.mkdtempSync(path.join("/tmp", "auris-d-"));
@@ -36,23 +62,23 @@ describe("terminal-daemon-server", () => {
   function connectClient(socketPath: string) {
     return new Promise<{
       socket: net.Socket;
-      send: (req: any) => Promise<any>;
-      onEvent: (fn: (event: any) => void) => void;
+      send: <K extends keyof RequestResults>(req: { type: K } & Record<string, unknown>) => Promise<RequestResults[K]>;
+      onEvent: (fn: (event: ClientEvent) => void) => void;
       close: () => void;
     }>((resolve, reject) => {
       const socket = net.connect(socketPath);
       let nextId = 1;
-      const pending = new Map<string, { resolve: (res: any) => void; reject: (err: any) => void }>();
-      const eventListeners: Array<(event: any) => void> = [];
+      const pending = new Map<string, { resolve: (res: unknown) => void; reject: (err: Error) => void }>();
+      const eventListeners: Array<(event: ClientEvent) => void> = [];
 
-      const parser = createNdjsonParser((msg: any) => {
+      const parser = createNdjsonParser((msg: ServerMessage) => {
         if (msg.id && pending.has(msg.id)) {
           const p = pending.get(msg.id)!;
           pending.delete(msg.id);
           if (msg.ok) p.resolve(msg.result);
           else p.reject(new Error(msg.error));
         } else if (msg.type === "event") {
-          eventListeners.forEach((l) => l(msg));
+          eventListeners.forEach((l) => l(msg as ClientEvent));
         }
       });
 
@@ -61,10 +87,10 @@ describe("terminal-daemon-server", () => {
       socket.once("connect", () => {
         resolve({
           socket,
-          send: (req: any) => {
+          send: <K extends keyof RequestResults>(req: { type: K } & Record<string, unknown>) => {
             const id = `req-${nextId++}`;
-            return new Promise((res, rej) => {
-              pending.set(id, { resolve: res, reject: rej });
+            return new Promise<RequestResults[K]>((res, rej) => {
+              pending.set(id, { resolve: (result) => res(result as RequestResults[K]), reject: rej });
               socket.write(formatNdjson({ id, ...req }));
             });
           },
@@ -168,7 +194,7 @@ describe("terminal-daemon-server", () => {
 
       // Verify list returns this session
       const list = await client.send({ type: "list" });
-      expect(list.some((s: any) => s.id === session.id)).toBe(true);
+      expect(list.some((s) => s.id === session.id)).toBe(true);
 
       // Kill session
       await client.send({ type: "kill", sessionId: session.id });

@@ -589,8 +589,8 @@ describe("terminal-session-manager", () => {
     expect(session.agentState).toBe("idle");
     expect(session.unread).toBe(false);
 
-    const emittedStates: any[] = [];
-    manager.onAgentState((event: any) => emittedStates.push(event));
+    const emittedStates: unknown[] = [];
+    manager.onAgentState((event: unknown) => emittedStates.push(event));
 
     // 1. UserPromptSubmit -> working
     const handled1 = manager.handleAgentHookEvent({
@@ -923,7 +923,7 @@ describe("terminal-session-manager", () => {
       ptyBackend: { spawn },
     });
     manager.createSession({ cwd: "/workspace" });
-    const spawnedEnv = (spawn.mock.calls[0] as any)[2].env;
+    const spawnedEnv = (spawn.mock.calls[0][2] as { env: NodeJS.ProcessEnv }).env;
     expect(spawnedEnv.ELECTRON_RUN_AS_NODE).toBeUndefined();
     expect(spawnedEnv.ELECTRON_NO_ASAR).toBeUndefined();
     expect(spawnedEnv.ELECTRON_ENABLE_LOGGING).toBeUndefined();

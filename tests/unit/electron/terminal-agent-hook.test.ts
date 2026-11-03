@@ -70,7 +70,7 @@ describe("terminal-agent-hook.cjs", () => {
   });
 
   it("connects to socket and delivers event quickly", async () => {
-    const received: any[] = [];
+    const received: Record<string, unknown>[] = [];
     server = net.createServer((socket) => {
       let data = "";
       socket.on("data", (chunk) => (data += chunk));
@@ -157,7 +157,7 @@ describe("terminal-agent-hook.cjs", () => {
   });
 
   it("handles large ~1MB payloads and only forwards whitelisted fields", async () => {
-    const received: any[] = [];
+    const received: Record<string, unknown>[] = [];
     server = net.createServer((socket) => {
       let data = "";
       socket.on("data", (chunk) => (data += chunk));
@@ -215,7 +215,7 @@ describe("terminal-agent-hook.cjs", () => {
   });
 
   it("handles massive >10MB payload without dropping event", async () => {
-    const received: any[] = [];
+    const received: Record<string, unknown>[] = [];
     server = net.createServer((socket) => {
       let data = "";
       socket.on("data", (chunk) => (data += chunk));

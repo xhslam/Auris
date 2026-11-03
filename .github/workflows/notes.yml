@@ -5,10 +5,12 @@ on:
   pull_request:
     paths:
       - ".github/workflows/notes.yml"
+      - ".gitattributes"
       - "electron/auris-notes-mcp-server.mjs"
       - "electron/notes-mcp-bridge.cjs"
       - "electron/main.cjs"
       - "electron/terminal-*.cjs"
+      - "electron/terminal-daemon/**"
       - "electron/preload.cjs"
       - "electron-builder.yml"
       - "build/entitlements.mac*.plist"
@@ -52,10 +54,12 @@ on:
       - main
     paths:
       - ".github/workflows/notes.yml"
+      - ".gitattributes"
       - "electron/auris-notes-mcp-server.mjs"
       - "electron/notes-mcp-bridge.cjs"
       - "electron/main.cjs"
       - "electron/terminal-*.cjs"
+      - "electron/terminal-daemon/**"
       - "electron/preload.cjs"
       - "electron-builder.yml"
       - "build/entitlements.mac*.plist"
@@ -130,8 +134,7 @@ jobs:
           tests/component/review/
           tests/unit/output-review/
           tests/unit/vmark/
-          tests/unit/electron/terminal-session-manager.test.ts
-          tests/unit/electron/terminal-transcript-service.test.ts
+          tests/unit/electron/terminal-*.test.ts
           tests/unit/electron/macos-terminal-permissions.test.ts
           tests/unit/electron/auris-notes-mcp-server.test.ts
           tests/unit/electron/notes-mcp-bridge.test.ts
@@ -142,8 +145,6 @@ jobs:
     defaults:
       run:
         shell: pwsh
-    env:
-      WINDOWS_SMOKE_OUT: ${{ runner.temp }}/notes-terminal-windows
     steps:
       - uses: actions/checkout@v7
 
@@ -153,7 +154,10 @@ jobs:
           cache: npm
 
       - name: Prepare evidence directory
-        run: New-Item -ItemType Directory -Force -Path $env:WINDOWS_SMOKE_OUT | Out-Null
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'notes-terminal-windows'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          "WINDOWS_SMOKE_OUT=$out" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install dependencies
         run: |

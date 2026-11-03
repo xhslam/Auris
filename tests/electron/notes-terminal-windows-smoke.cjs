@@ -6,6 +6,8 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
+const net = require("node:net");
+const { resolveTerminalDaemonPaths } = require("../../electron/terminal-daemon-paths.cjs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { stripVTControlCharacters } = require("node:util");
@@ -106,6 +108,19 @@ async function waitForServer(url, child) {
   }
   throw new Error("Next server was not ready");
 }
+async function stopSmokeDaemon(paths) {
+  // Only this invocation's profile-hashed pipe is addressed, never a normal
+  // dev/packaged daemon. Shutdown is part of cleaning up our isolated PTYs.
+  await new Promise(resolve => {
+    const socket = net.connect(paths.daemonSocketPath);
+    const finish = () => { clearTimeout(timer); socket.destroy(); resolve(); };
+    const timer = setTimeout(finish, 3000);
+    socket.once("error", finish);
+    socket.once("close", finish);
+    socket.once("data", finish);
+    socket.once("connect", () => socket.write(JSON.stringify({ id: "smoke-cleanup", type: "shutdown", mode: "force" }) + "\n"));
+  });
+}
 async function main() {
   assert.equal(process.platform, "win32", "This smoke requires Windows/ConPTY");
   const out = path.resolve(option("--out") || fs.mkdtempSync(path.join(os.tmpdir(), "auris-terminal-windows-")));
@@ -123,6 +138,7 @@ async function main() {
   fs.writeFileSync(probePath, probe, "utf8");
   const invoke = mode => `"${process.execPath}" "${probePath}" ${mode}`;
   const env = { ...process.env, AURIS_PACKAGED_SMOKE: "1", AURIS_PACKAGED_SMOKE_USER_DATA: userData };
+  const daemonPaths = resolveTerminalDaemonPaths({ isolationRoot: userData, channel: "dev" });
   delete env.ELECTRON_RUN_AS_NODE;
   let server, serverLog, app, page;
   const evidence = { startedAt: new Date().toISOString(), sourceRoot: root, isolatedUserData: true, out, profileRoot, rendererMessages: [], checks: [] };
@@ -144,6 +160,14 @@ async function main() {
     page.on("pageerror", error => evidence.rendererMessages.push(error.message));
     page.setDefaultTimeout(20_000);
     await page.locator(".ProseMirror p").first().waitFor({ state: "visible", timeout: 60_000 });
+    // This smoke asserts DOM rows/ANSI spans explicitly. WebGL paints to a
+    // canvas instead; select the supported DOM renderer in this isolated
+    // profile, rather than treating an empty .xterm-rows as missing PTY data.
+    await page.evaluate(() => {
+      localStorage.setItem("auris.notes.terminal.webgl", "false");
+      window.dispatchEvent(new Event("auris:notes-terminal-settings"));
+    });
+    evidence.renderer = "dom";
     // Multiple Notes windows may share the route. Resize this page's native
     // window, not whichever /notes window happens to occur first in a list.
     const nativeWindow = await app.browserWindow(page);
@@ -318,7 +342,11 @@ async function main() {
     throw error;
   } finally {
     evidence.finishedAt = new Date().toISOString(); save();
-    if (app) await app.close().catch(() => {});
+    // Only our isolated daemon is stopped. app.exit bypasses the normal
+    // active-terminal quit confirmation in this disposable test profile.
+    await stopSmokeDaemon(daemonPaths);
+    if (app) await app.evaluate(({ app }) => app.exit(0)).catch(() => {});
+    if (fs.existsSync(daemonPaths.logPath)) fs.copyFileSync(daemonPaths.logPath, path.join(out, "terminal-daemon.log"));
     if (server && server.exitCode === null) { server.kill(); await new Promise(resolve => { server.once("exit", resolve); setTimeout(resolve, 5_000); }); }
     if (serverLog !== undefined) fs.closeSync(serverLog);
   }

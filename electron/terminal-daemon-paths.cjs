@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require("node:fs");
+const { createHash } = require("node:crypto");
 const os = require("node:os");
 const path = require("node:path");
 
@@ -17,7 +18,11 @@ function isPidAlive(pid) {
 }
 
 function resolveTerminalDaemonPaths(options = {}) {
-  const home = options.home ?? os.homedir();
+  // Isolated launch verification must never attach to the user's daemon.
+  // Child daemons inherit the same guarded smoke profile environment.
+  const isolationRoot = options.isolationRoot ??
+    (process.env.AURIS_PACKAGED_SMOKE === "1" ? process.env.AURIS_PACKAGED_SMOKE_USER_DATA : null);
+  const home = isolationRoot ? path.resolve(isolationRoot) : (options.home ?? os.homedir());
   const platform = options.platform ?? process.platform;
   const channel = options.channel ?? process.env.AURIS_CHANNEL ?? (options.isPackaged ? "packaged" : "dev");
   const normalizedChannel = channel === "packaged" ? "packaged" : "dev";
@@ -26,13 +31,16 @@ function resolveTerminalDaemonPaths(options = {}) {
   const logDir = path.join(home, ".auris", "logs");
   const logPath = path.join(logDir, "daemon.log");
   const pidPath = path.join(runDir, "daemon.pid");
+  const socketNamespace = isolationRoot
+    ? `${normalizedChannel}-smoke-${createHash("sha256").update(home).digest("hex").slice(0, 16)}`
+    : normalizedChannel;
 
   let daemonSocketPath;
   let agentSocketPath;
 
   if (platform === "win32") {
-    daemonSocketPath = `\\\\.\\pipe\\auris-daemon-${normalizedChannel}`;
-    agentSocketPath = `\\\\.\\pipe\\auris-agent-${normalizedChannel}`;
+    daemonSocketPath = `\\\\.\\pipe\\auris-daemon-${socketNamespace}`;
+    agentSocketPath = `\\\\.\\pipe\\auris-agent-${socketNamespace}`;
   } else {
     daemonSocketPath = path.join(runDir, "daemon.sock");
     agentSocketPath = path.join(runDir, "agent.sock");

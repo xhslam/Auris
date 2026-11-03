@@ -24,7 +24,10 @@ function createRemoteTerminalSessionManager(options = {}) {
 
   const emitter = new EventEmitter();
   let clientSocket = null;
-  let isConnecting = false;
+  let connectPromise = null;
+  let cancelConnect = null;
+  let reconnectTimer = null;
+  let upgradePromise = null;
   let isDisposed = false;
   let nextReqId = 1;
   const pendingRequests = new Map(); // id -> { resolve, reject, timer }
@@ -42,7 +45,9 @@ function createRemoteTerminalSessionManager(options = {}) {
   };
 
   function sendRequest(type, payload = {}, timeoutMs = 5000) {
-    if (!clientSocket || clientSocket.destroyed) {
+    const socket = clientSocket;
+    if (isDisposed) return Promise.reject(new Error("Terminal manager is disposed"));
+    if (!socket || socket.destroyed) {
       return Promise.reject(new Error("Daemon is not connected"));
     }
 
@@ -53,16 +58,19 @@ function createRemoteTerminalSessionManager(options = {}) {
         reject(new Error(`Daemon request timed out: ${type} (${timeoutMs}ms)`));
       }, timeoutMs);
 
-      pendingRequests.set(id, { resolve, reject, timer });
+      pendingRequests.set(id, { resolve, reject, timer, socket });
 
       const msg = formatNdjson({ id, type, ...payload });
-      clientSocket.write(msg, "utf8", (err) => {
-        if (err) {
-          clearTimeout(timer);
-          pendingRequests.delete(id);
-          reject(err);
-        }
-      });
+      function fail(err) {
+        clearTimeout(timer);
+        pendingRequests.delete(id);
+        reject(err);
+      }
+      try {
+        socket.write(msg, "utf8", (err) => { if (err) fail(err); });
+      } catch (err) {
+        fail(err);
+      }
     });
   }
 
@@ -126,116 +134,166 @@ function createRemoteTerminalSessionManager(options = {}) {
     }
   }
 
-  async function connect() {
-    if (isDisposed || isConnecting) return;
-    isConnecting = true;
+  function assertActive() {
+    if (isDisposed) throw new Error("Terminal manager is disposed");
+  }
 
-    try {
-      const { socketPath } = await ensureDaemonRunning({
-        paths,
-        logger: log,
-        appVersion,
-      });
+  function clearReconnectTimer() {
+    if (reconnectTimer !== null) clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
 
+  function rejectRequests(socket, error) {
+    for (const [id, request] of pendingRequests) {
+      if (!socket || request.socket === socket) {
+        clearTimeout(request.timer);
+        pendingRequests.delete(id);
+        request.reject(error);
+      }
+    }
+  }
+
+  function dropSocket(socket, error) {
+    if (!socket) return;
+    // Retire ownership before destroy: a delayed close must not invalidate
+    // the next socket, reject its requests, or schedule a second reconnect.
+    if (clientSocket === socket) {
+      clientSocket = null;
+      daemonStatus.connected = false;
+    }
+    rejectRequests(socket, error);
+    socket.destroy();
+  }
+
+  async function establishConnection(cancellation) {
+    const wait = (operation) => Promise.race([operation, cancellation]);
+    // One automatic daemon replacement per connection operation. A daemon
+    // that remains incompatible must fail rather than recurse indefinitely.
+    for (let upgradeAttempt = 0; upgradeAttempt <= 1; upgradeAttempt++) {
+      assertActive();
+      const { socketPath } = await wait(ensureDaemonRunning({ paths, logger: log, appVersion }));
+      assertActive();
       const socket = net.connect(socketPath);
-
-      await new Promise((resolve, reject) => {
-        socket.once("connect", resolve);
-        socket.once("error", reject);
-      });
-
       clientSocket = socket;
       const parser = createNdjsonParser(
-        handleServerMessage,
+        (message) => {
+          if (!isDisposed && clientSocket === socket) handleServerMessage(message);
+        },
         (err) => log(`terminal-remote: parser error ${err?.message || err}`)
       );
-
-      socket.on("data", (chunk) => parser.feed(chunk));
-      socket.on("error", (err) => {
-        log(`terminal-remote: socket error ${err?.message || err}`);
+      socket.on("data", (chunk) => {
+        if (!isDisposed && clientSocket === socket) parser.feed(chunk);
       });
+      socket.on("error", (err) => log(`terminal-remote: socket error ${err?.message || err}`));
       socket.on("close", () => {
+        if (clientSocket !== socket) return;
         log("terminal-remote: daemon socket closed");
         clientSocket = null;
         daemonStatus.connected = false;
-        emitter.emit("daemon-status", { ...daemonStatus });
-
-        // Reject all in-flight requests
-        for (const [id, req] of pendingRequests.entries()) {
-          clearTimeout(req.timer);
-          req.reject(new Error("Daemon socket disconnected"));
-        }
-        pendingRequests.clear();
-
+        rejectRequests(socket, new Error("Daemon socket disconnected"));
         if (!isDisposed) {
-          // Attempt auto-reconnect after backoff
-          setTimeout(() => {
+          emitter.emit("daemon-status", { ...daemonStatus });
+          clearReconnectTimer();
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
             connect().catch(() => {});
           }, 1500);
         }
       });
 
-      // Perform handshake
-      const helloResult = await sendRequest("hello", {
+      let cleanupConnectListeners;
+      const socketReady = new Promise((resolve, reject) => {
+        const onConnect = () => resolve();
+        const onError = (error) => reject(error);
+        const onClose = () => reject(new Error("Daemon socket disconnected"));
+        cleanupConnectListeners = () => {
+          socket.off("connect", onConnect);
+          socket.off("error", onError);
+          socket.off("close", onClose);
+        };
+        socket.once("connect", onConnect);
+        socket.once("error", onError);
+        socket.once("close", onClose);
+      });
+      try {
+        await wait(socketReady);
+      } finally {
+        cleanupConnectListeners();
+      }
+      assertActive();
+      const helloResult = await wait(sendRequest("hello", {
         protocolVersion: PROTOCOL_VERSION,
         minCompatibleVersion: MIN_COMPATIBLE_VERSION,
         appVersion,
         clientPid: process.pid,
-      });
-
+      }));
+      assertActive();
       daemonStatus.daemonAppVersion = helloResult.appVersion;
       daemonStatus.daemonProtocolVersion = helloResult.protocolVersion;
       daemonStatus.activeSessionsCount = helloResult.activeSessionsCount;
       daemonStatus.waitingSessionsCount = helloResult.waitingSessionsCount;
+      daemonStatus.protocolCompatible = Boolean(helloResult.compatible);
+      daemonStatus.needsUpgrade = !helloResult.compatible;
 
-      if (!helloResult.compatible) {
-        log(`terminal-remote: protocol mismatch. Client: v${PROTOCOL_VERSION}, Server: v${helloResult.protocolVersion}`);
-        if (helloResult.activeSessionsCount === 0) {
-          log("terminal-remote: 0 active sessions on outdated daemon; forcing shutdown and restart...");
-          try {
-            await sendRequest("shutdown", { mode: "force" });
-          } catch {
-            /* ignore */
-          }
-          socket.destroy();
-          clientSocket = null;
-          isConnecting = false;
-          return connect();
-        } else {
-          daemonStatus.needsUpgrade = true;
-          daemonStatus.protocolCompatible = false;
-          daemonStatus.connected = true;
-          emitter.emit("daemon-status", { ...daemonStatus });
+      if (!helloResult.compatible && helloResult.activeSessionsCount === 0) {
+        if (upgradeAttempt === 1) throw new Error("Terminal daemon remains incompatible after upgrade");
+        log("terminal-remote: empty incompatible daemon; forcing shutdown and restart...");
+        try {
+          await wait(sendRequest("shutdown", { mode: "force" }));
+        } catch (err) {
+          assertActive();
+          log(`terminal-remote: upgrade shutdown: ${err?.message || err}`);
         }
-      } else {
-        daemonStatus.connected = true;
-        daemonStatus.protocolCompatible = true;
-        daemonStatus.needsUpgrade = false;
-        emitter.emit("daemon-status", { ...daemonStatus });
+        assertActive();
+        dropSocket(socket, new Error("Daemon is being upgraded"));
+        clearReconnectTimer();
+        continue;
       }
 
-      // Sync sessions from daemon
-      const sessions = await sendRequest("list");
+      const sessions = await wait(sendRequest("list"));
+      assertActive();
+      if (clientSocket !== socket || socket.destroyed) throw new Error("Daemon socket disconnected");
       cachedSessions.clear();
-      for (const s of sessions) {
-        cachedSessions.set(s.id, s);
-      }
-
-      log(`terminal-remote: connected and synced ${sessions.length} sessions`);
-    } catch (err) {
-      log(`terminal-remote: connect failed: ${err?.message || err}`);
-      daemonStatus.connected = false;
+      for (const session of sessions) cachedSessions.set(session.id, session);
+      daemonStatus.connected = true;
       emitter.emit("daemon-status", { ...daemonStatus });
-      throw err;
-    } finally {
-      isConnecting = false;
+      log(`terminal-remote: connected and synced ${sessions.length} sessions`);
+      return;
     }
   }
 
-  async function ensureConnected() {
-    if (!clientSocket || clientSocket.destroyed) {
-      await connect();
-    }
+  function connect() {
+    if (isDisposed) return Promise.reject(new Error("Terminal manager is disposed"));
+    // Await startup, hello AND list even if a TCP/pipe socket already exists.
+    if (connectPromise) return connectPromise;
+    if (clientSocket && !clientSocket.destroyed && daemonStatus.connected) return Promise.resolve();
+    clearReconnectTimer();
+    const cancellation = new Promise((resolve, reject) => {
+      void resolve; // Cancellation only rejects; successful operations release it.
+      cancelConnect = reject;
+    });
+    // dispose() can run before establishConnection reaches its first wait.
+    // Keep that cancellation handled; the shared task still rejects to callers.
+    cancellation.catch(() => {});
+    const task = Promise.resolve().then(() => establishConnection(cancellation)).catch((err) => {
+      dropSocket(clientSocket, err);
+      clearReconnectTimer();
+      daemonStatus.connected = false;
+      log(`terminal-remote: connect failed: ${err?.message || err}`);
+      if (!isDisposed) emitter.emit("daemon-status", { ...daemonStatus });
+      throw err;
+    }).finally(() => {
+      if (connectPromise === task) {
+        connectPromise = null;
+        cancelConnect = null;
+      }
+    });
+    connectPromise = task;
+    return task;
+  }
+
+  function ensureConnected() {
+    return connect();
   }
 
   // Session Manager API
@@ -286,7 +344,15 @@ function createRemoteTerminalSessionManager(options = {}) {
 
     resize: (sessionId, size) => {
       if (clientSocket && !clientSocket.destroyed) {
-        sendRequest("resize", { sessionId, cols: size?.cols, rows: size?.rows }).catch((err) => {
+        const cols = Number.isInteger(size?.cols) && size.cols > 0 ? size.cols : 80;
+        const rows = Number.isInteger(size?.rows) && size.rows > 0 ? size.rows : 24;
+        sendRequest("resize", { sessionId, cols, rows }).then(() => {
+          const session = cachedSessions.get(sessionId);
+          if (session) {
+            session.cols = cols;
+            session.rows = rows;
+          }
+        }).catch((err) => {
           log(`terminal-remote: resize error: ${err?.message || err}`);
         });
       }
@@ -349,18 +415,29 @@ function createRemoteTerminalSessionManager(options = {}) {
       return { shuttingDown: true };
     },
 
-    upgradeDaemonNow: async () => {
-      log("terminal-remote: user requested immediate daemon upgrade");
-      try {
-        await sendRequest("shutdown", { mode: "force" });
-      } catch {
-        /* ignore */
-      }
-      if (clientSocket) {
-        clientSocket.destroy();
-        clientSocket = null;
-      }
-      await connect();
+    upgradeDaemonNow: () => {
+      if (isDisposed) return Promise.reject(new Error("Terminal manager is disposed"));
+      if (upgradePromise) return upgradePromise;
+      const task = (async () => {
+        if (connectPromise) await connectPromise;
+        assertActive();
+        log("terminal-remote: user requested immediate daemon upgrade");
+        const socket = clientSocket;
+        if (socket) {
+          try {
+            await sendRequest("shutdown", { mode: "force" });
+          } catch {
+            // A daemon can close its pipe before the shutdown response arrives.
+          }
+          assertActive();
+          dropSocket(socket, new Error("Daemon is being upgraded"));
+        }
+        return connect();
+      })().finally(() => {
+        if (upgradePromise === task) upgradePromise = null;
+      });
+      upgradePromise = task;
+      return task;
     },
 
     getEndedSession: (sessionId) => {
@@ -394,12 +471,14 @@ function createRemoteTerminalSessionManager(options = {}) {
     },
 
     dispose: () => {
+      if (isDisposed) return;
       isDisposed = true;
-      if (clientSocket) {
-        clientSocket.destroy();
-        clientSocket = null;
-      }
-      pendingRequests.clear();
+      const error = new Error("Terminal manager is disposed");
+      clearReconnectTimer();
+      cancelConnect?.(error);
+      dropSocket(clientSocket, error);
+      rejectRequests(null, error);
+      daemonStatus.connected = false;
       cachedSessions.clear();
       emitter.removeAllListeners();
     },

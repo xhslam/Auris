@@ -3,7 +3,7 @@ import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
 const {
@@ -70,8 +70,8 @@ describe("terminal-agent-status-service", () => {
       runDir,
     });
 
-    const received: any[] = [];
-    service.onEvent((evt: any) => received.push(evt));
+    const received: { event: string; token: string }[] = [];
+    service.onEvent((evt: { event: string; token: string }) => received.push(evt));
 
     const socketPath = await service.start();
     expect(fs.existsSync(socketPath)).toBe(true);

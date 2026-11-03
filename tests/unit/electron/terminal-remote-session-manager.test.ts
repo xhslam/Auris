@@ -1,6 +1,10 @@
+import { createRequire } from "node:module";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+const require = createRequire(import.meta.url);
 
 const { createTerminalDaemonServer } = require("../../../electron/terminal-daemon/server.cjs");
 const { createRemoteTerminalSessionManager } = require("../../../electron/terminal-remote-session-manager.cjs");
@@ -8,15 +12,21 @@ const { resolveTerminalDaemonPaths } = require("../../../electron/terminal-daemo
 
 describe("terminal-remote-session-manager", () => {
   let tempHome: string;
-  let serverInstance: any = null;
-  let paths: any = null;
+  let serverInstance: ReturnType<typeof createTerminalDaemonServer> | null = null;
+  let paths: ReturnType<typeof resolveTerminalDaemonPaths>;
 
   beforeEach(() => {
-    tempHome = fs.mkdtempSync(path.join("/tmp", "auris-remote-test-"));
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "auris-remote-test-"));
     paths = resolveTerminalDaemonPaths({
       home: tempHome,
       channel: "dev",
     });
+    // Never share the developer App's global Windows daemon pipes.
+    if (process.platform === "win32") {
+      const pipe = String.raw`\\.\pipe\auris-test-${process.pid}-${path.basename(tempHome)}`;
+      paths.daemonSocketPath = `${pipe}-daemon`;
+      paths.agentSocketPath = `${pipe}-agent`;
+    }
   });
 
   afterEach(async () => {
@@ -44,10 +54,10 @@ describe("terminal-remote-session-manager", () => {
       appVersion: "1.0.26",
     });
 
-    const receivedData: any[] = [];
-    const receivedExit: any[] = [];
-    remoteManager.onData((p: any) => receivedData.push(p));
-    remoteManager.onExit((p: any) => receivedExit.push(p));
+    const receivedData: { sessionId: string; data: string; sequence?: number }[] = [];
+    const receivedExit: unknown[] = [];
+    remoteManager.onData((p: (typeof receivedData)[number]) => receivedData.push(p));
+    remoteManager.onExit((p: unknown) => receivedExit.push(p));
 
     await remoteManager.connect();
     expect(remoteManager.getDaemonStatus().connected).toBe(true);
@@ -60,6 +70,10 @@ describe("terminal-remote-session-manager", () => {
     });
     expect(session.id).toBeDefined();
     expect(remoteManager.listSessions()).toHaveLength(1);
+
+    // A synchronous list must reflect acknowledged remote geometry changes.
+    remoteManager.resize(session.id, { cols: 100, rows: 30 });
+    await expect.poll(() => remoteManager.listSessions()[0]).toMatchObject({ cols: 100, rows: 30 });
 
     // Write command
     remoteManager.write(session.id, "echo REMOTE_OK\n");
@@ -96,8 +110,8 @@ describe("terminal-remote-session-manager", () => {
       appVersion: "1.0.26",
     });
 
-    let statusUpdate: any = null;
-    remoteManager.onDaemonStatus((s: any) => { statusUpdate = s; });
+    const statusUpdate: { current: { needsUpgrade: boolean } | null } = { current: null };
+    remoteManager.onDaemonStatus((s: { needsUpgrade: boolean }) => { statusUpdate.current = s; });
 
     await remoteManager.connect();
 
@@ -106,7 +120,7 @@ describe("terminal-remote-session-manager", () => {
     expect(status.needsUpgrade).toBe(true);
     expect(status.protocolCompatible).toBe(false);
     expect(status.activeSessionsCount).toBe(1);
-    expect(statusUpdate?.needsUpgrade).toBe(true);
+    expect(statusUpdate.current?.needsUpgrade).toBe(true);
 
     // Verify session was NOT killed
     expect(serverInstance.sessionManager.listSessions()).toHaveLength(1);

@@ -1,8 +1,9 @@
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
+const require = createRequire(import.meta.url);
+
 const {
-  PROTOCOL_VERSION,
-  MIN_COMPATIBLE_VERSION,
   isProtocolCompatible,
   formatNdjson,
   createNdjsonParser,

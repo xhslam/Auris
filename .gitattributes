@@ -1,1 +1,2 @@
-patches/*.patch whitespace=-blank-at-eol
+# Patched dependency bytes are SHA-256 pinned; CRLF patch context changes them.
+patches/*.patch text eol=lf whitespace=-blank-at-eol
