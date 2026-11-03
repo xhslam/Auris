@@ -56,8 +56,12 @@ function createReleaseTagPreparer({
   async function inspect() {
     const repositoryRoot = await git(appDirectory, ["rev-parse", "--show-toplevel"]);
     const appRelativePath = path.relative(repositoryRoot, appDirectory);
-    if (!appRelativePath || appRelativePath.startsWith("..") || path.isAbsolute(appRelativePath)) {
+    if (appRelativePath === ".." || appRelativePath.startsWith(`..${path.sep}`) || path.isAbsolute(appRelativePath)) {
       throw new ReleaseTagPreparationError("应用目录不在当前 Git 工作树内，已停止创建发布标签。", "UNSAFE_REPOSITORY_LAYOUT");
+    }
+    const changes = await git(appDirectory, ["status", "--porcelain", "--untracked-files=no"]);
+    if (changes) {
+      throw new ReleaseTagPreparationError("存在尚未提交的代码改动，请先提交并推送后再发布。", "SOURCE_NOT_COMMITTED");
     }
     const branch = await git(appDirectory, ["branch", "--show-current"]);
     if (!branch) {

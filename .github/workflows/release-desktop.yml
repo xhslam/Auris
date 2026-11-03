@@ -1,0 +1,212 @@
+name: Release Desktop App
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+env:
+  # Explicit mode: adding a broken certificate never silently downgrades a signed release.
+  MAC_SIGNING_MODE: ${{ vars.MAC_SIGNING_MODE || 'adhoc' }}
+
+permissions:
+  contents: read
+
+jobs:
+  validate-release:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate version and release ordering
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Release tag must be vX.Y.Z, got $TAG"
+            exit 1
+          }
+          VERSION="${TAG#v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          [[ "$PACKAGE_VERSION" = "$VERSION" ]] || {
+            echo "::error::Tag $TAG does not match package.json ($PACKAGE_VERSION)"
+            exit 1
+          }
+
+          LATEST_TAG="$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName // empty')"
+          if [[ -n "$LATEST_TAG" ]]; then
+            LATEST_VERSION="${LATEST_TAG#v}"
+            HIGHEST="$(printf '%s\n%s' "$VERSION" "$LATEST_VERSION" | sort -V | tail -1)"
+            if [[ "$HIGHEST" = "$LATEST_VERSION" ]]; then
+              echo "::error::Tag $TAG is not newer than latest published release $LATEST_TAG. Bump the patch version first."
+              exit 1
+            fi
+          fi
+          printf 'tag=%s\nversion=%s\n' "$TAG" "$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify source before release
+        run: |
+          npm run lint
+          npm run typecheck
+          npm test
+
+      - name: Validate macOS signing mode
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          case "$MAC_SIGNING_MODE" in
+            adhoc) echo "macOS uses ad-hoc signing; users must install updates manually." ;;
+            developer-id)
+              test -n "$CSC_LINK" || { echo "::error::Missing MAC_CSC_LINK secret"; exit 1; }
+              test -n "$CSC_KEY_PASSWORD" || { echo "::error::Missing MAC_CSC_KEY_PASSWORD secret"; exit 1; }
+              ;;
+            *) echo "::error::MAC_SIGNING_MODE must be adhoc or developer-id"; exit 1 ;;
+          esac
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft > release-state.json; then
+            node -e 'if (!require("./release-state.json").isDraft) process.exit(1)'
+          else
+            if [[ "$MAC_SIGNING_MODE" = adhoc ]]; then
+              printf '%s\n' 'macOS: ad-hoc signed build; download and replace Auris manually. Automatic installation is unavailable. macOS may show a developer verification warning.' 'Windows: use the NSIS .exe installer for automatic updates.' > release-mode.md
+            else
+              printf '%s\n' 'macOS: Developer ID signed build. Windows: use the NSIS .exe installer for automatic updates.' > release-mode.md
+            fi
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Auris $TAG" --notes-file release-mode.md --generate-notes --draft
+          fi
+
+  build-and-upload:
+    name: Build ${{ matrix.name }}
+    needs: validate-release
+    permissions:
+      contents: write
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Apple Silicon
+            os: macos-14
+            required_metadata: release/latest-mac.yml
+          - name: Windows x64
+            os: windows-latest
+            required_metadata: release/latest.yml
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Verify macOS runner architecture
+        if: matrix.name == 'macOS Apple Silicon'
+        run: node -e 'if (process.arch !== "arm64") throw new Error("Expected an Apple Silicon runner")'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and upload update artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CSC_LINK: ${{ matrix.name == 'macOS Apple Silicon' && env.MAC_SIGNING_MODE == 'developer-id' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.name == 'macOS Apple Silicon' && env.MAC_SIGNING_MODE == 'developer-id' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+        run: |
+          set -euo pipefail
+          if [[ "$RUNNER_OS" = macOS ]]; then
+            if [[ "$MAC_SIGNING_MODE" = developer-id ]]; then
+              npm run desktop:release:build:mac -- --config.forceCodeSigning=true
+            else
+              CSC_IDENTITY_AUTO_DISCOVERY=false npm run desktop:release:build:mac -- --config.mac.identity=- --config.forceCodeSigning=false
+            fi
+          else
+            npm run desktop:release:build:win
+          fi
+
+      - name: Verify macOS signature
+        if: matrix.name == 'macOS Apple Silicon'
+        run: |
+          set -euo pipefail
+          codesign --verify --deep --strict release/mac-arm64/Auris.app
+          signature="$(codesign -dv --verbose=2 release/mac-arm64/Auris.app 2>&1)"
+          if [[ "$MAC_SIGNING_MODE" = developer-id ]]; then
+            grep -q 'Authority=Developer ID Application:' <<< "$signature"
+          else
+            grep -q 'Signature=adhoc' <<< "$signature"
+          fi
+
+      - name: Verify updater metadata was produced for this version
+        shell: bash
+        env:
+          VERSION: ${{ needs.validate-release.outputs.version }}
+          METADATA: ${{ matrix.required_metadata }}
+        run: |
+          set -euo pipefail
+          test -f "$METADATA"
+          node scripts/verify-release-artifacts.cjs release "$VERSION" "$(basename "$METADATA")"
+
+  publish-release:
+    name: Publish release
+    needs: [validate-release, build-and-upload]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify required updater metadata exists on draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.validate-release.outputs.tag }}
+          VERSION: ${{ needs.validate-release.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-download
+          node scripts/verify-release-artifacts.cjs release-download "$VERSION" latest-mac.yml latest.yml
+
+      - name: Publish verified draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.validate-release.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false

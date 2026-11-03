@@ -78,14 +78,13 @@ describe("terminal-remote-session-manager", () => {
     // Write command
     remoteManager.write(session.id, "echo REMOTE_OK\n");
 
-    // Wait for data event
-    await new Promise((r) => setTimeout(r, 120));
-    expect(receivedData.some((d) => d.sessionId === session.id && d.data.includes("REMOTE_OK"))).toBe(true);
+    await expect.poll(() => receivedData.some((event) =>
+      event.sessionId === session.id && event.data.includes("REMOTE_OK"),
+    ), { timeout: 3000 }).toBe(true);
 
     // Kill session
     remoteManager.kill(session.id);
-    await new Promise((r) => setTimeout(r, 60));
-    expect(remoteManager.listSessions()).toHaveLength(0);
+    await expect.poll(() => remoteManager.listSessions(), { timeout: 3000 }).toHaveLength(0);
 
     remoteManager.dispose();
   });

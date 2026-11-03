@@ -22,16 +22,21 @@ describe("createReleaseTagPreparer", () => {
     localHead = "abc123",
     remoteHead = "abc123",
     tagCommit = "abc123",
+    repositoryRoot = root,
+    changes = "",
   }: {
     localTag?: string;
     remoteTag?: string;
     localHead?: string;
     remoteHead?: string;
     tagCommit?: string;
+    repositoryRoot?: string;
+    changes?: string;
   } = {}) {
     return vi.fn(async (_command: string, args: string[]) => {
       const command = args.join(" ");
-      if (command === "rev-parse --show-toplevel") return { stdout: `${root}\n` };
+      if (command === "rev-parse --show-toplevel") return { stdout: `${repositoryRoot}\n` };
+      if (command === "status --porcelain --untracked-files=no") return { stdout: changes };
       if (command === "branch --show-current") return { stdout: "main\n" };
       if (command === "rev-parse HEAD") return { stdout: `${localHead}\n` };
       if (command === "rev-parse origin/main") return { stdout: `${remoteHead}\n` };
@@ -58,6 +63,7 @@ describe("createReleaseTagPreparer", () => {
     });
     expect(exec.mock.calls.map(([, args]) => args)).toEqual([
       ["rev-parse", "--show-toplevel"],
+      ["status", "--porcelain", "--untracked-files=no"],
       ["branch", "--show-current"],
       ["fetch", "--prune", "--tags", "origin"],
       ["rev-parse", "HEAD"],
@@ -67,6 +73,23 @@ describe("createReleaseTagPreparer", () => {
       ["tag", "-a", "v1.0.1", "-m", "Release v1.0.1"],
       ["push", "origin", "v1.0.1"],
     ]);
+  });
+
+  it("supports the app at the repository root after migration", async () => {
+    const preparer = createReleaseTagPreparer({ appDirectory, exec: createExec({ repositoryRoot: appDirectory }), fileSystem: createFileSystem() });
+    await expect(preparer.inspect()).resolves.toMatchObject({ version: "1.0.1" });
+  });
+
+  it("refuses uncommitted source and paths outside the repository", async () => {
+    for (const [options, code] of [
+      [{ changes: " M package.json" }, "SOURCE_NOT_COMMITTED"],
+      [{ repositoryRoot: "/other" }, "UNSAFE_REPOSITORY_LAYOUT"],
+    ] as const) {
+      const exec = createExec(options);
+      const preparer = createReleaseTagPreparer({ appDirectory, exec, fileSystem: createFileSystem() });
+      await expect(preparer.prepare()).rejects.toMatchObject({ code });
+      expect(exec.mock.calls.some(([, args]) => args[0] === "push")).toBe(false);
+    }
   });
 
   it("refuses to mutate an already published release tag", async () => {

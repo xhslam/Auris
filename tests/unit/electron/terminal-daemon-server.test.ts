@@ -179,18 +179,14 @@ describe("terminal-daemon-server", () => {
         data: "echo DAEMON_TEST_OK\n",
       });
 
-      // Wait a moment for shell output
-      await new Promise((r) => setTimeout(r, 100));
-
-      // Resume from sequence 0 (full replay)
-      const resumeResult = await client.send({
+      await expect.poll(() => client.send({
         type: "resume",
         sessionId: session.id,
         fromSequence: 0,
+      }), { timeout: 3000 }).toMatchObject({
+        session: { id: session.id },
+        replayedData: expect.stringContaining("DAEMON_TEST_OK"),
       });
-
-      expect(resumeResult.session.id).toBe(session.id);
-      expect(resumeResult.replayedData).toContain("DAEMON_TEST_OK");
 
       // Verify list returns this session
       const list = await client.send({ type: "list" });
