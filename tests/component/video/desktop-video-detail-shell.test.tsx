@@ -339,11 +339,11 @@ describe("DesktopVideoDetailShell", () => {
 
     vi.useFakeTimers();
     try {
-      fireEvent.play(video);
+      await act(async () => { fireEvent.play(video); });
       expect(player).toHaveAttribute("data-controls-visible", "true");
 
-      act(() => {
-        vi.advanceTimersByTime(2700);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2700);
       });
       expect(player).toHaveAttribute("data-controls-visible", "false");
 

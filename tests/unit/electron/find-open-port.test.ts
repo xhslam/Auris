@@ -19,12 +19,12 @@ const { findOpenPort, findResponsiveServerUrl } = require("../../../electron/uti
   ) => Promise<string | null>;
 };
 
-function listen(host: string, port = 0) {
+function listen(host: string, port = 0, ipv6Only = false) {
   const server = net.createServer();
 
   return new Promise<{ port: number; server: net.Server }>((resolve, reject) => {
     server.once("error", reject);
-    server.listen(port, host, () => {
+    server.listen({ port, host, ipv6Only }, () => {
       const address = server.address();
 
       if (!address || typeof address === "string") {
@@ -82,7 +82,7 @@ describe("find-open-port", () => {
   });
 
   it("can reuse the numeric port when only IPv6 is reserved", async () => {
-    const { port, server } = await listen("::");
+    const { port, server } = await listen("::", 0, true);
 
     try {
       await expect(findOpenPort(port, 1)).resolves.toBe(port);

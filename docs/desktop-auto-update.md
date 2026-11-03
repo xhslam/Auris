@@ -26,7 +26,7 @@
 ## 每次正式发布
 
 1. 合并需要交付的代码，检查 main 的 CI 通过。
-2. 在源码根目录运行 `npm version patch --no-git-tag-version`，同步递增 package.json 和 package-lock.json（本轮首次发版为 1.0.27）。
+2. 在源码根目录运行 `npm version patch --no-git-tag-version`，同步递增 package.json 和 package-lock.json（本轮首次发版为 1.0.28）。
 3. 提交这两个版本文件，将提交推送到当前分支。发布命令要求已跟踪的改动全部提交，HEAD 与远端分支一致。
 4. 运行 `npm run desktop:release`，创建并推送对应版本标签。
 5. 在 GitHub Actions 的 Release Desktop App 中查看结果。
@@ -45,11 +45,13 @@
 
 ## 本次检查（2026-11-03）
 
-- 开始时源码与安装版本均为 1.0.26；本轮准备首次云端发布 1.0.27。同步了远端新提交 `74c46ad`，保留其终端与 Windows 修复。
+- 开始时源码与安装版本均为 1.0.26；本轮准备首次云端发布 1.0.28。同步了远端新提交 `74c46ad`，保留其终端与 Windows 修复。
 - 检查时 GitHub 没有 Release、Actions secrets 列表为空。按用户要求先采用默认 ad-hoc 模式发布，不以缺少 Apple 证书阻断双平台构建。
 - 当前版本验收：全仓 Vitest 485 个文件 / 5294 项通过，完整 typecheck 通过，全仓 lint 0 errors / 18 项既有 warnings；actionlint 1.7.12 对全部工作流检查通过，git diff 检查通过。两项 socket 测试等待实际输出，保留上游新增 Windows 与连接回归。
 - 修复仓库移到根目录后发布命令误拒绝根目录的问题，以及对应工作流测试仍读取上级目录的问题。
 - 恢复迁移时删除的发布工作流，并改用当前根目录路径；没有修改应用页面、Notes/Vault 或主进程入口。
+
+- 首轮 `v1.0.27` 云端门禁发现两个 Linux 测试假设问题（IPv6 dual-stack 与同步 fake timer），5292 项通过 / 2 项失败，尚未创建 Release。修正为显式 IPv6-only 和异步 React/timer flush 后，以新标签重试，保留旧标签不覆盖。
 
 ## 源码参考与差异
 

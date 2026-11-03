@@ -66,11 +66,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Verify source before release
-        run: |
-          npm run lint
-          npm run typecheck
-          npm test
+      - name: Lint source
+        run: npm run lint
+      - name: Typecheck source and tests
+        run: npm run typecheck
+      - name: Run complete test suite
+        run: npm test
 
       - name: Validate macOS signing mode
         env:
