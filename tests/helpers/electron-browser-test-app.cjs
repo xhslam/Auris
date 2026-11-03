@@ -1,5 +1,5 @@
 "use strict";
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 
 /**
  * Explicit Electron composition for Phase 3 MCP browser research-loop tests.

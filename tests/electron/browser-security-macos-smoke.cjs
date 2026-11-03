@@ -1,5 +1,5 @@
 "use strict";
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 
 /**
  * Consolidated macOS security smoke for Phase 4 Task 8.

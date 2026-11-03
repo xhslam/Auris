@@ -146,19 +146,10 @@ jobs:
       - name: Build and upload update artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if [[ "$RUNNER_OS" = macOS ]]; then
-            if [[ "$MAC_SIGNING_MODE" = developer-id ]]; then
-              CSC_LINK="${{ secrets.MAC_CSC_LINK }}" CSC_KEY_PASSWORD="${{ secrets.MAC_CSC_KEY_PASSWORD }}" npm run desktop:release:build:mac -- --config.forceCodeSigning=true
-            else
-              unset CSC_LINK CSC_KEY_PASSWORD
-              CSC_IDENTITY_AUTO_DISCOVERY=false npm run desktop:release:build:mac -- --config.mac.identity=- --config.forceCodeSigning=false
-            fi
-          else
-            unset CSC_LINK CSC_KEY_PASSWORD
-            npm run desktop:release:build:win
-          fi
+          MAC_SIGNING_MODE: ${{ env.MAC_SIGNING_MODE }}
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+        run: node scripts/build-desktop-release.cjs
 
       - name: Verify macOS signature
         if: matrix.name == 'macOS Apple Silicon'
@@ -211,3 +202,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.validate-release.outputs.tag }}
         run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+
+  cleanup-aborted-release:
+    name: Clean up aborted draft release
+    needs: [validate-release, build-and-upload]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Delete incomplete draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.validate-release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$TAG" ]]; then
+            echo "No release tag available to clean up."
+            exit 0
+          fi
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null | grep -q true; then
+            echo "Deleting incomplete draft release for $TAG..."
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
+          else
+            echo "No incomplete draft release found for $TAG."
+          fi

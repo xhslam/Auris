@@ -50,6 +50,7 @@
     "desktop:assemble": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs && npm run desktop:privacy:audit",
     "desktop:assemble:win": "npm run desktop:runtime-deps && node scripts/assemble-standalone.cjs --target=win32-x64 && npm run desktop:privacy:audit",
     "desktop:build:verify": "node scripts/verify-desktop-build.cjs",
+    "desktop:release:build": "node scripts/build-desktop-release.cjs",
     "desktop:release:build:mac": "npm run desktop:island:build && npm run build && npm run desktop:assemble && electron-builder --mac --publish always",
     "desktop:release:build:win": "npm run build && npm run desktop:assemble:win && electron-builder --win --config.npmRebuild=false --publish always",
     "desktop:update:local:win": "node scripts/local-update-win.cjs",

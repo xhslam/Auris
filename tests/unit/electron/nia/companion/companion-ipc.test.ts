@@ -126,7 +126,7 @@ describe("Nia companion IPC", () => {
 
   it("forwards drag-end payload with retainCapture option to companion window", async () => {
     const ipcMain = fakeIpcMain();
-    const endDrag = vi.fn((payload?: unknown) => true);
+    const endDrag = vi.fn((_payload?: unknown) => true);
     const service = createCompanionIpc({
       ipcMain,
       companionWindow: { window: () => null, endDrag },

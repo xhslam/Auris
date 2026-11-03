@@ -1,5 +1,5 @@
 "use strict";
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 
 const { EventEmitter } = require("node:events");
 const { existsSync } = require("node:fs");

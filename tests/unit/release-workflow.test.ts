@@ -18,10 +18,12 @@ describe("desktop release workflow", () => {
     };
 
     const source = fs.readFileSync(workflowPath, "utf8");
+    const builderSource = fs.readFileSync(path.join(repositoryRoot, "scripts", "build-desktop-release.cjs"), "utf8");
     expect(source).not.toContain("auris/package");
     expect(source).not.toContain("working-directory: auris");
-    expect(source).toContain("--config.forceCodeSigning=true");
-    expect(source).toContain("--config.mac.identity=- --config.forceCodeSigning=false");
+    expect(source).toContain("node scripts/build-desktop-release.cjs");
+    expect(builderSource).toContain("--config.forceCodeSigning=true");
+    expect(builderSource).toContain("--config.mac.identity=-");
     expect(source).toContain("vars.MAC_SIGNING_MODE || 'adhoc'");
     expect(source).toContain("Signature=adhoc");
     expect(source).toContain("Automatic installation is unavailable");
@@ -43,6 +45,10 @@ describe("desktop release workflow", () => {
     ]);
     expect(workflow.jobs["publish-release"].steps?.some((step) =>
       step.name === "Publish verified draft release" && step.run?.includes("--draft=false"),
+    )).toBe(true);
+    expect(workflow.jobs["cleanup-aborted-release"]).toBeDefined();
+    expect(workflow.jobs["cleanup-aborted-release"].steps?.some((step) =>
+      step.name === "Delete incomplete draft release" && step.run?.includes("gh release delete"),
     )).toBe(true);
   });
   it("allows explicit ad-hoc releases and fails closed for missing Developer ID credentials", () => {

@@ -1,5 +1,5 @@
 "use strict";
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 
 const childProcess = require("node:child_process");
 const fsSync = require("node:fs");
