@@ -496,7 +496,6 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
           onDrop={(event) => handleFolderDrop(event, DROP_TARGET_ROOT)}
           onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
           ref={scrollContainerRef}
-          role="tree"
           style={{
             height: "100%",
             overflowY: "auto",
@@ -511,8 +510,9 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
             }}
           >
             <ul
+              aria-label={NOTES_UI_COPY.fileTree.ariaLabel}
               className="notes-v2__tree-list"
-              role="group"
+              role="tree"
               style={{
                 left: 0,
                 listStyle: "none",

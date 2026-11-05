@@ -696,7 +696,7 @@ describe("NotesPageClient", () => {
         "notes/rhythm-drill.md",
         "# Rhythm Drill\n\nExternal editor changed this file.\n",
       );
-      await vi.advanceTimersByTimeAsync(300);
+      await vi.advanceTimersByTimeAsync(500);
       await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
