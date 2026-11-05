@@ -9,6 +9,7 @@ export type NoteHeadingIndex = {
 export type NoteWikiLinkIndex = {
   alias: string | null;
   heading: string | null;
+  kind?: "wikiLink" | "link";
   target: string;
 };
 

@@ -112,8 +112,14 @@ export function buildMarkdownIndex(source: string): ParsedNoteIndex {
     embeds: [],
     headings,
     links: [
-      ...extractWikiLinks(normalizedSource),
-      ...extractMarkdownNoteLinks(normalizedSource),
+      ...extractWikiLinks(normalizedSource).map((link) => ({
+        ...link,
+        kind: "wikiLink" as const,
+      })),
+      ...extractMarkdownNoteLinks(normalizedSource).map((link) => ({
+        ...link,
+        kind: "link" as const,
+      })),
     ],
     tags: extractTags(lines),
     tasks: extractTasks(lines),

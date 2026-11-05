@@ -51,52 +51,76 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
   return { tagFilters, textTerms };
 }
 
-function matchesTagFilters(document: NoteDocument, tagFilters: string[]) {
+export type SearchableDocument = {
+  bodyLower: string;
+  headingsLower: string[];
+  pathLower: string;
+  tagsLower: string[];
+  tagSetLower: Set<string>;
+  titleLower: string;
+};
+
+const searchableCache = new WeakMap<NoteDocument, SearchableDocument>();
+
+export function getSearchableDocument(document: NoteDocument): SearchableDocument {
+  let cached = searchableCache.get(document);
+  if (!cached) {
+    const tagsLower = document.parsed.tags.map((tag) => tag.toLowerCase());
+    cached = {
+      bodyLower: document.rawSource.toLowerCase(),
+      headingsLower: document.parsed.headings.map((heading) => heading.text.toLowerCase()),
+      pathLower: document.path.toLowerCase(),
+      tagsLower,
+      tagSetLower: new Set(tagsLower),
+      titleLower: (document.parsed.title ?? "").toLowerCase(),
+    };
+    searchableCache.set(document, cached);
+  }
+  return cached;
+}
+
+function matchesTagFilters(searchable: SearchableDocument, tagFilters: string[]) {
   if (tagFilters.length === 0) {
     return true;
   }
 
-  const documentTags = document.parsed.tags.map((tag) => tag.toLowerCase());
-
-  return tagFilters.every((filter) => documentTags.includes(filter));
+  return tagFilters.every((filter) => searchable.tagSetLower.has(filter));
 }
 
-function matchesTextTerm(document: NoteDocument, term: string) {
+function matchesTextTerm(searchable: SearchableDocument, term: string) {
   return (
-    document.path.toLowerCase().includes(term) ||
-    (document.parsed.title ?? "").toLowerCase().includes(term) ||
-    document.rawSource.toLowerCase().includes(term) ||
-    document.parsed.tags.some((tag) => tag.toLowerCase().includes(term)) ||
-    document.parsed.headings.some((heading) =>
-      heading.text.toLowerCase().includes(term),
-    )
+    searchable.pathLower.includes(term) ||
+    searchable.titleLower.includes(term) ||
+    searchable.bodyLower.includes(term) ||
+    searchable.tagsLower.some((tag) => tag.includes(term)) ||
+    searchable.headingsLower.some((heading) => heading.includes(term))
   );
 }
 
-function matchesDocument(document: NoteDocument, parsed: ParsedSearchQuery) {
-  if (!matchesTagFilters(document, parsed.tagFilters)) {
+function matchesDocument(searchable: SearchableDocument, parsed: ParsedSearchQuery) {
+  if (!matchesTagFilters(searchable, parsed.tagFilters)) {
     return false;
   }
 
-  return parsed.textTerms.every((term) => matchesTextTerm(document, term));
+  return parsed.textTerms.every((term) => matchesTextTerm(searchable, term));
 }
 
-function scoreDocument(document: NoteDocument, parsed: ParsedSearchQuery) {
+function scoreDocument(searchable: SearchableDocument, parsed: ParsedSearchQuery) {
   let score = parsed.tagFilters.length * 3;
-  const title = (document.parsed.title ?? "").toLowerCase();
-  const path = document.path.toLowerCase();
-  const body = document.rawSource.toLowerCase();
+  const title = searchable.titleLower;
+  const path = searchable.pathLower;
+  const body = searchable.bodyLower;
 
   parsed.textTerms.forEach((term) => {
     if (title.includes(term)) {
       score += 4;
     }
 
-    if (document.parsed.headings.some((heading) => heading.text.toLowerCase().includes(term))) {
+    if (searchable.headingsLower.some((heading) => heading.includes(term))) {
       score += 2;
     }
 
-    if (document.parsed.tags.some((tag) => tag.toLowerCase().includes(term))) {
+    if (searchable.tagsLower.some((tag) => tag.includes(term))) {
       score += 2;
     }
 
@@ -119,13 +143,22 @@ export function searchDocuments(documents: NoteDocument[], query: string) {
     return documents;
   }
 
-  return documents
-    .filter((document) => matchesDocument(document, parsed))
-    .map((document, index) => ({
-      document,
-      index,
-      score: scoreDocument(document, parsed),
-    }))
+  const matches: Array<{ document: NoteDocument; index: number; score: number }> = [];
+
+  for (let index = 0; index < documents.length; index++) {
+    const document = documents[index];
+    const searchable = getSearchableDocument(document);
+
+    if (matchesDocument(searchable, parsed)) {
+      matches.push({
+        document,
+        index,
+        score: scoreDocument(searchable, parsed),
+      });
+    }
+  }
+
+  return matches
     .sort((left, right) => right.score - left.score || left.index - right.index)
     .map((entry) => entry.document);
 }

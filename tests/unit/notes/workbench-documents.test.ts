@@ -66,5 +66,27 @@ describe("workbench-documents", () => {
 
     expect(nextDocuments[1]?.parsed.backlinks).toEqual(["notes/daily.md"]);
     expect(grammar.parsed.backlinks).toEqual([]);
+    // daily had no backlinks, so its object reference must be strictly preserved!
+    expect(nextDocuments[0]).toBe(daily);
+  });
+
+  it("preserves array and document identities when applied backlinks are unchanged", () => {
+    const daily = createDocument("notes/daily.md", "# Daily");
+    const grammar = createDocument("notes/grammar.md", "# Grammar");
+
+    const withBacklinks = applyBacklinksToDocuments([daily, grammar], {
+      "notes/daily.md": [],
+      "notes/grammar.md": ["notes/daily.md"],
+    });
+
+    // Re-applying identical backlinks
+    const reapplied = applyBacklinksToDocuments(withBacklinks, {
+      "notes/daily.md": [],
+      "notes/grammar.md": ["notes/daily.md"],
+    });
+
+    expect(reapplied).toBe(withBacklinks);
+    expect(reapplied[0]).toBe(withBacklinks[0]);
+    expect(reapplied[1]).toBe(withBacklinks[1]);
   });
 });

@@ -10,6 +10,7 @@ declare namespace vaultFileWalker {
   type Dependencies = {
     readdir?: (path: string, options: { withFileTypes: true }) => Promise<DirectoryEntry[]>;
     stat?: (path: string) => Promise<{ mtime: Date }>;
+    statConcurrency?: number;
   };
   function createVaultFileWalker(dependencies?: Dependencies): (vaultPath: string) => Promise<FileRecord[]>;
   function walkVaultFiles(vaultPath: string): Promise<FileRecord[]>;

@@ -1,23 +1,69 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { isIgnoredVaultRootDirectory } = require("./vault-ignore-rules.cjs");
+
+const DEFAULT_STAT_CONCURRENCY = 8;
+
+function joinVaultPath(basePath, subPath) {
+  if (!subPath) {
+    return basePath;
+  }
+
+  // Preserve POSIX separator in tests or environments where basePath is POSIX
+  if (basePath.startsWith("/") && !basePath.includes("\\")) {
+    return path.posix.join(basePath, subPath.replace(/\\/g, "/"));
+  }
+
+  return path.join(basePath, subPath);
+}
+
+async function mapWithLimit(items, limit, fn) {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(limit, items.length);
+
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex++;
+      results[currentIndex] = await fn(items[currentIndex], currentIndex);
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
 
 /**
- * 以显式待处理栈遍历 Vault，避免把一个大型子树的记录作为
- * `Array.prototype.push(...records)` 的参数展开；后者会在大型目录中触发
- * V8 的调用参数上限，表现为 "Maximum call stack size exceeded"。
+ * 以显式待处理栈遍历 Vault，避免把大型子树的记录作为
+ * `Array.prototype.push(...records)` 的参数展开（避免超出调用栈限制）。
+ * 忽略根级点目录与指定隐藏目录，stat() 使用有界并发（默认 8）。
  */
-function createVaultFileWalker({ readdir = fs.readdir, stat = fs.stat } = {}) {
+function createVaultFileWalker({
+  readdir = fs.readdir,
+  stat = fs.stat,
+  statConcurrency = DEFAULT_STAT_CONCURRENCY,
+} = {}) {
   return async function walkVaultFiles(vaultPath) {
     const records = [];
     const pendingDirectories = [""];
 
     while (pendingDirectories.length > 0) {
       const relativeDirectory = pendingDirectories.pop();
-      const currentDirectory = path.join(vaultPath, relativeDirectory);
+      const currentDirectory = joinVaultPath(vaultPath, relativeDirectory);
       const entries = await readdir(currentDirectory, { withFileTypes: true });
 
+      const filesInDirectory = [];
+
       for (const entry of entries) {
-        if (relativeDirectory === "" && entry.name === ".shadowing") {
+        if (
+          relativeDirectory === "" &&
+          entry.isDirectory() &&
+          isIgnoredVaultRootDirectory(entry.name)
+        ) {
           continue;
         }
 
@@ -28,26 +74,44 @@ function createVaultFileWalker({ readdir = fs.readdir, stat = fs.stat } = {}) {
 
         if (entry.isDirectory()) {
           records.push({
-            absolutePath: path.join(vaultPath, relativePath),
+            absolutePath: joinVaultPath(vaultPath, relativePath),
             fileName: entry.name,
             isDirectory: true,
             relativePath: normalizedRelativePath,
           });
           pendingDirectories.push(relativePath);
-          continue;
+        } else {
+          filesInDirectory.push({
+            entry,
+            normalizedRelativePath,
+            relativePath,
+          });
         }
+      }
 
-        const absolutePath = path.join(vaultPath, relativePath);
-        // Dirent 不携带时间戳；读取文件属性失败时仍保留文件条目，并显式标记为
-        // 无可用修改时间，避免单个文件的权限或瞬态问题中断整个 Vault 扫描。
-        const metadata = await stat(absolutePath).catch(() => null);
+      if (filesInDirectory.length > 0) {
+        const fileRecords = await mapWithLimit(
+          filesInDirectory,
+          statConcurrency,
+          async ({ entry, normalizedRelativePath, relativePath }) => {
+            const absolutePath = joinVaultPath(vaultPath, relativePath);
+            const metadata = await stat(absolutePath).catch(() => null);
 
-        records.push({
-          absolutePath,
-          fileName: entry.name,
-          mtime: metadata?.mtime instanceof Date ? metadata.mtime.toISOString() : null,
-          relativePath: normalizedRelativePath,
-        });
+            return {
+              absolutePath,
+              fileName: entry.name,
+              mtime:
+                metadata?.mtime instanceof Date
+                  ? metadata.mtime.toISOString()
+                  : null,
+              relativePath: normalizedRelativePath,
+            };
+          },
+        );
+
+        for (let i = 0; i < fileRecords.length; i++) {
+          records.push(fileRecords[i]);
+        }
       }
     }
 

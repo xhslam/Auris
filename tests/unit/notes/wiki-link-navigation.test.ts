@@ -93,6 +93,27 @@ describe("planWikiLinkNavigation", () => {
     expect(planWikiLinkNavigation("[[]]", "daily.md", [])).toBeNull();
     expect(planWikiLinkNavigation("../escape", "daily.md", [])).toBeNull();
   });
+
+  it("resolves explicit path without needing full vault rebuild", () => {
+    const documents = [
+      createDocument("notes/folder/specific-note.md"),
+    ];
+
+    const plan = planWikiLinkNavigation("notes/folder/specific-note", "notes/daily.md", documents);
+    expect(plan).toEqual({ path: "notes/folder/specific-note.md", type: "open" });
+  });
+
+  it("resolves aliases defined in frontmatter", () => {
+    const docWithAlias = {
+      ...createDocument("notes/terms.md"),
+      frontmatter: {
+        aliases: ["术语表", "Glossary"],
+      },
+    };
+
+    const plan = planWikiLinkNavigation("术语表", "notes/daily.md", [docWithAlias]);
+    expect(plan).toEqual({ path: "notes/terms.md", type: "open" });
+  });
 });
 
 describe("buildWikiLinkNoteSource", () => {

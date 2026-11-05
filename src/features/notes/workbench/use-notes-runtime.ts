@@ -218,12 +218,29 @@ export function useNotesRuntime() {
   useEffect(() => {
     void refreshSnapshot();
 
-    return vaultStore.subscribeToExternalChanges(() => {
-      bumpNotesMediaReloadKey();
-      void refreshSnapshot({
-        showLoading: false,
-      });
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const unsubscribe = vaultStore.subscribeToExternalChanges(() => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(async () => {
+        debounceTimer = null;
+        const result = await refreshSnapshot({
+          showLoading: false,
+        });
+        if (result) {
+          bumpNotesMediaReloadKey();
+        }
+      }, 75);
     });
+
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      unsubscribe();
+    };
   }, [refreshSnapshot, vaultStore]);
 
   useEffect(() => {

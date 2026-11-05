@@ -23,7 +23,7 @@ import {
 } from "@/components/notes-v2/notes-editor-context-menu";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { useNotesScrollMemory } from "@/components/notes-v2/use-notes-scroll-memory";
-import { createWikiLinkResolver } from "@/features/notes/documents/backlinks";
+import { buildWikiLinkTargetIndex } from "@/features/notes/documents/backlinks";
 import { findWikiLinkAtLineOffset } from "@/features/notes/documents/wiki-link-navigation";
 import {
   NEW_NOTE_BODY_PLACEHOLDER,
@@ -510,15 +510,14 @@ export function NotesRichEditorPane({
   );
   const shouldShowVirtualTitle = editableDocument?.titleStorage === "virtual";
 
-  // Resolver for colouring wiki links as resolved vs missing. Memoised on the
-  // vault documents alone (the source path is supplied per call), so switching
-  // notes does not rebuild the lookup or fire a refresh transaction. Held in a
-  // ref so the decoration plugin (created once at mount) always sees the latest
-  // resolver without recreating the editor view.
-  const wikiLinkExists = useMemo(
-    () => createWikiLinkResolver(documents),
+  // Target index for colouring wiki links as resolved vs missing.
+  // Memoised with versioning so editing notes does not fire a refresh transaction
+  // unless the normalized target collection actually changes.
+  const wikiLinkIndex = useMemo(
+    () => buildWikiLinkTargetIndex(documents),
     [documents],
   );
+  const wikiLinkExists = wikiLinkIndex.wikiLinkExists;
   const wikiLinkExistsRef = useRef(wikiLinkExists);
 
   useEffect(() => {
@@ -534,16 +533,16 @@ export function NotesRichEditorPane({
   }, [onEnsureWikiLinkNote]);
 
   // Keep the resolver ref current and force the decoration plugin to recompute
-  // colours when the vault's documents change (a no-op sync transaction).
+  // colours only when the wiki-link target index version changes (a no-op sync transaction).
   useEffect(() => {
-    wikiLinkExistsRef.current = wikiLinkExists;
+    wikiLinkExistsRef.current = wikiLinkIndex.wikiLinkExists;
 
     const view = viewRef.current;
 
     if (view) {
       view.dispatch(view.state.tr.setMeta(NOTES_RICH_EDITOR_SYNC_META, true));
     }
-  }, [wikiLinkExists]);
+  }, [wikiLinkIndex.version, wikiLinkIndex.wikiLinkExists]);
 
   useEffect(() => {
     onActiveLineChangeRef.current = onActiveLineChange;

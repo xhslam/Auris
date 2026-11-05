@@ -58,3 +58,7 @@ CLAUDE.local.md
 .cc-suite/provenance
 .cc-suite/original-claude.md
 .cc-suite-*.provenance.json
+.git-backup-old/
+.workbuddy/
+electron/.runtime-node-modules-stage-*/
+winCodeSign-*.7z

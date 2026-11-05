@@ -219,4 +219,163 @@ describe("vault-store", () => {
     expect(snapshot.backlinks["notes/grammar.md"]).toEqual([]);
     expect(snapshot.backlinks["notes/pronunciation.md"]).toEqual(["notes/daily.md"]);
   });
+
+  it("skips disk readFile and re-parsing on normal refresh when fingerprints match", async () => {
+    const reads: string[] = [];
+    const client = createClient((path) => reads.push(path));
+    const store = createVaultStore(client);
+
+    // Initial load: loads all documents
+    await store.refresh({ loadAll: true });
+    expect(reads.length).toBeGreaterThan(0);
+
+    store.resetDebugStats();
+    reads.length = 0;
+
+    // Subsequent normal refresh with unchanged fingerprints
+    const nextSnapshot = await store.refresh();
+    const stats = store.getDebugStats();
+
+    expect(reads).toEqual([]);
+    expect(stats.readFileCalls).toBe(0);
+    expect(stats.reusedDocumentCount).toBeGreaterThan(0);
+    expect(nextSnapshot.documents.length).toBeGreaterThan(0);
+  });
+
+  it("reads only the modified file when a single file mtime/size changes, preserving other references", async () => {
+    const reads: string[] = [];
+    const client = createClient((path) => reads.push(path));
+    const store = createVaultStore(client);
+
+    const snapshot1 = await store.refresh({ loadAll: true });
+    const daily1 = snapshot1.documents.find((d) => d.path === "notes/daily.md");
+    const grammar1 = snapshot1.documents.find((d) => d.path === "notes/grammar.md");
+
+    reads.length = 0;
+    store.resetDebugStats();
+
+    // Modify grammar.md on disk
+    await client.writeFile("notes/grammar.md", "# Grammar\n\nUpdated note content");
+    // List entries will reflect updated size / mtime for grammar.md
+
+    const snapshot2 = await store.refresh();
+    const stats = store.getDebugStats();
+
+    expect(reads).toEqual(["notes/grammar.md"]);
+    expect(stats.readFileCalls).toBe(1);
+
+    const daily2 = snapshot2.documents.find((d) => d.path === "notes/daily.md");
+    const grammar2 = snapshot2.documents.find((d) => d.path === "notes/grammar.md");
+
+    // daily.md was unchanged, its document reference must be preserved!
+    expect(daily2).toBe(daily1);
+    // grammar.md changed, its document reference must be updated!
+    expect(grammar2).not.toBe(grammar1);
+    expect(grammar2?.rawSource).toContain("Updated note content");
+  });
+
+  it("always re-reads files when mtime is null", async () => {
+    const reads: string[] = [];
+    const client = createClient((path) => reads.push(path));
+    // Wrap listEntries to return null mtime for daily.md
+    const origList = client.listEntries;
+    client.listEntries = async () => {
+      const list = await origList();
+      return list.map((e) => (e.path === "notes/daily.md" ? { ...e, mtime: null } : e));
+    };
+
+    const store = createVaultStore(client);
+    await store.refresh();
+    expect(reads).toContain("notes/daily.md");
+
+    reads.length = 0;
+    await store.refresh();
+    // Because mtime was null, daily.md cannot be safely assumed unchanged and must be re-read
+    expect(reads).toContain("notes/daily.md");
+  });
+
+  it("forces re-read of eagerPaths even when metadata matches", async () => {
+    const reads: string[] = [];
+    const client = createClient((path) => reads.push(path));
+    const store = createVaultStore(client);
+
+    await store.refresh({ loadAll: true });
+    reads.length = 0;
+
+    await store.refresh({ eagerPaths: ["notes/grammar.md"] });
+    expect(reads).toEqual(["notes/grammar.md"]);
+  });
+
+  it("keeps cold startup reads bounded to initial document in a 10,000 note vault", async () => {
+    const readFile = vi.fn(async (path: string) => `# ${path}`);
+    const client: VaultClient = {
+      ...createClient(),
+      listEntries: async () =>
+        Array.from({ length: 10_000 }, (_val, i) => {
+          const path = `notes/note-${String(i).padStart(5, "0")}.md`;
+          return {
+            kind: "file",
+            mtime: "2026-11-05T00:00:00.000Z",
+            name: `note-${String(i).padStart(5, "0")}.md`,
+            path,
+            size: 24,
+          };
+        }),
+      readFile,
+    };
+
+    const store = createVaultStore(client);
+    const snapshot = await store.refresh();
+
+    expect(readFile).toHaveBeenCalledTimes(1);
+    expect(snapshot.documents).toHaveLength(1);
+    expect(snapshot.entries).toHaveLength(10_000);
+  });
+
+  it("coalesces 20 concurrent refresh calls into at most one in-flight and one trailing execution", async () => {
+    let releaseList!: () => void;
+    let listCallCount = 0;
+    const client: VaultClient = {
+      ...createClient(),
+      listEntries: async () => {
+        listCallCount += 1;
+        if (listCallCount === 1) {
+          await new Promise<void>((resolve) => {
+            releaseList = resolve;
+          });
+        }
+        return [
+          {
+            kind: "file",
+            mtime: "2026-11-05T00:00:00.000Z",
+            name: "test.md",
+            path: "test.md",
+            size: 10,
+          },
+        ];
+      },
+      readFile: async () => "# Test",
+    };
+
+    const store = createVaultStore(client);
+
+    // Call 1: active execution
+    const firstPromise = store.refresh();
+    await Promise.resolve();
+
+    // Calls 2 through 20: all arrive while first is in-flight
+    const trailingPromises = Array.from({ length: 19 }, () => store.refresh());
+
+    expect(listCallCount).toBe(1);
+    releaseList();
+
+    const allResults = await Promise.all([firstPromise, ...trailingPromises]);
+    expect(allResults).toHaveLength(20);
+
+    const stats = store.getDebugStats();
+    // Exactly 1 active execution + 1 trailing execution
+    expect(stats.executedRefreshCount).toBe(2);
+    expect(stats.coalescedRefreshCount).toBe(19);
+    expect(listCallCount).toBe(2);
+  });
 });

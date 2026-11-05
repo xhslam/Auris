@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildBacklinksIndex,
+  buildTargetLookup,
+  buildWikiLinkTargetIndex,
   createWikiLinkResolver,
+  updateBacklinksIndex,
 } from "@/features/notes/documents/backlinks";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 
@@ -144,5 +147,62 @@ describe("createWikiLinkResolver", () => {
     expect(resolve("does-not-exist")).toBe(false);
     expect(resolve("")).toBe(false);
     expect(resolve("[[]]")).toBe(false);
+  });
+
+  it("buildWikiLinkTargetIndex keeps version stable across body edits and bumps version on topology changes", () => {
+    const docA = createDocument("notes/a.md", "# A", []);
+    const docB = createDocument("notes/b.md", "# B", []);
+
+    const index1 = buildWikiLinkTargetIndex([docA, docB]);
+    expect(typeof index1.version).toBe("string");
+    expect(index1.wikiLinkExists("b")).toBe(true);
+    expect(index1.wikiLinkExists("c")).toBe(false);
+
+    // Body edit on docA: target collection (paths, basenames, titles, aliases) does not change
+    const docAEdited = createDocument("notes/a.md", "# A\n\nSome body text without title change", []);
+    const index2 = buildWikiLinkTargetIndex([docAEdited, docB], index1);
+    // Version and reference must be identical!
+    expect(index2).toBe(index1);
+    expect(index2.version).toBe(index1.version);
+
+    // Adding a new note: topology changed!
+    const docC = createDocument("notes/c.md", "# C", []);
+    const index3 = buildWikiLinkTargetIndex([docAEdited, docB, docC], index2);
+    expect(index3).not.toBe(index2);
+    expect(index3.version).not.toBe(index2.version);
+    expect(index3.wikiLinkExists("c")).toBe(true);
+  });
+
+  it("updateBacklinksIndex updates only affected targets and preserves unaffected targets reference identities", () => {
+    const docA = createDocument("notes/a.md", "# A", [{ alias: null, heading: null, target: "b" }]);
+    const docB = createDocument("notes/b.md", "# B", []);
+    const docC = createDocument("notes/c.md", "# C", []);
+
+    const initialBacklinks = buildBacklinksIndex([docA, docB, docC]);
+    expect(initialBacklinks["notes/b.md"]).toEqual(["notes/a.md"]);
+    expect(initialBacklinks["notes/c.md"]).toEqual([]);
+
+    const prevByPath = new Map([
+      ["notes/a.md", docA],
+      ["notes/b.md", docB],
+      ["notes/c.md", docC],
+    ]);
+    const lookup = buildTargetLookup([docA, docB, docC]);
+
+    // docA changes link from b to c
+    const docAModified = createDocument("notes/a.md", "# A", [{ alias: null, heading: null, target: "c" }]);
+
+    const nextBacklinks = updateBacklinksIndex(initialBacklinks, {
+      allDocuments: [docAModified, docB, docC],
+      changedDocuments: [docAModified],
+      previousDocumentsByPath: prevByPath,
+      targetLookup: lookup,
+      targetTopologyChanged: false,
+    });
+
+    expect(nextBacklinks["notes/b.md"]).toEqual([]);
+    expect(nextBacklinks["notes/c.md"]).toEqual(["notes/a.md"]);
+    // Unaffected target notes/a.md array reference must be preserved!
+    expect(nextBacklinks["notes/a.md"]).toBe(initialBacklinks["notes/a.md"]);
   });
 });

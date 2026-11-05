@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { parseSearchQuery } from "@/features/notes/documents/document-search";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
@@ -41,6 +41,8 @@ function highlightTerms(text: string, terms: string[]): ReactNode {
   );
 }
 
+const PAGE_SIZE = 100;
+
 export function NotesSearchPanel({
   onOpenPath,
   onQueryChange,
@@ -48,6 +50,16 @@ export function NotesSearchPanel({
   results,
 }: NotesSearchPanelProps) {
   const parsedQuery = useMemo(() => parseSearchQuery(query), [query]);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [query, results]);
+
+  const visibleResults = useMemo(
+    () => results.slice(0, visibleCount),
+    [results, visibleCount],
+  );
 
   return (
     <section className="notes-v2__panel">
@@ -68,21 +80,54 @@ export function NotesSearchPanel({
       <p className="notes-v2__panel-hint">{NOTES_UI_COPY.panels.search.hint}</p>
 
       {results.length > 0 ? (
-        <ul className="notes-v2__panel-list">
-          {results.map((document) => (
-            <li key={document.path}>
-              <button onClick={() => onOpenPath(document.path)} type="button">
-                <strong>
-                  {highlightTerms(
-                    document.parsed.title ?? document.fileName,
-                    parsedQuery.textTerms,
-                  )}
-                </strong>
-                <span>{document.path}</span>
+        <>
+          <ul className="notes-v2__panel-list">
+            {visibleResults.map((document) => (
+              <li key={document.path}>
+                <button onClick={() => onOpenPath(document.path)} type="button">
+                  <strong>
+                    {highlightTerms(
+                      document.parsed.title ?? document.fileName,
+                      parsedQuery.textTerms,
+                    )}
+                  </strong>
+                  <span>{document.path}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div
+            className="notes-v2__panel-pagination"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 4px 4px",
+              fontSize: "12px",
+              color: "var(--notes-muted, #888)",
+            }}
+          >
+            <span>{`显示 ${Math.min(visibleCount, results.length)} / 共 ${results.length} 条`}</span>
+            {results.length > visibleCount && (
+              <button
+                className="notes-v2__load-more-btn"
+                onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--notes-line, rgba(255,255,255,0.15))",
+                  borderRadius: "4px",
+                  color: "inherit",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  padding: "4px 8px",
+                }}
+                type="button"
+              >
+                加载更多
               </button>
-            </li>
-          ))}
-        </ul>
+            )}
+          </div>
+        </>
       ) : (
         <p className="notes-v2__empty-copy">{NOTES_UI_COPY.panels.search.empty}</p>
       )}

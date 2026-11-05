@@ -11,6 +11,10 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import {
+  buildTargetLookup,
+  updateBacklinksIndex,
+} from "@/features/notes/documents/backlinks";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { createNoteDocument } from "@/features/notes/documents/document-repository";
 import { buildRenameNotePlan } from "@/features/notes/documents/rename-note-plan";
@@ -26,7 +30,6 @@ import {
 import type { NotesRuntimeClient } from "@/features/notes/workbench/use-notes-runtime";
 import {
   applyBacklinksToDocuments,
-  buildLiveBacklinksIndex,
   createLiveNoteDocument,
   createLiveNoteDraft,
   mergeLiveNoteDocuments,
@@ -450,17 +453,57 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
     });
   }, [client.rootPath, dirtyPaths, snapshot.documents, snapshot.entries, snapshot.generatedAt, snapshot.rootPath]);
 
+  const previousBacklinksIndexRef = useRef<Record<string, string[]>>({});
+  const targetLookupRef = useRef<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    targetLookupRef.current = buildTargetLookup(snapshot.documents);
+    previousBacklinksIndexRef.current = snapshot.backlinks;
+  }, [snapshot.backlinks, snapshot.documents]);
+
   const scheduleDerivedBacklinksRefresh = useCallback(
-    (nextLiveDocuments: LiveNoteDocuments) => {
+    (changedDocument: NoteDocument) => {
       if (backlinksTimerRef.current) {
         window.clearTimeout(backlinksTimerRef.current);
       }
 
       backlinksTimerRef.current = window.setTimeout(() => {
         startTransition(() => {
-          setBacklinksIndex(
-            buildLiveBacklinksIndex(snapshot.documents, nextLiveDocuments),
+          const previousDocsByPath = new Map<string, NoteDocument>();
+          snapshot.documents.forEach((d) => previousDocsByPath.set(d.path, d));
+          Object.values(liveDocumentsRef.current).forEach((d) =>
+            previousDocsByPath.set(d.path, d),
           );
+
+          const baseDoc = findDocumentByPath(snapshot.documents, changedDocument.path);
+          const titleOrAliasChanged =
+            baseDoc &&
+            (baseDoc.parsed.title !== changedDocument.parsed.title ||
+              JSON.stringify(baseDoc.frontmatter.aliases ?? baseDoc.frontmatter.alias) !==
+                JSON.stringify(
+                  changedDocument.frontmatter.aliases ??
+                    changedDocument.frontmatter.alias,
+                ));
+
+          if (titleOrAliasChanged) {
+            targetLookupRef.current = buildTargetLookup([
+              ...mergeLiveNoteDocuments(snapshot.documents, liveDocumentsRef.current),
+            ]);
+          }
+
+          const nextIndex = updateBacklinksIndex(
+            previousBacklinksIndexRef.current,
+            {
+              allDocuments: snapshot.documents,
+              changedDocuments: [changedDocument],
+              previousDocumentsByPath: previousDocsByPath,
+              targetLookup: targetLookupRef.current,
+              targetTopologyChanged: !!titleOrAliasChanged,
+            },
+          );
+
+          previousBacklinksIndexRef.current = nextIndex;
+          setBacklinksIndex(nextIndex);
         });
         backlinksTimerRef.current = null;
       }, DERIVED_INDEX_DEBOUNCE_MS);
@@ -686,9 +729,10 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       const timerId = window.setTimeout(() => {
         const baseDocument =
           findDocumentByPath(snapshot.documents, path) ?? document;
+        const derivedDoc = createLiveNoteDocument(baseDocument, rawSource);
         const nextLiveDocuments = {
           ...liveDocumentsRef.current,
-          [path]: createLiveNoteDocument(baseDocument, rawSource),
+          [path]: derivedDoc,
         };
 
         liveDocumentsRef.current = nextLiveDocuments;
@@ -697,7 +741,7 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
           setLiveDocuments(nextLiveDocuments);
         });
 
-        scheduleDerivedBacklinksRefresh(nextLiveDocuments);
+        scheduleDerivedBacklinksRefresh(derivedDoc);
         deriveTimerRef.current.delete(path);
       }, DERIVED_DOCUMENT_DEBOUNCE_MS);
 

@@ -8,6 +8,16 @@ import type { VaultClient, VaultEntry } from "@/features/notes/vault/vault-types
 const MAX_UNKNOWN_TEXT_CONTROL_RATIO = 0.02;
 const MAX_UNKNOWN_TEXT_REPLACEMENT_RATIO = 0.01;
 
+let parsedDocumentCounter = 0;
+
+export function getParsedDocumentCount(): number {
+  return parsedDocumentCounter;
+}
+
+export function resetParsedDocumentCount(): void {
+  parsedDocumentCounter = 0;
+}
+
 export function isProbablyTextContent(source: string) {
   if (source.length === 0) {
     return true;
@@ -120,6 +130,7 @@ export function createNoteDocument(input: {
   path: string;
   rawSource: string;
 }): NoteDocument {
+  parsedDocumentCounter += 1;
   const format = getFormatDescriptor(input.path);
   const basename = getVaultFileName(input.path).replace(/\.[^.]+$/u, "");
 

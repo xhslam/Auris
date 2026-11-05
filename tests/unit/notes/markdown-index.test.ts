@@ -34,6 +34,7 @@ describe("markdown-index", () => {
       {
         alias: null,
         heading: null,
+        kind: "wikiLink",
         target: "Grammar",
       },
     ]);

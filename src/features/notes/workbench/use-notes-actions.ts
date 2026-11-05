@@ -26,8 +26,11 @@ import {
 import type { NotesWorkspaceState } from "@/features/notes/workspace/workspace-types";
 import type { VaultSnapshot } from "@/features/notes/vault/vault-types";
 import {
+  getVaultBasename,
   getVaultEntryDisplayKind,
+  getVaultFileName,
   getVaultParentPath,
+  normalizeVaultPath,
 } from "@/features/notes/vault/vault-path";
 import type { DesktopBridge, DesktopCommandRecord } from "@/platform/desktop/desktop-bridge";
 
@@ -37,6 +40,13 @@ type RefreshSnapshot = (
 
 type VaultStoreLike = {
   getSnapshot: () => VaultSnapshot;
+  isFullyIndexed?: () => boolean;
+  loadDocuments?: (paths: readonly string[]) => Promise<VaultSnapshot>;
+  refresh?: (options?: {
+    eagerPaths?: readonly string[];
+    loadAll?: boolean;
+    forceReload?: boolean;
+  }) => Promise<VaultSnapshot>;
   rebuildIndex: () => Promise<VaultSnapshot>;
 };
 
@@ -192,27 +202,90 @@ export function useNotesActions(input: UseNotesActionsInput) {
     [client, refreshSnapshot, setErrorMessage],
   );
 
+  const syncVault = useCallback(
+    async (options?: { eagerPaths?: readonly string[]; loadAll?: boolean }) => {
+      if (vaultStore.refresh) {
+        return vaultStore.refresh(options);
+      }
+      return vaultStore.rebuildIndex();
+    },
+    [vaultStore],
+  );
+
+  const loadVaultDocs = useCallback(
+    async (paths: readonly string[]) => {
+      if (vaultStore.loadDocuments) {
+        return vaultStore.loadDocuments(paths);
+      }
+      if (vaultStore.refresh) {
+        return vaultStore.refresh({ eagerPaths: paths });
+      }
+      return vaultStore.rebuildIndex();
+    },
+    [vaultStore],
+  );
+
+  const resolveNavigationPlan = useCallback(
+    async (target: string, sourcePath?: string) => {
+      const currentSource = sourcePath ?? activeDocument?.path ?? "";
+      let plan = planWikiLinkNavigation(target, currentSource, documents);
+
+      if (plan?.type === "create") {
+        const snapshot = vaultStore.getSnapshot();
+        const normalizedTarget = normalizeVaultPath(target);
+        const candidateEntry = snapshot.entries.find((entry) => {
+          if (entry.kind !== "file") return false;
+          const entryBase = getVaultBasename(entry.path);
+          const entryName = getVaultFileName(entry.path);
+          return (
+            entry.path === normalizedTarget ||
+            entry.path === `${normalizedTarget}.md` ||
+            entryName === normalizedTarget ||
+            entryBase === normalizedTarget
+          );
+        });
+
+        if (candidateEntry) {
+          const loadedSnapshot = await loadVaultDocs([candidateEntry.path]);
+          plan = planWikiLinkNavigation(
+            target,
+            currentSource,
+            loadedSnapshot.documents,
+          );
+        } else if (!vaultStore.isFullyIndexed || !vaultStore.isFullyIndexed()) {
+          const loadedSnapshot = await syncVault({ loadAll: true });
+          plan = planWikiLinkNavigation(
+            target,
+            currentSource,
+            loadedSnapshot.documents,
+          );
+        }
+      }
+
+      return plan;
+    },
+    [activeDocument, documents, loadVaultDocs, syncVault, vaultStore],
+  );
+
   // ── Wiki-link navigation: open the target, creating it when missing ──────
   const handleOpenWikiLink = useCallback(
     async (target: string, sourcePath?: string) => {
-      const allDocuments = (await vaultStore.rebuildIndex()).documents;
-      const plan = planWikiLinkNavigation(
-        target,
-        sourcePath ?? activeDocument?.path ?? "",
-        allDocuments,
-      );
+      const plan = await resolveNavigationPlan(target, sourcePath);
 
       if (!plan) {
         return;
       }
 
-      if (plan.type === "create" && !(await createWikiLinkNote(plan.path, plan.title))) {
+      if (
+        plan.type === "create" &&
+        !(await createWikiLinkNote(plan.path, plan.title))
+      ) {
         return;
       }
 
       setWorkspace((current) => openWorkspacePath(current, plan.path));
     },
-    [activeDocument, createWikiLinkNote, setWorkspace, vaultStore],
+    [createWikiLinkNote, resolveNavigationPlan, setWorkspace],
   );
 
   // ── Ensure a wiki-link target note exists (create, but do NOT navigate) ──
@@ -221,18 +294,13 @@ export function useNotesActions(input: UseNotesActionsInput) {
   // while keeping the user on the current note.
   const handleEnsureWikiLinkNote = useCallback(
     async (target: string, sourcePath?: string) => {
-      const allDocuments = (await vaultStore.rebuildIndex()).documents;
-      const plan = planWikiLinkNavigation(
-        target,
-        sourcePath ?? activeDocument?.path ?? "",
-        allDocuments,
-      );
+      const plan = await resolveNavigationPlan(target, sourcePath);
 
       if (plan?.type === "create") {
         await createWikiLinkNote(plan.path, plan.title);
       }
     },
-    [activeDocument, createWikiLinkNote, vaultStore],
+    [createWikiLinkNote, resolveNavigationPlan],
   );
 
   // ── Create folder via prompt ──────────────────────────────────────────────
@@ -259,22 +327,46 @@ export function useNotesActions(input: UseNotesActionsInput) {
   const handleRenameNoteToTitle = useCallback(
     async (path: string, nextTitle: string): Promise<boolean> => {
       try {
-        const diskDocuments = (await vaultStore.rebuildIndex()).documents;
-        const previewDocuments = [...new Map([...diskDocuments, ...documents].map((doc) => [doc.path, doc])).values()];
+        const previewDocuments = documents;
         const preview = buildRenameNotePlan(previewDocuments, { path, nextTitle });
-        if (preview.nextPath !== path && previewDocuments.some((doc) => doc.path.toLowerCase() === preview.nextPath.toLowerCase())) {
+        const snapshot = vaultStore.getSnapshot();
+        if (
+          preview.nextPath !== path &&
+          (previewDocuments.some(
+            (doc) => doc.path.toLowerCase() === preview.nextPath.toLowerCase(),
+          ) ||
+            snapshot.entries.some(
+              (entry) =>
+                entry.path.toLowerCase() === preview.nextPath.toLowerCase(),
+            ))
+        ) {
           setErrorMessage(NOTES_UI_COPY.errors.renameNoteCollision);
           return false;
         }
-        const affectedPaths = [path, preview.nextPath, ...preview.writes.map((write) => write.path === preview.nextPath ? path : write.path)];
+        const affectedPaths = [
+          path,
+          preview.nextPath,
+          ...preview.writes.map((write) =>
+            write.path === preview.nextPath ? path : write.path,
+          ),
+        ];
         return await runDocumentMutation(affectedPaths, async () => {
-          // Rebuild after draining saves: the first index can contain only the
-          // disk placeholder while the editor holds the entire unsaved body.
-          const allDocuments = (await vaultStore.rebuildIndex()).documents;
+          // Re-sync only affected paths after draining saves
+          const syncedSnapshot = await syncVault({ eagerPaths: affectedPaths });
+          const allDocuments = syncedSnapshot.documents;
           const original = allDocuments.find((doc) => doc.path === path);
           if (!original) throw new Error("原文件已不存在，已保留草稿，请先保存或恢复笔记。");
           const plan = buildRenameNotePlan(allDocuments, { nextTitle, path });
-          if (plan.nextPath !== path && allDocuments.some((doc) => doc.path.toLowerCase() === plan.nextPath.toLowerCase())) {
+          if (
+            plan.nextPath !== path &&
+            (allDocuments.some(
+              (doc) => doc.path.toLowerCase() === plan.nextPath.toLowerCase(),
+            ) ||
+              syncedSnapshot.entries.some(
+                (entry) =>
+                  entry.path.toLowerCase() === plan.nextPath.toLowerCase(),
+              ))
+          ) {
             setErrorMessage(NOTES_UI_COPY.errors.renameNoteCollision);
             return false;
           }
@@ -282,12 +374,18 @@ export function useNotesActions(input: UseNotesActionsInput) {
           for (const write of plan.writes) {
             const sourcePath = write.path === plan.nextPath ? path : write.path;
             const expected = allDocuments.find((doc) => doc.path === sourcePath)?.rawSource;
-            if (await client.readFile(sourcePath) !== expected) {
+            if ((await client.readFile(sourcePath)) !== expected) {
               throw new Error("文件内容已变化，已停止重命名并保留草稿，请刷新后重试。");
             }
           }
-          const persistedSources = new Map(plan.writes.map((write) => [write.path,
-            allDocuments.find((doc) => doc.path === (write.path === plan.nextPath ? path : write.path))!.rawSource]));
+          const persistedSources = new Map(
+            plan.writes.map((write) => [
+              write.path,
+              allDocuments.find(
+                (doc) => doc.path === (write.path === plan.nextPath ? path : write.path),
+              )!.rawSource,
+            ]),
+          );
           let moved = false;
           let wrote = false;
           try {
@@ -298,23 +396,44 @@ export function useNotesActions(input: UseNotesActionsInput) {
             }
             for (const write of plan.writes) {
               const expectedRawSource = persistedSources.get(write.path)!;
-              await recordNotesHistoryVersion({ path: write.path, rawSource: expectedRawSource, vaultRoot: client.rootPath });
-              const saved = await safeWriteVaultFile(client, { path: write.path,
-                expectedRawSource, nextRawSource: write.rawSource });
-              if (saved.status === "conflict") throw new Error("文件内容已变化，已停止改写并保留草稿，请检查冲突。");
+              await recordNotesHistoryVersion({
+                path: write.path,
+                rawSource: expectedRawSource,
+                vaultRoot: client.rootPath,
+              });
+              const saved = await safeWriteVaultFile(client, {
+                expectedRawSource,
+                nextRawSource: write.rawSource,
+                path: write.path,
+              });
+              if (saved.status === "conflict")
+                throw new Error("文件内容已变化，已停止改写并保留草稿，请检查冲突。");
               persistedSources.set(write.path, write.rawSource);
               wrote = true;
-              await recordNotesHistoryVersion({ path: write.path, rawSource: write.rawSource, vaultRoot: client.rootPath });
+              await recordNotesHistoryVersion({
+                path: write.path,
+                rawSource: write.rawSource,
+                vaultRoot: client.rootPath,
+              });
             }
             return moved;
           } finally {
             if (moved || wrote) {
-              // VMark's path reconciliation keeps the live document. Clearing
-              // it would discard edits that arrived while rename IO awaited.
-              const reconciliation = reconcileDocumentRename({ path, nextPath: plan.nextPath, nextTitle, documents: allDocuments, persistedSources });
-              setWorkspace((current) => renameWorkspacePath(current, path, plan.nextPath));
-              try { await reconciliation; }
-              finally { await refreshSnapshot({ eagerPaths: [plan.nextPath] }); }
+              const reconciliation = reconcileDocumentRename({
+                documents: allDocuments,
+                nextPath: plan.nextPath,
+                nextTitle,
+                path,
+                persistedSources,
+              });
+              setWorkspace((current) =>
+                renameWorkspacePath(current, path, plan.nextPath),
+              );
+              try {
+                await reconciliation;
+              } finally {
+                await refreshSnapshot({ eagerPaths: [plan.nextPath] });
+              }
             }
           }
         });
@@ -333,35 +452,78 @@ export function useNotesActions(input: UseNotesActionsInput) {
       refreshSnapshot,
       setErrorMessage,
       setWorkspace,
+      syncVault,
       vaultStore,
     ],
   );
 
-  const relocateEntry = useCallback(async (path: string, nextPath: string, move: boolean) => {
-    const initial = await vaultStore.rebuildIndex();
-    const affectedPaths = [...new Set([...initial.documents, ...documents]
-      .filter((doc) => doc.path === path || doc.path.startsWith(`${path}/`)).map((doc) => doc.path))];
-    return runDocumentMutation([...affectedPaths, ...affectedPaths.map((old) => nextPath + old.slice(path.length))], async () => {
-      const latest = await vaultStore.rebuildIndex();
-      if (latest.entries.some((entry) => entry.path.toLowerCase() === nextPath.toLowerCase())) {
-        throw new Error(NOTES_UI_COPY.errors.moveEntryCollision);
-      }
-      const affected = latest.documents.filter((doc) => doc.path === path || doc.path.startsWith(`${path}/`));
-      const persistedSources = new Map<string, string>();
-      for (const doc of affected) {
-        if (await client.readFile(doc.path) !== doc.rawSource) throw new Error("文件内容已变化，已停止移动并保留草稿。");
-        persistedSources.set(nextPath + doc.path.slice(path.length), doc.rawSource);
-      }
-      affected.forEach((doc) => invalidateSaveTarget(doc.path));
-      if (move) await client.moveEntry(path, nextPath);
-      else await client.renameEntry(path, nextPath);
-      const reconciliation = reconcileDocumentRename({ path, nextPath, documents: latest.documents, persistedSources });
-      setWorkspace((current) => renameWorkspacePath(current, path, nextPath));
-      try { await reconciliation; }
-      finally { await refreshSnapshot({ eagerPaths: [...persistedSources.keys()] }); }
-      return true;
-    });
-  }, [client, documents, reconcileDocumentRename, refreshSnapshot, runDocumentMutation, setWorkspace, vaultStore]);
+  const relocateEntry = useCallback(
+    async (path: string, nextPath: string, move: boolean) => {
+      const snapshot = vaultStore.getSnapshot();
+      const affectedPaths = [
+        ...new Set(
+          [...snapshot.documents, ...documents]
+            .filter((doc) => doc.path === path || doc.path.startsWith(`${path}/`))
+            .map((doc) => doc.path),
+        ),
+      ];
+      return runDocumentMutation(
+        [
+          ...affectedPaths,
+          ...affectedPaths.map((old) => nextPath + old.slice(path.length)),
+        ],
+        async () => {
+          const latest = await syncVault({ eagerPaths: affectedPaths });
+          if (
+            latest.entries.some(
+              (entry) => entry.path.toLowerCase() === nextPath.toLowerCase(),
+            )
+          ) {
+            throw new Error(NOTES_UI_COPY.errors.moveEntryCollision);
+          }
+          const affected = latest.documents.filter(
+            (doc) => doc.path === path || doc.path.startsWith(`${path}/`),
+          );
+          const persistedSources = new Map<string, string>();
+          for (const doc of affected) {
+            if ((await client.readFile(doc.path)) !== doc.rawSource) {
+              throw new Error("文件内容已变化，已停止移动并保留草稿。");
+            }
+            persistedSources.set(
+              nextPath + doc.path.slice(path.length),
+              doc.rawSource,
+            );
+          }
+          affected.forEach((doc) => invalidateSaveTarget(doc.path));
+          if (move) await client.moveEntry(path, nextPath);
+          else await client.renameEntry(path, nextPath);
+          const reconciliation = reconcileDocumentRename({
+            documents: latest.documents,
+            nextPath,
+            path,
+            persistedSources,
+          });
+          setWorkspace((current) => renameWorkspacePath(current, path, nextPath));
+          try {
+            await reconciliation;
+          } finally {
+            await refreshSnapshot({ eagerPaths: [...persistedSources.keys()] });
+          }
+          return true;
+        },
+      );
+    },
+    [
+      client,
+      documents,
+      reconcileDocumentRename,
+      refreshSnapshot,
+      runDocumentMutation,
+      setWorkspace,
+      syncVault,
+      vaultStore,
+    ],
+  );
 
   // ── Rename any path (wiki-link aware for markdown) ────────────────────────
   const handleRenamePath = useCallback(async (

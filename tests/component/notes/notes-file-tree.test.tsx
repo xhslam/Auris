@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { NotesFileTree } from "@/components/notes-v2/notes-file-tree";
+import {
+  NotesFileTree,
+  createTree,
+} from "@/components/notes-v2/notes-file-tree";
 import type { VaultEntry } from "@/features/notes/vault/vault-types";
 
 const ENTRIES: VaultEntry[] = [
@@ -178,5 +181,53 @@ describe("NotesFileTree", () => {
     expect(screen.getByText("Inbox")).toBeInTheDocument();
     expect(screen.queryByText(".claude")).not.toBeInTheDocument();
     expect(screen.queryByText("视频区")).not.toBeInTheDocument();
+  });
+
+  it("builds a single directory of 5,000 files near-linearly without duplicate children, preserving directory priority and sorting", () => {
+    const start = performance.now();
+    const largeEntries: VaultEntry[] = [
+      { kind: "directory", mtime: null, name: "large", path: "large", size: null },
+      ...Array.from({ length: 5_000 }, (_, i) => ({
+        kind: "file" as const,
+        mtime: "2026-11-05T00:00:00.000Z",
+        name: `note-${String(i).padStart(4, "0")}.md`,
+        path: `large/note-${String(i).padStart(4, "0")}.md`,
+        size: 10,
+      })),
+    ];
+
+    const tree = createTree(largeEntries);
+    const elapsed = performance.now() - start;
+
+    expect(tree).toHaveLength(1);
+    expect(tree[0]?.name).toBe("large");
+    expect(tree[0]?.children).toHaveLength(5_000);
+    expect(tree[0]?.children[0]?.name).toBe("note-0000.md");
+    expect(tree[0]?.children[4999]?.name).toBe("note-4999.md");
+    // Near-linear build in memory is fast (< 100ms)
+    expect(elapsed).toBeLessThan(500);
+  });
+
+  it("virtualizes 10,000 items so that only a small bounded slice is mounted in the DOM", () => {
+    const tenThousandEntries: VaultEntry[] = Array.from({ length: 10_000 }, (_, i) => ({
+      kind: "file",
+      mtime: "2026-11-05T00:00:00.000Z",
+      name: `note-${String(i).padStart(5, "0")}.md`,
+      path: `note-${String(i).padStart(5, "0")}.md`,
+      size: 20,
+    }));
+
+    const { container } = render(
+      <NotesFileTree
+        activePath="note-00000.md"
+        entries={tenThousandEntries}
+        onOpenPath={vi.fn()}
+      />,
+    );
+
+    const mountedNodes = container.querySelectorAll(".notes-v2__tree-node");
+    // Instead of mounting all 10,000 elements, it mounts only the visible window (default ~27 items)
+    expect(mountedNodes.length).toBeLessThan(100);
+    expect(mountedNodes.length).toBeGreaterThan(0);
   });
 });

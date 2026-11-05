@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   collectDocumentTags,
+  getSearchableDocument,
   parseSearchQuery,
   searchDocuments,
 } from "@/features/notes/documents/document-search";
@@ -84,6 +85,28 @@ describe("searchDocuments", () => {
     expect(results.map((document) => document.path)).toEqual([
       "notes/grammar.md",
     ]);
+  });
+
+  it("reuses SearchableDocument cache across different queries for the same document instance", () => {
+    const doc = buildDocument("notes/test.md", "# Test\n\nContent for testing");
+    const searchable1 = getSearchableDocument(doc);
+    const searchable2 = getSearchableDocument(doc);
+
+    expect(searchable1).toBe(searchable2);
+    expect(searchable1.titleLower).toBe("test");
+    expect(searchable1.bodyLower).toContain("content for testing");
+
+    // Multiple queries on the same document reuse the exact same cached derived representation
+    const res1 = searchDocuments([doc], "test");
+    const res2 = searchDocuments([doc], "content");
+    expect(res1).toHaveLength(1);
+    expect(res2).toHaveLength(1);
+
+    // When a document changes (new instance), a new SearchableDocument is generated
+    const docModified = buildDocument("notes/test.md", "# Test\n\nUpdated content");
+    const searchableModified = getSearchableDocument(docModified);
+    expect(searchableModified).not.toBe(searchable1);
+    expect(searchableModified.bodyLower).toContain("updated content");
   });
 });
 

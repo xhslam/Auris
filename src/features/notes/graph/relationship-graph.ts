@@ -22,10 +22,6 @@
 
 import { createBacklinkTargetResolver } from "@/features/notes/documents/backlinks";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
-import {
-  extractMarkdownNoteLinks,
-  extractWikiLinks,
-} from "@/features/notes/documents/wiki-links";
 import { getVaultBasename } from "@/features/notes/vault/vault-path";
 
 /** 边的类型。与 vmark `index/types.ts` 的 `EdgeKind` 同名同义。 */
@@ -139,36 +135,22 @@ export function buildRelationshipGraph(documents: NoteDocument[]): RelationshipG
   };
 
   for (const document of documents) {
-    const source = document.rawSource ?? "";
+    // 优先消费 parsed.links 中保留的 link kind，不再重复扫描正文
+    for (const link of document.parsed.links) {
+      const kind = link.kind === "link" ? "link" : "wikiLink";
+      const target = link.target;
+      const resolved = resolveTarget(target, document.path);
 
-    // wikiLink 与 link 分开取，才能保留两种 kind。parsed.links 是二者合并后的
-    // 结果，用它建图会把所有边都渲染成同一种。
-    const linkGroups: Array<{ kind: "wikiLink" | "link"; targets: string[] }> = [
-      {
-        kind: "wikiLink",
-        targets: extractWikiLinks(source).map((link) => link.target),
-      },
-      {
-        kind: "link",
-        targets: extractMarkdownNoteLinks(source).map((link) => link.target),
-      },
-    ];
-
-    for (const { kind, targets } of linkGroups) {
-      for (const target of targets) {
-        const resolved = resolveTarget(target, document.path);
-
-        if (resolved) {
-          // 自引用不成边：它在图里只是一个绕回自己的圈，不携带任何关系信息。
-          if (resolved === document.path) continue;
-          addEdge({ from: document.path, kind, to: resolved });
-          continue;
-        }
-
-        const placeholderId = kind === "wikiLink" ? `[[${target}]]` : target;
-        ensureUnresolvedNode(placeholderId);
-        addEdge({ from: document.path, kind, to: placeholderId, unresolved: true });
+      if (resolved) {
+        // 自引用不成边：它在图里只是一个绕回自己的圈，不携带任何关系信息。
+        if (resolved === document.path) continue;
+        addEdge({ from: document.path, kind, to: resolved });
+        continue;
       }
+
+      const placeholderId = kind === "wikiLink" ? `[[${target}]]` : target;
+      ensureUnresolvedNode(placeholderId);
+      addEdge({ from: document.path, kind, to: placeholderId, unresolved: true });
     }
 
     // parsed.tags 已经是「行内 #tag + 前言 tags」去重合并后的结果

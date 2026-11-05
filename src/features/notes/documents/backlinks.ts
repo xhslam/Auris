@@ -36,7 +36,7 @@ function addLookupEntry(
   lookup.set(normalizedKey, path);
 }
 
-function buildTargetLookup(documents: NoteDocument[]) {
+export function buildTargetLookup(documents: NoteDocument[]) {
   const lookup = new Map<string, string>();
 
   documents.forEach((document) => {
@@ -129,7 +129,7 @@ export function createBacklinkTargetResolver(documents: NoteDocument[]) {
 
 export type BacklinkTargetResolver = ReturnType<typeof createBacklinkTargetResolver>;
 
-function resolveBacklinkTargetPathFromLookup(
+export function resolveBacklinkTargetPathFromLookup(
   target: string,
   sourcePath: string,
   lookup: Map<string, string>,
@@ -184,4 +184,154 @@ export function buildBacklinksIndex(documents: NoteDocument[]) {
   });
 
   return backlinks;
+}
+
+export type WikiLinkTargetIndex = {
+  lookup: Map<string, string>;
+  version: string;
+  resolver: (rawTarget: string, sourcePath?: string) => string | null;
+  wikiLinkExists: (rawTarget: string, sourcePath?: string) => boolean;
+};
+
+function computeTargetLookupFingerprint(lookup: Map<string, string>): string {
+  const sortedKeys = Array.from(lookup.keys()).sort();
+  let hash = 0;
+  for (let i = 0; i < sortedKeys.length; i++) {
+    const key = sortedKeys[i];
+    const val = lookup.get(key) ?? "";
+    for (let j = 0; j < key.length; j++) {
+      hash = (hash * 31 + key.charCodeAt(j)) | 0;
+    }
+    for (let j = 0; j < val.length; j++) {
+      hash = (hash * 31 + val.charCodeAt(j)) | 0;
+    }
+  }
+  return `${lookup.size}:${hash}`;
+}
+
+export function buildWikiLinkTargetIndex(
+  documents: NoteDocument[],
+  previousIndex?: WikiLinkTargetIndex | null,
+): WikiLinkTargetIndex {
+  const lookup = buildTargetLookup(documents);
+  const version = computeTargetLookupFingerprint(lookup);
+
+  if (previousIndex && previousIndex.version === version) {
+    return previousIndex;
+  }
+
+  const resolver = (rawTarget: string, sourcePath = ""): string | null => {
+    const target = parseWikiLinkTarget(rawTarget);
+    if (!target) return null;
+    return resolveBacklinkTargetPathFromLookup(target, sourcePath, lookup);
+  };
+
+  const wikiLinkExists = (rawTarget: string, sourcePath = ""): boolean =>
+    resolver(rawTarget, sourcePath) !== null;
+
+  return {
+    lookup,
+    resolver,
+    version,
+    wikiLinkExists,
+  };
+}
+
+export type UpdateBacklinksIndexOptions = {
+  changedDocuments: NoteDocument[];
+  previousDocumentsByPath: Map<string, NoteDocument>;
+  targetLookup: Map<string, string>;
+  targetTopologyChanged?: boolean;
+  allDocuments?: NoteDocument[];
+};
+
+export function updateBacklinksIndex(
+  previousIndex: Record<string, string[]>,
+  options: UpdateBacklinksIndexOptions,
+): Record<string, string[]> {
+  const {
+    allDocuments,
+    changedDocuments,
+    previousDocumentsByPath,
+    targetLookup,
+    targetTopologyChanged,
+  } = options;
+
+  if (targetTopologyChanged) {
+    return buildBacklinksIndex(allDocuments ?? changedDocuments);
+  }
+
+  const nextIndex = { ...previousIndex };
+  let anyChanged = false;
+
+  for (const newDoc of changedDocuments) {
+    const oldDoc = previousDocumentsByPath.get(newDoc.path);
+    const oldTargets = new Set<string>();
+
+    if (oldDoc) {
+      oldDoc.parsed.links.forEach((link) => {
+        const targetPath = resolveBacklinkTargetPathFromLookup(
+          link.target,
+          oldDoc.path,
+          targetLookup,
+        );
+        if (targetPath && targetPath !== oldDoc.path) {
+          oldTargets.add(targetPath);
+        }
+      });
+    }
+
+    const newTargets = new Set<string>();
+    newDoc.parsed.links.forEach((link) => {
+      const targetPath = resolveBacklinkTargetPathFromLookup(
+        link.target,
+        newDoc.path,
+        targetLookup,
+      );
+      if (targetPath && targetPath !== newDoc.path) {
+        newTargets.add(targetPath);
+      }
+    });
+
+    let targetsDiffer = false;
+    if (oldTargets.size !== newTargets.size) {
+      targetsDiffer = true;
+    } else {
+      for (const t of newTargets) {
+        if (!oldTargets.has(t)) {
+          targetsDiffer = true;
+          break;
+        }
+      }
+    }
+
+    if (!targetsDiffer) {
+      continue;
+    }
+
+    // Removed outgoing targets
+    for (const oldTarget of oldTargets) {
+      if (!newTargets.has(oldTarget)) {
+        const currentList = nextIndex[oldTarget] ?? [];
+        const filtered = currentList.filter((p) => p !== newDoc.path);
+        if (filtered.length !== currentList.length) {
+          nextIndex[oldTarget] = filtered;
+          anyChanged = true;
+        }
+      }
+    }
+
+    // Added outgoing targets
+    for (const newTarget of newTargets) {
+      if (!oldTargets.has(newTarget)) {
+        const currentList = nextIndex[newTarget] ?? [];
+        if (!currentList.includes(newDoc.path)) {
+          nextIndex[newTarget] = [...currentList, newDoc.path];
+          anyChanged = true;
+        }
+      }
+    }
+  }
+
+  return anyChanged ? nextIndex : previousIndex;
 }

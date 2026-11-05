@@ -58,6 +58,7 @@ describe("frontmatter", () => {
       {
         alias: null,
         heading: null,
+        kind: "wikiLink",
         target: "Visible Target",
       },
     ]);

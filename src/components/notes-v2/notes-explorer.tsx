@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { ArrowsInLineVertical, CaretLeft, DotsThree, FilePlus, FolderOpen, FolderPlus, ArrowClockwise, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { NotesFileTree, type NotesFileTreeHandle } from "./notes-file-tree";
 import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
@@ -22,14 +22,29 @@ export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, di
   const treeRef = useRef<NotesFileTreeHandle>(null);
   const configured = directoryInfo?.isConfigured !== false;
   const needle = query.trim().toLocaleLowerCase();
-  const visibleEntries = tree.entries.filter((entry) =>
-    !isHiddenVaultPath(entry.path) && !(entry.kind === "file" && isSystemVaultFile(entry.path)) &&
-    (entry.kind === "directory" || getFormatDescriptor(entry.path).id === "markdown" ||
-    /\.(?:avif|bmp|gif|heic|heif|ico|jpe?g|png|svgz?|tiff?|webp)$/i.test(entry.path)),
+  const visibleEntries = useMemo(
+    () =>
+      tree.entries.filter(
+        (entry) =>
+          !isHiddenVaultPath(entry.path) &&
+          !(entry.kind === "file" && isSystemVaultFile(entry.path)) &&
+          (entry.kind === "directory" ||
+            getFormatDescriptor(entry.path).id === "markdown" ||
+            /\.(?:avif|bmp|gif|heic|heif|ico|jpe?g|png|svgz?|tiff?|webp)$/i.test(
+              entry.path,
+            )),
+      ),
+    [tree.entries],
   );
-  const entries = needle
-    ? visibleEntries.filter((entry) => entry.path.toLocaleLowerCase().includes(needle))
-    : visibleEntries;
+  const entries = useMemo(
+    () =>
+      needle
+        ? visibleEntries.filter((entry) =>
+            entry.path.toLocaleLowerCase().includes(needle),
+          )
+        : visibleEntries,
+    [needle, visibleEntries],
+  );
   const closeMenu = (restoreFocus = false) => {
     if (!menuRef.current) return;
     menuRef.current.open = false;

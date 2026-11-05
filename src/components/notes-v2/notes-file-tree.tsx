@@ -1,8 +1,16 @@
 "use client";
 
-import type { CSSProperties, JSX } from "react";
+import type { CSSProperties } from "react";
 import { CaretRight, FileText, FileImage, Folder } from "@phosphor-icons/react";
-import { forwardRef, useImperativeHandle, useMemo, useRef, useState, useCallback } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import {
   NotesFileTreeContextMenu,
@@ -17,7 +25,7 @@ import {
   type VaultEntryDisplayKind,
 } from "@/features/notes/vault/vault-path";
 
-type TreeNode = {
+export type TreeNode = {
   children: TreeNode[];
   kind: VaultEntry["kind"];
   displayKind: VaultEntryDisplayKind | null;
@@ -25,9 +33,15 @@ type TreeNode = {
   path: string;
 };
 
+export type FlattenedTreeNode = {
+  node: TreeNode;
+  depth: number;
+  isExpanded: boolean;
+};
+
 export type NotesFileTreeHandle = { collapseAll: () => void };
 
-type NotesFileTreeProps = {
+export type NotesFileTreeProps = {
   activePath: string | null;
   entries: VaultEntry[];
   onOpenPath: (path: string) => void;
@@ -37,30 +51,18 @@ type NotesFileTreeProps = {
   onDeletePath?: (path: string, kind: "directory" | "file") => void;
   onRenamePath?: (path: string, kind: "directory" | "file") => void;
   onRevealPath?: (path: string) => void;
-  /**
-   * Move a file/folder into another folder via drag & drop. The target folder
-   * is "" for the vault root.
-   */
   onMovePath?: (sourcePath: string, targetFolderPath: string) => void;
-  /**
-   * When true, every folder starts collapsed (the workspace switcher uses
-   * this so opening it only reveals top-level folders, not their contents).
-   */
   collapseAllByDefault?: boolean;
   variant?: "default" | "obsidian";
-  /** Explorer-only presentation; shared pickers retain their existing layout. */
   showIcons?: boolean;
   filterActive?: boolean;
 };
 
 const MOVE_DRAG_MIME = "application/x-notes-vault-path";
-
-// `dropTarget` state: `null` = nothing hovered, `""` = the vault root area,
-// any other value = that folder's path (folder paths are never empty).
 const DROP_TARGET_ROOT = "";
+export const TREE_ROW_HEIGHT = 32;
+export const TREE_OVERSCAN = 8;
 
-// Reuses the single move-validity source of truth (buildMoveEntryPlan) so the
-// drag-over highlight and the actual drop agree on what is allowed.
 function canDropInto(
   sourcePath: string | null,
   folderPath: string,
@@ -79,18 +81,24 @@ function canDropInto(
   );
 }
 
-function createTree(entries: VaultEntry[]) {
+export function createTree(entries: VaultEntry[]): TreeNode[] {
   const lookup = new Map<string, TreeNode>();
-  const root: TreeNode[] = [];
+  const childrenMap = new Map<string, TreeNode[]>();
+  const rootChildren: TreeNode[] = [];
+  const addedToParent = new Set<string>();
+
   const visibleEntries = entries.filter(
     (entry) =>
       !isHiddenVaultPath(entry.path) &&
       !(entry.kind === "file" && isSystemVaultFile(entry.path)),
   );
 
-  const getOrCreateNode = (entry: Pick<VaultEntry, "kind" | "name" | "path">) => {
-    const existing = lookup.get(entry.path);
-
+  const getOrCreateNode = (
+    kind: "file" | "directory",
+    name: string,
+    path: string,
+  ) => {
+    const existing = lookup.get(path);
     if (existing) {
       return existing;
     }
@@ -98,86 +106,139 @@ function createTree(entries: VaultEntry[]) {
     const node: TreeNode = {
       children: [],
       displayKind:
-        entry.kind === "file" ? getVaultEntryDisplayKind(entry.path) : null,
-      kind: entry.kind,
-      name: entry.name,
-      path: entry.path,
+        kind === "file" ? getVaultEntryDisplayKind(path) : null,
+      kind,
+      name,
+      path,
     };
 
-    lookup.set(entry.path, node);
+    lookup.set(path, node);
     return node;
   };
 
-  visibleEntries.forEach((entry) => {
+  for (const entry of visibleEntries) {
     const normalizedPath = entry.path.replace(/\\/g, "/");
     const segments = normalizedPath.split("/").filter(Boolean);
-    const parentSegments = segments.slice(0, -1);
+    let currentPath = "";
 
-    parentSegments.forEach((segment, index) => {
-      const path = parentSegments.slice(0, index + 1).join("/");
-      const parentPath = parentSegments.slice(0, index).join("/");
-      const parentNode = parentPath ? lookup.get(parentPath) ?? null : null;
-      const directoryNode = getOrCreateNode({
-        kind: "directory",
-        name: segment,
-        path,
-      });
+    for (let i = 0; i < segments.length - 1; i++) {
+      const segment = segments[i];
+      const parentPath = currentPath;
+      currentPath = parentPath ? `${parentPath}/${segment}` : segment;
 
-      if (parentNode) {
-        if (!parentNode.children.some((child) => child.path === directoryNode.path)) {
-          parentNode.children.push(directoryNode);
+      const dirNode = getOrCreateNode("directory", segment, currentPath);
+
+      const edgeKey = `${parentPath}:${currentPath}`;
+      if (!addedToParent.has(edgeKey)) {
+        addedToParent.add(edgeKey);
+        if (parentPath) {
+          let list = childrenMap.get(parentPath);
+          if (!list) {
+            list = [];
+            childrenMap.set(parentPath, list);
+          }
+          list.push(dirNode);
+        } else {
+          rootChildren.push(dirNode);
         }
-        return;
       }
+    }
 
-      if (!root.some((child) => child.path === directoryNode.path)) {
-        root.push(directoryNode);
+    const leafNode = getOrCreateNode(entry.kind, entry.name, entry.path);
+    const parentPath = currentPath;
+    const edgeKey = `${parentPath}:${entry.path}`;
+    if (!addedToParent.has(edgeKey)) {
+      addedToParent.add(edgeKey);
+      if (parentPath) {
+        let list = childrenMap.get(parentPath);
+        if (!list) {
+          list = [];
+          childrenMap.set(parentPath, list);
+        }
+        list.push(leafNode);
+      } else {
+        rootChildren.push(leafNode);
       }
+    }
+  }
+
+  for (const [parentPath, children] of childrenMap.entries()) {
+    const parentNode = lookup.get(parentPath);
+    if (parentNode) {
+      parentNode.children = children;
+    }
+  }
+
+  const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
+    nodes.sort((left, right) => {
+      if (left.kind !== right.kind) {
+        return left.kind === "directory" ? -1 : 1;
+      }
+      return left.name.localeCompare(right.name);
     });
 
-    const node = getOrCreateNode(entry);
-    const parentPath = parentSegments.join("/");
-    const parentNode = parentPath ? lookup.get(parentPath) ?? null : null;
-
-    if (parentNode) {
-      if (!parentNode.children.some((child) => child.path === node.path)) {
-        parentNode.children.push(node);
+    for (const node of nodes) {
+      if (node.children.length > 0) {
+        sortNodes(node.children);
       }
-      return;
     }
+    return nodes;
+  };
 
-    if (!root.some((child) => child.path === node.path)) {
-      root.push(node);
-    }
-  });
-
-  const sortNodes = (nodes: TreeNode[]): TreeNode[] =>
-    [...nodes]
-      .sort((left, right) => {
-        if (left.kind !== right.kind) {
-          return left.kind === "directory" ? -1 : 1;
-        }
-
-        return left.name.localeCompare(right.name);
-      })
-      .map((node) => ({
-        ...node,
-        children: sortNodes(node.children),
-      }));
-
-  return sortNodes(root);
+  return sortNodes(rootChildren);
 }
 
-function hasActiveDescendant(node: TreeNode, activePath: string | null): boolean {
-  if (!activePath) {
-    return false;
+export function getActiveAncestors(activePath: string | null): Set<string> {
+  const ancestors = new Set<string>();
+  if (!activePath) return ancestors;
+
+  const segments = activePath.replace(/\\/g, "/").split("/").filter(Boolean);
+  let current = "";
+  for (let i = 0; i < segments.length - 1; i++) {
+    current = current ? `${current}/${segments[i]}` : segments[i];
+    ancestors.add(current);
+  }
+  return ancestors;
+}
+
+export function flattenVisibleTree(
+  tree: TreeNode[],
+  expandedPaths: Record<string, boolean>,
+  activeAncestors: Set<string>,
+  options: {
+    collapseAllByDefault?: boolean;
+    bulkCollapsed?: boolean;
+    filterActive?: boolean;
+  } = {},
+): FlattenedTreeNode[] {
+  const result: FlattenedTreeNode[] = [];
+
+  function walk(nodes: TreeNode[], depth: number) {
+    for (const node of nodes) {
+      if (node.kind === "directory") {
+        const defaultExpanded = options.bulkCollapsed
+          ? false
+          : activeAncestors.has(node.path)
+            ? true
+            : options.collapseAllByDefault
+              ? false
+              : depth < 1;
+        const isExpanded =
+          options.filterActive || (expandedPaths[node.path] ?? defaultExpanded);
+
+        result.push({ depth, isExpanded, node });
+
+        if (isExpanded && node.children.length > 0) {
+          walk(node.children, depth + 1);
+        }
+      } else {
+        result.push({ depth, isExpanded: false, node });
+      }
+    }
   }
 
-  if (node.path === activePath) {
-    return true;
-  }
-
-  return node.children.some((child) => hasActiveDescendant(child, activePath));
+  walk(tree, 0);
+  return result;
 }
 
 function getExtensionLabel(name: string) {
@@ -197,267 +258,415 @@ function getObsidianDisplayName(node: TreeNode) {
   return node.name.replace(/\.[^.]+$/, "");
 }
 
-export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>(function NotesFileTree({
-  activePath,
-  entries,
-  onOpenPath,
-  onCreateNoteInPath,
-  onCopyPath,
-  onCreateFolderInPath,
-  onDeletePath,
-  onRenamePath,
-  onRevealPath,
-  onMovePath,
-  collapseAllByDefault = false,
-  variant = "default",
-  showIcons = false,
-  filterActive = false,
-}: NotesFileTreeProps, ref) {
-  const tree = useMemo(() => createTree(entries), [entries]);
-  const existingPaths = useMemo(
-    () => entries.map((entry) => entry.path),
-    [entries],
-  );
-  const [expandedPaths, setExpandedPaths] = useState<Record<string, boolean>>({});
-  const [bulkCollapsed, setBulkCollapsed] = useState(false);
-  useImperativeHandle(ref, () => ({
-    collapseAll() {
-      // Override default/active-path expansion too, including folders hidden by
-      // the current filter. Manual expansion still works after a bulk collapse.
-      setBulkCollapsed(true);
-      setExpandedPaths({});
-    },
-  }), []);
-  const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
-  const draggedPathRef = useRef<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<string | null>(null);
+export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>(
+  function NotesFileTree(
+    {
+      activePath,
+      entries,
+      onOpenPath,
+      onCreateNoteInPath,
+      onCopyPath,
+      onCreateFolderInPath,
+      onDeletePath,
+      onRenamePath,
+      onRevealPath,
+      onMovePath,
+      collapseAllByDefault = false,
+      variant = "default",
+      showIcons = false,
+      filterActive = false,
+    }: NotesFileTreeProps,
+    ref,
+  ) {
+    const tree = useMemo(() => createTree(entries), [entries]);
+    const existingPaths = useMemo(
+      () => entries.map((entry) => entry.path),
+      [entries],
+    );
 
-  const handleDragStart = useCallback(
-    (event: React.DragEvent, node: TreeNode) => {
-      draggedPathRef.current = node.path;
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData(MOVE_DRAG_MIME, node.path);
-      // text/plain fallback keeps the drag image readable in some browsers.
-      event.dataTransfer.setData("text/plain", node.path);
-    },
-    [],
-  );
+    const activeAncestors = useMemo(
+      () => getActiveAncestors(activePath),
+      [activePath],
+    );
 
-  const handleDragEnd = useCallback(() => {
-    draggedPathRef.current = null;
-    setDropTarget(null);
-  }, []);
+    const [expandedPaths, setExpandedPaths] = useState<Record<string, boolean>>(
+      {},
+    );
+    const [bulkCollapsed, setBulkCollapsed] = useState(false);
 
-  const clearDropTarget = useCallback((folderPath: string) => {
-    setDropTarget((current) => (current === folderPath ? null : current));
-  }, []);
+    useImperativeHandle(
+      ref,
+      () => ({
+        collapseAll() {
+          setBulkCollapsed(true);
+          setExpandedPaths({});
+        },
+      }),
+      [],
+    );
 
-  const handleFolderDragOver = useCallback(
-    (event: React.DragEvent, folderPath: string) => {
-      if (
-        !onMovePath ||
-        !canDropInto(draggedPathRef.current, folderPath, existingPaths)
-      ) {
-        return;
+    const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(
+      null,
+    );
+    const draggedPathRef = useRef<string | null>(null);
+    const [dropTarget, setDropTarget] = useState<string | null>(null);
+
+    const flattened = useMemo(
+      () =>
+        flattenVisibleTree(tree, expandedPaths, activeAncestors, {
+          bulkCollapsed,
+          collapseAllByDefault,
+          filterActive,
+        }),
+      [
+        tree,
+        expandedPaths,
+        activeAncestors,
+        bulkCollapsed,
+        collapseAllByDefault,
+        filterActive,
+      ],
+    );
+
+    const scrollContainerRef = useRef<HTMLElement>(null);
+    const [containerHeight, setContainerHeight] = useState(600);
+    const [scrollTop, setScrollTop] = useState(0);
+
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (!container || typeof ResizeObserver === "undefined") return;
+
+      const observer = new ResizeObserver((entriesList) => {
+        for (const entry of entriesList) {
+          const height = entry.contentRect.height;
+          if (height > 0) {
+            setContainerHeight(height);
+          }
+        }
+      });
+
+      observer.observe(container);
+      return () => observer.disconnect();
+    }, []);
+
+    // Scroll active item into view on external navigation
+    const lastScrolledPathRef = useRef<string | null>(null);
+    useEffect(() => {
+      if (!activePath || lastScrolledPathRef.current === activePath) return;
+      lastScrolledPathRef.current = activePath;
+
+      const index = flattened.findIndex((item) => item.node.path === activePath);
+      if (index === -1) return;
+
+      const itemTop = index * TREE_ROW_HEIGHT;
+      const container = scrollContainerRef.current;
+      if (container) {
+        if (
+          itemTop < container.scrollTop ||
+          itemTop > container.scrollTop + containerHeight - TREE_ROW_HEIGHT
+        ) {
+          container.scrollTop = Math.max(
+            0,
+            itemTop - containerHeight / 2 + TREE_ROW_HEIGHT / 2,
+          );
+        }
       }
+    }, [activePath, containerHeight, flattened]);
 
-      event.preventDefault();
-      event.stopPropagation();
-      event.dataTransfer.dropEffect = "move";
-      setDropTarget(folderPath);
-    },
-    [existingPaths, onMovePath],
-  );
+    const handleDragStart = useCallback(
+      (event: React.DragEvent, node: TreeNode) => {
+        draggedPathRef.current = node.path;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData(MOVE_DRAG_MIME, node.path);
+        event.dataTransfer.setData("text/plain", node.path);
+      },
+      [],
+    );
 
-  const handleFolderDrop = useCallback(
-    (event: React.DragEvent, folderPath: string) => {
-      const sourcePath =
-        event.dataTransfer.getData(MOVE_DRAG_MIME) ||
-        draggedPathRef.current ||
-        "";
-
+    const handleDragEnd = useCallback(() => {
       draggedPathRef.current = null;
       setDropTarget(null);
+    }, []);
 
-      if (!onMovePath || !canDropInto(sourcePath, folderPath, existingPaths)) {
-        return;
-      }
+    const clearDropTarget = useCallback((folderPath: string) => {
+      setDropTarget((current) => (current === folderPath ? null : current));
+    }, []);
 
-      event.preventDefault();
-      event.stopPropagation();
-      onMovePath(sourcePath, folderPath);
-    },
-    [existingPaths, onMovePath],
-  );
+    const handleFolderDragOver = useCallback(
+      (event: React.DragEvent, folderPath: string) => {
+        if (
+          !onMovePath ||
+          !canDropInto(draggedPathRef.current, folderPath, existingPaths)
+        ) {
+          return;
+        }
 
-  const handleContextMenu = useCallback(
-    (event: React.MouseEvent, node: TreeNode) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setContextMenu({
-        path: node.path,
-        kind: node.kind,
-        displayKind: node.displayKind,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    [],
-  );
+        event.preventDefault();
+        event.stopPropagation();
+        event.dataTransfer.dropEffect = "move";
+        setDropTarget(folderPath);
+      },
+      [existingPaths, onMovePath],
+    );
 
-  function renderNode(node: TreeNode, depth = 0): JSX.Element {
-    // Always reveal the active note's folder chain, even when the tree starts
-    // fully collapsed (the bottom-left Workspace popover). Otherwise a freshly
-    // created note — which becomes the active path — stays buried inside a
-    // collapsed folder, so it looks like nothing was created.
-    const defaultExpanded = bulkCollapsed ? false : hasActiveDescendant(node, activePath)
-      ? true
-      : collapseAllByDefault
-        ? false
-        : depth < 1;
-    const isExpanded = filterActive || (expandedPaths[node.path] ?? defaultExpanded);
-    const nodeStyle = {
-      "--notes-tree-indent": `${depth * 16}px`,
-    } as CSSProperties;
+    const handleFolderDrop = useCallback(
+      (event: React.DragEvent, folderPath: string) => {
+        const sourcePath =
+          event.dataTransfer.getData(MOVE_DRAG_MIME) ||
+          draggedPathRef.current ||
+          "";
 
-    if (node.kind === "directory") {
-      return (
-        <li
-          key={node.path}
-          className="notes-v2__tree-node"
-          data-depth={depth}
-          style={nodeStyle}
-        >
-          <button
-            title={node.path}
-            aria-expanded={isExpanded}
-            className="notes-v2__tree-directory"
-            data-drop-target={dropTarget === node.path ? "true" : undefined}
-            draggable={Boolean(onMovePath)}
-            onClick={() =>
-              !filterActive && setExpandedPaths((current) => ({
-                ...current,
-                [node.path]: !isExpanded,
-              }))
-            }
-            onContextMenu={(e) => handleContextMenu(e, node)}
-            onDragStart={(event) => handleDragStart(event, node)}
-            onDragEnd={handleDragEnd}
-            onDragOver={(event) => handleFolderDragOver(event, node.path)}
-            onDragLeave={() => clearDropTarget(node.path)}
-            onDrop={(event) => handleFolderDrop(event, node.path)}
-            type="button"
-          >
-            <span
-              aria-hidden="true"
-              className="notes-v2__tree-caret"
-              data-expanded={isExpanded ? "true" : "false"}
-            >
-              {showIcons ? <CaretRight size={12} /> : "›"}
-            </span>
-            {showIcons ? <Folder size={16} aria-hidden="true" className="notes-explorer__entry-icon" /> : null}
-            <span className="notes-v2__tree-name">{node.name}</span>
-          </button>
+        draggedPathRef.current = null;
+        setDropTarget(null);
 
-          {isExpanded ? (
-            <ul className="notes-v2__tree-list">
-              {node.children.map((child) => renderNode(child, depth + 1))}
-            </ul>
-          ) : null}
-        </li>
-      );
-    }
+        if (!onMovePath || !canDropInto(sourcePath, folderPath, existingPaths)) {
+          return;
+        }
 
-    const isEditableFile =
-      node.displayKind === "markdown" ||
-      node.displayKind === "structured-data" ||
-      node.displayKind === "text";
-    const extensionLabel =
-      variant === "obsidian" && node.displayKind !== "markdown"
-        ? getExtensionLabel(node.name)
-        : null;
+        event.preventDefault();
+        event.stopPropagation();
+        onMovePath(sourcePath, folderPath);
+      },
+      [existingPaths, onMovePath],
+    );
+
+    const handleContextMenu = useCallback(
+      (event: React.MouseEvent, node: TreeNode) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setContextMenu({
+          displayKind: node.displayKind,
+          kind: node.kind,
+          path: node.path,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      },
+      [],
+    );
+
+    const toggleFolder = useCallback((folderPath: string) => {
+      setExpandedPaths((prev) => ({
+        ...prev,
+        [folderPath]: !prev[folderPath],
+      }));
+    }, []);
+
+    const handleBlankAreaContextMenu = useCallback(
+      (event: React.MouseEvent<HTMLElement>) => {
+        event.preventDefault();
+        setContextMenu({
+          displayKind: null,
+          kind: "directory",
+          path: "",
+          x: event.clientX,
+          y: event.clientY,
+        });
+      },
+      [],
+    );
+
+    const totalCount = flattened.length;
+    const totalHeight = totalCount * TREE_ROW_HEIGHT;
+
+    // Windowing: calculate start and end index
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / TREE_ROW_HEIGHT) - TREE_OVERSCAN,
+    );
+    const endIndex = Math.min(
+      totalCount,
+      Math.ceil((scrollTop + containerHeight) / TREE_ROW_HEIGHT) +
+        TREE_OVERSCAN,
+    );
+    const visibleItems = flattened.slice(startIndex, endIndex);
 
     return (
-      <li
-        key={node.path}
-        className="notes-v2__tree-node"
-        data-depth={depth}
-        style={nodeStyle}
-      >
-        <button
-          className="notes-v2__tree-file"
-          data-active={activePath === node.path ? "true" : "false"}
-          data-kind={node.displayKind ?? undefined}
-          disabled={!isEditableFile}
-          draggable={Boolean(onMovePath) && isEditableFile}
-          onClick={isEditableFile ? () => onOpenPath(node.path) : undefined}
-          onContextMenu={(e) => handleContextMenu(e, node)}
-          onDragStart={(event) => handleDragStart(event, node)}
-          onDragEnd={handleDragEnd}
-          aria-label={node.name}
-          title={
-            node.displayKind
-              ? `${NOTES_UI_COPY.fileTree.kinds[node.displayKind]} · ${node.path}`
-              : node.path
+      <>
+        <nav
+          aria-label={NOTES_UI_COPY.fileTree.ariaLabel}
+          className="notes-v2__file-tree"
+          data-drop-target={
+            dropTarget === DROP_TARGET_ROOT ? "true" : undefined
           }
-          type="button"
+          data-variant={variant === "obsidian" ? "obsidian" : undefined}
+          onContextMenu={handleBlankAreaContextMenu}
+          onDragLeave={() => clearDropTarget(DROP_TARGET_ROOT)}
+          onDragOver={(event) => handleFolderDragOver(event, DROP_TARGET_ROOT)}
+          onDrop={(event) => handleFolderDrop(event, DROP_TARGET_ROOT)}
+          onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+          ref={scrollContainerRef}
+          role="tree"
+          style={{
+            height: "100%",
+            overflowY: "auto",
+            position: "relative",
+          }}
         >
-          {showIcons ? (isEditableFile
-            ? <FileText size={16} aria-hidden="true" className="notes-explorer__entry-icon" />
-            : <FileImage size={16} aria-hidden="true" className="notes-explorer__entry-icon" />) : null}
-          <span className="notes-v2__tree-name">
-            {variant === "obsidian" ? getObsidianDisplayName(node) : node.name}
-          </span>
-          {extensionLabel ? (
-            <span className="notes-v2__tree-extension">{extensionLabel}</span>
-          ) : null}
-        </button>
-      </li>
+          <div
+            style={{
+              height: `${totalHeight}px`,
+              position: "relative",
+              width: "100%",
+            }}
+          >
+            <ul
+              className="notes-v2__tree-list"
+              role="group"
+              style={{
+                left: 0,
+                listStyle: "none",
+                margin: 0,
+                padding: 0,
+                position: "absolute",
+                right: 0,
+                top: `${startIndex * TREE_ROW_HEIGHT}px`,
+              }}
+            >
+              {visibleItems.map(({ depth, isExpanded, node }) => {
+                const nodeStyle = {
+                  "--notes-tree-indent": `${depth * 16}px`,
+                  height: `${TREE_ROW_HEIGHT}px`,
+                } as CSSProperties;
+
+                if (node.kind === "directory") {
+                  return (
+                    <li
+                      aria-expanded={isExpanded}
+                      aria-level={depth + 1}
+                      aria-selected={activePath === node.path}
+                      className="notes-v2__tree-node"
+                      data-depth={depth}
+                      key={node.path}
+                      role="treeitem"
+                      style={nodeStyle}
+                    >
+                      <button
+                        aria-expanded={isExpanded ? "true" : "false"}
+                        className="notes-v2__tree-directory"
+                        data-drop-target={
+                          dropTarget === node.path ? "true" : undefined
+                        }
+                        data-expanded={isExpanded ? "true" : "false"}
+                        onClick={() => toggleFolder(node.path)}
+                        onContextMenu={(e) => handleContextMenu(e, node)}
+                        onDragEnd={handleDragEnd}
+                        onDragLeave={() => clearDropTarget(node.path)}
+                        onDragOver={(event) =>
+                          handleFolderDragOver(event, node.path)
+                        }
+                        onDragStart={(event) => handleDragStart(event, node)}
+                        onDrop={(event) => handleFolderDrop(event, node.path)}
+                        title={node.name}
+                        type="button"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="notes-v2__tree-caret"
+                          style={{
+                            display: "inline-block",
+                            transform: isExpanded
+                              ? "rotate(90deg)"
+                              : "rotate(0deg)",
+                          }}
+                        >
+                          <CaretRight size={12} />
+                        </span>
+                        {showIcons ? (
+                          <Folder
+                            aria-hidden="true"
+                            className="notes-explorer__entry-icon"
+                            size={16}
+                          />
+                        ) : null}
+                        <span className="notes-v2__tree-name">{node.name}</span>
+                      </button>
+                    </li>
+                  );
+                }
+
+                const isEditable =
+                  node.displayKind === "markdown" ||
+                  node.displayKind === "text" ||
+                  node.displayKind === "structured-data";
+                const extensionLabel = getExtensionLabel(node.name);
+
+                return (
+                  <li
+                    aria-level={depth + 1}
+                    aria-selected={activePath === node.path}
+                    className="notes-v2__tree-node"
+                    data-depth={depth}
+                    key={node.path}
+                    role="treeitem"
+                    style={nodeStyle}
+                  >
+                    <button
+                      aria-label={node.name}
+                      className="notes-v2__tree-file"
+                      data-active={activePath === node.path ? "true" : "false"}
+                      data-kind={node.displayKind ?? undefined}
+                      disabled={!isEditable}
+                      draggable={Boolean(onMovePath) && isEditable}
+                      onClick={
+                        isEditable ? () => onOpenPath(node.path) : undefined
+                      }
+                      onContextMenu={(e) => handleContextMenu(e, node)}
+                      onDragEnd={handleDragEnd}
+                      onDragStart={(event) => handleDragStart(event, node)}
+                      title={
+                        node.displayKind
+                          ? `${NOTES_UI_COPY.fileTree.kinds[node.displayKind]} · ${node.path}`
+                          : node.path
+                      }
+                      type="button"
+                    >
+                      {showIcons ? (
+                        isEditable ? (
+                          <FileText
+                            aria-hidden="true"
+                            className="notes-explorer__entry-icon"
+                            size={16}
+                          />
+                        ) : (
+                          <FileImage
+                            aria-hidden="true"
+                            className="notes-explorer__entry-icon"
+                            size={16}
+                          />
+                        )
+                      ) : null}
+                      <span className="notes-v2__tree-name">
+                        {variant === "obsidian"
+                          ? getObsidianDisplayName(node)
+                          : node.name}
+                      </span>
+                      {extensionLabel ? (
+                        <span className="notes-v2__tree-extension">
+                          {extensionLabel}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </nav>
+
+        {contextMenu && (
+          <NotesFileTreeContextMenu
+            onClose={() => setContextMenu(null)}
+            onCopy={(path) => onCopyPath?.(path)}
+            onCreateFolder={(path) => onCreateFolderInPath?.(path)}
+            onCreateNote={(path) => onCreateNoteInPath?.(path)}
+            onDelete={(path, kind) => onDeletePath?.(path, kind)}
+            onRename={(path, kind) => onRenamePath?.(path, kind)}
+            onReveal={(path) => onRevealPath?.(path)}
+            target={contextMenu}
+          />
+        )}
+      </>
     );
-  }
-
-  const handleBlankAreaContextMenu = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      event.preventDefault();
-      // Only fire when clicking the nav itself (children stop propagation)
-      setContextMenu({
-        path: "",
-        kind: "directory",
-        displayKind: null,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    [],
-  );
-
-  return (
-    <>
-      <nav
-        aria-label={NOTES_UI_COPY.fileTree.ariaLabel}
-        className="notes-v2__file-tree"
-        data-drop-target={dropTarget === DROP_TARGET_ROOT ? "true" : undefined}
-        data-variant={variant === "obsidian" ? "obsidian" : undefined}
-        onContextMenu={handleBlankAreaContextMenu}
-        onDragOver={(event) => handleFolderDragOver(event, DROP_TARGET_ROOT)}
-        onDragLeave={() => clearDropTarget(DROP_TARGET_ROOT)}
-        onDrop={(event) => handleFolderDrop(event, DROP_TARGET_ROOT)}
-      >
-        <ul className="notes-v2__tree-list">{tree.map((node) => renderNode(node))}</ul>
-      </nav>
-
-      {contextMenu && (
-        <NotesFileTreeContextMenu
-          target={contextMenu}
-          onClose={() => setContextMenu(null)}
-          onCopy={(path) => onCopyPath?.(path)}
-          onCreateNote={(path) => onCreateNoteInPath?.(path)}
-          onCreateFolder={(path) => onCreateFolderInPath?.(path)}
-          onRename={(path, kind) => onRenamePath?.(path, kind)}
-          onDelete={(path, kind) => onDeletePath?.(path, kind)}
-          onReveal={(path) => onRevealPath?.(path)}
-        />
-      )}
-    </>
-  );
-});
+  },
+);
