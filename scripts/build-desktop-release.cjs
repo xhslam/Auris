@@ -66,9 +66,11 @@ function resolveBuildCommand(options = {}) {
 function runBuild(options = {}) {
   const { command, args, env } = resolveBuildCommand(options);
   const runner = options.spawnSync || spawnSync;
+  const isWindows = (options.platform || process.platform) === "win32";
   const result = runner(command, args, {
     stdio: options.stdio || "inherit",
     env,
+    shell: isWindows,
   });
 
   if (result.error) {

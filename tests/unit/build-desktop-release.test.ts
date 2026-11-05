@@ -134,5 +134,27 @@ describe("build-desktop-release", () => {
       expect(opts.env.CSC_IDENTITY_AUTO_DISCOVERY).toBe("false");
       expect(opts.env.CSC_LINK).toBeUndefined();
     });
+
+    it("invokes spawnSync with shell=true on Windows", () => {
+      const mockSpawnSync = vi.fn((..._args: unknown[]) => ({ status: 0 }));
+
+      runBuild({
+        platform: "win32",
+        env: { DUMMY: "1" },
+        spawnSync: mockSpawnSync,
+        noExit: true,
+      });
+
+      expect(mockSpawnSync).toHaveBeenCalledTimes(1);
+      const call = mockSpawnSync.mock.calls[0] as [
+        string,
+        string[],
+        { env: Record<string, string>; shell: boolean },
+      ];
+      const [cmd, args, opts] = call;
+      expect(cmd).toBe("npm.cmd");
+      expect(args).toEqual(["run", "desktop:release:build:win"]);
+      expect(opts.shell).toBe(true);
+    });
   });
 });
