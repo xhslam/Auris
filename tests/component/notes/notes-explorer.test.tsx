@@ -105,4 +105,42 @@ describe("NotesExplorer", () => {
     expect(screen.queryByRole("button", { name: "secret.md" })).not.toBeInTheDocument();
   });
 
+  it("shows connecting hint instead of unconfigured message when connectionStatus is unknown", () => {
+    render(
+      <NotesExplorer
+        activePath={null}
+        entries={[]}
+        onOpenPath={vi.fn()}
+        onCollapse={vi.fn()}
+        directoryInfo={{
+          connectionStatus: "unknown",
+          directoryName: null,
+          isConfigured: false,
+          isSupported: true,
+          vaultPath: null,
+        }}
+      />,
+    );
+    expect(screen.getByText("正在连接笔记库…")).toBeInTheDocument();
+    expect(screen.queryByText("打开一个文件夹，开始写作。")).not.toBeInTheDocument();
+  });
+
+  it("shows unconfigured empty state only when connection is explicitly unconfigured", () => {
+    render(
+      <NotesExplorer
+        activePath={null}
+        entries={[]}
+        onOpenPath={vi.fn()}
+        onCollapse={vi.fn()}
+        directoryInfo={{
+          connectionStatus: "unconfigured",
+          directoryName: null,
+          isConfigured: false,
+          isSupported: true,
+          vaultPath: null,
+        }}
+      />,
+    );
+    expect(screen.getByText("打开一个文件夹，开始写作。")).toBeInTheDocument();
+  });
 });

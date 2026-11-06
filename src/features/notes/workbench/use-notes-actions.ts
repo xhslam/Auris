@@ -327,7 +327,16 @@ export function useNotesActions(input: UseNotesActionsInput) {
   const handleRenameNoteToTitle = useCallback(
     async (path: string, nextTitle: string): Promise<boolean> => {
       try {
-        const previewDocuments = documents;
+        if (
+          typeof vaultStore.isFullyIndexed === "function" &&
+          !vaultStore.isFullyIndexed() &&
+          typeof vaultStore.refresh === "function"
+        ) {
+          await vaultStore.refresh({ loadAll: true });
+        }
+        const previewDocuments = vaultStore.getSnapshot().documents.length > 0
+          ? vaultStore.getSnapshot().documents
+          : documents;
         const preview = buildRenameNotePlan(previewDocuments, { path, nextTitle });
         const snapshot = vaultStore.getSnapshot();
         if (
@@ -459,6 +468,13 @@ export function useNotesActions(input: UseNotesActionsInput) {
 
   const relocateEntry = useCallback(
     async (path: string, nextPath: string, move: boolean) => {
+      if (
+        typeof vaultStore.isFullyIndexed === "function" &&
+        !vaultStore.isFullyIndexed() &&
+        typeof vaultStore.refresh === "function"
+      ) {
+        await vaultStore.refresh({ loadAll: true });
+      }
       const snapshot = vaultStore.getSnapshot();
       const affectedPaths = [
         ...new Set(

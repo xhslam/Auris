@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import type { NotesDirectoryInfo } from "@/features/notes/note-types";
 import { createBrowserVaultClient } from "@/features/notes/vault/browser-vault-client";
@@ -55,6 +55,7 @@ function createDirectoryInfo(
   rootPath: string | null,
 ): NotesDirectoryInfo {
   return {
+    connectionStatus: runtimePlatform === "desktop" ? "unknown" : "configured",
     directoryName:
       runtimePlatform === "desktop"
         ? null
@@ -100,38 +101,93 @@ export function useNotesRuntime() {
   const [sentences, setSentences] = useState<SavedSentenceRecord[]>([]);
   const [words, setWords] = useState<SavedWordRecord[]>([]);
 
+  const currentRootIdRef = useRef<string>(client.rootPath ?? "vault");
+  const currentGenerationRef = useRef<number>(1);
+  const committedRevisionRef = useRef<number>(0);
+  const activeRequestIdRef = useRef<number>(0);
+  const isMountedRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const nextRootId = client.rootPath ?? "vault";
+    if (nextRootId !== currentRootIdRef.current) {
+      currentRootIdRef.current = nextRootId;
+      currentGenerationRef.current += 1;
+      committedRevisionRef.current = 0;
+    }
+  }, [client.rootPath]);
+
   const refreshSnapshot = useCallback(
     async (options?: RefreshSnapshotOptions) => {
       const showLoading = options?.showLoading ?? true;
+      const reqId = ++activeRequestIdRef.current;
+      const targetGeneration = currentGenerationRef.current;
+      const targetRootId = currentRootIdRef.current;
 
       if (showLoading) {
         setIsLoading(true);
       }
 
+      // Launch directory info query concurrently without blocking listing
+      const directoryInfoPromise = client.getDirectoryInfo
+        ? client.getDirectoryInfo().catch(() => null)
+        : Promise.resolve(createDirectoryInfo(runtime.platform, client.rootPath));
+
+      void directoryInfoPromise.then((info) => {
+        if (!info || !isMountedRef.current) return;
+        if (
+          currentGenerationRef.current !== targetGeneration ||
+          currentRootIdRef.current !== targetRootId
+        ) {
+          return;
+        }
+        startTransition(() => {
+          setDirectoryInfo(info);
+        });
+      });
+
       try {
-        const info = client.getDirectoryInfo
-          ? await client.getDirectoryInfo()
-          : createDirectoryInfo(runtime.platform, client.rootPath);
         const nextSnapshot = await vaultStore.refresh({
           eagerPaths: options?.eagerPaths,
         });
 
+        if (
+          !isMountedRef.current ||
+          currentGenerationRef.current !== targetGeneration ||
+          currentRootIdRef.current !== targetRootId ||
+          (nextSnapshot.revision != null &&
+            nextSnapshot.revision <= committedRevisionRef.current)
+        ) {
+          return null;
+        }
+
+        if (nextSnapshot.revision != null) {
+          committedRevisionRef.current = nextSnapshot.revision;
+        }
+
         startTransition(() => {
-          setDirectoryInfo(info);
           setSnapshot(nextSnapshot);
           setErrorMessage(null);
         });
 
         return nextSnapshot;
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : NOTES_UI_COPY.errors.loadVault,
-        );
+        if (isMountedRef.current && activeRequestIdRef.current === reqId) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : NOTES_UI_COPY.errors.loadVault,
+          );
+        }
         return null;
       } finally {
-        if (showLoading) {
+        if (showLoading && isMountedRef.current && activeRequestIdRef.current === reqId) {
           setIsLoading(false);
         }
       }
@@ -141,8 +197,26 @@ export function useNotesRuntime() {
 
   const ensureDocuments = useCallback(
     async (paths: readonly string[]) => {
+      const reqId = ++activeRequestIdRef.current;
+      const targetGeneration = currentGenerationRef.current;
+      const targetRootId = currentRootIdRef.current;
+
       try {
         const nextSnapshot = await vaultStore.loadDocuments(paths);
+
+        if (
+          !isMountedRef.current ||
+          currentGenerationRef.current !== targetGeneration ||
+          currentRootIdRef.current !== targetRootId ||
+          (nextSnapshot.revision != null &&
+            nextSnapshot.revision <= committedRevisionRef.current)
+        ) {
+          return null;
+        }
+
+        if (nextSnapshot.revision != null) {
+          committedRevisionRef.current = nextSnapshot.revision;
+        }
 
         startTransition(() => {
           setSnapshot(nextSnapshot);
@@ -151,11 +225,13 @@ export function useNotesRuntime() {
 
         return nextSnapshot;
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : NOTES_UI_COPY.errors.loadVault,
-        );
+        if (isMountedRef.current && activeRequestIdRef.current === reqId) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : NOTES_UI_COPY.errors.loadVault,
+          );
+        }
         return null;
       }
     },
@@ -164,16 +240,46 @@ export function useNotesRuntime() {
 
   const rebuildIndex = useCallback(async () => {
     setIndexRebuildState("rebuilding");
+    const reqId = ++activeRequestIdRef.current;
+    const targetGeneration = currentGenerationRef.current;
+    const targetRootId = currentRootIdRef.current;
+
+    const directoryInfoPromise = client.getDirectoryInfo
+      ? client.getDirectoryInfo().catch(() => null)
+      : Promise.resolve(createDirectoryInfo(runtime.platform, client.rootPath));
+
+    void directoryInfoPromise.then((info) => {
+      if (!info || !isMountedRef.current) return;
+      if (
+        currentGenerationRef.current !== targetGeneration ||
+        currentRootIdRef.current !== targetRootId
+      ) {
+        return;
+      }
+      startTransition(() => {
+        setDirectoryInfo(info);
+      });
+    });
 
     try {
-      const info = client.getDirectoryInfo
-        ? await client.getDirectoryInfo()
-        : createDirectoryInfo(runtime.platform, client.rootPath);
       const nextSnapshot = await vaultStore.rebuildIndex();
       const rebuiltAt = new Date().toISOString();
 
+      if (
+        !isMountedRef.current ||
+        currentGenerationRef.current !== targetGeneration ||
+        currentRootIdRef.current !== targetRootId ||
+        (nextSnapshot.revision != null &&
+          nextSnapshot.revision <= committedRevisionRef.current)
+      ) {
+        return null;
+      }
+
+      if (nextSnapshot.revision != null) {
+        committedRevisionRef.current = nextSnapshot.revision;
+      }
+
       startTransition(() => {
-        setDirectoryInfo(info);
         setSnapshot(nextSnapshot);
         setErrorMessage(null);
         setLastIndexRebuiltAt(rebuiltAt);
@@ -182,14 +288,16 @@ export function useNotesRuntime() {
 
       return nextSnapshot;
     } catch (error) {
-      startTransition(() => {
-        setIndexRebuildState("failed");
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : NOTES_UI_COPY.errors.loadVault,
-        );
-      });
+      if (isMountedRef.current && activeRequestIdRef.current === reqId) {
+        startTransition(() => {
+          setIndexRebuildState("failed");
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : NOTES_UI_COPY.errors.loadVault,
+          );
+        });
+      }
       return null;
     }
   }, [client, runtime.platform, vaultStore]);

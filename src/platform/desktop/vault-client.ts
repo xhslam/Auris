@@ -17,7 +17,7 @@ function toVaultEntry(
     mtime: record.mtime ?? null,
     name: record.fileName,
     path: record.relativePath,
-    size: null,
+    size: typeof record.size === "number" ? record.size : null,
   };
 }
 

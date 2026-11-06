@@ -450,6 +450,9 @@ export function NotesRichEditorPane({
   const imeCompositionStartRef = useRef<number | null>(null);
   const imeCompositionTokenRef = useRef(0);
   const removeImeListenersRef = useRef<(() => void) | null>(null);
+  const trailingFlushTimerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
+  const editorRevisionRef = useRef(0);
+  const isDirtyRef = useRef(false);
   const onActiveLineChangeRef = useRef(onActiveLineChange);
   const onBridgeReadyRef = useRef(onBridgeReady);
   const onDocumentChangeRef = useRef(onDocumentChange);
@@ -513,10 +516,14 @@ export function NotesRichEditorPane({
   // Target index for colouring wiki links as resolved vs missing.
   // Memoised with versioning so editing notes does not fire a refresh transaction
   // unless the normalized target collection actually changes.
-  const wikiLinkIndex = useMemo(
-    () => buildWikiLinkTargetIndex(documents),
-    [documents],
+  const [wikiLinkIndex, setWikiLinkIndex] = useState(() =>
+    buildWikiLinkTargetIndex(documents),
   );
+
+  useEffect(() => {
+    setWikiLinkIndex((previous) => buildWikiLinkTargetIndex(documents, previous));
+  }, [documents]);
+
   const wikiLinkExists = wikiLinkIndex.wikiLinkExists;
   const wikiLinkExistsRef = useRef(wikiLinkExists);
 
@@ -584,6 +591,56 @@ export function NotesRichEditorPane({
   useEffect(() => {
     onUnparseableDocumentRef.current = onUnparseableDocument;
   }, [onUnparseableDocument]);
+
+  const flushLatestEditorSource = useCallback((): string | null => {
+    if (trailingFlushTimerRef.current) {
+      window.clearTimeout(trailingFlushTimerRef.current);
+      trailingFlushTimerRef.current = null;
+    }
+
+    if (!isDirtyRef.current) {
+      return null;
+    }
+
+    const view = viewRef.current;
+    const currentEditableDocument = editableDocumentRef.current;
+    if (!view || !currentEditableDocument) {
+      return null;
+    }
+
+    const nextWysiwygSource = serializeNotesRichMarkdown(view.state.doc);
+    lastAppliedSourceRef.current = nextWysiwygSource;
+
+    const nextEditableDocument = parseEditableNoteSource(
+      nextWysiwygSource,
+      currentEditableDocument.path,
+    );
+
+    const nextSource = composeEditableNoteSource(
+      currentEditableDocument,
+      {
+        bodySource: nextEditableDocument.bodySource,
+        title: nextEditableDocument.title,
+      },
+    );
+
+    window.dispatchEvent(new Event(NOTES_TOC_REFRESH_EVENT));
+
+    if (isImeCompositionRef.current) {
+      pendingImeSourceRef.current = nextSource;
+    } else {
+      onDocumentChangeRef.current(nextSource);
+    }
+
+    isDirtyRef.current = false;
+    return nextSource;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      flushLatestEditorSource();
+    };
+  }, [flushLatestEditorSource, document?.path]);
 
   const handleContextMenu = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -758,11 +815,12 @@ export function NotesRichEditorPane({
           peek.markdown,
           peek.selection,
         );
+        flushLatestEditorSource();
       }
 
       closeSourcePeek(view, false);
     },
-    [closeSourcePeek],
+    [closeSourcePeek, flushLatestEditorSource],
   );
 
   const updateSourcePeekMarkdown = useCallback(
@@ -949,6 +1007,7 @@ export function NotesRichEditorPane({
 
         removeLeftoverPinyin(composed);
         flushPendingImeChange(compositionToken);
+        flushLatestEditorSource();
       });
     };
 
@@ -1196,33 +1255,16 @@ export function NotesRichEditorPane({
           }
 
           if (tr.docChanged) {
-            window.dispatchEvent(new Event(NOTES_TOC_REFRESH_EVENT));
-            const nextWysiwygSource = serializeNotesRichMarkdown(nextState.doc);
-            const currentEditableDocument = editableDocumentRef.current;
+            editorRevisionRef.current += 1;
+            isDirtyRef.current = true;
 
-            if (!currentEditableDocument) {
-              return;
+            if (trailingFlushTimerRef.current) {
+              window.clearTimeout(trailingFlushTimerRef.current);
             }
 
-            const nextEditableDocument = parseEditableNoteSource(
-              nextWysiwygSource,
-              currentEditableDocument.path,
-            );
-
-            lastAppliedSourceRef.current = nextWysiwygSource;
-            const nextSource = composeEditableNoteSource(
-              currentEditableDocument,
-              {
-                bodySource: nextEditableDocument.bodySource,
-                title: nextEditableDocument.title,
-              },
-            );
-
-            if (isImeCompositionRef.current) {
-              pendingImeSourceRef.current = nextSource;
-            } else {
-              onDocumentChangeRef.current(nextSource);
-            }
+            trailingFlushTimerRef.current = window.setTimeout(() => {
+              flushLatestEditorSource();
+            }, 80);
           }
           const selection = getSelectionState(currentView);
           onSelectionStateChangeRef.current?.(selection);
@@ -1249,13 +1291,18 @@ export function NotesRichEditorPane({
       state: initialEditorState,
     });
     viewState.current = view;
+    const handleBlur = () => {
+      flushLatestEditorSource();
+    };
     view.dom.addEventListener("compositionstart", handleCompositionStart);
     view.dom.addEventListener("compositionupdate", handleCompositionUpdate);
     view.dom.addEventListener("compositionend", handleCompositionEnd);
+    view.dom.addEventListener("blur", handleBlur);
     removeImeListenersRef.current = () => {
       view.dom.removeEventListener("compositionstart", handleCompositionStart);
       view.dom.removeEventListener("compositionupdate", handleCompositionUpdate);
       view.dom.removeEventListener("compositionend", handleCompositionEnd);
+      view.dom.removeEventListener("blur", handleBlur);
     };
     setTableToolbarState(getNotesRichTableToolbarState(view.state));
 
@@ -1265,6 +1312,7 @@ export function NotesRichEditorPane({
       view,
       () => openSourcePeek(view),
       () => viewModeRef.current.readOnly,
+      () => flushLatestEditorSource(),
     );
     bridgeRef.current = bridge;
     lastAppliedSourceRef.current = wysiwygDocumentSource;
@@ -1276,6 +1324,7 @@ export function NotesRichEditorPane({
     clearNewNotePlaceholder,
     document,
     editableDocument,
+    flushLatestEditorSource,
     openSourcePeek,
     readOnly,
     undoIntegrity,
@@ -1349,7 +1398,10 @@ export function NotesRichEditorPane({
     view.dispatch(documentPathChanged ? transaction.scrollIntoView() : transaction);
     lastAppliedSourceRef.current = wysiwygDocumentSource;
     lastDocumentPathRef.current = document.path;
-    if (documentPathChanged) onBridgeReadyRef.current?.(bridgeRef.current);
+    if (documentPathChanged) {
+      isDirtyRef.current = false;
+      onBridgeReadyRef.current?.(bridgeRef.current);
+    }
   }, [document, editableDocument, wysiwygDocumentSource]);
 
   useEffect(() => {
@@ -1475,27 +1527,31 @@ export function NotesRichEditorPane({
               {!readOnly ? (
                 <>
                   <button
-                    onClick={() =>
-                      viewRef.current &&
-                      replaceNextNotesRichSearchMatch(
-                        viewRef.current,
-                        findQuery,
-                        replaceText,
-                      )
-                    }
+                    onClick={() => {
+                      if (viewRef.current) {
+                        replaceNextNotesRichSearchMatch(
+                          viewRef.current,
+                          findQuery,
+                          replaceText,
+                        );
+                        flushLatestEditorSource();
+                      }
+                    }}
                     type="button"
                   >
                     替换当前
                   </button>
                   <button
-                    onClick={() =>
-                      viewRef.current &&
-                      replaceAllNotesRichSearchMatches(
-                        viewRef.current,
-                        findQuery,
-                        replaceText,
-                      )
-                    }
+                    onClick={() => {
+                      if (viewRef.current) {
+                        replaceAllNotesRichSearchMatches(
+                          viewRef.current,
+                          findQuery,
+                          replaceText,
+                        );
+                        flushLatestEditorSource();
+                      }
+                    }}
                     type="button"
                   >
                     全部替换

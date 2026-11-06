@@ -20,7 +20,13 @@ import type {
   VaultClient,
   VaultEntry,
   VaultSnapshot,
+  VaultSnapshotEnvelope,
 } from "@/features/notes/vault/vault-types";
+
+export type VaultStoreOptions = {
+  generation?: number;
+  rootId?: string;
+};
 
 export type VaultRefreshOptions = {
   eagerPaths?: readonly string[];
@@ -89,19 +95,31 @@ function areBacklinksEqual(a: readonly string[], b: readonly string[]): boolean 
   return true;
 }
 
-export function createVaultStore(client: VaultClient) {
+export function createVaultStore(
+  client: VaultClient,
+  storeOptions?: VaultStoreOptions,
+) {
+  const rootId = storeOptions?.rootId ?? client.rootPath ?? "vault";
+  const generation = storeOptions?.generation ?? 1;
+  let revision = 0;
+  let cachedDocumentsVersion = 0;
+  let lastPublishedCacheVersion = -1;
+
   let snapshot: VaultSnapshot = {
     backlinks: {},
     documents: [],
     entries: [],
     generatedAt: new Date(0).toISOString(),
+    generation,
+    revision: 0,
+    rootId,
     rootPath: client.rootPath,
   };
 
   const documentCache = new Map<string, CachedVaultDocument>();
   let fullyIndexed = false;
 
-  let inFlightExecution: Promise<VaultSnapshot> | null = null;
+  let isExecuting = false;
   let pendingRefresh: PendingRefreshRequest | null = null;
   let pendingLoad: PendingLoadRequest | null = null;
 
@@ -136,6 +154,7 @@ export function createVaultStore(client: VaultClient) {
   }
 
   function publish(entries: VaultEntry[]) {
+    revision += 1;
     const documents: NoteDocument[] = [];
     for (const entry of entries) {
       const cached = documentCache.get(entry.path);
@@ -144,9 +163,16 @@ export function createVaultStore(client: VaultClient) {
       }
     }
 
-    const markdownDocs = documents.filter((doc) => doc.formatId === "markdown");
-    stats.backlinkDocumentVisits += markdownDocs.length * 2;
-    const backlinks = buildBacklinksIndex(markdownDocs);
+    let backlinks = snapshot.backlinks;
+    if (
+      cachedDocumentsVersion !== lastPublishedCacheVersion ||
+      Object.keys(backlinks).length === 0
+    ) {
+      const markdownDocs = documents.filter((doc) => doc.formatId === "markdown");
+      stats.backlinkDocumentVisits += markdownDocs.length * 2;
+      backlinks = buildBacklinksIndex(markdownDocs);
+      lastPublishedCacheVersion = cachedDocumentsVersion;
+    }
 
     let anyDocumentChanged = false;
     const nextDocuments = documents.map((document) => {
@@ -184,6 +210,9 @@ export function createVaultStore(client: VaultClient) {
       documents: documentsReferenceUnchanged ? snapshot.documents : nextDocuments,
       entries,
       generatedAt: new Date().toISOString(),
+      generation,
+      revision,
+      rootId,
       rootPath: client.rootPath,
     };
 
@@ -219,8 +248,12 @@ export function createVaultStore(client: VaultClient) {
           mtime: entry.mtime,
           size: entry.size,
         });
+        cachedDocumentsVersion += 1;
       } else {
-        documentCache.delete(path);
+        if (documentCache.has(path)) {
+          documentCache.delete(path);
+          cachedDocumentsVersion += 1;
+        }
       }
     });
   }
@@ -240,6 +273,7 @@ export function createVaultStore(client: VaultClient) {
     documentCache.forEach((_cached, path) => {
       if (!editablePaths.has(path)) {
         documentCache.delete(path);
+        cachedDocumentsVersion += 1;
       }
     });
 
@@ -292,56 +326,70 @@ export function createVaultStore(client: VaultClient) {
       await readEntries(entries, pathsToRead);
     }
 
-    fullyIndexed = options.loadAll === true;
+    const isCovered =
+      editablePaths.size > 0 &&
+      Array.from(editablePaths).every((p) => documentCache.has(p));
+    fullyIndexed = options.loadAll === true || isCovered;
     return publish(entries);
   }
 
-  async function drainPendingQueue(): Promise<void> {
-    while (pendingRefresh !== null || pendingLoad !== null) {
-      if (pendingRefresh !== null) {
-        const req = pendingRefresh;
-        pendingRefresh = null;
+  async function triggerDrain(): Promise<void> {
+    if (isExecuting) return;
+    if (pendingRefresh === null && pendingLoad === null) return;
 
-        // If there were pending loads, merge their paths into eagerPaths
-        if (pendingLoad !== null) {
-          pendingLoad.paths.forEach((p) => req.eagerPaths.add(p));
-          const loadDeferreds = pendingLoad.deferreds;
-          pendingLoad = null;
-          req.deferreds.push(...loadDeferreds);
-        }
+    isExecuting = true;
+    try {
+      while (pendingRefresh !== null || pendingLoad !== null) {
+        if (pendingRefresh !== null) {
+          const req = pendingRefresh;
+          pendingRefresh = null;
 
-        try {
-          const result = await performRefresh({
-            eagerPaths: Array.from(req.eagerPaths),
-            forceReload: req.forceReload,
-            loadAll: req.loadAll,
-          });
-          req.deferreds.forEach((d) => d.resolve(result));
-        } catch (error) {
-          req.deferreds.forEach((d) => d.reject(error));
-        }
-      } else if (pendingLoad !== null) {
-        const req = pendingLoad;
-        pendingLoad = null;
-
-        try {
-          const missingPaths = Array.from(req.paths).filter(
-            (path) => !documentCache.has(path),
-          );
-          if (missingPaths.length > 0) {
-            await readEntries(snapshot.entries, new Set(missingPaths));
+          // If there were pending loads, merge their paths into eagerPaths
+          if (pendingLoad !== null) {
+            pendingLoad.paths.forEach((p) => req.eagerPaths.add(p));
+            const loadDeferreds = pendingLoad.deferreds;
+            pendingLoad = null;
+            req.deferreds.push(...loadDeferreds);
           }
-          const result = publish(snapshot.entries);
-          req.deferreds.forEach((d) => d.resolve(result));
-        } catch (error) {
-          req.deferreds.forEach((d) => d.reject(error));
+
+          try {
+            const result = await performRefresh({
+              eagerPaths: Array.from(req.eagerPaths),
+              forceReload: req.forceReload,
+              loadAll: req.loadAll,
+            });
+            req.deferreds.forEach((d) => d.resolve(result));
+          } catch (error) {
+            req.deferreds.forEach((d) => d.reject(error));
+          }
+        } else if (pendingLoad !== null) {
+          const req = pendingLoad;
+          pendingLoad = null;
+
+          try {
+            const missingPaths = Array.from(req.paths).filter(
+              (path) => !documentCache.has(path),
+            );
+            if (missingPaths.length > 0) {
+              await readEntries(snapshot.entries, new Set(missingPaths));
+            }
+            const result = publish(snapshot.entries);
+            req.deferreds.forEach((d) => d.resolve(result));
+          } catch (error) {
+            req.deferreds.forEach((d) => d.reject(error));
+          }
         }
+      }
+    } finally {
+      isExecuting = false;
+      if (pendingRefresh !== null || pendingLoad !== null) {
+        triggerDrain().catch(() => {});
       }
     }
   }
 
   function scheduleRefresh(options: VaultRefreshOptions = {}): Promise<VaultSnapshot> {
-    if (inFlightExecution !== null) {
+    if (isExecuting) {
       stats.coalescedRefreshCount += 1;
 
       if (pendingRefresh === null) {
@@ -365,17 +413,19 @@ export function createVaultStore(client: VaultClient) {
     }
 
     const run = async (): Promise<VaultSnapshot> => {
+      isExecuting = true;
       try {
         const result = await performRefresh(options);
         return result;
       } finally {
-        await drainPendingQueue();
-        inFlightExecution = null;
+        isExecuting = false;
+        if (pendingRefresh !== null || pendingLoad !== null) {
+          triggerDrain().catch(() => {});
+        }
       }
     };
 
-    inFlightExecution = run();
-    return inFlightExecution;
+    return run();
   }
 
   function refresh(options: VaultRefreshOptions = {}) {
@@ -385,7 +435,7 @@ export function createVaultStore(client: VaultClient) {
   function loadDocuments(paths: readonly string[]): Promise<VaultSnapshot> {
     const normalizedRequested = paths.map(normalizeVaultPath);
 
-    if (inFlightExecution !== null) {
+    if (isExecuting) {
       if (pendingLoad === null) {
         pendingLoad = {
           deferreds: [],
@@ -411,17 +461,19 @@ export function createVaultStore(client: VaultClient) {
     }
 
     const run = async (): Promise<VaultSnapshot> => {
+      isExecuting = true;
       try {
         await readEntries(snapshot.entries, new Set(missingPaths));
         return publish(snapshot.entries);
       } finally {
-        await drainPendingQueue();
-        inFlightExecution = null;
+        isExecuting = false;
+        if (pendingRefresh !== null || pendingLoad !== null) {
+          triggerDrain().catch(() => {});
+        }
       }
     };
 
-    inFlightExecution = run();
-    return inFlightExecution;
+    return run();
   }
 
   function getSnapshot() {
@@ -434,6 +486,12 @@ export function createVaultStore(client: VaultClient) {
 
   return {
     getDebugStats,
+    getEnvelope: (): VaultSnapshotEnvelope => ({
+      generation,
+      revision: snapshot.revision ?? revision,
+      rootId,
+      snapshot,
+    }),
     getSnapshot,
     isFullyIndexed: () => fullyIndexed,
     loadDocuments,

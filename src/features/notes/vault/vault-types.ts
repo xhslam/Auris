@@ -16,6 +16,39 @@ export type VaultSnapshot = {
   entries: VaultEntry[];
   generatedAt: string;
   rootPath: string | null;
+  rootId?: string;
+  generation?: number;
+  revision?: number;
+};
+
+export type VaultSnapshotEnvelope = {
+  generation: number;
+  revision: number;
+  rootId: string;
+  snapshot: VaultSnapshot;
+};
+
+export type VaultViewState = {
+  rootId: string;
+  connection: "unknown" | "configured" | "unconfigured" | "error";
+  entries: VaultEntry[] | null;
+  entriesAreStale: boolean;
+  activeDocumentAvailable: boolean;
+  isInitialLoading: boolean;
+  isRefreshing: boolean;
+  isIndexing: boolean;
+  indexedCount: number;
+  indexableCount: number;
+  errorMessage: string | null;
+};
+
+export type VaultListingMetadata = "names-only" | "complete";
+
+export type VaultListing = {
+  entries: VaultEntry[];
+  metadata: VaultListingMetadata;
+  rootId: string;
+  generation: number;
 };
 
 export type VaultClient = {

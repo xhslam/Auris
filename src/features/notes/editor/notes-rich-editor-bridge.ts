@@ -90,6 +90,7 @@ export function createNotesRichEditorBridge(
   view: EditorView | null,
   openSourcePeek?: () => boolean,
   isReadOnly: () => boolean = () => false,
+  getSourceOverride?: () => string | null,
 ): NotesEditorBridge {
   return {
     focus() {
@@ -110,6 +111,10 @@ export function createNotesRichEditorBridge(
       return getSelectionState(view);
     },
     getSource() {
+      const custom = getSourceOverride?.();
+      if (typeof custom === "string") {
+        return custom;
+      }
       return view ? serializeNotesRichMarkdown(view.state.doc) : "";
     },
     insertSnippet(snippet: string) {
@@ -130,6 +135,7 @@ export function createNotesRichEditorBridge(
 
       view.dispatch(tr);
       view.focus();
+      getSourceOverride?.();
     },
     openSourcePeek: () => !isReadOnly() && Boolean(openSourcePeek?.()),
     revealLine(line: number) {

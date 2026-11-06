@@ -38,7 +38,7 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("NotesRichEditorPane sync", () => {
-  it("keeps input that arrives immediately after a source commit", () => {
+  it("keeps input that arrives immediately after a source commit", async () => {
     const onDocumentChange = vi.fn();
     function Harness({ source, typeAfterCommit = false }: { source: string; typeAfterCommit?: boolean }) {
       const document = createDocument(source);
@@ -58,7 +58,9 @@ describe("NotesRichEditorPane sync", () => {
       __notesRichEditorView?: ProseMirrorEditorView;
     };
     expect(host.__notesRichEditorView!.state.doc.textContent).toContain("Updated NEW_INPUT");
-    expect(onDocumentChange).toHaveBeenLastCalledWith(expect.stringContaining("Updated NEW_INPUT"));
+    await waitFor(() => {
+      expect(onDocumentChange).toHaveBeenLastCalledWith(expect.stringContaining("Updated NEW_INPUT"));
+    });
   });
 
   it("does not scroll back to the caret when the same note is updated externally", () => {
@@ -370,7 +372,7 @@ describe("NotesRichEditorPane sync", () => {
     );
   });
 
-  it("serializes the first rich-editor heading as the note title", () => {
+  it("serializes the first rich-editor heading as the note title", async () => {
     const onDocumentChange = vi.fn();
     const bridge: { current: NotesEditorBridge | null } = { current: null };
     const rawSource = "# Daily Review\n\nBody";
@@ -392,9 +394,11 @@ describe("NotesRichEditorPane sync", () => {
       view?.dispatch(view.state.tr.insertText("Edited ", 1));
     });
 
-    expect(onDocumentChange).toHaveBeenLastCalledWith(
-      "# Edited Daily Review\n\nBody",
-    );
+    await waitFor(() => {
+      expect(onDocumentChange).toHaveBeenLastCalledWith(
+        "# Edited Daily Review\n\nBody",
+      );
+    });
   });
 
   it("emits full note source when WYSIWYG edits change the body", () => {
@@ -615,5 +619,76 @@ describe("NotesRichEditorPane sync", () => {
     expect(onDocumentChange).not.toHaveBeenCalled();
 
     vi.useRealTimers();
+  });
+
+  it("coalesces rapid keystrokes into trailing debounce while keeping ProseMirror state immediate", async () => {
+    const onDocumentChange = vi.fn();
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
+    const rawSource = "# Daily Review\n\nInitial";
+
+    render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="wysiwyg"
+        onBridgeReady={(nextBridge) => {
+          bridge.current = nextBridge;
+        }}
+        onDocumentChange={onDocumentChange}
+      />,
+    );
+
+    const view = bridge.current?.view as ProseMirrorEditorView | null;
+    expect(view).not.toBeNull();
+
+    act(() => {
+      view!.dispatch(view!.state.tr.insertText("1", view!.state.doc.content.size - 1));
+      view!.dispatch(view!.state.tr.insertText("2", view!.state.doc.content.size - 1));
+      view!.dispatch(view!.state.tr.insertText("3", view!.state.doc.content.size - 1));
+    });
+
+    expect(view!.state.doc.textContent).toContain("Initial123");
+    expect(onDocumentChange).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(onDocumentChange).toHaveBeenCalledTimes(1);
+      expect(onDocumentChange).toHaveBeenLastCalledWith(
+        expect.stringContaining("Initial123"),
+      );
+    });
+  });
+
+  it("flushes latest source immediately on blur without waiting for debounce", () => {
+    const onDocumentChange = vi.fn();
+    const bridge: { current: NotesEditorBridge | null } = { current: null };
+    const rawSource = "# Daily Review\n\nInitial";
+
+    const { container } = render(
+      <NotesEditorPane
+        document={createDocument(rawSource)}
+        documents={[createDocument(rawSource)]}
+        editorMode="wysiwyg"
+        onBridgeReady={(nextBridge) => {
+          bridge.current = nextBridge;
+        }}
+        onDocumentChange={onDocumentChange}
+      />,
+    );
+
+    const view = bridge.current?.view as ProseMirrorEditorView | null;
+    act(() => {
+      view!.dispatch(view!.state.tr.insertText(" Immediately", view!.state.doc.content.size - 1));
+    });
+
+    expect(onDocumentChange).not.toHaveBeenCalled();
+
+    const editorDom = container.querySelector(".ProseMirror");
+    act(() => {
+      editorDom?.dispatchEvent(new Event("blur", { bubbles: true }));
+    });
+
+    expect(onDocumentChange).toHaveBeenCalledWith(
+      expect.stringContaining("Initial Immediately"),
+    );
   });
 });

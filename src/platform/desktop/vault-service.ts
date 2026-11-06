@@ -27,6 +27,7 @@ export type DesktopVaultService = {
 
 function toNotesDirectoryInfo(directoryInfo: DesktopVaultDirectoryInfo): NotesDirectoryInfo {
   return {
+    connectionStatus: directoryInfo.hasVault ? "configured" : "unconfigured",
     directoryName: directoryInfo.directoryName,
     isConfigured: directoryInfo.hasVault,
     isDesktopVault: directoryInfo.hasVault,

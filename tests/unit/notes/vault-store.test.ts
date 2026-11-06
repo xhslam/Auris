@@ -378,4 +378,103 @@ describe("vault-store", () => {
     expect(stats.coalescedRefreshCount).toBe(19);
     expect(listCallCount).toBe(2);
   });
+
+  it("settles caller A's promise immediately without waiting for trailing queue B to finish", async () => {
+    let releaseTrailingList: () => void = () => undefined;
+    let listCallCount = 0;
+    const client: VaultClient = {
+      ...createClient(),
+      listEntries: async () => {
+        listCallCount += 1;
+        if (listCallCount === 2) {
+          // Hold up trailing batch
+          await new Promise<void>((resolve) => {
+            releaseTrailingList = resolve;
+          });
+        }
+        return [
+          {
+            kind: "file",
+            mtime: "2026-11-06T00:00:00.000Z",
+            name: `note-${listCallCount}.md`,
+            path: `note-${listCallCount}.md`,
+            size: 10,
+          },
+        ];
+      },
+      readFile: async () => "# Hello",
+    };
+
+    const store = createVaultStore(client);
+
+    // Caller A
+    const promiseA = store.refresh();
+    await Promise.resolve();
+
+    // Caller B queues behind A
+    let promiseBSettled = false;
+    const promiseB = store.refresh().then((res) => {
+      promiseBSettled = true;
+      return res;
+    });
+
+    // Caller A should settle even while B is still suspended!
+    const resultA = await promiseA;
+    expect(resultA).toBeDefined();
+    expect(promiseBSettled).toBe(false);
+    expect(resultA.revision).toBe(1);
+
+    // Now release B
+    releaseTrailingList();
+    const resultB = await promiseB;
+    expect(resultB.revision).toBe(2);
+    expect(resultB.revision).toBeGreaterThan(resultA.revision!);
+  });
+
+  it("stamps rootId, generation and monotonic revision on snapshot and envelope", async () => {
+    const store = createVaultStore(createClient(), {
+      generation: 42,
+      rootId: "custom-root",
+    });
+
+    const envelope0 = store.getEnvelope();
+    expect(envelope0.generation).toBe(42);
+    expect(envelope0.rootId).toBe("custom-root");
+    expect(envelope0.revision).toBe(0);
+
+    const snap1 = await store.refresh();
+    expect(snap1.generation).toBe(42);
+    expect(snap1.rootId).toBe("custom-root");
+    expect(snap1.revision).toBe(1);
+
+    const snap2 = await store.loadDocuments(["notes/grammar.md"]);
+    expect(snap2.revision).toBe(2);
+  });
+
+  it("preserves fullyIndexed status when refreshed without loadAll if all entries are cached", async () => {
+    const store = createVaultStore(createClient());
+    expect(store.isFullyIndexed()).toBe(false);
+
+    // Initial loadAll sets fullyIndexed to true
+    await store.refresh({ loadAll: true });
+    expect(store.isFullyIndexed()).toBe(true);
+
+    // Normal refresh without loadAll should NOT reset fullyIndexed to false
+    await store.refresh();
+    expect(store.isFullyIndexed()).toBe(true);
+  });
+
+  it("skips rebuilding backlinks if documents have not changed", async () => {
+    const store = createVaultStore(createClient());
+    await store.refresh({ loadAll: true });
+
+    const stats1 = store.getDebugStats();
+    const visits1 = stats1.backlinkDocumentVisits;
+    expect(visits1).toBeGreaterThan(0);
+
+    // Refresh again with no document changes
+    await store.refresh();
+    const stats2 = store.getDebugStats();
+    expect(stats2.backlinkDocumentVisits).toBe(visits1);
+  });
 });

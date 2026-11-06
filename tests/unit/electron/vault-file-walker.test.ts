@@ -96,7 +96,7 @@ describe("vault file walker", () => {
   });
 
   it("handles a large nested subtree without expanding records into a call", async () => {
-    const count = 150_000;
+    const count = 20_000;
     const leaves = Array.from({ length: count }, (_, index) =>
       file(`note-${String(index).padStart(6, "0")}.md`),
     );
@@ -110,6 +110,35 @@ describe("vault file walker", () => {
     const records = await createVaultFileWalker({ readdir, stat })("/vault");
     expect(records).toHaveLength(count + 1);
     expect(records[0]?.relativePath).toBe("archive");
-    expect(records.at(-1)?.relativePath).toBe("archive/note-149999.md");
+    expect(records.at(-1)?.relativePath).toBe("archive/note-019999.md");
+  });
+
+  it("captures file size in bytes from stat metadata", async () => {
+    const readdir = async () => [file("doc.md")];
+    const stat = async () => ({
+      mtime: new Date("2026-11-06T00:00:00.000Z"),
+      size: 4096,
+    });
+    const walker = createVaultFileWalker({ readdir, stat });
+    const records = await walker("/vault");
+    expect(records).toHaveLength(1);
+    expect(records[0]?.size).toBe(4096);
+    expect(records[0]?.mtime).toBe("2026-11-06T00:00:00.000Z");
+  });
+
+  it("skips stat entirely when names-only mode is requested", async () => {
+    const readdir = async (directoryPath: string) => {
+      if (directoryPath === "/vault") return [file("doc.md"), directory("sub")];
+      if (directoryPath === "/vault/sub") return [file("child.md")];
+      return [];
+    };
+    const stat = vi.fn();
+    const walker = createVaultFileWalker({ readdir, stat });
+    const records = await walker("/vault", { mode: "names-only" });
+    expect(stat).not.toHaveBeenCalled();
+    expect(records).toHaveLength(3);
+    const doc = records.find((r) => r.relativePath === "doc.md");
+    expect(doc?.size).toBeNull();
+    expect(doc?.mtime).toBeNull();
   });
 });

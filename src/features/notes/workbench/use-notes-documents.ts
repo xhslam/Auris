@@ -454,36 +454,75 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
   }, [client.rootPath, dirtyPaths, snapshot.documents, snapshot.entries, snapshot.generatedAt, snapshot.rootPath]);
 
   const previousBacklinksIndexRef = useRef<Record<string, string[]>>({});
+  const previousDerivedDocumentsRef = useRef<Map<string, NoteDocument>>(new Map());
+  const pendingChangedDocumentsRef = useRef<Map<string, NoteDocument>>(new Map());
   const targetLookupRef = useRef<Map<string, string>>(new Map());
+  const lastBacklinksRootRef = useRef<string | null>(snapshot.rootPath);
+
+  useEffect(() => {
+    if (snapshot.rootPath !== lastBacklinksRootRef.current) {
+      lastBacklinksRootRef.current = snapshot.rootPath;
+      if (backlinksTimerRef.current) {
+        window.clearTimeout(backlinksTimerRef.current);
+        backlinksTimerRef.current = null;
+      }
+      pendingChangedDocumentsRef.current.clear();
+      previousDerivedDocumentsRef.current.clear();
+    }
+  }, [snapshot.rootPath]);
 
   useEffect(() => {
     targetLookupRef.current = buildTargetLookup(snapshot.documents);
     previousBacklinksIndexRef.current = snapshot.backlinks;
+
+    const nextMap = new Map<string, NoteDocument>();
+    snapshot.documents.forEach((d) => nextMap.set(d.path, d));
+    previousDerivedDocumentsRef.current.forEach((doc, path) => {
+      if (nextMap.has(path)) {
+        nextMap.set(path, doc);
+      }
+    });
+    previousDerivedDocumentsRef.current = nextMap;
   }, [snapshot.backlinks, snapshot.documents]);
 
   const scheduleDerivedBacklinksRefresh = useCallback(
     (changedDocument: NoteDocument) => {
+      pendingChangedDocumentsRef.current.set(changedDocument.path, changedDocument);
+
       if (backlinksTimerRef.current) {
         window.clearTimeout(backlinksTimerRef.current);
       }
 
       backlinksTimerRef.current = window.setTimeout(() => {
         startTransition(() => {
-          const previousDocsByPath = new Map<string, NoteDocument>();
-          snapshot.documents.forEach((d) => previousDocsByPath.set(d.path, d));
-          Object.values(liveDocumentsRef.current).forEach((d) =>
-            previousDocsByPath.set(d.path, d),
-          );
+          const changedDocs = Array.from(pendingChangedDocumentsRef.current.values());
+          pendingChangedDocumentsRef.current.clear();
 
-          const baseDoc = findDocumentByPath(snapshot.documents, changedDocument.path);
-          const titleOrAliasChanged =
-            baseDoc &&
-            (baseDoc.parsed.title !== changedDocument.parsed.title ||
-              JSON.stringify(baseDoc.frontmatter.aliases ?? baseDoc.frontmatter.alias) !==
-                JSON.stringify(
-                  changedDocument.frontmatter.aliases ??
-                    changedDocument.frontmatter.alias,
-                ));
+          if (changedDocs.length === 0) {
+            backlinksTimerRef.current = null;
+            return;
+          }
+
+          const previousDocsByPath = new Map(previousDerivedDocumentsRef.current);
+
+          let titleOrAliasChanged = false;
+          for (const changedDoc of changedDocs) {
+            const baseDoc =
+              previousDocsByPath.get(changedDoc.path) ??
+              findDocumentByPath(snapshot.documents, changedDoc.path);
+            if (
+              baseDoc &&
+              (baseDoc.parsed.title !== changedDoc.parsed.title ||
+                JSON.stringify(baseDoc.frontmatter.aliases ?? baseDoc.frontmatter.alias) !==
+                  JSON.stringify(
+                    changedDoc.frontmatter.aliases ??
+                      changedDoc.frontmatter.alias,
+                  ))
+            ) {
+              titleOrAliasChanged = true;
+              break;
+            }
+          }
 
           if (titleOrAliasChanged) {
             targetLookupRef.current = buildTargetLookup([
@@ -495,12 +534,16 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
             previousBacklinksIndexRef.current,
             {
               allDocuments: snapshot.documents,
-              changedDocuments: [changedDocument],
+              changedDocuments: changedDocs,
               previousDocumentsByPath: previousDocsByPath,
               targetLookup: targetLookupRef.current,
               targetTopologyChanged: !!titleOrAliasChanged,
             },
           );
+
+          changedDocs.forEach((doc) => {
+            previousDerivedDocumentsRef.current.set(doc.path, doc);
+          });
 
           previousBacklinksIndexRef.current = nextIndex;
           setBacklinksIndex(nextIndex);

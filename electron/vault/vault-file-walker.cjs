@@ -42,12 +42,15 @@ async function mapWithLimit(items, limit, fn) {
  * `Array.prototype.push(...records)` 的参数展开（避免超出调用栈限制）。
  * 忽略根级点目录与指定隐藏目录，stat() 使用有界并发（默认 8）。
  */
+const pathCollator = new Intl.Collator();
+
 function createVaultFileWalker({
   readdir = fs.readdir,
   stat = fs.stat,
   statConcurrency = DEFAULT_STAT_CONCURRENCY,
 } = {}) {
-  return async function walkVaultFiles(vaultPath) {
+  return async function walkVaultFiles(vaultPath, options = {}) {
+    const isNamesOnly = options.namesOnly === true || options.mode === "names-only";
     const records = [];
     const pendingDirectories = [""];
 
@@ -90,33 +93,47 @@ function createVaultFileWalker({
       }
 
       if (filesInDirectory.length > 0) {
-        const fileRecords = await mapWithLimit(
-          filesInDirectory,
-          statConcurrency,
-          async ({ entry, normalizedRelativePath, relativePath }) => {
-            const absolutePath = joinVaultPath(vaultPath, relativePath);
-            const metadata = await stat(absolutePath).catch(() => null);
-
-            return {
-              absolutePath,
+        if (isNamesOnly) {
+          for (let i = 0; i < filesInDirectory.length; i++) {
+            const { entry, normalizedRelativePath, relativePath } = filesInDirectory[i];
+            records.push({
+              absolutePath: joinVaultPath(vaultPath, relativePath),
               fileName: entry.name,
-              mtime:
-                metadata?.mtime instanceof Date
-                  ? metadata.mtime.toISOString()
-                  : null,
+              mtime: null,
               relativePath: normalizedRelativePath,
-            };
-          },
-        );
+              size: null,
+            });
+          }
+        } else {
+          const fileRecords = await mapWithLimit(
+            filesInDirectory,
+            statConcurrency,
+            async ({ entry, normalizedRelativePath, relativePath }) => {
+              const absolutePath = joinVaultPath(vaultPath, relativePath);
+              const metadata = await stat(absolutePath).catch(() => null);
 
-        for (let i = 0; i < fileRecords.length; i++) {
-          records.push(fileRecords[i]);
+              return {
+                absolutePath,
+                fileName: entry.name,
+                mtime:
+                  metadata?.mtime instanceof Date
+                    ? metadata.mtime.toISOString()
+                    : null,
+                relativePath: normalizedRelativePath,
+                size: typeof metadata?.size === "number" ? metadata.size : null,
+              };
+            },
+          );
+
+          for (let i = 0; i < fileRecords.length; i++) {
+            records.push(fileRecords[i]);
+          }
         }
       }
     }
 
     return records.sort((left, right) =>
-      left.relativePath.localeCompare(right.relativePath),
+      pathCollator.compare(left.relativePath, right.relativePath),
     );
   };
 }

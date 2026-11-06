@@ -230,4 +230,41 @@ describe("NotesFileTree", () => {
     expect(mountedNodes.length).toBeLessThan(100);
     expect(mountedNodes.length).toBeGreaterThan(0);
   });
+
+  it("collapses a default-expanded directory on the very first click", async () => {
+    const user = userEvent.setup();
+    render(
+      <NotesFileTree
+        activePath={null}
+        entries={ENTRIES}
+        onOpenPath={vi.fn()}
+      />,
+    );
+
+    const notesButton = screen.getByRole("button", { name: /^notes$/i });
+    expect(notesButton).toHaveAttribute("aria-expanded", "true");
+
+    // Click ONCE
+    await user.click(notesButton);
+    // Must immediately collapse on the first click!
+    expect(notesButton).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("supports keyboard navigation with arrow keys and Enter", async () => {
+    const onOpenPath = vi.fn();
+    const { container } = render(
+      <NotesFileTree
+        activePath="notes/daily.md"
+        entries={ENTRIES}
+        onOpenPath={onOpenPath}
+      />,
+    );
+
+    const treeList = container.querySelector(".notes-v2__tree-list") as HTMLElement;
+    expect(treeList).toBeInTheDocument();
+
+    // Focus tree and press Enter on current active item
+    fireEvent.keyDown(treeList, { key: "Enter" });
+    expect(onOpenPath).toHaveBeenCalledWith("notes/daily.md");
+  });
 });

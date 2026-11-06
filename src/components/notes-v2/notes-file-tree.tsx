@@ -445,12 +445,112 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
       [],
     );
 
-    const toggleFolder = useCallback((folderPath: string) => {
-      setExpandedPaths((prev) => ({
-        ...prev,
-        [folderPath]: !prev[folderPath],
-      }));
-    }, []);
+    const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+
+    const toggleFolder = useCallback(
+      (folderPath: string, currentEffectiveExpanded?: boolean) => {
+        setExpandedPaths((prev) => {
+          const current =
+            currentEffectiveExpanded !== undefined
+              ? currentEffectiveExpanded
+              : prev[folderPath] !== undefined
+                ? prev[folderPath]
+                : activeAncestors.has(folderPath) ||
+                  (!collapseAllByDefault && !bulkCollapsed);
+          return {
+            ...prev,
+            [folderPath]: !current,
+          };
+        });
+      },
+      [activeAncestors, bulkCollapsed, collapseAllByDefault],
+    );
+
+    const handleKeyDown = useCallback(
+      (event: React.KeyboardEvent) => {
+        if (flattened.length === 0) return;
+
+        let nextIndex = focusedIndex;
+        if (nextIndex < 0) {
+          const activeIdx = flattened.findIndex(
+            (item) => item.node.path === activePath,
+          );
+          nextIndex = activeIdx >= 0 ? activeIdx : 0;
+        }
+
+        switch (event.key) {
+          case "ArrowDown": {
+            event.preventDefault();
+            nextIndex = Math.min(flattened.length - 1, nextIndex + 1);
+            setFocusedIndex(nextIndex);
+            break;
+          }
+          case "ArrowUp": {
+            event.preventDefault();
+            nextIndex = Math.max(0, nextIndex - 1);
+            setFocusedIndex(nextIndex);
+            break;
+          }
+          case "ArrowRight": {
+            event.preventDefault();
+            const currentItem = flattened[nextIndex];
+            if (currentItem && currentItem.node.kind === "directory") {
+              if (!currentItem.isExpanded) {
+                toggleFolder(currentItem.node.path, false);
+              } else if (nextIndex + 1 < flattened.length) {
+                setFocusedIndex(nextIndex + 1);
+              }
+            }
+            break;
+          }
+          case "ArrowLeft": {
+            event.preventDefault();
+            const currentItem = flattened[nextIndex];
+            if (
+              currentItem &&
+              currentItem.node.kind === "directory" &&
+              currentItem.isExpanded
+            ) {
+              toggleFolder(currentItem.node.path, true);
+            } else if (currentItem && currentItem.depth > 0) {
+              for (let i = nextIndex - 1; i >= 0; i--) {
+                if (
+                  flattened[i].node.kind === "directory" &&
+                  flattened[i].depth === currentItem.depth - 1
+                ) {
+                  setFocusedIndex(i);
+                  break;
+                }
+              }
+            }
+            break;
+          }
+          case "Home": {
+            event.preventDefault();
+            setFocusedIndex(0);
+            break;
+          }
+          case "End": {
+            event.preventDefault();
+            setFocusedIndex(flattened.length - 1);
+            break;
+          }
+          case "Enter": {
+            event.preventDefault();
+            const currentItem = flattened[nextIndex];
+            if (currentItem) {
+              if (currentItem.node.kind === "directory") {
+                toggleFolder(currentItem.node.path, currentItem.isExpanded);
+              } else {
+                onOpenPath(currentItem.node.path);
+              }
+            }
+            break;
+          }
+        }
+      },
+      [activePath, flattened, focusedIndex, onOpenPath, toggleFolder],
+    );
 
     const handleBlankAreaContextMenu = useCallback(
       (event: React.MouseEvent<HTMLElement>) => {
@@ -512,6 +612,7 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
             <ul
               aria-label={NOTES_UI_COPY.fileTree.ariaLabel}
               className="notes-v2__tree-list"
+              onKeyDown={handleKeyDown}
               role="tree"
               style={{
                 left: 0,
@@ -522,6 +623,7 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
                 right: 0,
                 top: `${startIndex * TREE_ROW_HEIGHT}px`,
               }}
+              tabIndex={0}
             >
               {visibleItems.map(({ depth, isExpanded, node }) => {
                 const nodeStyle = {
@@ -548,7 +650,7 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
                           dropTarget === node.path ? "true" : undefined
                         }
                         data-expanded={isExpanded ? "true" : "false"}
-                        onClick={() => toggleFolder(node.path)}
+                        onClick={() => toggleFolder(node.path, isExpanded)}
                         onContextMenu={(e) => handleContextMenu(e, node)}
                         onDragEnd={handleDragEnd}
                         onDragLeave={() => clearDropTarget(node.path)}

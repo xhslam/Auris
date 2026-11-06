@@ -86,9 +86,6 @@ export function NotesWorkbenchCenter({
           {errorMessage}
         </div>
       ) : null}
-      {isLoading && !shouldShowLoadingState ? (
-        <div className="notes-v2__banner">{NOTES_UI_COPY.banners.loading}</div>
-      ) : null}
 
       {shouldShowLoadingState ? (
         <section

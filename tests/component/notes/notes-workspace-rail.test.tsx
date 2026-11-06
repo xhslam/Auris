@@ -105,7 +105,7 @@ describe("NotesWorkspaceRail", () => {
     await user.click(beta);
 
     await waitFor(() => {
-      expect(setRoot).toHaveBeenCalledWith("/vaults/Beta");
+      expect(setRoot).toHaveBeenCalledWith(expect.stringMatching(/^[/\\]vaults[/\\]Beta$/));
     });
   });
 

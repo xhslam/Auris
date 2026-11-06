@@ -396,6 +396,11 @@ describe("NotesPageClient", () => {
     });
 
     await act(async () => {
+      await vi.advanceTimersByTimeAsync(80);
+      await Promise.resolve();
+    });
+
+    await act(async () => {
       await vi.advanceTimersByTimeAsync(1_999);
       await Promise.resolve();
     });
@@ -446,6 +451,11 @@ describe("NotesPageClient", () => {
     });
 
     await act(async () => {
+      await vi.advanceTimersByTimeAsync(80);
+      await Promise.resolve();
+    });
+
+    await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
       await vi.advanceTimersByTimeAsync(80);
       await Promise.resolve();
@@ -455,13 +465,16 @@ describe("NotesPageClient", () => {
 
     await act(async () => {
       view.dispatch(view.state.tr.insertText(" second draft", view.state.doc.content.size));
+      await Promise.resolve();
+    });
+
+    await act(async () => {
       await vi.advanceTimersByTimeAsync(80);
       await Promise.resolve();
     });
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
-      await vi.advanceTimersByTimeAsync(80);
       await vi.advanceTimersByTimeAsync(80);
       await Promise.resolve();
     });
@@ -504,6 +517,11 @@ describe("NotesPageClient", () => {
     });
 
     await act(async () => {
+      await vi.advanceTimersByTimeAsync(80);
+      await Promise.resolve();
+    });
+
+    await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
       await vi.advanceTimersByTimeAsync(80);
       await Promise.resolve();
@@ -513,6 +531,11 @@ describe("NotesPageClient", () => {
 
     await act(async () => {
       view.dispatch(view.state.tr.insertText(" queued second", view.state.doc.content.size));
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(80);
       await Promise.resolve();
     });
 

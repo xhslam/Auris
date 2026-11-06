@@ -31,6 +31,7 @@ export type NotePageSummary = Pick<
 >;
 
 export type NotesDirectoryInfo = {
+  connectionStatus?: "unknown" | "configured" | "unconfigured" | "error";
   directoryName: string | null;
   isDesktopVault?: boolean;
   isConfigured: boolean;

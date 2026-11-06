@@ -20,7 +20,14 @@ export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, di
   const searchRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const treeRef = useRef<NotesFileTreeHandle>(null);
-  const configured = directoryInfo?.isConfigured !== false;
+  const isExplicitlyUnconfigured =
+    directoryInfo?.connectionStatus === "unconfigured" ||
+    (directoryInfo &&
+      directoryInfo.connectionStatus !== "unknown" &&
+      directoryInfo.isConfigured === false);
+  const isConnecting =
+    directoryInfo?.connectionStatus === "unknown" && !tree.entries.length;
+  const configured = !isExplicitlyUnconfigured && !isConnecting;
   const needle = query.trim().toLocaleLowerCase();
   const visibleEntries = useMemo(
     () =>
@@ -62,12 +69,12 @@ export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, di
         <button type="button" className="notes-explorer__icon-button" aria-label="收起文件栏" title="收起文件栏" onClick={onCollapse}><CaretLeft size={16} aria-hidden="true" /></button>
       </header>
       <div className="notes-explorer__actions" role="toolbar" aria-label="文件操作">
-        <button type="button" disabled={!configured || isLoading || !tree.onCreateNoteInPath} onClick={() => tree.onCreateNoteInPath?.("")} title="新建 Markdown 文件" aria-label="新建 Markdown 文件"><FilePlus size={16} aria-hidden="true" /><span>文档</span></button>
-        <button type="button" disabled={!configured || isLoading || !tree.onCreateFolderInPath} onClick={() => tree.onCreateFolderInPath?.("")} title="新建文件夹" aria-label="新建文件夹"><FolderPlus size={16} aria-hidden="true" /><span>文件夹</span></button>
+        <button type="button" disabled={!configured || !tree.onCreateNoteInPath} onClick={() => tree.onCreateNoteInPath?.("")} title="新建 Markdown 文件" aria-label="新建 Markdown 文件"><FilePlus size={16} aria-hidden="true" /><span>文档</span></button>
+        <button type="button" disabled={!configured || !tree.onCreateFolderInPath} onClick={() => tree.onCreateFolderInPath?.("")} title="新建文件夹" aria-label="新建文件夹"><FolderPlus size={16} aria-hidden="true" /><span>文件夹</span></button>
         <details ref={menuRef} className="notes-explorer__more" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) closeMenu(); }} onKeyDown={(event) => { if (event.key === "Escape") { closeMenu(true); } }}>
           <summary title="更多文件操作"><DotsThree size={20} aria-hidden="true" /><span className="notes-v2__sr-only">更多文件操作</span></summary>
           <div className="notes-explorer__menu">
-            <button type="button" onClick={() => { treeRef.current?.collapseAll(); closeMenu(true); }} disabled={!configured || isLoading} title="折叠全部文件夹" aria-label="折叠全部文件夹"><ArrowsInLineVertical size={16} aria-hidden="true" />折叠全部文件夹</button>
+            <button type="button" onClick={() => { treeRef.current?.collapseAll(); closeMenu(true); }} disabled={!configured} title="折叠全部文件夹" aria-label="折叠全部文件夹"><ArrowsInLineVertical size={16} aria-hidden="true" />折叠全部文件夹</button>
             <button type="button" onClick={() => { onRefresh?.(); closeMenu(true); }} disabled={isLoading || !onRefresh} title="刷新文件" aria-label="刷新文件"><ArrowClockwise size={16} aria-hidden="true" />刷新文件</button>
           </div>
         </details>
@@ -79,8 +86,10 @@ export function NotesExplorer({ onCollapse, onOpenFile, onRefresh, isLoading, di
         {query ? <button type="button" className="notes-explorer__icon-button" title="清空筛选" aria-label="清空筛选" onClick={clearSearch}><X size={12} aria-hidden="true" /></button> : null}
       </div>
       <div className="notes-explorer__files" aria-busy={isLoading}>
-        {!configured ? (
+        {isExplicitlyUnconfigured ? (
           <div className="notes-explorer__empty"><p>打开一个文件夹，开始写作。</p><button type="button" onClick={onPickDirectory}>打开笔记文件夹</button></div>
+        ) : isConnecting ? (
+          <p className="notes-explorer__hint" role="status">正在连接笔记库…</p>
         ) : isLoading && !tree.entries.length ? <p className="notes-explorer__hint" role="status">正在加载文件…</p> : (
           <>
             <NotesFileTree {...tree} ref={treeRef} entries={entries} filterActive={Boolean(needle)} showIcons key={directoryInfo?.vaultPath ?? "vault"} variant="obsidian" />

@@ -442,6 +442,16 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     editorBridgeRef.current?.insertSnippet(`\n\n${snippet}\n`);
   }, []);
 
+  const handleSaveActiveDocumentWithFlush = useCallback(async () => {
+    editorBridgeRef.current?.getSource();
+    return handleSaveActiveDocument();
+  }, [handleSaveActiveDocument]);
+
+  const handleSaveAllDocumentsWithFlush = useCallback(async () => {
+    editorBridgeRef.current?.getSource();
+    return handleSaveAllDocuments();
+  }, [handleSaveAllDocuments]);
+
   const handleEditorBridgeReady = useCallback(
     (bridge: NotesEditorBridge | null) => {
       editorBridgeRef.current = bridge;
@@ -716,8 +726,8 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     handleSetLeftSidebarMode,
     handleRenameActiveNote,
     handleRunDesktopCommand,
-    handleSaveActiveDocument,
-    handleSaveAllDocuments,
+    handleSaveActiveDocument: handleSaveActiveDocumentWithFlush,
+    handleSaveAllDocuments: handleSaveAllDocumentsWithFlush,
     handleSetRightSidebarCollapsed,
     handleSetRightSidebarMode,
     handleUpdateActiveTags,

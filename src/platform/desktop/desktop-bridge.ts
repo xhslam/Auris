@@ -465,6 +465,7 @@ export type DesktopVaultFileRecord = {
   isDirectory?: boolean;
   mtime?: string | null;
   relativePath: string;
+  size?: number | null;
 };
 
 export type DesktopExternalMarkdownFile = {

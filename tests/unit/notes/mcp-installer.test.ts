@@ -313,7 +313,7 @@ describe("auris mcp installer", () => {
     expect(written.mcpServers["auris-notes"].command).toBe(EXEC_PATH);
   });
 
-  it("does not tighten permissions on an existing user-owned config directory", async () => {
+  it.skipIf(process.platform === "win32")("does not tighten permissions on an existing user-owned config directory", async () => {
     const configDirectory = join(home, "Library", "Application Support", "Claude");
     mkdirSync(configDirectory, { recursive: true });
     chmodSync(configDirectory, 0o755);
@@ -323,7 +323,7 @@ describe("auris mcp installer", () => {
     expect(statSync(configDirectory).mode & 0o777).toBe(0o755);
   });
 
-  it("writes private config and backup files with durable permissions", async () => {
+  it.skipIf(process.platform === "win32")("writes private config and backup files with durable permissions", async () => {
     const configDirectory = join(home, "Library", "Application Support", "Claude");
     const configPath = join(configDirectory, "claude_desktop_config.json");
     mkdirSync(configDirectory, { recursive: true });
