@@ -81,40 +81,18 @@ function canDropInto(
   );
 }
 
+const treeCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+
 export function createTree(entries: VaultEntry[]): TreeNode[] {
   const lookup = new Map<string, TreeNode>();
   const childrenMap = new Map<string, TreeNode[]>();
   const rootChildren: TreeNode[] = [];
-  const addedToParent = new Set<string>();
 
   const visibleEntries = entries.filter(
     (entry) =>
       !isHiddenVaultPath(entry.path) &&
       !(entry.kind === "file" && isSystemVaultFile(entry.path)),
   );
-
-  const getOrCreateNode = (
-    kind: "file" | "directory",
-    name: string,
-    path: string,
-  ) => {
-    const existing = lookup.get(path);
-    if (existing) {
-      return existing;
-    }
-
-    const node: TreeNode = {
-      children: [],
-      displayKind:
-        kind === "file" ? getVaultEntryDisplayKind(path) : null,
-      kind,
-      name,
-      path,
-    };
-
-    lookup.set(path, node);
-    return node;
-  };
 
   for (const entry of visibleEntries) {
     const normalizedPath = entry.path.replace(/\\/g, "/");
@@ -126,11 +104,16 @@ export function createTree(entries: VaultEntry[]): TreeNode[] {
       const parentPath = currentPath;
       currentPath = parentPath ? `${parentPath}/${segment}` : segment;
 
-      const dirNode = getOrCreateNode("directory", segment, currentPath);
+      if (!lookup.has(currentPath)) {
+        const dirNode: TreeNode = {
+          children: [],
+          displayKind: null,
+          kind: "directory",
+          name: segment,
+          path: currentPath,
+        };
+        lookup.set(currentPath, dirNode);
 
-      const edgeKey = `${parentPath}:${currentPath}`;
-      if (!addedToParent.has(edgeKey)) {
-        addedToParent.add(edgeKey);
         if (parentPath) {
           let list = childrenMap.get(parentPath);
           if (!list) {
@@ -144,16 +127,22 @@ export function createTree(entries: VaultEntry[]): TreeNode[] {
       }
     }
 
-    const leafNode = getOrCreateNode(entry.kind, entry.name, entry.path);
-    const parentPath = currentPath;
-    const edgeKey = `${parentPath}:${entry.path}`;
-    if (!addedToParent.has(edgeKey)) {
-      addedToParent.add(edgeKey);
-      if (parentPath) {
-        let list = childrenMap.get(parentPath);
+    if (!lookup.has(entry.path)) {
+      const leafNode: TreeNode = {
+        children: [],
+        displayKind:
+          entry.kind === "file" ? getVaultEntryDisplayKind(entry.path) : null,
+        kind: entry.kind,
+        name: entry.name,
+        path: entry.path,
+      };
+      lookup.set(entry.path, leafNode);
+
+      if (currentPath) {
+        let list = childrenMap.get(currentPath);
         if (!list) {
           list = [];
-          childrenMap.set(parentPath, list);
+          childrenMap.set(currentPath, list);
         }
         list.push(leafNode);
       } else {
@@ -174,7 +163,7 @@ export function createTree(entries: VaultEntry[]): TreeNode[] {
       if (left.kind !== right.kind) {
         return left.kind === "directory" ? -1 : 1;
       }
-      return left.name.localeCompare(right.name);
+      return treeCollator.compare(left.name, right.name);
     });
 
     for (const node of nodes) {

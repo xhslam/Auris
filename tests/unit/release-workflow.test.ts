@@ -56,6 +56,10 @@ describe("desktop release workflow", () => {
     const script = workflow.jobs["validate-release"].steps.find(
       (step: { name?: string }) => step.name === "Validate macOS signing mode",
     ).run;
+    const bashCmd =
+      process.platform === "win32" && fs.existsSync("C:\\Program Files\\Git\\bin\\bash.exe")
+        ? "C:\\Program Files\\Git\\bin\\bash.exe"
+        : "bash";
     for (const [mode, certificate, password, expectedStatus] of [
       ["adhoc", "", "", 0],
       ["developer-id", "", "", 1],
@@ -63,7 +67,7 @@ describe("desktop release workflow", () => {
       ["developer-id", "p12", "password", 0],
       ["typo", "", "", 1],
     ] as const) {
-      const result = spawnSync("bash", ["-c", script], {
+      const result = spawnSync(bashCmd, ["-c", script], {
         env: { ...process.env, MAC_SIGNING_MODE: mode, CSC_LINK: certificate, CSC_KEY_PASSWORD: password },
         encoding: "utf8",
       });
