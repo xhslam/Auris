@@ -213,7 +213,8 @@ export async function installLocalNotesBridge(page: Page) {
           }
         },
         revealPluginsDirectory: async () => undefined,
-        saveFile: async (relativePath: string, content: string) => {
+        saveFile: async (relativePath: string, content: string | Uint8Array) => {
+          if (typeof content !== "string") throw new Error("This text-only Vault fixture does not support binary files.");
           vaultFiles.set(relativePath, content);
           notifyVaultChanged();
         },

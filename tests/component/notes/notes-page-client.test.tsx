@@ -216,7 +216,8 @@ function createDesktopBridgeWithDelayedRefresh(
         vaultListeners.forEach((listener) => listener());
       }),
       revealPluginsDirectory: vi.fn(async () => undefined),
-      saveFile: vi.fn(async (relativePath: string, content: string) => {
+      saveFile: vi.fn(async (relativePath: string, content: string | Uint8Array) => {
+        if (typeof content !== "string") throw new Error("This text-only Vault fixture does not support binary files.");
         vaultFiles.set(relativePath, content);
         vaultListeners.forEach((listener) => listener());
       }),
@@ -385,7 +386,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     const saveFileImmediately = desktopBridge.vault.saveFile;
     desktopBridge.vault.saveFile = vi.fn(
-      async (relativePath: string, content: string) => {
+      async (relativePath: string, content: string | Uint8Array) => {
         await wait(80);
         await saveFileImmediately(relativePath, content);
       },
@@ -451,7 +452,7 @@ describe("NotesPageClient", () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh();
     const saveFileImmediately = desktopBridge.vault.saveFile;
     desktopBridge.vault.saveFile = vi.fn(
-      async (relativePath: string, content: string) => {
+      async (relativePath: string, content: string | Uint8Array) => {
         await wait(10_000);
         await saveFileImmediately(relativePath, content);
       },

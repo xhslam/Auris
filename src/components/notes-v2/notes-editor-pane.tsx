@@ -61,6 +61,9 @@ import {
 import { getFormatDescriptor } from "@/features/notes/formats/format-registry";
 import type { StructuredDataFormat } from "@/features/notes/formats/structured-data";
 
+import { useNotesImagePath } from "./use-notes-image-path";
+import { saveNotesImageAttachment } from "@/features/notes/editor/notes-image-insertion";
+
 type NotesEditorHostElement = HTMLDivElement & {
   __notesEditorView?: EditorView;
 };
@@ -138,6 +141,7 @@ export function NotesEditorPane({
     }
   }, [document, onEditorModeChange]);
 
+  const imagePath = useNotesImagePath(document?.path ?? null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const splitPreviewRef = useRef<HTMLDivElement | null>(null);
   useNotesScrollMemory({
@@ -279,7 +283,7 @@ export function NotesEditorPane({
     (source: string) => {
       const resolved = resolveMarkdownImageSource(
         source,
-        document?.path ?? null,
+        imagePath,
         getNotesMediaReloadKey(),
       );
 
@@ -292,12 +296,15 @@ export function NotesEditorPane({
 
       return resolved;
     },
-    [document?.path],
+    [imagePath],
   );
+
+  const imageResolverRef = useRef(resolveWechatImageSource);
+  useLayoutEffect(() => { imageResolverRef.current = resolveWechatImageSource; }, [resolveWechatImageSource]);
 
   useEffect(() => {
     refreshNotesMixedRendering(viewRef.current);
-  }, [mediaReloadKey]);
+  }, [imagePath, mediaReloadKey]);
 
   useEffect(() => {
     if (editorMode === "wysiwyg") {
@@ -353,17 +360,13 @@ export function NotesEditorPane({
           onSelectionStateChange: (selection) =>
             onSelectionStateChangeRef.current?.(selection),
           documentPath: document.path,
+          isCurrentDocument: () => documentPathRef.current === document.path,
           lineSeparator: document.rawSource.includes("\r\n") ? "\r\n" : "\n",
           editableCompartment,
           readOnly: viewPreferencesRef.current.readOnly,
-          resolveImageUrl: resolveWechatImageSource,
-          saveAttachment:
-            format.id === "markdown" && window.shadowingDesktop?.vault?.saveFile
-            ? async (path, content) =>
-                (window.shadowingDesktop?.vault?.saveFile as unknown as (
-                  relativePath: string,
-                  binaryContent: Uint8Array,
-                ) => Promise<void>)(path, content)
+          resolveImageUrl: (source) => imageResolverRef.current(source),
+          saveAttachment: format.id === "markdown" && window.shadowingDesktop?.vault?.saveFile
+            ? saveNotesImageAttachment
             : undefined,
         },
       ),
@@ -789,6 +792,7 @@ export function NotesEditorPane({
             />
           ) : null}
         </div>
+
       </div>
       {editorMode !== "wysiwyg" && (isFindOpen || findQuery || replaceText) ? (
         <div

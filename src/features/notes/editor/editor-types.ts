@@ -28,6 +28,7 @@ export type NotesEditorEnvironment = {
   readOnly?: boolean;
   getDocuments?: () => NoteDocument[];
   documentPath?: string;
+  isCurrentDocument?: () => boolean;
   lineSeparator?: "\n" | "\r\n";
   onOpenMarkdownLink?: NotesMarkdownLinkOpenHandler;
   onOpenWikiLink?: (target: string) => void;

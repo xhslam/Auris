@@ -6,7 +6,7 @@ import {
   indentUnit,
   syntaxHighlighting,
 } from "@codemirror/language";
-import { EditorSelection, EditorState, type Extension } from "@codemirror/state";
+import { EditorState, type Extension } from "@codemirror/state";
 import { tags } from "@lezer/highlight";
 import {
   crosshairCursor,
@@ -28,10 +28,8 @@ import {
   createWikiLinkCompletionSource,
 } from "@/features/notes/editor/editor-completions";
 import { notesEditorFolds } from "@/features/notes/editor/editor-folds";
-import {
-  prepareImageInsertion,
-  type PreparedImageInsertion,
-} from "@/features/notes/editor/editor-image-attachments";
+import { collectNotesImageFiles } from "./editor-image-attachments";
+import { insertNotesImageFiles, reportNotesImageError } from "./notes-image-insertion";
 import { notesEditorTheme } from "@/features/notes/editor/editor-theme";
 import {
   createShowInvisiblesPlugin,
@@ -77,96 +75,20 @@ function createSelectionState(updateState: EditorState): NotesEditorSelectionSta
   };
 }
 
-const SUPPORTED_IMAGE_EXTENSIONS = new Set([
-  "avif",
-  "bmp",
-  "gif",
-  "ico",
-  "jpeg",
-  "jpg",
-  "png",
-  "svg",
-  "webp",
-]);
-
-function isImageFile(file: File) {
-  if (file.type.startsWith("image/")) {
-    return true;
-  }
-
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-  return SUPPORTED_IMAGE_EXTENSIONS.has(extension);
-}
-
-function collectImageFiles(files: FileList | null | undefined) {
-  return Array.from(files ?? []).filter(isImageFile);
-}
-
-function dispatchImageInsertion(
-  view: EditorView,
-  insertions: PreparedImageInsertion[],
-  from: number,
-  to: number,
-) {
-  if (view.state.readOnly) {
-    return;
-  }
-  const insertText = `\n\n${insertions.map((image) => image.markdown).join("\n\n")}\n\n`;
-  const start = Math.min(Math.max(from, 0), view.state.doc.length);
-  const end = Math.min(Math.max(to, 0), view.state.doc.length);
-
-  view.dispatch({
-    changes: {
-      from: Math.min(start, end),
-      insert: insertText,
-      to: Math.max(start, end),
-    },
-    selection: EditorSelection.cursor(Math.min(start, end) + insertText.length),
-    userEvent: "input.paste",
-  });
-  view.focus();
-}
-
-async function handleImageFiles(
+function handleImageFiles(
   view: EditorView,
   environment: NotesEditorEnvironment | undefined,
   files: File[],
   from: number,
   to: number,
 ) {
-  if (view.state.readOnly) {
-    return;
-  }
-  const notePath = environment?.documentPath ?? "";
-  const insertions: PreparedImageInsertion[] = [];
-
-  for (const file of files) {
-    if (view.state.readOnly) {
-      return;
-    }
-    const insertion = await prepareImageInsertion({
-      file,
-      notePath,
-      persistAttachment: environment?.saveAttachment
-        ? async (path, content) => {
-            if (view.state.readOnly) {
-              throw new Error("The editor is read-only.");
-            }
-            await environment.saveAttachment?.(path, content);
-          }
-        : undefined,
-    });
-    if (view.state.readOnly) {
-      return;
-    }
-    insertions.push(insertion);
-  }
-
-  if (insertions.length === 0 || view.state.readOnly) {
-    return;
-  }
-
-  dispatchImageInsertion(view, insertions, from, to);
+  return insertNotesImageFiles(view, files, {
+    notePath: environment?.documentPath ?? "",
+    persistAttachment: environment?.saveAttachment,
+    isCurrent: environment?.isCurrentDocument,
+    from,
+    to,
+  }).catch(reportNotesImageError);
 }
 
 export function createNotesEditorExtensions(
@@ -231,7 +153,7 @@ export function createNotesEditorExtensions(
         if (view.state.readOnly) {
           return false;
         }
-        const imageFiles = collectImageFiles(event.dataTransfer?.files);
+        const imageFiles = collectNotesImageFiles(event.dataTransfer);
 
         if (imageFiles.length === 0) {
           return false;
@@ -257,7 +179,7 @@ export function createNotesEditorExtensions(
         if (view.state.readOnly) {
           return false;
         }
-        const imageFiles = collectImageFiles(event.clipboardData?.files);
+        const imageFiles = collectNotesImageFiles(event.clipboardData);
 
         if (imageFiles.length > 0) {
           event.preventDefault();

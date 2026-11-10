@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { prepareImageInsertion } from "@/features/notes/editor/editor-image-attachments";
+import { collectNotesImageFiles, NOTES_IMAGE_MAX_BYTES, validateNotesImageFile, prepareImageInsertion } from "@/features/notes/editor/editor-image-attachments";
 
 describe("editor image attachments", () => {
   it("stores pasted images in note assets when persistence is available", async () => {
@@ -53,4 +53,27 @@ describe("editor image attachments", () => {
       title: "",
     });
   });
+  it("escapes image alt text for a Markdown round trip", async () => {
+    const result = await prepareImageInsertion({ file: new File(["png"], "[photo].png", { type: "image/png" }), notePath: "note.md", readDataUrl: async () => "data:image/png;base64,AAAA" });
+    expect(result.markdown).toBe("![\\[photo\\]](data:image/png;base64,AAAA)");
+  });
+
+  it("does not silently embed a large data URL after a disk failure", async () => {
+    const readDataUrl = vi.fn();
+    await expect(prepareImageInsertion({ file: new File(["png"], "photo.png", { type: "image/png" }), notePath: "note.md", persistAttachment: async () => { throw new Error("disk error"); }, readDataUrl })).rejects.toThrow("disk error");
+    expect(readDataUrl).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsafe, empty and oversized images", () => {
+    expect(() => validateNotesImageFile(new File(["svg"], "x.svg", { type: "image/svg+xml" }))).toThrow("请选择");
+    expect(() => validateNotesImageFile(new File([], "x.png", { type: "image/png" }))).toThrow("为空");
+    const large = new File(["png"], "x.png", { type: "image/png" });
+    Object.defineProperty(large, "size", { value: NOTES_IMAGE_MAX_BYTES + 1 });
+    expect(() => validateNotesImageFile(large)).toThrow("20 MB");
+  });
+
+  it("leaves non-image file drops to the editor", () => {
+    expect(collectNotesImageFiles({ files: [new File(["text"], "note.txt", { type: "text/plain" })] as unknown as FileList, items: [] as unknown as DataTransferItemList })).toEqual([]);
+  });
+
 });

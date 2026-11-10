@@ -822,7 +822,7 @@ export type DesktopBridge = {
     revealPluginsDirectory: () => Promise<void>;
     // 将整个已授权 Vault 根移入系统回收站，同时取消授权并切换离开活动根。
     trashRoot?: (rootPath: string) => Promise<DesktopVaultRoot[]>;
-    saveFile: (relativePath: string, content: string) => Promise<void>;
+    saveFile: (relativePath: string, content: string | Uint8Array) => Promise<void>;
     // 在已授权的根之间切换，不弹对话框。主进程只接受 listRoots 里的路径——
     // 任意路径会把笔记读写接口变成任意文件读取。新根必须走 pickDirectory。
     setRoot?: (rootPath: string) => Promise<DesktopVaultDirectoryInfo>;
