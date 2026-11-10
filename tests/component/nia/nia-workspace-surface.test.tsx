@@ -1,3 +1,4 @@
+import { NIA_CHARACTER_STYLE_KEY } from "@/features/nia/nia-character-appearance";
 import { NIA_AVATAR_CUE_KEY } from "@/features/nia/nia-avatar-behavior";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import {
@@ -19,6 +20,22 @@ describe("NiaWorkspaceSurface split layout", () => {
     window.localStorage.clear();
     __resetNiaStandaloneStoreForTests();
     __resetNiaTaskStoreForTests();
+  });
+
+  it("selects a persistent character style while keeping expression controls independent", () => {
+    const view = render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const focused = screen.getByRole("button", { name: /04 学习专注版/ });
+    fireEvent.click(focused);
+    expect(focused).toHaveAttribute("aria-pressed", "true");
+    expect(window.localStorage.getItem(NIA_CHARACTER_STYLE_KEY)).toBe("focused");
+    expect(view.container.querySelector(".nia-workspace__mini-avatar svg")).toHaveAttribute("data-variant", "focused");
+    fireEvent.click(screen.getByRole("button", { name: /^开心$/ }));
+    expect(window.localStorage.getItem(NIA_CHARACTER_STYLE_KEY)).toBe("focused");
+    view.unmount();
+    render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    expect(screen.getByRole("button", { name: /04 学习专注版/ })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("keeps the stage readable while constraining the inspector width", () => {

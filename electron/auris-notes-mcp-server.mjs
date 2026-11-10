@@ -434,9 +434,9 @@ export function createAurisNotesMcpServer(bridge = new AurisNotesBridgeClient())
       openWorldHint: false,
       readOnlyHint: false,
     },
-    description: "Read or revision-safely replace the complete Markdown source of an open Auris note.",
+    description: "Read or revision-safely update an open Auris note. Use write_mermaid to set its dedicated article diagram without replacing the body; content is Mermaid source (max 50,000 chars), not Markdown. Writes follow edit approval; use auris_workspace save after approval.",
     inputSchema: {
-      action: z.enum(["read", "write"]),
+      action: z.enum(["read", "write", "write_mermaid"]),
       content: z.string().optional(),
       evidence: browserEvidenceSchema.optional(),
       expected_revision: z.string().optional(),
@@ -445,7 +445,7 @@ export function createAurisNotesMcpServer(bridge = new AurisNotesBridgeClient())
     outputSchema: GENERIC_OUTPUT_SCHEMA,
     title: "Auris Note Document",
   }, (input) => call("notes.mcp.document", input, (value) =>
-    value.action === "write" && typeof value.content !== "string"
+    (value.action === "write" || value.action === "write_mermaid") && typeof value.content !== "string"
       ? "content is required for document write"
       : null,
   ));

@@ -1,5 +1,6 @@
 "use client";
 
+import { NiaCharacter } from "./nia-character";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import {
@@ -247,12 +248,12 @@ export function NiaConversationArchive({
         </aside>
 
         <article className="nia-archive__transcript" aria-label="会话内容">
-          {!selectedConversation ? <div className="nia-archive__transcript-empty"><span className="nia-archive__mini-avatar" aria-hidden="true"><i /><i /></span><p>从左侧选择一段会话，或者搜索 Nia 说过的内容。</p></div> : null}
+          {!selectedConversation ? <div className="nia-archive__transcript-empty"><span className="nia-archive__mini-avatar" aria-hidden="true"><NiaCharacter /></span><p>从左侧选择一段会话，或者搜索 Nia 说过的内容。</p></div> : null}
           {selectedConversation ? <>
             <header className="nia-archive__conversation-head"><strong>{clock(selectedConversation.startedAt)}</strong><span>{detail.turns.length || selectedConversation.turnCount || 0} 轮 · {durationLabel(selectedConversation.startedAt, selectedConversation.endedAt)} · {interruptions ? `${interruptions} 次被打断` : "完整结束"}</span>{toolSummary.length ? <div>{toolSummary.map((tool) => <i key={tool.name}>{tool.name}{tool.count > 1 ? ` ×${tool.count}` : ""}</i>)}</div> : <small>本次对话没有调用工具</small>}</header>
             {detailLoading ? <p className="nia-archive__empty">正在读取会话内容…</p> : null}
             {!detailLoading && detail.turns.length === 0 ? <p className="nia-archive__empty">这段会话没有留下可显示的内容。</p> : null}
-            <div className="nia-archive__turns">{detail.turns.map((turn) => <div className={`nia-archive__turn nia-archive__turn--${turn.speaker}`} key={turn.id}>{turn.speaker === "nia" ? <span className="nia-archive__mini-avatar" aria-hidden="true"><i /><i /></span> : null}<div><p>{turn.text || "（内容在结束前被截断）"}</p>{turn.speaker !== "user" ? <small>{turn.cut ? <b>被打断</b> : null}<span>{clock(turn.at, true)}</span><button onClick={() => { void navigator.clipboard?.writeText(turn.text); setCopiedTurnId(turn.id); }} type="button">{copiedTurnId === turn.id ? "已复制" : "复制"}</button></small> : null}</div></div>)}</div>
+            <div className="nia-archive__turns">{detail.turns.map((turn) => <div className={`nia-archive__turn nia-archive__turn--${turn.speaker}`} key={turn.id}>{turn.speaker === "nia" ? <span className="nia-archive__mini-avatar" aria-hidden="true"><NiaCharacter /></span> : null}<div><p>{turn.text || "（内容在结束前被截断）"}</p>{turn.speaker !== "user" ? <small>{turn.cut ? <b>被打断</b> : null}<span>{clock(turn.at, true)}</span><button onClick={() => { void navigator.clipboard?.writeText(turn.text); setCopiedTurnId(turn.id); }} type="button">{copiedTurnId === turn.id ? "已复制" : "复制"}</button></small> : null}</div></div>)}</div>
           </> : null}
         </article>
       </div>

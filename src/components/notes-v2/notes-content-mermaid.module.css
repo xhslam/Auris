@@ -1,0 +1,46 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 24px 24px;
+  min-width: 0;
+  color: var(--notes-text);
+  font-size: 13px;
+}
+.panel p { margin: 0; line-height: 1.6; }
+.actions, .zoom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.actions button, .zoom button {
+  appearance: none;
+  border: 1px solid var(--notes-line);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--notes-surface);
+  color: var(--notes-text);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.actions button:focus-visible, .zoom button:focus-visible, .panel summary:focus-visible, .panel textarea:focus-visible {
+  outline: 2px solid var(--notes-accent);
+  outline-offset: 2px;
+}
+.actions button:hover, .zoom button:hover { background: var(--notes-bg); }
+.actions span, .notice { color: var(--notes-muted); }
+.panel details { min-width: 0; }
+.panel summary { cursor: pointer; color: var(--notes-muted); }
+.panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--notes-line);
+  background: var(--notes-bg);
+  color: var(--notes-text);
+  resize: vertical;
+  font: inherit;
+}
+.diagram { min-width: 0; border-top: 1px solid var(--notes-line); padding-top: 12px; }
+.zoom { justify-content: flex-end; margin-bottom: 8px; }
+.viewport { overflow: auto; max-height: 65vh; min-height: 240px; }
+.svg { min-width: 0; }
+.svg svg { display: block; width: 100%; height: auto; max-width: none !important; }
+.panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto; }
+.error { color: var(--notes-text); overflow-wrap: anywhere; }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
-import { NotesGraphPanel } from "@/components/notes-v2/notes-graph-panel";
-import { NotesOutlinePanel } from "@/components/notes-v2/notes-outline-panel";
+import { NotesContentMermaidPanel } from "@/components/notes-v2/notes-content-mermaid-panel";
 import {
   NotesLibraryNavigatorPanel,
 } from "@/components/notes-v2/notes-library-navigator-panel";
@@ -26,7 +25,6 @@ type RightPopover =
   | "dependency-review"
   | "graph"
   | "library"
-  | "outline"
   | "overflow";
 
 type NotesWorkbenchBottomRightProps = {
@@ -73,7 +71,6 @@ export function NotesWorkbenchBottomRight({
   activeDocument,
   documentSaveState = "saved",
   documents,
-  graphDocuments = documents,
   editorMode,
   indexRebuildMessage = null,
   isRebuildingIndex = false,
@@ -86,9 +83,7 @@ export function NotesWorkbenchBottomRight({
   onExportActiveDocumentPdf,
   onExportVault,
   onFormatCjk,
-  onEnsureGraphDocuments,
   onOpenSourcePeek,
-  onJumpToHeading,
   onOpenPath,
   onRebuildIndex,
   onRefresh,
@@ -176,18 +171,6 @@ export function NotesWorkbenchBottomRight({
         type="button"
       >
         <span aria-hidden="true">⁂</span>
-      </button>
-      <button
-        aria-expanded={openPopover === "outline"}
-        aria-label="大纲"
-        className="notes-v2__corner-icon"
-        disabled={!activeDocument}
-        data-active={openPopover === "outline" ? "true" : "false"}
-        onClick={() => togglePopover("outline")}
-        title="大纲（Ctrl + Shift + 1）"
-        type="button"
-      >
-        <span aria-hidden="true">☷</span>
       </button>
       <button
         aria-pressed={isTerminalSplitOpen}
@@ -279,46 +262,19 @@ export function NotesWorkbenchBottomRight({
 
       <NotesWorkbenchPopover
         anchor="bottom-right"
-        labelledBy="notes-v2-outline-popover-title"
-        onClose={closePopover}
-        open={openPopover === "outline"}
-        size="md"
-      >
-        <p className="notes-v2__popover-title" id="notes-v2-outline-popover-title">
-          大纲
-        </p>
-        <NotesOutlinePanel
-          activeLine={selectionState?.line}
-          document={activeDocument}
-          onJumpToHeading={(line) => {
-            onJumpToHeading?.(line);
-            closePopover();
-          }}
-        />
-      </NotesWorkbenchPopover>
-
-      <NotesWorkbenchPopover
-        anchor="bottom-right"
         labelledBy="notes-v2-graph-popover-title"
         onClose={closePopover}
         open={openPopover === "graph"}
-        size="graph"
+        size="mermaid"
       >
-        <p className="notes-v2__popover-title" id="notes-v2-graph-popover-title">
-          {NOTES_UI_COPY.panels.graph.title}
-        </p>
-        {/* 只在 popover 打开时挂载：图的 chunk 与 dagre 布局都不该为一个没人看的
-            面板付代价，xyflow 的 ResizeObserver 也不该在零尺寸容器里空转。 */}
+        <div className="notes-v2__article-graph-header">
+          <p className="notes-v2__popover-title" id="notes-v2-graph-popover-title">
+            {NOTES_UI_COPY.panels.graph.title} · 当前文章
+          </p>
+          <button type="button" aria-label="关闭文章图" onClick={closePopover}>关闭</button>
+        </div>
         {openPopover === "graph" ? (
-          <NotesGraphPanel
-            activePath={activeDocument?.path ?? null}
-            documents={graphDocuments}
-            onEnsureDocuments={onEnsureGraphDocuments}
-            onOpenPath={(path) => {
-              onOpenPath(path);
-              closePopover();
-            }}
-          />
+          <NotesContentMermaidPanel document={activeDocument} />
         ) : null}
       </NotesWorkbenchPopover>
 

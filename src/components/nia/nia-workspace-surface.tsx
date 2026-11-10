@@ -1,5 +1,7 @@
 "use client";
 
+import { NiaCharacter } from "./nia-character";
+import { NIA_CHARACTER_STYLES, saveNiaCharacterStyle, useNiaCharacterStyle } from "@/features/nia/nia-character-appearance";
 import {
   useCallback,
   useEffect,
@@ -143,6 +145,7 @@ function uniqueToolSummary(tools: readonly ToolUse[]) {
 }
 
 export function NiaWorkspaceSurface() {
+  const characterStyle = useNiaCharacterStyle();
   const textSession = useNiaSession();
   const activeContextCardId = useNiaStandaloneStore((state) => state.activeContextCardId);
   const browserTarget = useNiaStandaloneStore((state) => state.browserTarget);
@@ -478,7 +481,7 @@ export function NiaWorkspaceSurface() {
             onClick={toggleWakeRest}
             type="button"
           >
-            N
+            <NiaCharacter />
           </button>
           <div>
             <strong>Nia</strong>
@@ -607,7 +610,7 @@ export function NiaWorkspaceSurface() {
                         >
                           {turn.speaker === "nia" && (
                             <span className="nia-workspace__turn-avatar" aria-hidden="true">
-                              <i /><i />
+                              <NiaCharacter />
                             </span>
                           )}
                           <div className="nia-workspace__turn-bubble">
@@ -636,7 +639,7 @@ export function NiaWorkspaceSurface() {
                 </article>
               ) : (
                 <div className="nia-workspace__reading-empty">
-                  <span className="nia-workspace__mini-avatar" aria-hidden="true"><i /><i /></span>
+                  <span className="nia-workspace__mini-avatar" aria-hidden="true"><NiaCharacter /></span>
                   <h3>从左侧选择一段会话</h3>
                   <p>按日期浏览与检索本机保存的真实语音会话记录；或者在上方搜索全部对话。</p>
                   <div className="nia-workspace__empty-status">
@@ -908,6 +911,19 @@ export function NiaWorkspaceSurface() {
                 <div>
                   <span>外观</span>
                   <p>跟随应用主题，可在「设置 → 外观」统一调整。</p>
+                </div>
+              </div>
+              <div className="nia-workspace__settings-section">
+                <span>刺猬造型</span>
+                <small>随时切换，自动记住选择。桌面形象与会话头像同步变化，表情和动作仍可单独控制。</small>
+                <div className="nia-workspace__character-options" role="group" aria-label="Nia 刺猬造型">
+                  {NIA_CHARACTER_STYLES.map((style, index) => (
+                    <button type="button" key={style.id} aria-pressed={characterStyle === style.id} onClick={() => saveNiaCharacterStyle(style.id)}>
+                      <NiaCharacter variant={style.id} />
+                      <strong>{String(index + 1).padStart(2, "0")} {style.name}</strong>
+                      <small>{style.detail}</small>
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="nia-workspace__settings-section nia-workspace__scale-section">

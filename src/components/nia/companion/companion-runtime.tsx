@@ -17,6 +17,7 @@ import {
 import { NiaRealtimeTransport, type CompanionBridge, type CompanionTransportReport } from "./realtime-transport";
 import { useNiaCompanionDrift } from "@/features/nia/nia-companion-motion";
 import { useCompanionAvatar } from "./use-companion-avatar";
+import { NiaCharacter } from "../nia-character";
 import "./companion.css";
 
 type CompanionCommand =
@@ -288,16 +289,16 @@ export function CompanionRuntime() {
         data-asleep={asleep}
         ref={figureRef}
         role="img"
-        aria-label="Nia"
+        aria-label="Nia，像素刺猬助手"
         style={{
           "--nia-companion-scale": companionScale / 100,
           "--nia-expression-intensity": intensity,
         } as CSSProperties}
       >
         <div className="nia-companion__rig" ref={rigRef}>
-        <i className="nia-companion__halo" />
-        <div className="nia-companion__head" data-nia-companion-hit-region><div className="nia-companion__face"><i className="nia-companion__eye nia-companion__eye--left" /><i className="nia-companion__eye nia-companion__eye--right" /><i className="nia-companion__mouth" /></div></div>
-        <div className="nia-companion__body" data-nia-companion-hit-region><i className="nia-companion__arm nia-companion__arm--left" /><i className="nia-companion__arm nia-companion__arm--right" /><i className="nia-companion__chest" /></div>
+          <div className="nia-companion__head" data-nia-companion-hit-region>
+            <NiaCharacter animated />
+          </div>
         </div>
       </div>
     </main>

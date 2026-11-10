@@ -269,61 +269,23 @@ describe("NotesPageClient", () => {
     expect(screen.getByRole("complementary", { name: "笔记文件栏" })).toBeInTheDocument();
   });
 
-  it("loads every vault note before presenting the relationship graph", async () => {
+  it("opens the current article diagram without loading unrelated vault notes", async () => {
     const desktopBridge = createDesktopBridgeWithDelayedRefresh([
       ["notes/rhythm-drill.md", "# Rhythm\n\n[[Target]] [[Missing]]\n"],
       ["notes/z-target.md", "# Target\n\n[[Rhythm]]\n"],
       ["notes/zz-lonely.md", "# Lonely\n"],
     ]);
     getDesktopBridgeMock.mockReturnValue(desktopBridge);
-
     render(<NotesPageClient resumeNoteId="notes/rhythm-drill.md" />);
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
+    await act(async () => { await vi.runAllTimersAsync(); });
     const readFile = vi.mocked(desktopBridge.vault.readFile);
+    fireEvent.click(screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.graph.open }));
+    expect(screen.getByText("这篇文章还没有 Mermaid 图。")).toBeInTheDocument();
+    await act(async () => { await vi.runAllTimersAsync(); });
     expect(readFile).toHaveBeenCalledWith("notes/rhythm-drill.md");
     expect(readFile).not.toHaveBeenCalledWith("notes/z-target.md");
     expect(readFile).not.toHaveBeenCalledWith("notes/zz-lonely.md");
-
-    fireEvent.click(
-      screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.graph.open }),
-    );
-    expect(screen.getByTestId("notes-graph-pending")).toBeInTheDocument();
-    expect(screen.queryByText(/1 篇笔记/u)).not.toBeInTheDocument();
-
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
-
-    expect(readFile).toHaveBeenCalledWith("notes/z-target.md");
-    expect(readFile).toHaveBeenCalledWith("notes/zz-lonely.md");
-
-    fireEvent.click(
-      screen.getByRole("button", { name: NOTES_UI_COPY.panels.graph.scopeVault }),
-    );
-    expect(screen.getByText(/3 篇笔记/u)).toBeInTheDocument();
-    expect(
-      screen.getByText(NOTES_UI_COPY.panels.graph.unresolved(1), { exact: false }),
-    ).toBeInTheDocument();
-
-    const targetReadsBeforeRefresh = readFile.mock.calls.filter(
-      ([path]) => path === "notes/z-target.md",
-    ).length;
-    fireEvent.click(
-      screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.graph.open }),
-    );
-    desktopBridge.writeExternalFile(
-      "notes/rhythm-drill.md",
-      "# Rhythm\n\n[[Target]] [[Missing]]\n\nChanged externally.\n",
-    );
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
-
-    expect(
-      readFile.mock.calls.filter(([path]) => path === "notes/z-target.md").length,
-    ).toBe(targetReadsBeforeRefresh);
+    expect(screen.queryByText(/篇笔记/u)).not.toBeInTheDocument();
   });
 
   it("does not show a loading banner during autosave-driven vault refreshes", async () => {

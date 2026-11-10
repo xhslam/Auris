@@ -1481,3 +1481,57 @@ body:has(.nia-workspace)::-webkit-scrollbar,
   border: 1px solid var(--nia-line-strong);
   color: var(--nia-text);
 }
+
+/* Shared reference character, including archive and live conversation avatars. */
+.nia-workspace__turn-avatar,
+.nia-workspace__mini-avatar,
+.nia-archive__mini-avatar {
+  aspect-ratio: 754 / 598;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  height: auto;
+}
+.nia-workspace__turn-avatar .nia-character,
+.nia-workspace__mini-avatar .nia-character,
+.nia-archive__mini-avatar .nia-character {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.nia-workspace__character-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.nia-workspace__character-options button {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--nia-surface-2);
+  color: var(--nia-text);
+  border: 1px solid var(--nia-line);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+}
+.nia-workspace__character-options button:hover { background: var(--nia-surface-3); }
+.nia-workspace__character-options button[aria-pressed="true"] {
+  border-color: var(--nia-accent);
+  background: color-mix(in srgb, var(--nia-accent) 10%, var(--nia-surface-2));
+}
+.nia-workspace__character-options button:focus-visible { outline: 2px solid var(--nia-accent); outline-offset: 2px; }
+.nia-workspace__character-options .nia-character { width: 100%; height: 96px; }
+.nia-workspace__character-options strong { font-size: 12px; font-weight: 500; }
+.nia-workspace__character-options small { color: var(--nia-muted); line-height: 1.5; }
+
+.nia-workspace__brand-mark,
+.nia-workspace__brand-mark:hover { background: transparent; box-shadow: none; }
+.nia-workspace__brand-mark .nia-character { display: block; width: 38px; height: 38px; }
+.nia-workspace__brand-mark:focus-visible { outline: 2px solid var(--nia-accent); outline-offset: 2px; }

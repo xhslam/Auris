@@ -22,7 +22,7 @@ const workspaceToolSchema = z.discriminatedUnion("action", [
 const documentToolSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("read"), tab_id: z.string().optional() }).strict(),
   z.object({
-    action: z.literal("write"),
+    action: z.enum(["write", "write_mermaid"]),
     content: z.string(),
     evidence: browserEvidenceSchema.optional(),
     expected_revision: z.string().optional(),

@@ -18260,3 +18260,42 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 @media (max-width: 760px) {
   .desktop-app-frame .notes-v2--explorer .notes-explorer { flex-basis: 200px; }
 }
+
+/* Article diagrams need a reading canvas, not the old corner graph popover. */
+.desktop-app-frame .notes-v2__corner-popover[data-size="mermaid"][data-anchor="bottom-right"] {
+  position: fixed;
+  inset: 5vh 4vw;
+  width: 92vw;
+  height: 90vh;
+  max-height: 90vh;
+  box-sizing: border-box;
+  overflow: auto;
+  z-index: 80;
+  background: var(--notes-bg);
+  color: var(--notes-text);
+  border: 1px solid var(--notes-line);
+}
+.notes-v2__article-graph-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--notes-bg);
+  border-bottom: 1px solid var(--notes-line);
+  margin-bottom: 16px;
+}
+.notes-v2__article-graph-header .notes-v2__popover-title {
+  padding: 0;
+  font-size: 16px;
+  color: var(--notes-text);
+}
+.notes-v2__article-graph-header button {
+  color: var(--notes-text);
+  background: var(--notes-surface);
+  border: 1px solid var(--notes-line);
+  border-radius: 6px;
+  padding: 6px 14px;
+}

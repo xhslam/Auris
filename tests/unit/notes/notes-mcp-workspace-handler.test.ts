@@ -377,3 +377,39 @@ describe("notes MCP workspace handler", () => {
     expect(setWorkspace).toHaveBeenCalledOnce();
   });
 });
+
+
+describe("article Mermaid MCP write", () => {
+  function fixture() {
+    return {
+      autoApproveEdits: true,
+      client: { rootPath: "/vault" },
+      documents: [{ path: "学习.md", rawSource: "# 正文\n\n不可改写的内容\n" }],
+      dirtyPaths: {}, onDocumentChange: vi.fn(), setWorkspace: vi.fn(),
+      workspace: openWorkspacePath(createWorkspaceState(), "学习.md"),
+    };
+  }
+  function request(revision: string) {
+    return { method: "notes.mcp.document" as const, params: {
+      action: "write_mermaid", tab_id: "学习.md", content: "flowchart LR\n A --> B", expected_revision: revision,
+    } };
+  }
+  it("writes only the dedicated metadata and retains body", () => {
+    const context = fixture();
+    const result = executeNotesMcpWorkspaceRequest(request(createNotesMcpRevision(context.documents[0].rawSource)), context);
+    expect(result).toMatchObject({ tab_id: "学习.md" });
+    expect(context.onDocumentChange).toHaveBeenCalledWith("学习.md", expect.stringContaining("aurisMermaid:"));
+    expect(context.onDocumentChange.mock.calls[0][1]).toMatch(/# 正文\n\n不可改写的内容\n$/);
+  });
+  it("rejects a stale writer and respects normal edit approval", () => {
+    const context = fixture();
+    expect(() => executeNotesMcpWorkspaceRequest(request("old"), context)).toThrow(/STALE/);
+    expect(context.onDocumentChange).not.toHaveBeenCalled();
+    context.autoApproveEdits = false;
+    const onPendingEdit = vi.fn(() => ({ id: "graph-review" }));
+    const result = executeNotesMcpWorkspaceRequest(request(createNotesMcpRevision(context.documents[0].rawSource)), { ...context, onPendingEdit });
+    expect(result).toHaveProperty("pending_review");
+    expect(onPendingEdit).toHaveBeenCalledWith(expect.objectContaining({ afterSource: expect.stringContaining("aurisMermaid:") }));
+    expect(context.onDocumentChange).not.toHaveBeenCalled();
+  });
+});
