@@ -25,3 +25,9 @@
 - `node tests/electron/notes-image-insertion-smoke.cjs` 在临时 Vault / 独立 Electron profile 验证无按钮、坐标落点、图片独立段落、上下文保留、附件字节落盘及中文笔记关闭重开后的图片显示。截图位于忽略的 `release/notes-image-insertion-smoke/`。
 - 严格桌面冒烟最终的「无 renderer 错误」断言捕获 React hydration #418，因而不能把整个冒烟称为零错误通过；图片业务断言均已通过。启动警告尚未定位，不宣称已经修复。
 - 未修改真实用户笔记，不自动替换本机应用。GitHub 多平台发布结果以对应 Actions 和 Release 实际状态为准。
+
+## 发布跟进（2026-11-11）
+
+v1.0.37 已推送 main（`75d67e8`），但 GitHub Release Actions `42848808695` 在完整测试门禁失败，两个平台的打包步骤均未执行，未生成正式 Release。失败是 `terminal-focus-workspace.test.tsx` 的测试 helper 只等待 `resume` 被调用，没有等待其异步回调发布 running 状态，导致立即断言时仅 7/8 个运行指示可见。
+
+后续仅在 helper 增加每次会话状态渲染完成的等待，保留原有 8 个运行指示断言，不修改终端业务代码；使用 v1.0.38 重新发布，不移动 v1.0.37 标签。终端/CJK 基准定向 66 项、全仓 5,379 项、lint 和完整 typecheck 通过。独立 Notes workflow 的 CJK 基准曾以 1.413 指数略超 1.4 门槛，定向复测通过，未放宽阈值或修改基准源码。

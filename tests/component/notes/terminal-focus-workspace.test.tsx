@@ -62,6 +62,10 @@ async function addToEight(bridge: DesktopTerminalBridge) {
   for (let count = 1; count <= 8; count++) {
     await newTerminal();
     await waitFor(() => expect(bridge.resume).toHaveBeenCalledTimes(count));
+    // Calling resume is not completion: its async continuation must publish
+    // the running state before callers assert the eight-session UI.
+    const sidebar = screen.getByRole("complementary", { name: "终端会话" });
+    await waitFor(() => expect(within(sidebar).getAllByRole("img", { name: "运行中" })).toHaveLength(count));
   }
 }
 
