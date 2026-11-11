@@ -39,8 +39,25 @@
 }
 .diagram { min-width: 0; border-top: 1px solid var(--notes-line); padding-top: 12px; }
 .zoom { justify-content: flex-end; margin-bottom: 8px; }
-.viewport { overflow: auto; max-height: 65vh; min-height: 240px; }
-.svg { min-width: 0; }
+.viewport {
+  --article-graph-edge: color-mix(in srgb, var(--notes-text) 65%, var(--notes-bg));
+  --article-graph-accent: var(--accent-strong, var(--notes-text));
+  overflow: auto;
+  max-height: 65vh;
+  min-height: 240px;
+  margin-bottom: 12px;
+  padding: 24px;
+  border: 1px solid var(--notes-line);
+  border-radius: 12px;
+  background-color: var(--notes-bg);
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--notes-text) 13%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
+}
+.svg { min-width: 0; margin-inline: auto; }
 .svg svg { display: block; width: 100%; height: auto; max-width: none !important; }
 .panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto; }
 .error { color: var(--notes-text); overflow-wrap: anywhere; }

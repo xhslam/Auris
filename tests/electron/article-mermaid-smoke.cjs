@@ -73,7 +73,17 @@ async function main() {
     };
     const read = await call("auris_document", { action: "read", tab_id: "文章图验收.md" });
     const write = await call("auris_document", { action: "write_mermaid", tab_id: read.tab_id, expected_revision: read.revision,
-      content: 'flowchart LR\n A["理解"] --> B["练习"] --> C["复盘"]' });
+      content: `flowchart TD
+        A["理解 · 练习 · 复盘"]
+        subgraph P["把理解变成练习"]
+          B["提炼概念"] -->|检验| C{"能独立应用？"}
+          C -->|暂时不能| D["回看关键条件"]
+          D -.-> B
+        end
+        A --> B
+        C -->|可以| E["复盘解法与错因"]
+        class A topic
+        class E takeaway` });
     evidence.write = write;
     assert(write.pending_review, "must retain explicit MCP edit approval");
     assert.equal(fs.readFileSync(fixture, "utf8"), original);
@@ -88,10 +98,32 @@ async function main() {
     assert(saved.endsWith(original), "body must remain byte-identical");
     assert(saved.includes("aurisMermaid:"));
     evidence.checks.push("real MCP read/write_mermaid; pending approval; actual SVG; successful save and unchanged body");
-    for (const theme of ["white", "paper", "mint", "sepia", "night", "solarized"]) {
+    const svg = page.getByTestId("article-mermaid-svg").locator("svg");
+    const cluster = svg.locator(".cluster > rect").first();
+    const topic = svg.locator(".node.topic .label-container");
+    const fills = new Set();
+    for (const theme of ["white", "mint", "sepia", "night", "solarized", "paper"]) {
       await page.evaluate(value => { localStorage.setItem("auris.notes.reading-theme", value); window.dispatchEvent(new CustomEvent("auris:app-theme", { detail: value })); }, theme);
-      await expect(page.locator('[data-testid="article-mermaid-svg"] svg')).toHaveCount(1);
+      await expect(cluster).toHaveCSS("rx", "16px");
+      await expect(topic).toBeVisible();
+      const fill = await topic.evaluate(shape => getComputedStyle(shape).fill);
+      const ordinaryFill = await svg.locator(".node:not(.topic, .takeaway) .label-container").first().evaluate(shape => getComputedStyle(shape).fill);
+      assert.notEqual(fill, ordinaryFill, "the topic needs a distinct treatment");
+      fills.add(fill);
     }
+    assert(fills.size > 1, "graph colors must follow the app theme");
+    const nodeLabel = svg.locator(".node.topic text").first();
+    await expect(nodeLabel).toHaveCSS("font-size", "18px");
+    const originalHeight = await topic.evaluate(shape => shape.getBBox().height);
+    await page.evaluate(() => {
+      const settings = { fontSize: "24px", fontLatin: "Georgia", fontCjk: '"Songti SC"' };
+      const key = "auris.notes.typography";
+      localStorage.setItem(key, JSON.stringify(settings));
+      window.dispatchEvent(new StorageEvent("storage", { key }));
+    });
+    await expect(nodeLabel).toHaveCSS("font-size", "24px");
+    await expect(nodeLabel).toHaveCSS("font-family", /Georgia.*Songti SC/);
+    assert(await topic.evaluate(shape => shape.getBBox().height) > originalHeight, "nodes must be laid out again with the new font");
     await page.getByRole("button", { name: "放大图", exact: true }).click();
     await expect(page.getByRole("button", { name: "重置图缩放" })).toHaveText("125%");
     await page.getByRole("button", { name: "重置图缩放" }).click();

@@ -14,6 +14,7 @@ import type {
   NotesEditorSelectionState,
 } from "@/features/notes/editor/editor-types";
 import { getNotesTextMetrics } from "@/features/notes/editor/notes-text-metrics";
+import type { NotesTypographySettings } from "@/features/notes/formatting/notes-typography";
 import type { LearningSnippet } from "@/features/notes/integrations/learning-snippets";
 import type { NotesDocumentSaveState } from "@/features/notes/workbench/notes-document-save-state";
 import {
@@ -63,6 +64,7 @@ type NotesWorkbenchBottomRightProps = {
   searchQuery: string;
   searchResults: NoteDocument[];
   selectionState?: NotesEditorSelectionState | null;
+  typography?: NotesTypographySettings;
   viewPreferences?: NotesViewPreferences;
   onViewPreferencesChange?: (preferences: NotesViewPreferences) => void;
 };
@@ -95,6 +97,7 @@ export function NotesWorkbenchBottomRight({
   searchQuery,
   searchResults,
   selectionState,
+  typography,
   viewPreferences = DEFAULT_NOTES_VIEW_PREFERENCES,
   onViewPreferencesChange,
 }: NotesWorkbenchBottomRightProps) {
@@ -274,7 +277,7 @@ export function NotesWorkbenchBottomRight({
           <button type="button" aria-label="关闭文章图" onClick={closePopover}>关闭</button>
         </div>
         {openPopover === "graph" ? (
-          <NotesContentMermaidPanel document={activeDocument} />
+          <NotesContentMermaidPanel document={activeDocument} typography={typography} />
         ) : null}
       </NotesWorkbenchPopover>
 

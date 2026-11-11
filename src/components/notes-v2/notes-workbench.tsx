@@ -1100,6 +1100,7 @@ export function NotesWorkbench({
             searchQuery={searchQuery}
             searchResults={searchResults}
             selectionState={selectionState}
+            typography={typography}
             viewPreferences={viewPreferences}
             onViewPreferencesChange={handleViewPreferencesChange}
           />
