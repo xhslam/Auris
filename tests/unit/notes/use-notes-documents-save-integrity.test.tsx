@@ -2,7 +2,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createNoteDocument } from "@/features/notes/documents/document-repository";
 import { useNotesDocuments } from "@/features/notes/workbench/use-notes-documents";
-import { createWorkspaceState } from "@/features/notes/workspace/workspace-store";
+import { createWorkspaceState, openWorkspacePath } from "@/features/notes/workspace/workspace-store";
+import { useWorkspacePersistence } from "@/components/notes-v2/use-workspace-persistence";
+import { loadWorkspaceState } from "@/features/notes/workspace/workspace-storage";
 import type { NotesRuntimeClient } from "@/features/notes/workbench/use-notes-runtime";
 import type { VaultSnapshot } from "@/features/notes/vault/vault-types";
 import * as recoveryStore from "@/features/notes/persistence/notes-recovery-store";
@@ -65,6 +67,42 @@ describe("useNotesDocuments save integrity", () => {
     window.localStorage.clear();
     window.shadowingDesktop = undefined;
     resetNotesRecoveryMigrationForTests();
+  });
+
+  it.each([null, "notes/explicit.md"])("preserves the last note through slow hydration (explicit resume: %s)", async (resumeNoteId) => {
+    const lastPath = "notes/last-opened.md";
+    let release!: () => void;
+    const loadSpy = vi.spyOn(recoveryStore, "loadNotesHotExitWorkspace").mockImplementation(async () => {
+      await new Promise<void>((resolve) => { release = resolve; });
+      return { capturedAt: "2026-11-11T00:00:00Z", schemaVersion: 2,
+        vaultRoot: "C:/vault", workspace: openWorkspacePath(createWorkspaceState(), lastPath) };
+    });
+    const client = createClient({ readFile: vi.fn(async () => ORIGINAL_SOURCE), writeFile: vi.fn(async () => undefined) });
+    // The vault's eager first document is ready before durable session IO.
+    const snapshot = createSnapshot();
+    if (resumeNoteId) snapshot.documents.push(createNoteDocument({ path: resumeNoteId, rawSource: "# Explicit", mtime: null }));
+    const refreshSnapshot = vi.fn(async () => snapshot);
+    const setErrorMessage = vi.fn();
+    try {
+      const useWorkbench = () => {
+        const [workspace, setWorkspace] = useWorkspacePersistence("C:/vault");
+        useNotesDocuments({ client, snapshot, workspace, setWorkspace, resumeNoteId,
+          refreshSnapshot, searchQuery: "", setErrorMessage });
+        return { workspace, setWorkspace };
+      };
+      const { result, unmount } = renderHook(useWorkbench);
+      await act(async () => { release(); });
+      expect(result.current.workspace.activePath).toBe(resumeNoteId ?? lastPath);
+      expect(loadWorkspaceState(window.localStorage).activePath).toBe(resumeNoteId ?? lastPath);
+      act(() => result.current.setWorkspace((current) => openWorkspacePath(current, "notes/new-choice.md")));
+      expect(result.current.workspace.activePath).toBe("notes/new-choice.md");
+      unmount();
+      // Remount without an explicit link must restore the latest user choice.
+      loadSpy.mockRestore();
+      const reopened = renderHook(() => useWorkspacePersistence("C:/vault"));
+      await waitFor(() => expect(reopened.result.current[0].activePath).toBe("notes/new-choice.md"));
+      reopened.unmount();
+    } finally { loadSpy.mockRestore(); }
   });
 
   it("keeps edits arriving while saved-draft cleanup is awaiting IO", async () => {
