@@ -22,7 +22,6 @@ import {
   type NiaCompanionConversationDetail as ConversationDetail,
   type NiaCompanionConversationSummary as Conversation,
   type NiaCompanionSearchHit as SearchHit,
-  type NiaCompanionToolUse as ToolUse,
 } from "@/features/nia/nia-companion-bridge";
 import {
   DEFAULT_NIA_COMPANION_SCALE,
@@ -140,15 +139,13 @@ function openingLabel(conversation: Conversation) {
 export function NiaWorkspaceSurface() {
   const characterStyle = useNiaCharacterStyle();
   const textSession = useNiaSession();
-  const activeContextCardId = useNiaStandaloneStore((state) => state.activeContextCardId);
   const browserTarget = useNiaStandaloneStore((state) => state.browserTarget);
   const context = useNiaStandaloneStore((state) => state.context);
-  const contextCards = useNiaStandaloneStore((state) => state.contextCards);
   const contextToken = useNiaStandaloneStore((state) => state.contextToken);
   const open = useNiaStandaloneStore((state) => state.open);
   const origin = useNiaStandaloneStore((state) => state.origin);
-  const [tab, setTab] = useState<InspectorTab>("conversations");
-  const [routingPreference, setRoutingPreference] = useState(loadNiaRoutingPreference);
+  const [tab] = useState<InspectorTab>("conversations");
+  const [routingPreference] = useState(loadNiaRoutingPreference);
   const [companion, setCompanion] = useState<CompanionSnapshot>({ state: "resting", muted: false });
   const [companionVisible, setCompanionVisible] = useState(true);
   const [liveSpokenText, setLiveSpokenText] = useState("");
@@ -184,7 +181,6 @@ export function NiaWorkspaceSurface() {
   const detailRequest = useRef(0);
 
   const review = useOutputReviewMetrics();
-  const activeCard = contextCards.find((card) => card.id === activeContextCardId) ?? null;
   const reviewCount = review.metrics ? review.metrics.dueTodayCount + review.metrics.overdueCount : 0;
   const companionState = companion.state ?? "resting";
 

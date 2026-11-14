@@ -1,6 +1,6 @@
 const MAX_LINES = 5;
 const NO_START = new Set(["，", "。", "！", "？", "：", "；", "”", "’", "）", "】", "》", "、", ",", ".", "!", "?", ":", ";", ")", "]", "}"]);
-const NO_END = new Set(["“", "‘", "（", "【", "《", "(", "[", "{"]);
+const _NO_END = new Set(["“", "‘", "（", "【", "《", "(", "[", "{"]);
 const BREAK_AFTER = new Set(["，", "。", "！", "？", "：", "；", "、", ",", ".", "!", "?", ":", ";"]);
 
 const DENSE_PATTERN = /\p{Script_Extensions=Han}|\p{Script_Extensions=Hiragana}|\p{Script_Extensions=Katakana}|\p{Script_Extensions=Hangul}/u;

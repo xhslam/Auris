@@ -56,7 +56,7 @@ export function CompanionRuntime() {
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const utteranceRef = useRef(createUtterance());
   const silenceAccumulatorRef = useRef(0);
-  const lastTickTimeRef = useRef(performance.now());
+  const lastTickTimeRef = useRef(0);
   const isSpeakingRef = useRef(false);
   const { figureRef, rigRef, expression, intensity, asleep, playMotion, lookAt, connectAudio, stopAudio } = useCompanionAvatar(status, driftEnabled);
   const transportRef = useRef<NiaRealtimeTransport | null>(null);

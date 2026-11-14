@@ -8,7 +8,6 @@ import {
   type NiaCompanionConversationDetail as ConversationDetail,
   type NiaCompanionConversationSummary as Conversation,
   type NiaCompanionSearchHit as SearchHit,
-  type NiaCompanionToolUse as ToolUse,
 } from "@/features/nia/nia-companion-bridge";
 
 function startOfLocalDay(value: string | number) {
