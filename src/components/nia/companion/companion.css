@@ -132,3 +132,81 @@ body { margin: 0; }
 
 .nia-companion__head:has(.nia-character[data-variant="academic"]),
 .nia-companion__head:has(.nia-character[data-variant="calm"]) { aspect-ratio: 786 / 754; }
+
+/* Speech bubble entity */
+.nia-speech-bubble-anchor {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 280px;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.nia-speech-bubble {
+  background: var(--app-surface, #ffffff);
+  color: var(--app-ink, #1f2937);
+  border: 1px solid var(--app-line, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-size: 13.5px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 350ms ease-out, transform 350ms ease-out;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nia-speech-bubble[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.nia-speech-bubble__body {
+  word-break: break-word;
+  max-height: 120px;
+  overflow: hidden;
+}
+
+.nia-speech-bubble__said {
+  color: var(--app-ink, #1f2937);
+  opacity: 0.95;
+}
+
+.nia-speech-bubble__saying {
+  color: var(--app-ink, #1f2937);
+  font-weight: 600;
+  border-bottom: 1.5px solid var(--accent, #6366f1);
+}
+
+.nia-speech-bubble__ahead {
+  color: var(--app-ink, #1f2937);
+  opacity: 0.45;
+}
+
+.nia-speech-bubble__close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--app-ink-subtle, #9ca3af);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.nia-speech-bubble__close:hover {
+  color: var(--app-ink, #1f2937);
+}
+
