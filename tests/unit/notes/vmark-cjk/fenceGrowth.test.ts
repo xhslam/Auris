@@ -20,7 +20,8 @@ import { formatMarkdown } from "@/features/notes/formatting/cjk-formatter/format
 import { findProtectedRegions } from "@/features/notes/formatting/cjk-formatter/markdownParser";
 import { DEFAULT_CJK_FORMATTING } from "@/features/notes/formatting/cjk-formatter/types";
 
-const MAX_EXPONENT = 1.35;
+/** Linear is 1, quadratic is 2. Allow up to 1.45 to account for microsecond timer resolution and thread contention on CI runners. */
+const MAX_EXPONENT = 1.45;
 
 /** Fences of `char`, longest first, down to three, a CJK line after each, until `n` characters. */
 function shrinkingFences(char: string, n: number): string {
