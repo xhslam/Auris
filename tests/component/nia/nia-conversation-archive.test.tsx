@@ -53,7 +53,7 @@ describe("NiaConversationArchive", () => {
 
     await waitFor(() => expect(invoke).toHaveBeenCalledWith("conversation-detail", { conversationId: "conversation-1" }));
     expect(await screen.findByText("先帮我回顾核心条件。")).toBeInTheDocument();
-    expect(screen.getByText("recall_conversations")).toBeInTheDocument();
+    expect(screen.queryByText("recall_conversations")).toBeNull();
     expect(screen.getByText("先帮我回顾核心条件。").closest(".nia-archive__turn")).toHaveClass("nia-archive__turn--user");
   });
 

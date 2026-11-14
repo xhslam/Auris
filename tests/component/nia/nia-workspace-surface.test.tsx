@@ -53,15 +53,11 @@ describe("NiaWorkspaceSurface split layout", () => {
     expect(screen.queryByText("当前主题")).not.toBeInTheDocument();
   });
 
-  it("keeps the tool catalogue in the main stage and routing in a non-duplicated inspector", () => {
+  it("removes the tool tab and tool stage completely from workspace", () => {
     render(<NiaWorkspaceSurface />);
 
-    fireEvent.click(screen.getByRole("tab", { name: "工具" }));
-
-    expect(screen.getByRole("article", { name: "可用工具与模型路由" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "工具连接概览" })).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Nia model routing and usage")).toHaveLength(1);
-    expect(screen.getAllByText("独立陪伴模式")).toHaveLength(1);
+    expect(screen.queryByRole("tab", { name: "工具" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "可用工具与模型路由" })).not.toBeInTheDocument();
   });
 
   it("uses the main-process snapshot as the conversation-saving authority", async () => {

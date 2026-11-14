@@ -12,11 +12,10 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { NiaModelRoutingPanel, loadNiaRoutingPreference } from "@/components/nia/nia-model-routing-panel";
+import { loadNiaRoutingPreference } from "@/components/nia/nia-model-routing-panel";
 import { NiaConversationArchive } from "@/components/nia/nia-conversation-archive";
 import { NiaTextSidePane, type NiaTextPaneTab } from "@/components/nia/nia-text-side-pane";
 import { getNiaStandaloneBridge } from "@/features/nia/nia-standalone-bridge";
-import { listNiaToolsForContext } from "@/features/nia/nia-tool-registry";
 import { useNiaStandaloneStore } from "@/features/nia/nia-standalone-store";
 import {
   getNiaCompanionHostBridge,
@@ -41,7 +40,7 @@ import { saveNiaCompanionDrift, useNiaCompanionDrift } from "@/features/nia/nia-
 
 import { NIA_EXPRESSIONS, NIA_MOTIONS, sendNiaAvatarCue, type NiaExpression, type NiaMotion } from "@/features/nia/nia-avatar-behavior";
 
-type InspectorTab = "conversations" | "tools";
+type InspectorTab = "conversations";
 type CompanionSnapshot = {
   state?: string;
   muted?: boolean;
@@ -138,12 +137,6 @@ function openingLabel(conversation: Conversation) {
   return "这段对话没有留下可显示的开场语";
 }
 
-function uniqueToolSummary(tools: readonly ToolUse[]) {
-  const counts = new Map<string, number>();
-  for (const tool of tools) counts.set(tool.name, (counts.get(tool.name) ?? 0) + 1);
-  return [...counts.entries()].map(([name, count]) => ({ count, name }));
-}
-
 export function NiaWorkspaceSurface() {
   const characterStyle = useNiaCharacterStyle();
   const textSession = useNiaSession();
@@ -191,7 +184,6 @@ export function NiaWorkspaceSurface() {
 
   const review = useOutputReviewMetrics();
   const activeCard = contextCards.find((card) => card.id === activeContextCardId) ?? null;
-  const tools = listNiaToolsForContext(activeCard);
   const reviewCount = review.metrics ? review.metrics.dueTodayCount + review.metrics.overdueCount : 0;
   const companionState = companion.state ?? "resting";
 
@@ -397,8 +389,6 @@ export function NiaWorkspaceSurface() {
   const visibleConversations = useMemo(() => (
     conversations.filter((item) => selectedDay !== null && startOfLocalDay(item.startedAt) === selectedDay)
   ), [conversations, selectedDay]);
-  const toolSummary = useMemo(() => uniqueToolSummary(detail.tools), [detail.tools]);
-  const availableToolCount = tools.filter((tool) => tool.available).length;
   const interruptions = detail.turns.filter((turn) => turn.speaker === "nia" && Boolean(turn.cut)).length;
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -586,13 +576,6 @@ export function NiaWorkspaceSurface() {
                         </button>
                       )}
                     </div>
-                    {toolSummary.length > 0 && (
-                      <div className="nia-workspace__transcript-tools">
-                        {toolSummary.map((tool) => (
-                          <i key={tool.name}>{tool.name}{tool.count > 1 ? ` ×${tool.count}` : ""}</i>
-                        ))}
-                      </div>
-                    )}
                   </header>
 
                   {detailLoading ? (
@@ -650,41 +633,6 @@ export function NiaWorkspaceSurface() {
               )
             )}
 
-            {tab === "tools" && (
-              <article className="nia-workspace__tools-stage" aria-label="可用工具与模型路由">
-                <header className="nia-workspace__transcript-head">
-                  <div className="nia-workspace__transcript-title-wrap">
-                    <span className="nia-workspace__transcript-badge">CAPABILITIES</span>
-                    <h2>可用工具与能力权限</h2>
-                    <p className="nia-workspace__stage-intro">Nia 在学习陪伴与复习提醒中可安全调用的系统能力与操作授权。</p>
-                  </div>
-                  <div className="nia-workspace__capability-count" aria-label={`${availableToolCount} 个工具已连接`}>
-                    <strong>{availableToolCount}</strong>
-                    <span>/ {tools.length} 已连接</span>
-                  </div>
-                </header>
-                <div className="nia-workspace__tools-scroll">
-                  <div className="nia-workspace__tools-grid">
-                    {tools.map((tool, index) => (
-                      <article
-                        className="nia-workspace__tool-card"
-                        data-available={tool.available}
-                        key={tool.id}
-                        style={{ "--nia-tool-order": index } as CSSProperties}
-                      >
-                        <div className="nia-workspace__tool-card-head">
-                          <span className="nia-workspace__tool-index">{String(index + 1).padStart(2, "0")}</span>
-                          <span className="nia-workspace__tool-card-pill">{tool.available ? "可用" : "未连接"}</span>
-                        </div>
-                        <strong>{tool.label}</strong>
-                        <p>{tool.description}</p>
-                        <code>{tool.id}</code>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            )}
           </section>
 
           {/* Resizable Divider */}
@@ -723,25 +671,15 @@ export function NiaWorkspaceSurface() {
             <aside className="nia-workspace__inspector" aria-label="Nia 信息面板">
               <nav className="nia-workspace__tabs" role="tablist" aria-label="Nia 面板">
                 <button
-                  aria-selected={tab === "conversations"}
-                  onClick={() => setTab("conversations")}
+                  aria-selected="true"
                   role="tab"
                   type="button"
                 >
                   会话记录
                 </button>
-                <button
-                  aria-selected={tab === "tools"}
-                  onClick={() => setTab("tools")}
-                  role="tab"
-                  type="button"
-                >
-                  工具
-                </button>
               </nav>
 
-              {tab === "conversations" && (
-                <section className="nia-workspace__inspector-content nia-workspace__inspector-conversations">
+              <section className="nia-workspace__inspector-content nia-workspace__inspector-conversations">
                   {/* Mochi Daystrip Calendar */}
                   <div className="nia-workspace__calendar">
                     <div className="nia-workspace__month-nav">
@@ -854,32 +792,6 @@ export function NiaWorkspaceSurface() {
                     <i aria-hidden="true">›</i>
                   </button>
                 </section>
-              )}
-
-              {tab === "tools" && (
-                <section className="nia-workspace__inspector-content nia-workspace__capability-inspector" aria-label="工具连接概览">
-                  <div className="nia-workspace__section-title">
-                    <span>连接概览</span>
-                    <b>LIVE</b>
-                  </div>
-                  <div className="nia-workspace__capability-stats">
-                    <article>
-                      <strong>{availableToolCount}</strong>
-                      <span>已连接</span>
-                    </article>
-                    <article>
-                      <strong>{tools.length - availableToolCount}</strong>
-                      <span>等待上下文</span>
-                    </article>
-                  </div>
-                  <div className="nia-workspace__context-note">
-                    <span>当前上下文</span>
-                    <strong>{activeCard ? activeCard.title : "独立陪伴模式"}</strong>
-                    <p>{activeCard ? "只会使用已明确附加到当前会话的内容。" : "从笔记、阅读、视频或浏览器发起 Nia，对应能力才会开放。"}</p>
-                  </div>
-                  <NiaModelRoutingPanel onPreferenceChange={setRoutingPreference} preference={routingPreference} />
-                </section>
-              )}
             </aside>
           )}
         </div>
