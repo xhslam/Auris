@@ -8,6 +8,8 @@ import {
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { ReviewWheelWorkspace } from "./review-wheel-workspace";
 import { ReviewHeatmap } from "./review-heatmap";
+import { ReadingBookReview } from "./reading-book-review";
+import { TodayBookReviewCard } from "./today-book-review-card";
 import {
   KnowledgePointRow, OutputReviewCard, ReviewProgress, formatReviewDate, statusLabel,
 } from "@/components/review/output-review-card";
@@ -23,16 +25,38 @@ import {
 } from "@/features/output-review/output-review-model";
 import { readOutputReviewState, OUTPUT_REVIEW_STORAGE_EVENT, OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 import { readReviewMcpState, persistReviewMcpState } from "@/features/output-review/review-mcp-handler";
+import { getNotesStorage } from "@/platform/notes/get-notes-storage";
+import {
+  addNotesToReview,
+  deleteNoteReviewItem,
+  getTodayNoteReviewMetrics,
+  getTodayNoteReviewQueue,
+  markNoteEnrolledInSpaced,
+  removeNoteFromToday,
+  updateNoteReviewStatus,
+  type NoteReviewItem,
+  type NoteReviewState,
+  type NoteReviewStatus,
+} from "@/features/note-review/note-review-model";
+import {
+  NOTE_REVIEW_STORAGE_EVENT,
+  NOTE_REVIEW_STORAGE_KEY,
+  readNoteReviewState,
+  writeNoteReviewState,
+} from "@/features/note-review/note-review-storage";
+import { NotePickerModal } from "./note-picker-modal";
+import { TodayNoteReviewSection } from "./today-note-review-section";
+import { NotesReviewView } from "./notes-review-view";
 import "@/components/review/output-review-page.css";
 import "@/components/review/review-motion.css";
 
-type ReviewView = "today" | "all" | "projects" | "heatmap";
+type ReviewView = "today" | "reading" | "notes" | "all" | "projects" | "heatmap";
 type ConfirmAction =
   | { kind: "complete"; knowledgePointId: string }
   | { kind: "restart" | "master" | "archive" | "delete"; knowledgePointId: string };
 
 const VIEW_LABELS: Record<ReviewView, string> = {
-  today: "今天", all: "全部", projects: "项目", heatmap: "复盘热力图",
+  today: "今天", reading: "书籍回顾", notes: "笔记回顾", all: "全部", projects: "项目", heatmap: "复盘热力图",
 };
 const timestampFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
@@ -62,8 +86,13 @@ export function ReviewPageClient({
   const [hasHandledKnowledgePointIntent, setHasHandledKnowledgePointIntent] = useState(false);
   const [continueKnowledgePointAfterProject, setContinueKnowledgePointAfterProject] = useState(false);
 
+  const [noteState, setNoteState] = useState<NoteReviewState>(() => ({ version: 1, items: [] }));
+  const [notePickerOpen, setNotePickerOpen] = useState(false);
+  const notesStorage = useMemo(() => getNotesStorage(), []);
+
   useEffect(() => {
     setState(refreshReviewStatuses(readOutputReviewState(window.localStorage), today));
+    setNoteState(readNoteReviewState(window.localStorage));
     setHydrated(true);
   }, [today]);
 
@@ -75,13 +104,21 @@ export function ReviewPageClient({
         setNotice("本地复习数据不可读取，未覆盖当前内容。");
       }
     };
+    const reloadNoteState = () => {
+      setNoteState(readNoteReviewState(window.localStorage));
+    };
     const onStorage = (event: StorageEvent) => {
-      if (event.storageArea === window.localStorage && (event.key === OUTPUT_REVIEW_STORAGE_KEY || event.key === null)) reload();
+      if (event.storageArea === window.localStorage) {
+        if (event.key === OUTPUT_REVIEW_STORAGE_KEY || event.key === null) reload();
+        if (event.key === NOTE_REVIEW_STORAGE_KEY || event.key === null) reloadNoteState();
+      }
     };
     window.addEventListener(OUTPUT_REVIEW_STORAGE_EVENT, reload);
+    window.addEventListener(NOTE_REVIEW_STORAGE_EVENT, reloadNoteState);
     window.addEventListener("storage", onStorage);
     return () => {
       window.removeEventListener(OUTPUT_REVIEW_STORAGE_EVENT, reload);
+      window.removeEventListener(NOTE_REVIEW_STORAGE_EVENT, reloadNoteState);
       window.removeEventListener("storage", onStorage);
     };
   }, [today]);
@@ -135,6 +172,68 @@ export function ReviewPageClient({
   const metrics = useMemo(() => getDashboardMetrics(state, today), [state, today]);
   const detailPoint = state.knowledgePoints.find((point) => point.id === detailId);
 
+  const noteQueue = useMemo(() => getTodayNoteReviewQueue(noteState, today), [noteState, today]);
+  const noteMetrics = useMemo(() => getTodayNoteReviewMetrics(noteState, today), [noteState, today]);
+
+  const handleNoteStatusChange = useCallback((itemId: string, status: NoteReviewStatus) => {
+    const next = updateNoteReviewStatus(noteState, itemId, status, today);
+    writeNoteReviewState(window.localStorage, next);
+    setNoteState(next);
+  }, [noteState, today]);
+
+  const handleRemoveNoteFromToday = useCallback((itemId: string) => {
+    const next = removeNoteFromToday(noteState, itemId);
+    writeNoteReviewState(window.localStorage, next);
+    setNoteState(next);
+    setNotice("已将笔记移出今日复习。");
+  }, [noteState]);
+
+  const handleDeleteNoteReview = useCallback((itemId: string) => {
+    const next = deleteNoteReviewItem(noteState, itemId);
+    writeNoteReviewState(window.localStorage, next);
+    setNoteState(next);
+    setNotice("已从笔记复习库删除。");
+  }, [noteState]);
+
+  const handlePromoteNoteToSpaced = useCallback((item: NoteReviewItem) => {
+    let defaultProjectId = state.projects.find((p) => p.name === "笔记回顾")?.id;
+    if (!defaultProjectId) {
+      const projectInput = { name: "笔记回顾", description: "从 Note Vault 选取的笔记回顾知识点" };
+      commit((current) => createProject(current, projectInput));
+      const freshState = readOutputReviewState(window.localStorage);
+      defaultProjectId = freshState.projects.find((p) => p.name === "笔记回顾")?.id;
+    }
+
+    if (!defaultProjectId && state.projects.length > 0) {
+      defaultProjectId = state.projects[0]?.id;
+    }
+
+    if (!defaultProjectId) {
+      setNotice("未能创建或找到关联项目，请先在“项目”视图创建一个项目。");
+      return;
+    }
+
+    const targetId = item.noteRelativePath || item.noteId;
+    const knowledgeInput: CreateKnowledgePointInput = {
+      title: item.noteTitle,
+      projectId: defaultProjectId,
+      startDate: today,
+      notes: item.noteRelativePath,
+      materialUrl: `/notes?resumeNoteId=${encodeURIComponent(targetId)}`,
+    };
+
+    commit((current) => createKnowledgePoint(current, knowledgeInput));
+    const freshState = readOutputReviewState(window.localStorage);
+    const createdPoint = freshState.knowledgePoints.find(
+      (kp) => kp.title === item.noteTitle && kp.projectId === defaultProjectId,
+    );
+
+    const nextNoteState = markNoteEnrolledInSpaced(noteState, item.id, createdPoint?.id ?? "");
+    writeNoteReviewState(window.localStorage, nextNoteState);
+    setNoteState(nextNoteState);
+    setNotice(`《${item.noteTitle}》已成功纳入 1/2/4/7 艾宾浩斯复习周期。`);
+  }, [commit, noteState, state.projects, today]);
+
   const handleConfirm = () => {
     if (!confirmAction) return;
     const point = state.knowledgePoints.find((item) => item.id === confirmAction.knowledgePointId);
@@ -171,6 +270,7 @@ export function ReviewPageClient({
                 <button aria-current={view === item ? "page" : undefined} data-active={view === item} key={item} onClick={() => setView(item)} type="button">
                   {VIEW_LABELS[item]}
                   {item === "today" && metrics.overdueCount > 0 ? <span aria-label={`${metrics.overdueCount} 项逾期`}>{metrics.overdueCount}</span> : null}
+                  {item === "notes" && noteMetrics.pendingToday > 0 ? <span aria-label={`${noteMetrics.pendingToday} 篇待复习`}>{noteMetrics.pendingToday}</span> : null}
                 </button>
               ))}
             </nav>
@@ -178,10 +278,45 @@ export function ReviewPageClient({
           </div>
 
           {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
-            : view === "today" ? <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}><TodayView metrics={metrics} onAdd={() => setFormPoint("new")} onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })} onOpen={setDetailId} onShowAll={() => setView("all")} onShowHeatmap={() => setView("heatmap")} queue={queue} /></ReviewWheelWorkspace>
+            : view === "today" ? (
+                <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}>
+                  <TodayView
+                    metrics={metrics}
+                    noteQueue={noteQueue}
+                    notesStorage={notesStorage}
+                    onAdd={() => setFormPoint("new")}
+                    onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })}
+                    onDeleteNoteReview={handleDeleteNoteReview}
+                    onGoToReadingReview={() => setView("reading")}
+                    onNoteStatusChange={handleNoteStatusChange}
+                    onNotice={setNotice}
+                    onOpen={setDetailId}
+                    onOpenNotePicker={() => setNotePickerOpen(true)}
+                    onPromoteNoteToSpaced={handlePromoteNoteToSpaced}
+                    onRemoveNoteFromToday={handleRemoveNoteFromToday}
+                    onShowAll={() => setView("all")}
+                    onShowHeatmap={() => setView("heatmap")}
+                    queue={queue}
+                    today={today}
+                  />
+                </ReviewWheelWorkspace>
+              )
+              : view === "reading" ? <ReadingBookReview onGoToToday={() => setView("today")} onNotice={setNotice} />
+              : view === "notes" ? (
+                  <NotesReviewView
+                    notesStorage={notesStorage}
+                    onDelete={handleDeleteNoteReview}
+                    onOpenPicker={() => setNotePickerOpen(true)}
+                    onPromoteToSpaced={handlePromoteNoteToSpaced}
+                    onRemoveFromToday={handleRemoveNoteFromToday}
+                    onStatusChange={handleNoteStatusChange}
+                    state={noteState}
+                    today={today}
+                  />
+                )
               : view === "all" ? <AllView onOpen={setDetailId} state={state} />
-                : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
-                  : <ReviewHeatmap onGoToToday={() => setView("today")} onOpen={setDetailId} state={state} today={today} />}
+              : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
+              : <ReviewHeatmap onGoToToday={() => setView("today")} onOpen={setDetailId} state={state} today={today} />}
         </div>
 
         {formPoint ? <KnowledgePointForm
@@ -220,16 +355,62 @@ export function ReviewPageClient({
             setNotice(action === "pause" ? "复习周期已暂停。" : "复习周期已从今天恢复。");
           }} point={detailPoint} project={state.projects.find((project) => project.id === detailPoint.projectId)} /> : null}
         {confirmAction ? <ConfirmationDialog action={confirmAction} onCancel={() => setConfirmAction(null)} onConfirm={handleConfirm} /> : null}
+        {notePickerOpen ? (
+          <NotePickerModal
+            existingNoteIds={new Set(noteState.items.map((i) => i.noteId))}
+            notesStorage={notesStorage}
+            onCancel={() => setNotePickerOpen(false)}
+            onConfirm={(selectedNotes) => {
+              const next = addNotesToReview(noteState, selectedNotes, today);
+              writeNoteReviewState(window.localStorage, next);
+              setNoteState(next);
+              setNotePickerOpen(false);
+              setNotice(`已将 ${selectedNotes.length} 篇笔记加入今日回顾。`);
+            }}
+          />
+        ) : null}
         {notice ? <div className="output-review-toast" key={notice} role="status"><CheckIcon size={16} />{notice}</div> : null}
       </main>
     </DesktopAppFrame>
   );
 }
 
-function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll, onShowHeatmap }: {
-  queue: ReviewQueueItem[]; metrics: ReturnType<typeof getDashboardMetrics>;
-  onAdd: () => void; onComplete: (knowledgePointId: string) => void; onOpen: (knowledgePointId: string) => void; onShowAll: () => void;
+function TodayView({
+  queue,
+  metrics,
+  noteQueue,
+  today,
+  notesStorage,
+  onAdd,
+  onComplete,
+  onOpen,
+  onShowAll,
+  onShowHeatmap,
+  onGoToReadingReview,
+  onNotice,
+  onOpenNotePicker,
+  onNoteStatusChange,
+  onPromoteNoteToSpaced,
+  onRemoveNoteFromToday,
+  onDeleteNoteReview,
+}: {
+  queue: ReviewQueueItem[];
+  metrics: ReturnType<typeof getDashboardMetrics>;
+  noteQueue: NoteReviewItem[];
+  today: string;
+  notesStorage: NotesStorage | null;
+  onAdd: () => void;
+  onComplete: (knowledgePointId: string) => void;
+  onOpen: (knowledgePointId: string) => void;
+  onShowAll: () => void;
   onShowHeatmap?: () => void;
+  onGoToReadingReview?: () => void;
+  onNotice?: (text: string) => void;
+  onOpenNotePicker: () => void;
+  onNoteStatusChange: (itemId: string, status: NoteReviewStatus) => void;
+  onPromoteNoteToSpaced: (item: NoteReviewItem) => void;
+  onRemoveNoteFromToday: (itemId: string) => void;
+  onDeleteNoteReview: (itemId: string) => void;
 }) {
   const [upcomingOpen, setUpcomingOpen] = useState(true);
   const taskTrack = useRef<HTMLDivElement>(null);
@@ -249,6 +430,19 @@ function TodayView({ queue, metrics, onAdd, onComplete, onOpen, onShowAll, onSho
           <div className="output-review-summary__progress"><span><span>执行进度</span><b key={progress}>{progress}%</b></span><div aria-label={`今日执行进度 ${progress}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div></div>
         </div>
       </section>
+      {onGoToReadingReview ? (
+        <TodayBookReviewCard onGoToReadingReview={onGoToReadingReview} onNotice={onNotice} />
+      ) : null}
+      <TodayNoteReviewSection
+        notesStorage={notesStorage}
+        onDelete={onDeleteNoteReview}
+        onOpenPicker={onOpenNotePicker}
+        onPromoteToSpaced={onPromoteNoteToSpaced}
+        onRemoveFromToday={onRemoveNoteFromToday}
+        onStatusChange={onNoteStatusChange}
+        queue={noteQueue}
+        today={today}
+      />
       {queue.length > 0 ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
         <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>优先处理</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>
         <section aria-label="选择优先处理任务" className="output-review-task-picker">
