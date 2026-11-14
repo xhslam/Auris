@@ -205,9 +205,7 @@ import { createUtterance } from "@/components/nia/companion/bubble-utterance";
 
 describe("bubble pace and utterance state machine", () => {
   it("computes word span around index for CJK glyph and English word", () => {
-    // English word boundary
     expect(wordAt("hello world", 1)).toEqual({ from: 0, to: 5 });
-    // CJK single dense glyph boundary
     expect(wordAt("今天学习", 2)).toEqual({ from: 2, to: 3 });
   });
 
@@ -215,12 +213,9 @@ describe("bubble pace and utterance state machine", () => {
     const pacer = createPacer();
     pacer.wrote("你好世界");
     pacer.began();
-    // In 0.1s at seed rate 15.1, budget = 1.51.
-    // First Chinese char costs 3.68, so budget 1.51 cannot advance past char 0!
     pacer.step(0.1, true);
     expect(pacer.at()).toBe(0);
 
-    // In 0.3s, total budget = 4.53, which is > 3.68, so it advances past 1 char!
     pacer.step(0.2, true);
     expect(pacer.at()).toBe(1);
   });
@@ -235,7 +230,6 @@ describe("bubble pace and utterance state machine", () => {
     utterance.speaks("resp_1");
     expect(utterance.begun()).toBe(true);
 
-    // When interrupted, cut is called
     utterance.finished("resp_1", true);
     expect(utterance.begun()).toBe(true);
   });
@@ -517,7 +511,6 @@ describe("NiaSpeechBubble component", () => {
         onDismiss={vi.fn()}
       />
     );
-    // When not visible, it does not hold hit-region
     expect(container.querySelector("[data-nia-companion-hit-region]")).toBeNull();
   });
 });
@@ -796,70 +789,167 @@ git commit -m "feat(nia): add NiaSpeechBubble with three-tier runs and 350ms fad
 **Files:**
 - Modify: `src/components/nia/companion/realtime-transport.ts`
 - Modify: `src/features/nia/nia-review-context.ts`
-- Test: `tests/unit/nia/nia-realtime-transport.test.ts`
-- Test: `tests/unit/nia/nia-review-context.test.ts`
+- Modify: `tests/unit/nia/nia-realtime-transport.test.ts`
+- Modify: `tests/unit/nia/nia-review-context.test.ts`
 
-- [ ] **Step 1: 更新测试用例断言**
+- [ ] **Step 1: 更新测试代码**
 
-在 `tests/unit/nia/nia-realtime-transport.test.ts` 中：
+在 `tests/unit/nia/nia-realtime-transport.test.ts` 中替换整个 `describe` 内容为：
 ```ts
-// 将测试用例更新为：
-it("sends empty tools and none choice in session.update", () => {
-  const sent: unknown[] = [];
-  const fakeChannel = {
-    readyState: "open",
-    send: (msg: string) => sent.push(JSON.parse(msg)),
-  };
-  // assert sent session update has tools: [] and tool_choice: "none"
-});
+import { describe, expect, it, vi } from "vitest";
+import {
+  NiaRealtimeTransport,
+  type CompanionTransportReport,
+} from "@/components/nia/companion/realtime-transport";
 
-it("emits saying report when output_audio_transcript.delta arrives", () => {
-  // test that delta event triggers onReport({ type: "saying", delta: "word" })
+type TransportHarness = {
+  channel: { readyState: string; send: (value: string) => void };
+  sendSessionUpdate: () => void;
+  generation: number;
+  handlers: { report: (report: CompanionTransportReport) => void; playAudio: () => void };
+  handleServerEvent: (raw: string) => void;
+  sessionId: string;
+};
+
+function setup() {
+  const reports: CompanionTransportReport[] = [];
+  const transport = new NiaRealtimeTransport();
+  const harness = transport as unknown as TransportHarness;
+  harness.generation = 7;
+  harness.sessionId = "session-7";
+  harness.handlers = { report: (report) => reports.push(report), playAudio: vi.fn() };
+  return { harness, reports, transport };
+}
+
+describe("Nia Realtime transport event wiring", () => {
+  it("configures pure conversation session without tools and emits saying reports on delta", () => {
+    const { harness, reports, transport } = setup();
+    const send = vi.fn();
+    harness.channel = { readyState: "open", send };
+    harness.sendSessionUpdate();
+    expect(JSON.parse(send.mock.calls[0][0]).session).toMatchObject({
+      tool_choice: "none",
+      tools: [],
+    });
+    send.mockClear();
+
+    harness.handleServerEvent(JSON.stringify({
+      type: "response.output_audio_transcript.delta",
+      response_id: "response-1",
+      delta: "你好",
+    }));
+    expect(reports).toContainEqual({
+      type: "saying",
+      generation: 7,
+      delta: "你好",
+      responseId: "response-1",
+    });
+
+    transport.sendReminder({ count: 1, items: [{ title: "特征值", projectName: "数学" }] });
+    expect(JSON.parse(send.mock.calls[0][0]).item.content[0].text).toContain("特征值");
+  });
+
+  it("opens only after configuration confirmation and files a natural assistant turn", () => {
+    const { harness, reports } = setup();
+    harness.handleServerEvent(JSON.stringify({ type: "session.updated" }));
+    harness.handleServerEvent(JSON.stringify({ type: "response.output_item.added", response_id: "response-1", item: { id: "item-1" } }));
+    harness.handleServerEvent(JSON.stringify({
+      type: "response.output_audio_transcript.done",
+      response_id: "response-1",
+      item_id: "item-1",
+      transcript: "已经帮你记下来了。",
+    }));
+    expect(reports.some((report) => report.type === "said")).toBe(false);
+  });
 });
 ```
 
-在 `tests/unit/nia/nia-review-context.test.ts` 中：
-断言 `buildNiaReviewReminder` 不包含 `get_today_reviews` 字符串。
+在 `tests/unit/nia/nia-review-context.test.ts` 中更新最后一个测试为：
+```ts
+  it("includes actual reminder fields and excludes tool instructions", () => {
+    const text = buildNiaReviewReminder({ count: 1, items: [{ title: "特征值", projectName: "线性代数", stageLabel: "Day 1", plannedDate: "2026-09-08", overdueDays: 0, secret: "excluded" }] });
+    expect(text).toContain("特征值");
+    expect(text).toContain("线性代数");
+    expect(text).not.toContain("get_today_reviews");
+    expect(text).not.toContain("excluded");
+  });
+```
 
 - [ ] **Step 2: 改造 `realtime-transport.ts`**
 
-- 移除 `import { buildNiaReviewReminder, readNiaTodayReviews, NIA_REVIEW_TOOL, NIA_REVIEW_INSTRUCTIONS } from "@/features/nia/nia-review-context";`，改为仅导入 `buildNiaReviewReminder`。
-- `CompanionTransportReport` 增加：
-  `| { type: "saying"; generation: number; delta: string; responseId: string }`
-- 在 `sendSessionUpdate()` 中：
-  ```ts
-  this.send({
-    type: "session.update",
-    session: {
-      ...config,
-      tools: [],
-      tool_choice: "none",
-      instructions: NIA_REALTIME_INSTRUCTIONS,
-    },
-  });
-  ```
-- 在 `handleServerEvent()` 中：
-  ```ts
-  case "saying":
-    if (event.delta) {
-      this.emit({ type: "saying", generation, delta: event.delta, responseId: event.responseId });
-    }
-    this.emit({ type: "state", generation, state: "speaking" });
-    return;
-  ```
-- 删除 `case "tool":` 与 `needsToolResponse` 关联的僵尸分支。
+在 `src/components/nia/companion/realtime-transport.ts` 中：
+1. 移除对 `NIA_REVIEW_TOOL` 与 `NIA_REVIEW_INSTRUCTIONS` 的引用：
+```ts
+// 仅导入 buildNiaReviewReminder
+import { buildNiaReviewReminder } from "@/features/nia/nia-review-context";
+import { NIA_REALTIME_INSTRUCTIONS } from "@/features/nia/nia-realtime-protocol";
+```
+2. 扩展 `CompanionTransportReport` 类型：
+```ts
+export type CompanionTransportReport =
+  | { type: "opened"; generation: number; sessionId: string; expiresAt: number | null }
+  | { type: "state"; generation: number; state: string }
+  | { type: "saying"; generation: number; delta: string; responseId: string }
+  | { type: "heard" | "said"; generation: number; text: string; at?: number; responseId?: string; itemId?: string; cut?: boolean }
+  | { type: "failed"; generation: number; code: string; message: string; recovery?: string }
+  | { type: "closed"; generation: number; at?: number };
+```
+3. 在 `sendSessionUpdate()` 中，去除工具注入：
+```ts
+  private sendSessionUpdate() {
+    let savedVoice: string | null = null;
+    let savedInterruptible: string | null = null;
+    let savedEagerness: string | null = null;
+    try {
+      savedVoice = window.localStorage.getItem("auris.nia.voice");
+      savedInterruptible = window.localStorage.getItem("auris.nia.interruptible");
+      savedEagerness = window.localStorage.getItem("auris.nia.eagerness");
+    } catch { /* storage preference is optional */ }
+
+    const interruptible = savedInterruptible === null ? true : savedInterruptible !== "false";
+    const eagerness = isNiaTurnEagerness(savedEagerness) ? savedEagerness : "auto";
+
+    const update = createNiaRealtimeSessionUpdate({
+      voice: isNiaLiveVoice(savedVoice) ? savedVoice : "ballad",
+      turnTaking: {
+        interruptible,
+        eagerness,
+      },
+    });
+    this.send({
+      type: "session.update",
+      session: {
+        ...update.session,
+        tools: [],
+        tool_choice: "none",
+        instructions: NIA_REALTIME_INSTRUCTIONS,
+      },
+    });
+  }
+```
+4. 在 `handleServerEvent()` 中发出 `saying` delta，并清理 `case "tool":`：
+```ts
+      case "saying":
+        if (event.delta) {
+          this.emit({ type: "saying", generation, delta: event.delta, responseId: event.responseId });
+        }
+        this.emit({ type: "state", generation, state: "speaking" });
+        return;
+```
 
 - [ ] **Step 3: 改造 `buildNiaReviewReminder` 为纯自然语言口播**
 
-在 `src/features/nia/nia-review-context.ts` 中：
+在 `src/features/nia/nia-review-context.ts` 中替换 `buildNiaReviewReminder`：
 ```ts
-export function buildNiaReviewReminder(summary: { dueCount: number; overdueCount: number }) {
-  const total = summary.dueCount + summary.overdueCount;
-  if (total === 0) return "今天的所有复习任务已经全部完成，做得很棒！";
-  if (summary.overdueCount > 0) {
-    return `今天有 ${total} 项内容待复习，其中 ${summary.overdueCount} 项已逾期。我们现在开始复习吗？`;
-  }
-  return `今天有 ${total} 项内容待复习，随时可以开始。`;
+export function buildNiaReviewReminder(reminder: { count: number; items: unknown[] }) {
+  // Explicit field allowlist: reminder payloads are learning data, not prompts.
+  const items = reminder.items.slice(0, 16).map((value) => {
+    const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+    return Object.fromEntries(["knowledgePointId", "title", "projectName", "stageLabel", "plannedDate", "urgency", "overdueDays"]
+      .filter((key) => typeof item[key] === "string" || typeof item[key] === "number")
+      .map((key) => [key, typeof item[key] === "string" ? item[key].slice(0, 120) : item[key]]));
+  });
+  return `复习提醒：以下是提醒触发时的待复习内容，请直接用一句话口播概括重点，询问是否现在开始复习；用户同意后即可开始复习。\n${JSON.stringify({ count: reminder.count, items })}`;
 }
 ```
 
@@ -886,60 +976,149 @@ git commit -m "refactor(nia): remove tools from realtime protocol and emit trans
 
 - [ ] **Step 1: 微调 Companion 窗口高度**
 
-在 `electron/nia/companion/companion-window.cjs` 中：
+在 `electron/nia/companion/companion-window.cjs` 中将宽高改为：
 ```cjs
-width: 340,
-height: 420,
+    window = new BrowserWindow({
+      width: 340,
+      height: 420,
+      x: placement.x,
+      y: placement.y,
 ```
-确保头顶 5 行文字气泡完全在透明窗口可视区内。
 
 - [ ] **Step 2: 扩展 `use-companion-avatar.ts` 暴露真实静音计时**
 
-在 `useCompanionAvatar` 中：
-- 新增 `quietSecondsRef = useRef(0)`。
-- 在音频更新循环中：
-  ```ts
-  if (envelope > 0.015) {
-    quietSecondsRef.current = 0;
-  } else {
-    quietSecondsRef.current += dtSeconds;
-  }
-  ```
-- 返回 `getQuietSeconds: () => quietSecondsRef.current` 与 `isSounding: () => envelope > 0.015`。
+在 `src/components/nia/companion/use-companion-avatar.ts` 中：
+```ts
+  const quietSecondsRef = useRef(Infinity);
+  const soundingRef = useRef(false);
+
+  const stopAudio = useCallback(() => {
+    audioCleanup.current?.();
+    audioCleanup.current = null;
+    soundingRef.current = false;
+    quietSecondsRef.current = Infinity;
+    figureRef.current?.style.setProperty("--nia-mouth-open", "0");
+  }, []);
+
+  const connectAudio = useCallback((stream: MediaStream, audio: HTMLAudioElement) => {
+    stopAudio();
+    if (typeof AudioContext === "undefined") return;
+    let context: AudioContext | null = null;
+    try {
+      context = new AudioContext();
+      const source = context.createMediaStreamSource(stream);
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      const samples = new Float32Array(analyser.fftSize);
+      let frame = 0;
+      let last = performance.now();
+      let envelope = 0;
+      const tick = (now: number) => {
+        analyser.getFloatTimeDomainData(samples);
+        const target = audio.paused || audio.muted || audio.ended ? 0 : niaAudioEnvelope(samples);
+        const dt = Math.max(0, Math.min(100, now - last));
+        envelope += (target - envelope) * (1 - Math.exp(-dt / (target > envelope ? 35 : 110)));
+        last = now;
+        figureRef.current?.style.setProperty("--nia-mouth-open", envelope.toFixed(3));
+
+        const isSounding = target > 0.015;
+        soundingRef.current = isSounding;
+        if (isSounding) {
+          quietSecondsRef.current = 0;
+        } else {
+          quietSecondsRef.current += dt / 1000;
+        }
+
+        frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
+      const activeContext = context;
+      const cleanup = () => { cancelAnimationFrame(frame); source.disconnect(); analyser.disconnect(); void activeContext.close().catch(() => undefined); };
+      audioCleanup.current = cleanup;
+      void context.resume().catch(() => {
+        if (audioCleanup.current === cleanup) stopAudio();
+      });
+    } catch {
+      if (context) void context.close().catch(() => undefined);
+      stopAudio();
+    }
+  }, [stopAudio]);
+```
+并在 `useCompanionAvatar` 的返回值中暴露：
+```ts
+  return {
+    figureRef, rigRef, expression, intensity, asleep, playMotion, lookAt, connectAudio, stopAudio,
+    getQuietSeconds: () => quietSecondsRef.current,
+    isSounding: () => soundingRef.current,
+  };
+```
 
 - [ ] **Step 3: 改造 `companion-runtime.tsx` 挂载 `NiaSpeechBubble`**
 
 在 `src/components/nia/companion/companion-runtime.tsx` 中：
-- 引入 `createUtterance`、`NiaSpeechBubble`。
-- 维护 `utteranceRef = useRef(createUtterance())`、`cursorIndex` 状态、`bubbleVisible` 状态。
-- 在 `onReport` 中：
-  ```ts
-  if (report.type === "saying") {
-    utteranceRef.current.add(report.delta, report.responseId);
-    setBubbleVisible(true);
-  } else if (report.type === "said") {
-    setLastText(report.text);
-  }
-  ```
-- 在 RAF 循环中：
-  ```ts
-  const sounding = isSounding();
-  utteranceRef.current.step(sounding, dtSeconds);
-  setCursorIndex(utteranceRef.current.at());
+1. 引入：
+```tsx
+import { createUtterance } from "./bubble-utterance";
+import { NiaSpeechBubble } from "./nia-speech-bubble";
+```
+2. 声明状态与引用：
+```tsx
+  const utteranceRef = useRef(createUtterance());
+  const [cursorIndex, setCursorIndex] = useState(0);
+  const [bubbleVisible, setBubbleVisible] = useState(false);
+  const { figureRef, rigRef, expression, intensity, asleep, playMotion, lookAt, connectAudio, stopAudio, getQuietSeconds, isSounding } = useCompanionAvatar(status, driftEnabled);
+```
+3. 在 `onReport` 回调中监听增量与句子完成：
+```tsx
+      if (report.type === "saying") {
+        utteranceRef.current.add(report.delta, report.responseId);
+        setBubbleVisible(true);
+      } else if (report.type === "said") {
+        setLastText(report.text);
+      }
+```
+4. 在既有的 RAF `tick` 循环（L241-257）中驱动光标步进与静音检测：
+```tsx
+  useEffect(() => {
+    if (!bridge || typeof requestAnimationFrame !== "function") return;
+    let animFrameId: number | null = null;
+    let lastTick = performance.now();
+    const tick = () => {
+      const now = performance.now();
+      const dtSeconds = Math.min(0.1, Math.max(0, (now - lastTick) / 1000));
+      lastTick = now;
 
-  if (getQuietSeconds() >= 1.2 && bubbleVisible) {
-    setBubbleVisible(false);
-  }
-  ```
-- JSX 中渲染：
-  ```tsx
-  <NiaSpeechBubble
-    cursorIndex={cursorIndex}
-    onDismiss={() => setBubbleVisible(false)}
-    text={utteranceRef.current.text() || lastText}
-    visible={bubbleVisible}
-  />
-  ```
+      utteranceRef.current.step(isSounding(), dtSeconds);
+      setCursorIndex(utteranceRef.current.at());
+
+      if (getQuietSeconds() >= 1.2 && bubbleVisible) {
+        setBubbleVisible(false);
+      }
+
+      if (!isDraggingRef.current && lastPointerPosRef.current) {
+        const isHit = checkPointerHit(lastPointerPosRef.current);
+        setCompanionPointerCapture(isHit);
+      }
+      animFrameId = requestAnimationFrame(tick);
+    };
+    animFrameId = requestAnimationFrame(tick);
+    return () => {
+      if (animFrameId !== null && typeof cancelAnimationFrame === "function") {
+        cancelAnimationFrame(animFrameId);
+      }
+    };
+  }, [bridge, bubbleVisible, checkPointerHit, getQuietSeconds, isSounding, setCompanionPointerCapture]);
+```
+5. 在 JSX 中渲染气泡：
+```tsx
+      <NiaSpeechBubble
+        cursorIndex={cursorIndex}
+        onDismiss={() => setBubbleVisible(false)}
+        text={utteranceRef.current.text() || lastText}
+        visible={bubbleVisible}
+      />
+```
 
 - [ ] **Step 4: 定向组件测试与验证**
 
@@ -961,40 +1140,70 @@ git commit -m "feat(nia): integrate speech bubble and analyser silence fade in c
 - Modify: `src/components/nia/nia-workspace-surface.tsx`
 - Modify: `src/components/nia/nia-conversation-archive.tsx`
 - Modify: `src/app/nia/nia.css`
-- Test: `tests/component/nia/nia-workspace-surface.test.tsx`
-- Test: `tests/component/nia/nia-conversation-archive.test.tsx`
+- Modify: `tests/component/nia/nia-workspace-surface.test.tsx`
+- Modify: `tests/component/nia/nia-conversation-archive.test.tsx`
 
-- [ ] **Step 1: 编写/更新去工具化测试断言**
+- [ ] **Step 1: 更新测试用例断言**
 
-在 `tests/component/nia/nia-workspace-surface.test.tsx` 中：
-将原来的 `it("keeps the tool catalogue in the main stage...")` 替换为：
+在 `tests/component/nia/nia-workspace-surface.test.tsx` 中，替换 `it("keeps the tool catalogue in the main stage...")` 为：
 ```tsx
-it("has no tools tab or capability inspector in the workspace", () => {
-  render(<NiaWorkspaceSurface />);
-  expect(screen.queryByRole("tab", { name: "工具" })).not.toBeInTheDocument();
-  expect(screen.queryByLabelText("可用工具与模型路由")).not.toBeInTheDocument();
-  expect(screen.queryByLabelText("工具连接概览")).not.toBeInTheDocument();
-});
+  it("has no tools tab or capability inspector in the workspace", () => {
+    render(<NiaWorkspaceSurface />);
+
+    expect(screen.queryByRole("tab", { name: "工具" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("可用工具与模型路由")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("工具连接概览")).not.toBeInTheDocument();
+  });
 ```
-在 `tests/component/nia/nia-conversation-archive.test.tsx` 中：
-移除对工具调用计数的断言。
 
-- [ ] **Step 2: 改造 `nia-workspace-surface.tsx` 移除工具相关代码**
+在 `tests/component/nia/nia-conversation-archive.test.tsx` 中，更新测试：
+```tsx
+  it("opens the newest populated local day and renders the saved transcript", async () => {
+    render(<NiaConversationArchive onClose={vi.fn()} />);
 
-- 移除 `InspectorTab` 类型中的 `"tools"`，只保留单一会话模式。
-- 移除 `<button aria-selected={tab === "tools"}>工具</button>`。
-- 删除 `{tab === "tools" && <article className="nia-workspace__tools-stage">...}`。
-- 删除右侧审查栏中的 `{tab === "tools" && <section className="nia-workspace__capability-inspector">...}`。
-- 删除详情头部中的 `{toolSummary.length > 0 && <div className="nia-workspace__transcript-tools">...}`。
-- 清理 `listNiaToolsForContext`、`uniqueToolSummary`、`availableToolCount`、`tools` 变量。
+    expect(await screen.findByText(/9月2日星期三/)).toBeInTheDocument();
+    const entry = screen.getByRole("button", { name: /欢迎回来，我们继续复习中值定理/ });
+    fireEvent.click(entry);
 
-- [ ] **Step 3: 改造 `nia-conversation-archive.tsx` 移除工具调用标签**
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("conversation-detail", { conversationId: "conversation-1" }));
+    expect(await screen.findByText("先帮我回顾核心条件。")).toBeInTheDocument();
+    expect(screen.queryByText("recall_conversations")).not.toBeInTheDocument();
+    expect(screen.queryByText("本次对话没有调用工具")).not.toBeInTheDocument();
+    expect(screen.getByText("先帮我回顾核心条件。").closest(".nia-archive__turn")).toHaveClass("nia-archive__turn--user");
+  });
+```
 
-- 删除 L253 的 `{toolSummary.length ? ... : <small>本次对话没有调用工具</small>}`。
+- [ ] **Step 2: 改造 `nia-workspace-surface.tsx`**
+
+1. 删除导入：
+```ts
+// 删除：import { listNiaToolsForContext } from "@/features/nia/nia-tool-registry";
+// 删除：type InspectorTab = "conversations" | "tools";
+```
+2. 删除 `uniqueToolSummary` 函数及组件内 `const tools = listNiaToolsForContext(activeCard);`。
+3. 删除 `tab` 状态机与导航：
+```tsx
+// 删除：const [tab, setTab] = useState<InspectorTab>("conversations");
+// 删除：<nav aria-label="Nia 工作台主视图" className="nia-workspace__tab-strip" role="tablist"> ... </nav>
+```
+4. 删除整个主舞台中 `{tab === "tools" && ...}` 的工具舞台渲染。
+5. 删除右侧审查栏中 `{tab === "tools" && ...}` 的能力概览渲染。
+6. 删除详情头部中的 `{toolSummary.length > 0 && <div className="nia-workspace__transcript-tools">...}`。
+
+- [ ] **Step 3: 改造 `nia-conversation-archive.tsx`**
+
+在 `src/components/nia/nia-conversation-archive.tsx` L253 中，移除工具调用渲染：
+```tsx
+// 改造前：
+<header className="nia-archive__conversation-head"><strong>{clock(selectedConversation.startedAt)}</strong><span>{detail.turns.length || selectedConversation.turnCount || 0} 轮 · {durationLabel(selectedConversation.startedAt, selectedConversation.endedAt)} · {interruptions ? `${interruptions} 次被打断` : "完整结束"}</span>{toolSummary.length ? <div>{toolSummary.map((tool) => <i key={tool.name}>{tool.name}{tool.count > 1 ? ` ×${tool.count}` : ""}</i>)}</div> : <small>本次对话没有调用工具</small>}</header>
+
+// 改造后：
+<header className="nia-archive__conversation-head"><strong>{clock(selectedConversation.startedAt)}</strong><span>{detail.turns.length || selectedConversation.turnCount || 0} 轮 · {durationLabel(selectedConversation.startedAt, selectedConversation.endedAt)} · {interruptions ? `${interruptions} 次被打断` : "完整结束"}</span></header>
+```
 
 - [ ] **Step 4: 清理 `nia.css` 中的工具相关样式**
 
-- 删除 `.nia-workspace__tools-stage`、`.nia-workspace__capability-inspector`、`.nia-workspace__tool-card` 等过时规则。
+在 `src/app/nia/nia.css` 中删除 `.nia-workspace__tools-stage`、`.nia-workspace__capability-inspector`、`.nia-workspace__tool-card` 等规则块。
 
 - [ ] **Step 5: 运行定向测试以确认通过**
 
@@ -1015,49 +1224,134 @@ git commit -m "refactor(nia): remove all tools tabs, stages and summary from wor
 **Files:**
 - Modify: `src/components/nia/nia-workspace-surface.tsx`
 - Modify: `src/app/nia/nia.css`
-- Test: `tests/component/nia/nia-workspace-surface.test.tsx`
+- Modify: `tests/component/nia/nia-workspace-surface.test.tsx`
 
 - [ ] **Step 1: 编写实时文字胶囊的组件测试**
 
 在 `tests/component/nia/nia-workspace-surface.test.tsx` 中增加：
 ```tsx
-it("displays live spoken text when companion is speaking", async () => {
-  render(<NiaWorkspaceSurface />);
-  // Simulate speaking report
-  // Verify banner renders with spoken content
-});
+  it("displays live speech banner with wave and spoken text when speaking", async () => {
+    let hostListener: ((event: unknown) => void) | null = null;
+    const subscribe = vi.fn((cb: (event: unknown) => void) => {
+      hostListener = cb;
+      return true;
+    });
+    Object.defineProperty(window, "shadowingDesktop", {
+      configurable: true,
+      value: {
+        niaCompanion: {
+          invoke: vi.fn().mockResolvedValue({ state: "speaking" }),
+          subscribe,
+          unsubscribe: vi.fn(),
+        },
+      },
+    });
+
+    try {
+      render(<NiaWorkspaceSurface />);
+
+      await waitFor(() => expect(subscribe).toHaveBeenCalled());
+      hostListener?.({
+        type: "report",
+        report: { type: "saying", generation: 1, delta: "正在测试实时说话胶囊", responseId: "resp-1" },
+      });
+
+      expect(await screen.findByText(/正在测试实时说话胶囊/)).toBeInTheDocument();
+      expect(screen.getByText("ılı.")).toBeInTheDocument();
+    } finally {
+      Reflect.deleteProperty(window, "shadowingDesktop");
+    }
+  });
 ```
 
 - [ ] **Step 2: 在 `nia-workspace-surface.tsx` 实现实时说话文字胶囊**
 
 在 `src/components/nia/nia-workspace-surface.tsx` 中：
-- 监听 `report.type === "saying"` 与 `report.type === "said"`，记录 `liveSpokenText`。
-- 在中央控制区渲染：
+1. 声明状态：
 ```tsx
-<div className="nia-workspace__center-controls">
-  <button
-    aria-label={companionState !== "resting" ? "让 Nia 休息" : "唤醒 Nia"}
-    className="nia-workspace__status"
-    data-speaking={companionState === "speaking" ? "true" : "false"}
-    onClick={toggleWakeRest}
-    type="button"
-  >
-    <span className="nia-workspace__status-dot" data-active={companionState !== "resting"} />
-    {companionState === "speaking" && liveSpokenText ? (
-      <span className="nia-workspace__live-speech">
-        <span className="nia-workspace__wave" aria-hidden="true">ılı.</span>
-        <strong>Nia:</strong> {liveSpokenText}
-      </span>
-    ) : (
-      statusCopy(companionState)
-    )}
-  </button>
-</div>
+const [liveSpokenText, setLiveSpokenText] = useState("");
+```
+2. 在 host bridge 事件订阅中接收 report：
+```tsx
+  useEffect(() => {
+    const bridge = typeof window === "undefined" ? null : getNiaCompanionHostBridge(window);
+    if (!bridge) return;
+    const onHostEvent = (raw: unknown) => {
+      if (!raw || typeof raw !== "object") return;
+      const event = raw as { type?: string; report?: { type?: string; delta?: string; text?: string } };
+      if (event.type === "report" && event.report) {
+        if (event.report.type === "saying" && event.report.delta) {
+          setLiveSpokenText((prev) => prev + event.report.delta!);
+        } else if (event.report.type === "said" && event.report.text) {
+          setLiveSpokenText(event.report.text);
+        }
+      }
+    };
+    bridge.subscribe(onHostEvent);
+    return () => { bridge.unsubscribe(onHostEvent); };
+  }, []);
+```
+3. 在顶栏中央控制区渲染：
+```tsx
+        <div className="nia-workspace__center-controls">
+          <button
+            aria-label={companionState !== "resting" ? "让 Nia 休息" : "唤醒 Nia"}
+            className="nia-workspace__status"
+            data-speaking={companionState === "speaking" ? "true" : "false"}
+            onClick={toggleWakeRest}
+            type="button"
+          >
+            <span className="nia-workspace__status-dot" data-active={companionState !== "resting"} />
+            {companionState === "speaking" && liveSpokenText ? (
+              <span className="nia-workspace__live-speech">
+                <span className="nia-workspace__wave" aria-hidden="true">ılı.</span>
+                <strong>Nia:</strong> {liveSpokenText}
+              </span>
+            ) : (
+              statusCopy(companionState)
+            )}
+          </button>
+        </div>
 ```
 
 - [ ] **Step 3: 添加文字胶囊样式**
 
-在 `src/app/nia/nia.css` 中添加 `.nia-workspace__live-speech` 与 `.nia-workspace__wave` 的跳动微动效与截断样式。
+在 `src/app/nia/nia.css` 中追加：
+```css
+.nia-workspace__status[data-speaking="true"] {
+  max-width: 480px;
+  background: var(--app-surface, rgba(255, 255, 255, 0.9));
+  border: 1px solid var(--app-line, rgba(0, 0, 0, 0.1));
+}
+
+.nia-workspace__live-speech {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 420px;
+}
+
+.nia-workspace__live-speech strong {
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.nia-workspace__wave {
+  color: var(--accent, #6366f1);
+  font-weight: 700;
+  letter-spacing: -1px;
+  animation: nia-wave-pulse 1s ease-in-out infinite;
+}
+
+@keyframes nia-wave-pulse {
+  0%, 100% { opacity: 0.6; transform: scaleY(0.9); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
+```
 
 - [ ] **Step 4: 运行定向测试以确认通过**
 
