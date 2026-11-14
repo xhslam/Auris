@@ -100,8 +100,6 @@ export class NiaRealtimeTransport {
   private configurationTimer: number | null = null;
   private configured = false;
   private operation = 0;
-  private toolCalls = new Set<string>();
-  private needsToolResponse = false;
 
   async open(generation: number, handlers: TransportHandlers): Promise<boolean> {
     this.flushPending(generation);
@@ -318,25 +316,11 @@ export class NiaRealtimeTransport {
         if (event.phase === "cleared") this.emit({ type: "state", generation, state: "listening" });
         return;
       case "tool":
-        if (this.toolCalls.has(event.callId)) return;
-        this.toolCalls.add(event.callId);
-        this.emit({ type: "tool", generation, name: event.name, callId: event.callId, at: Date.now() });
-        let storage: Storage | null = null;
-        try { storage = window.localStorage; } catch { /* Report unavailable through the tool. */ }
-        const output = event.name === NIA_REVIEW_TOOL.name
-          ? readNiaTodayReviews(storage, event.arguments)
-          : { status: "unsupported_tool" };
-        this.send({ type: "conversation.item.create", item: { type: "function_call_output", call_id: event.callId, output: JSON.stringify(output) } });
-        this.needsToolResponse = true;
         return;
       case "response-created":
         this.emit({ type: "state", generation, state: "thinking" });
         return;
       case "response-done":
-        if (this.needsToolResponse) {
-          this.needsToolResponse = false;
-          this.send({ type: "response.create" });
-        }
         return;
       case "error":
         this.emit(errorReport(generation, event.code, event.message, "Rest Nia, then wake her again."));
@@ -383,8 +367,6 @@ export class NiaRealtimeTransport {
 
   private shutdownMedia() {
     this.clearConfigurationTimer();
-    this.toolCalls.clear();
-    this.needsToolResponse = false;
     const channel = this.channel;
     const peer = this.peer;
     const microphone = this.microphone;
