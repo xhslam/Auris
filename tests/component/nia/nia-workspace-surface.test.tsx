@@ -238,7 +238,8 @@ describe("NiaWorkspaceSurface split layout", () => {
       render(<NiaWorkspaceSurface />);
 
       await waitFor(() => expect(subscribe).toHaveBeenCalled());
-      hostListener?.({
+      const dispatchReport = hostListener as ((event: unknown) => void) | null;
+      dispatchReport?.({
         type: "report",
         report: { type: "saying", generation: 1, delta: "正在测试实时说话胶囊", responseId: "resp-1" },
       });
