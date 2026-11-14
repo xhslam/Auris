@@ -151,6 +151,7 @@ export function NiaWorkspaceSurface() {
   const [routingPreference, setRoutingPreference] = useState(loadNiaRoutingPreference);
   const [companion, setCompanion] = useState<CompanionSnapshot>({ state: "resting", muted: false });
   const [companionVisible, setCompanionVisible] = useState(true);
+  const [liveSpokenText, setLiveSpokenText] = useState("");
   const driftEnabled = useNiaCompanionDrift();
   const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -256,7 +257,27 @@ export function NiaWorkspaceSurface() {
         if (typeof item.snapshot.savingConversations === "boolean") setSaveConversations(item.snapshot.savingConversations);
       }
       if (item.type === "visibility" && typeof (item as { visible?: unknown }).visible === "boolean") setCompanionVisible((item as { visible: boolean }).visible);
-      if (item.type === "report" && item.report?.type) setCompanion((current) => ({ ...current, state: item.report?.type === "failed" ? "failed" : item.report?.type === "opened" ? "listening" : current.state }));
+      if (item.type === "report" && item.report) {
+        const report = item.report as { type?: string; delta?: string; text?: string; state?: string };
+        if (report.type === "state" && report.state) {
+          setCompanion((current) => ({ ...current, state: report.state }));
+        } else if (report.type === "failed") {
+          setCompanion((current) => ({ ...current, state: "failed" }));
+        } else if (report.type === "opened") {
+          setCompanion((current) => ({ ...current, state: "listening" }));
+        } else if (report.type === "closed") {
+          setCompanion((current) => ({ ...current, state: "resting" }));
+          setLiveSpokenText("");
+        }
+        if (report.type === "saying") {
+          setCompanion((current) => ({ ...current, state: "speaking" }));
+          if (report.delta) {
+            setLiveSpokenText((prev) => prev + report.delta);
+          }
+        } else if (report.type === "said" && report.text) {
+          setLiveSpokenText(report.text);
+        }
+      }
     };
     bridge.subscribe(listener);
     return () => {
@@ -483,11 +504,19 @@ export function NiaWorkspaceSurface() {
           <button
             aria-label={companionState !== "resting" ? "让 Nia 休息" : "唤醒 Nia"}
             className="nia-workspace__status"
+            data-speaking={companionState === "speaking" ? "true" : "false"}
             onClick={toggleWakeRest}
             type="button"
           >
             <span className="nia-workspace__status-dot" data-active={companionState !== "resting"} />
-            {statusCopy(companionState)}
+            {companionState === "speaking" && liveSpokenText ? (
+              <span className="nia-workspace__live-speech">
+                <span className="nia-workspace__wave" aria-hidden="true">ılı.</span>
+                <strong>Nia:</strong> {liveSpokenText}
+              </span>
+            ) : (
+              statusCopy(companionState)
+            )}
           </button>
         </div>
 

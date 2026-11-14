@@ -216,4 +216,37 @@ describe("NiaWorkspaceSurface split layout", () => {
     expect(screen.queryByRole("button", { name: "暖橙主题" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "蓝色主题" })).not.toBeInTheDocument();
   });
+
+  it("displays live speech bubble pill in center controls when Nia is speaking", async () => {
+    let hostListener: ((event: unknown) => void) | null = null;
+    const subscribe = vi.fn((listener: (event: unknown) => void) => {
+      hostListener = listener;
+      return true;
+    });
+    Object.defineProperty(window, "shadowingDesktop", {
+      configurable: true,
+      value: {
+        niaCompanion: {
+          invoke: vi.fn().mockResolvedValue({ state: "speaking" }),
+          subscribe,
+          unsubscribe: vi.fn(),
+        },
+      },
+    });
+
+    try {
+      render(<NiaWorkspaceSurface />);
+
+      await waitFor(() => expect(subscribe).toHaveBeenCalled());
+      hostListener?.({
+        type: "report",
+        report: { type: "saying", generation: 1, delta: "正在测试实时说话胶囊", responseId: "resp-1" },
+      });
+
+      expect(await screen.findByText(/正在测试实时说话胶囊/)).toBeInTheDocument();
+      expect(screen.getByText("ılı.")).toBeInTheDocument();
+    } finally {
+      Reflect.deleteProperty(window, "shadowingDesktop");
+    }
+  });
 });

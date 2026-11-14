@@ -1535,3 +1535,38 @@ body:has(.nia-workspace)::-webkit-scrollbar,
 .nia-workspace__brand-mark:hover { background: transparent; box-shadow: none; }
 .nia-workspace__brand-mark .nia-character { display: block; width: 38px; height: 38px; }
 .nia-workspace__brand-mark:focus-visible { outline: 2px solid var(--nia-accent); outline-offset: 2px; }
+
+/* Live Speech Banner */
+.nia-workspace__status[data-speaking="true"] {
+  max-width: 480px;
+  background: var(--app-surface, rgba(255, 255, 255, 0.9));
+  border: 1px solid var(--app-line, rgba(0, 0, 0, 0.1));
+}
+
+.nia-workspace__live-speech {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 420px;
+}
+
+.nia-workspace__live-speech strong {
+  font-weight: 600;
+  color: var(--app-ink, #1f2937);
+}
+
+.nia-workspace__wave {
+  color: var(--accent, #6366f1);
+  font-weight: 700;
+  letter-spacing: -1px;
+  animation: nia-wave-pulse 1s ease-in-out infinite;
+}
+
+@keyframes nia-wave-pulse {
+  0%, 100% { opacity: 0.6; transform: scaleY(0.9); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
