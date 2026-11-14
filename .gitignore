@@ -62,3 +62,4 @@ CLAUDE.local.md
 .workbuddy/
 electron/.runtime-node-modules-stage-*/
 winCodeSign-*.7z
+designs/
