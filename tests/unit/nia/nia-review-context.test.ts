@@ -46,9 +46,11 @@ describe("Nia today's review reader", () => {
     expect(second.items).toHaveLength(3);
     expect(second.nextOffset).toBeNull();
   });
-  it("includes actual reminder fields and marks them as data", () => {
+  it("includes actual reminder fields and generates pure natural language reminder without tool prompt", () => {
     const text = buildNiaReviewReminder({ count: 1, items: [{ title: "特征值", projectName: "线性代数", stageLabel: "Day 1", plannedDate: "2026-09-08", overdueDays: 0, secret: "excluded" }] });
-    expect(text).toContain("特征值"); expect(text).toContain("线性代数");
-    expect(text).toContain("get_today_reviews"); expect(text).not.toContain("excluded");
+    expect(text).toContain("特征值");
+    expect(text).toContain("线性代数");
+    expect(text).not.toContain("get_today_reviews");
+    expect(text).not.toContain("excluded");
   });
 });

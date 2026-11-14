@@ -6,7 +6,7 @@ import {
   isNiaTurnEagerness,
   parseNiaRealtimeServerEvent,
 } from "@/features/nia/nia-realtime-protocol";
-import { buildNiaReviewReminder, readNiaTodayReviews, NIA_REVIEW_TOOL, NIA_REVIEW_INSTRUCTIONS } from "@/features/nia/nia-review-context";
+import { buildNiaReviewReminder } from "@/features/nia/nia-review-context";
 import { NIA_REALTIME_INSTRUCTIONS } from "@/features/nia/nia-realtime-protocol";
 import { isNiaLiveVoice } from "@/features/nia/nia-live-session-config";
 import type { NiaVoiceAnswer, NiaVoiceOpened } from "@/features/nia/nia-companion-answers";
@@ -15,6 +15,7 @@ export type CompanionTransportReport =
   | { type: "opened"; generation: number; sessionId: string; expiresAt: number | null }
   | { type: "state"; generation: number; state: string }
   | { type: "heard" | "said"; generation: number; text: string; at?: number; responseId?: string; itemId?: string; cut?: boolean }
+  | { type: "saying"; generation: number; delta: string; responseId: string }
   | { type: "tool"; generation: number; name: string; callId: string; at?: number; status?: string }
   | { type: "failed"; generation: number; code: string; message: string; recovery?: string }
   | { type: "closed"; generation: number; at?: number };
@@ -217,7 +218,15 @@ export class NiaRealtimeTransport {
 
   sendConfig(config: Record<string, unknown> | null) {
     if (!config || this.channel?.readyState !== "open") return false;
-    this.send({ type: "session.update", session: { ...config, tools: [NIA_REVIEW_TOOL], tool_choice: "auto", instructions: NIA_REALTIME_INSTRUCTIONS + NIA_REVIEW_INSTRUCTIONS } });
+    this.send({
+      type: "session.update",
+      session: {
+        ...config,
+        tools: [],
+        tool_choice: "none",
+        instructions: NIA_REALTIME_INSTRUCTIONS,
+      },
+    });
     return true;
   }
 
@@ -285,6 +294,14 @@ export class NiaRealtimeTransport {
         return;
       case "saying":
         this.emit({ type: "state", generation, state: "speaking" });
+        if (event.delta) {
+          this.emit({
+            type: "saying",
+            generation,
+            delta: event.delta,
+            responseId: event.responseId,
+          });
+        }
         return;
       case "said":
         this.emitSettled(this.pending.said(event.itemId, event.transcript, Date.now(), event.responseId), generation);
