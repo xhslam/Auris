@@ -25,6 +25,7 @@ import {
 } from "@/features/output-review/output-review-model";
 import { readOutputReviewState, OUTPUT_REVIEW_STORAGE_EVENT, OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 import { readReviewMcpState, persistReviewMcpState } from "@/features/output-review/review-mcp-handler";
+import type { NotesStorage } from "@/features/notes/note-types";
 import { getNotesStorage } from "@/platform/notes/get-notes-storage";
 import {
   addNotesToReview,

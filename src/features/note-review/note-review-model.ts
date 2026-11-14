@@ -5,6 +5,7 @@ export type NoteReviewItem = {
   noteId: string;
   noteTitle: string;
   noteRelativePath: string;
+  notePreview?: string;
   scheduledDate: string;
   addedAt: string;
   lastReviewedAt: string | null;
