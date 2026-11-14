@@ -18,6 +18,8 @@ import { NiaRealtimeTransport, type CompanionBridge, type CompanionTransportRepo
 import { useNiaCompanionDrift } from "@/features/nia/nia-companion-motion";
 import { useCompanionAvatar } from "./use-companion-avatar";
 import { NiaCharacter } from "../nia-character";
+import { NiaSpeechBubble } from "./nia-speech-bubble";
+import { createUtterance } from "./bubble-utterance";
 import "./companion.css";
 
 type CompanionCommand =
@@ -49,6 +51,13 @@ export function CompanionRuntime() {
   const [lastText, setLastText] = useState("");
   const [isDragging, setDragging] = useState(false);
   const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
+  const [bubbleText, setBubbleText] = useState("");
+  const [bubbleCursor, setBubbleCursor] = useState(0);
+  const [bubbleVisible, setBubbleVisible] = useState(false);
+  const utteranceRef = useRef(createUtterance());
+  const silenceAccumulatorRef = useRef(0);
+  const lastTickTimeRef = useRef(performance.now());
+  const isSpeakingRef = useRef(false);
   const { figureRef, rigRef, expression, intensity, asleep, playMotion, lookAt, connectAudio, stopAudio } = useCompanionAvatar(status, driftEnabled);
   const transportRef = useRef<NiaRealtimeTransport | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -87,16 +96,59 @@ export function CompanionRuntime() {
   }, []);
 
   useEffect(() => {
+    let animFrame: number;
+    lastTickTimeRef.current = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.max(0, Math.min(0.1, (now - lastTickTimeRef.current) / 1000));
+      lastTickTimeRef.current = now;
+      const utt = utteranceRef.current;
+      utt.step(dt, isSpeakingRef.current);
+      setBubbleCursor(utt.at());
+      animFrame = requestAnimationFrame(tick);
+    };
+    animFrame = requestAnimationFrame(tick);
+    return () => {
+      if (typeof cancelAnimationFrame === "function") {
+        cancelAnimationFrame(animFrame);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!bridge) return;
     const transport = new NiaRealtimeTransport();
     transportRef.current = transport;
     const onReport = (report: CompanionTransportReport) => {
-      if (report.type === "state") setStatus(report.state);
-      if (report.type === "failed") setStatus("failed");
-      if (report.type === "closed") setStatus("resting");
+      if (report.type === "state") {
+        setStatus(report.state);
+        isSpeakingRef.current = report.state === "speaking";
+      }
+      if (report.type === "failed") {
+        setStatus("failed");
+        isSpeakingRef.current = false;
+      }
+      if (report.type === "closed") {
+        setStatus("resting");
+        isSpeakingRef.current = false;
+        setBubbleVisible(false);
+      }
+      if (report.type === "saying") {
+        const utt = utteranceRef.current;
+        const currentText = utt.responseId() === report.responseId ? utt.text() + report.delta : report.delta;
+        utt.wrote(report.responseId, currentText);
+        utt.speaks(report.responseId);
+        setBubbleText(currentText);
+        setBubbleVisible(true);
+        silenceAccumulatorRef.current = 0;
+      }
       if (report.type === "heard" || report.type === "said") {
         setLastText(report.text);
-
+        if (report.type === "said") {
+          const utt = utteranceRef.current;
+          utt.wrote(report.responseId ?? "", report.text);
+          utt.finished(report.responseId ?? "", report.cut ?? false);
+          setBubbleText(report.text);
+        }
       }
     };
     const onCommand = (raw: unknown) => {
@@ -110,13 +162,25 @@ export function CompanionRuntime() {
             const audio = audioRef.current;
             if (!audio) return;
             audio.srcObject = stream;
-            connectAudio(stream, audio);
+            connectAudio(stream, audio, (envelope) => {
+              if (envelope <= 0.015) {
+                silenceAccumulatorRef.current += 16;
+                if (silenceAccumulatorRef.current >= 1200) {
+                  setBubbleVisible(false);
+                }
+              } else {
+                silenceAccumulatorRef.current = 0;
+                setBubbleVisible(true);
+              }
+            });
             void audio.play().catch(() => undefined);
           },
         });
       } else if (command.type === "close") {
         transport.close(command.generation);
         setStatus("resting");
+        isSpeakingRef.current = false;
+        setBubbleVisible(false);
       } else if (command.type === "text") {
         transport.sendText(command.text);
       } else if (command.type === "reminder") {
@@ -281,6 +345,12 @@ export function CompanionRuntime() {
       onPointerUp={endPointer}
     >
       <audio aria-hidden="true" ref={audioRef} />
+      <NiaSpeechBubble
+        text={bubbleText}
+        cursor={bubbleCursor}
+        visible={bubbleVisible}
+        onDismiss={() => setBubbleVisible(false)}
+      />
       <p aria-live="polite" className="nia-companion__spoken-status">{readableStatus(status)}{lastText ? `：${lastText}` : ""}</p>
       <div
         className="nia-companion__figure"

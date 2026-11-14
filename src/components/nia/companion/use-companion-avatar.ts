@@ -31,7 +31,11 @@ export function useCompanionAvatar(status: string, driftEnabled: boolean) {
     figureRef.current?.style.setProperty("--nia-mouth-open", "0");
   }, []);
 
-  const connectAudio = useCallback((stream: MediaStream, audio: HTMLAudioElement) => {
+  const connectAudio = useCallback((
+    stream: MediaStream,
+    audio: HTMLAudioElement,
+    onEnvelope?: (envelope: number) => void,
+  ) => {
     stopAudio();
     if (typeof AudioContext === "undefined") return;
     let context: AudioContext | null = null;
@@ -52,6 +56,7 @@ export function useCompanionAvatar(status: string, driftEnabled: boolean) {
         envelope += (target - envelope) * (1 - Math.exp(-dt / (target > envelope ? 35 : 110)));
         last = now;
         figureRef.current?.style.setProperty("--nia-mouth-open", envelope.toFixed(3));
+        onEnvelope?.(envelope);
         frame = requestAnimationFrame(tick);
       };
       frame = requestAnimationFrame(tick);
