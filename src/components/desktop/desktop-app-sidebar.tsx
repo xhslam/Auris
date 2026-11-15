@@ -369,7 +369,11 @@ export function DesktopAppSidebar({
   isPersistentRail = false,
 }: DesktopAppSidebarProps) {
   const resolvedActiveId = activeNavId ?? (activeWorkspace === "home" ? "review" : activeWorkspace);
-  const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(readNotesVaultOpen);
+  const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(false);
+  // SSR and the first client render must agree before restoring session UI.
+  useEffect(() => {
+    startTransition(() => setIsNotesVaultOpen(readNotesVaultOpen()));
+  }, []);
   const handleNotesRootNavigate = useCallback(() => {
     window.dispatchEvent(createNotesRootNavigateEvent());
     setIsNotesVaultOpen(true);
@@ -474,7 +478,7 @@ function renderNavGroup(
                   data-open={Boolean(options.notesVaultOpen)}
                 >
                   <div className="desktop-notes-vault-disclosure__content">
-                    <DesktopNotesVaultNav />
+                    {options.notesVaultOpen ? <DesktopNotesVaultNav /> : null}
                   </div>
                 </div>
               ) : null}

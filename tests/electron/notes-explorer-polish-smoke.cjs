@@ -54,9 +54,10 @@ async function main() {
     await page.locator('.notes-explorer button[title="自动控制原理"]').waitFor({ state: "visible" });
     const explorer = page.getByRole("complementary", { name: "笔记文件栏" });
     const more = explorer.locator("summary");
-    await more.click();
+    assert.equal(await explorer.getByRole("searchbox").count(), 0, "Search starts collapsed");
     await explorer.getByRole("button", { name: "折叠全部文件夹", exact: true }).click();
     assert.equal(await explorer.getByRole("button", { name: "draft.md", exact: true }).count(), 0);
+    await explorer.getByRole("button", { name: "筛选文件", exact: true }).click();
     await explorer.getByRole("searchbox").fill("draft");
     await explorer.getByRole("button", { name: "draft.md", exact: true }).waitFor({ state: "visible" });
     await explorer.getByRole("button", { name: "清空筛选", exact: true }).click();
@@ -88,6 +89,7 @@ async function main() {
             rowHeight: row?.getBoundingClientRect().height,
             selectedBackground: style?.backgroundColor,
             fontSize: style?.fontSize,
+            fontWeight: style?.fontWeight,
             labelOverflow: label && getComputedStyle(label).textOverflow,
             truncated: label && label.scrollWidth > label.clientWidth,
             searchHeight: search.getBoundingClientRect().height,
@@ -95,7 +97,8 @@ async function main() {
             pageScrollWidth: document.documentElement.scrollWidth,
           };
         });
-        assert.equal(metrics.rowHeight, 32);
+        assert.equal(metrics.rowHeight, 34);
+        assert.equal(metrics.width, 250);
         assert.equal(metrics.fontSize, "14px");
         assert.equal(metrics.searchHeight, 32);
         assert.equal(metrics.labelOverflow, "ellipsis");
@@ -109,10 +112,34 @@ async function main() {
     await page.emulateMedia({ reducedMotion: "reduce" });
     assert.equal(await explorer.locator(".notes-v2__tree-caret").first().evaluate(element => getComputedStyle(element).transitionDuration), "0s");
     await more.click();
-    await explorer.getByRole("button", { name: "折叠全部文件夹", exact: true }).focus();
+    await explorer.getByRole("button", { name: "刷新文件", exact: true }).focus();
     await page.keyboard.press("Escape");
     assert.equal(await explorer.locator("details").getAttribute("open"), null);
     for (const [name, content] of Object.entries(files)) assert.equal(fs.readFileSync(path.join(vault, name), "utf8"), content, "Fixture content must stay unchanged");
+    await explorer.getByRole("searchbox").press("Escape");
+    assert.equal(await explorer.getByRole("searchbox").count(), 0);
+    evidence.footer = await explorer.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      const footer = element.querySelector("footer").getBoundingClientRect();
+      const navigation = document.querySelector(".notes-v2__corner-cluster--left").getBoundingClientRect();
+      const toolbar = element.querySelector('[role="toolbar"]').getBoundingClientRect();
+      return { bottomGap: rect.bottom - footer.bottom, footerHeight: footer.height, navigationLeft: navigation.left, explorerRight: rect.right, toolbarHeight: toolbar.height };
+    });
+    assert(evidence.footer.bottomGap <= 1, "Vault footer must reach the bottom");
+    assert(evidence.footer.navigationLeft >= evidence.footer.explorerRight, "Editor navigation must not overlap vault footer");
+    await explorer.getByRole("button", { name: "自动控制原理", exact: true }).click();
+    await explorer.getByRole("button", { name: "习题", exact: true }).click();
+    evidence.expanded = await explorer.evaluate(element => {
+      const rows = Array.from(element.querySelectorAll('[role="treeitem"]'));
+      return rows.map(row => ({ depth: row.getAttribute("aria-level"), top: row.getBoundingClientRect().top, height: row.getBoundingClientRect().height, indent: row.style.getPropertyValue("--notes-tree-indent"), guide: getComputedStyle(row, "::before").backgroundImage }));
+    });
+    for (let i = 1; i < evidence.expanded.length; i++) assert.equal(evidence.expanded[i].top - evidence.expanded[i - 1].top, 34);
+    assert(evidence.expanded.some(row => row.depth === "3" && row.indent === "40px" && row.guide.includes("gradient")));
+    await page.screenshot({ path: path.join(root, "compact-final.png") });
+    await explorer.getByRole("button", { name: "收起文件栏" }).click();
+    assert.equal(await page.locator(".notes-explorer").count(), 0);
+    await page.getByRole("button", { name: "展开文件栏" }).click();
+    await page.locator(".notes-explorer").waitFor();
     evidence.functionalChecksPassed = true;
     assert.deepEqual(evidence.pageErrors, []);
     evidence.success = true;

@@ -1,3 +1,5 @@
+import { renderToString } from "react-dom/server";
+import { hydrateRoot } from "react-dom/client";
 import type { ComponentPropsWithoutRef } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { DesktopAppSidebar } from "@/components/desktop/desktop-app-sidebar";
@@ -73,6 +75,26 @@ describe("DesktopAppSidebar", () => {
     );
     expect(screen.getAllByRole("link")).toHaveLength(DESKTOP_NAV_ITEMS.length);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("restores saved vault expansion after hydration without a server/client mismatch", async () => {
+    window.sessionStorage.setItem("auris.desktop.notes-vault-open", "true");
+    const element = <DesktopAppSidebar activeNavId="notes" activeWorkspace="notes" isVisible />;
+    const host = document.createElement("div");
+    host.innerHTML = renderToString(element);
+    document.body.appendChild(host);
+    expect(host.querySelector('a[href="/notes"]')).toHaveAttribute("aria-expanded", "false");
+    const recoverableErrors = vi.fn();
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => { root = hydrateRoot(host, element, { onRecoverableError: recoverableErrors }); });
+      expect(host.querySelector('a[href="/notes"]')).toHaveAttribute("aria-expanded", "true");
+      expect(recoverableErrors).not.toHaveBeenCalled();
+    } finally {
+      await act(async () => root?.unmount());
+      host.remove();
+      window.sessionStorage.removeItem("auris.desktop.notes-vault-open");
+    }
   });
 
   it("opens the vault list when entering Notes even if it was previously open", async () => {

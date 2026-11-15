@@ -16,7 +16,6 @@ const entries = [
 ];
 
 function collapseAll() {
-  fireEvent.click(screen.getByText("更多文件操作").closest("summary")!);
   fireEvent.click(screen.getByRole("button", { name: "折叠全部文件夹" }));
 }
 
@@ -24,10 +23,48 @@ function setup() {
   const onOpenPath = vi.fn();
   render(<NotesExplorer activePath="notes/sub/draft.md" entries={entries}
     onOpenPath={onOpenPath} onCollapse={vi.fn()} />);
+  fireEvent.click(screen.getByRole("button", { name: "筛选文件" }));
   return { onOpenPath };
 }
 
 describe("NotesExplorer", () => {
+  it("keeps the default toolbar icon-only and moves the vault name to the footer", () => {
+    const pick = vi.fn();
+    const commands = vi.fn();
+    render(<NotesExplorer activePath={null} entries={entries} onOpenPath={vi.fn()}
+      onCollapse={vi.fn()} onPickDirectory={pick} onOpenCommands={commands}
+      directoryInfo={{ connectionStatus: "configured", directoryName: "Alex's Original Vault", isConfigured: true, isSupported: true, vaultPath: "vault" }} />);
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("toolbar")).not.toHaveTextContent("文档");
+    expect(screen.getByRole("button", { name: "切换笔记库" }).closest("footer")).not.toBeNull();
+    expect(screen.getByText("Alex's Original Vault")).toBeVisible();
+    expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
+    fireEvent.click(screen.getByRole("button", { name: "切换笔记库" }));
+    fireEvent.click(screen.getByRole("button", { name: "命令与快捷键" }));
+    expect(pick).toHaveBeenCalledOnce();
+    expect(commands).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "筛选文件" }));
+    expect(screen.getByRole("searchbox")).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole("searchbox"), { key: "Escape" });
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "筛选文件" })).toHaveFocus();
+  });
+
+  it("uses 34px virtual rows, 20px child indentation, and reversible name sorting", () => {
+    setup();
+    const child = screen.getByRole("button", { name: "draft.md" }).closest("li")!;
+    expect(child.style.height).toBe("34px");
+    expect(child.style.getPropertyValue("--notes-tree-indent")).toBe("40px");
+    expect(screen.getByRole("button", { name: "notes" }).querySelector(".notes-explorer__entry-icon")).toBeNull();
+    const rootNames = () => screen.getAllByRole("treeitem").filter((item) => item.getAttribute("aria-level") === "1").map((item) => item.textContent);
+    const before = rootNames();
+    fireEvent.click(screen.getByRole("button", { name: "按名称倒序排列" }));
+    expect(rootNames()).not.toEqual(before);
+    expect(screen.getByRole("button", { name: "按名称倒序排列" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "按名称倒序排列" }));
+    expect(rootNames()).toEqual(before);
+  });
+
   it("shows only Markdown, images and folders, including empty folders", () => {
     setup();
     for (const name of ["draft.md", "guide.MARKDOWN", "image.PNG", "diagram.svg", "photo.heic", "animation.webp", "empty"]) {
@@ -93,13 +130,15 @@ describe("NotesExplorer", () => {
     fireEvent.keyDown(search, { key: "Escape" });
     expect(search).toHaveValue("");
     expect(search).toHaveFocus();
-    collapseAll();
+    fireEvent.click(screen.getByText("更多文件操作").closest("summary")!);
+    fireEvent.keyDown(screen.getByText("更多文件操作").closest("details")!, { key: "Escape" });
     expect(screen.getByText("更多文件操作").closest("summary")).toHaveFocus();
   });
 
   it("does not count hidden files as visible search results", () => {
     render(<NotesExplorer activePath={null} entries={[file(".private/secret.md")]}
       onOpenPath={vi.fn()} onCollapse={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "筛选文件" }));
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "secret" } });
     expect(screen.getByRole("status")).toHaveTextContent("没有匹配的文件");
     expect(screen.queryByRole("button", { name: "secret.md" })).not.toBeInTheDocument();

@@ -74,6 +74,20 @@ const ENTRIES: VaultEntry[] = [
 ];
 
 describe("NotesFileTree", () => {
+  it("keeps custom row height consistent across virtual spacers and scrolled windows", () => {
+    const entries: VaultEntry[] = Array.from({ length: 100 }, (_, index) => ({
+      kind: "file", path: `note-${index}.md`, name: `note-${index}.md`, mtime: null, size: 1,
+    }));
+    const { container } = render(<NotesFileTree activePath={null} entries={entries}
+      onOpenPath={vi.fn()} rowHeight={34} indentWidth={20} />);
+    const nav = container.querySelector("nav")!;
+    expect((nav.firstElementChild as HTMLElement).style.height).toBe("3400px");
+    fireEvent.scroll(nav, { target: { scrollTop: 1700 } });
+    expect(screen.getByRole("tree").style.top).toBe("1428px");
+    expect(screen.getByRole("button", { name: "note-50.md" })).toBeInTheDocument();
+    for (const item of screen.getAllByRole("treeitem")) expect(item.style.height).toBe("34px");
+  });
+
   it("renders vault entries and opens a file when selected", async () => {
     const user = userEvent.setup();
     const onOpenPath = vi.fn();

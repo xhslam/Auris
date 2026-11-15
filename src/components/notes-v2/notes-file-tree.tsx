@@ -56,6 +56,9 @@ export type NotesFileTreeProps = {
   variant?: "default" | "obsidian";
   showIcons?: boolean;
   filterActive?: boolean;
+  rowHeight?: number;
+  indentWidth?: number;
+  sortDescending?: boolean;
 };
 
 const MOVE_DRAG_MIME = "application/x-notes-vault-path";
@@ -83,7 +86,7 @@ function canDropInto(
 
 const treeCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
-export function createTree(entries: VaultEntry[]): TreeNode[] {
+export function createTree(entries: VaultEntry[], sortDescending = false): TreeNode[] {
   const lookup = new Map<string, TreeNode>();
   const childrenMap = new Map<string, TreeNode[]>();
   const rootChildren: TreeNode[] = [];
@@ -163,7 +166,7 @@ export function createTree(entries: VaultEntry[]): TreeNode[] {
       if (left.kind !== right.kind) {
         return left.kind === "directory" ? -1 : 1;
       }
-      return treeCollator.compare(left.name, right.name);
+      return treeCollator.compare(left.name, right.name) * (sortDescending ? -1 : 1);
     });
 
     for (const node of nodes) {
@@ -264,10 +267,13 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
       variant = "default",
       showIcons = false,
       filterActive = false,
+      rowHeight = TREE_ROW_HEIGHT,
+      indentWidth = 16,
+      sortDescending = false,
     }: NotesFileTreeProps,
     ref,
   ) {
-    const tree = useMemo(() => createTree(entries), [entries]);
+    const tree = useMemo(() => createTree(entries, sortDescending), [entries, sortDescending]);
     const existingPaths = useMemo(
       () => entries.map((entry) => entry.path),
       [entries],
@@ -347,20 +353,20 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
       const index = flattened.findIndex((item) => item.node.path === activePath);
       if (index === -1) return;
 
-      const itemTop = index * TREE_ROW_HEIGHT;
+      const itemTop = index * rowHeight;
       const container = scrollContainerRef.current;
       if (container) {
         if (
           itemTop < container.scrollTop ||
-          itemTop > container.scrollTop + containerHeight - TREE_ROW_HEIGHT
+          itemTop > container.scrollTop + containerHeight - rowHeight
         ) {
           container.scrollTop = Math.max(
             0,
-            itemTop - containerHeight / 2 + TREE_ROW_HEIGHT / 2,
+            itemTop - containerHeight / 2 + rowHeight / 2,
           );
         }
       }
-    }, [activePath, containerHeight, flattened]);
+    }, [activePath, containerHeight, flattened, rowHeight]);
 
     const handleDragStart = useCallback(
       (event: React.DragEvent, node: TreeNode) => {
@@ -556,16 +562,16 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
     );
 
     const totalCount = flattened.length;
-    const totalHeight = totalCount * TREE_ROW_HEIGHT;
+    const totalHeight = totalCount * rowHeight;
 
     // Windowing: calculate start and end index
     const startIndex = Math.max(
       0,
-      Math.floor(scrollTop / TREE_ROW_HEIGHT) - TREE_OVERSCAN,
+      Math.floor(scrollTop / rowHeight) - TREE_OVERSCAN,
     );
     const endIndex = Math.min(
       totalCount,
-      Math.ceil((scrollTop + containerHeight) / TREE_ROW_HEIGHT) +
+      Math.ceil((scrollTop + containerHeight) / rowHeight) +
         TREE_OVERSCAN,
     );
     const visibleItems = flattened.slice(startIndex, endIndex);
@@ -610,14 +616,14 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
                 padding: 0,
                 position: "absolute",
                 right: 0,
-                top: `${startIndex * TREE_ROW_HEIGHT}px`,
+                top: `${startIndex * rowHeight}px`,
               }}
               tabIndex={0}
             >
               {visibleItems.map(({ depth, isExpanded, node }) => {
                 const nodeStyle = {
-                  "--notes-tree-indent": `${depth * 16}px`,
-                  height: `${TREE_ROW_HEIGHT}px`,
+                  "--notes-tree-indent": `${depth * indentWidth}px`,
+                  height: `${rowHeight}px`,
                 } as CSSProperties;
 
                 if (node.kind === "directory") {

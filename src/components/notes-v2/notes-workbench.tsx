@@ -890,6 +890,7 @@ export function NotesWorkbench({
     <>
       <section
         className="notes-v2 notes-v2--minimal notes-v2--explorer"
+        data-explorer-open={explorerOpen ? "true" : "false"}
         data-notes-theme={readingTheme}
         data-focus-mode={viewPreferences.focusMode ? "true" : "false"}
         data-focus-dim={(["standard", "strong", "stronger"] as const)[windowPreferences.focusDim]}
@@ -922,6 +923,7 @@ export function NotesWorkbench({
             onRenamePath={onRenamePath} onRevealPath={onRevealPath}
             onMovePath={onMovePath} onCopyPath={onCopyPath}
             onPickDirectory={onPickDirectory} onRefresh={onRefresh} isLoading={isLoading}
+            onOpenCommands={onOpenCommandPaletteChange ? () => onOpenCommandPaletteChange(true) : undefined}
             onOpenFile={onOpenFile} onCollapse={() => setExplorerOpen(false)}
           /> : null}
           <main className="notes-v2__minimal-canvas">
