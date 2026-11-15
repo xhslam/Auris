@@ -1402,7 +1402,7 @@ describe("NotesWorkbench", () => {
     expect(footer.querySelector(".notes-v2__corner-cluster--right")).not.toBeNull();
     expect(screen.getByRole("button", { name: `Open workspace switcher for ${longTitle}` })).toBeInTheDocument();
     expect(footer.querySelector(".notes-v2__active-note-title")).toHaveAttribute("title", longTitle);
-    expect(footer.querySelectorAll(".notes-v2__corner-cluster--right button.notes-v2__corner-icon")).toHaveLength(7);
+    expect(footer.querySelectorAll(".notes-v2__corner-cluster--right button.notes-v2__corner-icon")).toHaveLength(6);
     await waitFor(() => expect(terminalBridge.resume).toHaveBeenCalledTimes(1));
     const originalScreen = screen.getByTestId("xterm-stub");
     await user.click(screen.getByRole("button", { name: NOTES_UI_COPY.rightRail.terminal.open }));

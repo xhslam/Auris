@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import { createWikiLinkResolver } from "@/features/notes/documents/backlinks";
 import type { NoteDocument } from "@/features/notes/documents/document-types";
 import { renderMarkdown } from "@/features/notes/rendering/remark-renderer";
 import type { NotesMarkdownLinkOpenHandler } from "@/features/notes/editor/editor-types";
+
+import { useNotesImagePath } from "./use-notes-image-path";
+import { resolveMarkdownImageSource } from "@/features/notes/editor/code-block-preview";
+import { getNotesMediaReloadKey, subscribeNotesMediaReloadKey } from "@/features/notes/editor/notes-media-reload";
 
 type NotesReadingPaneProps = {
   document: NoteDocument | null;
@@ -21,6 +25,8 @@ export function NotesReadingPane({
   onOpenWikiLink,
 }: NotesReadingPaneProps) {
   const sourcePath = document?.path ?? "";
+  const imagePath = useNotesImagePath(sourcePath);
+  const mediaReloadKey = useSyncExternalStore(subscribeNotesMediaReloadKey, getNotesMediaReloadKey, () => 0);
 
   const wikiLinkExists = useMemo(() => {
     const resolve = createWikiLinkResolver(documents ?? []);
@@ -33,8 +39,9 @@ export function NotesReadingPane({
     return renderMarkdown(document.rawSource, {
       wikiLinkClickable: Boolean(onOpenWikiLink),
       wikiLinkExists,
+      resolveImageSource: (source) => resolveMarkdownImageSource(source, imagePath, mediaReloadKey),
     });
-  }, [document, onOpenWikiLink, wikiLinkExists]);
+  }, [document, imagePath, mediaReloadKey, onOpenWikiLink, wikiLinkExists]);
 
   // Route note links through the desktop bridge instead of navigating the app webview.
   const handleClick = useCallback(

@@ -16,6 +16,8 @@
 import remarkRehype from "remark-rehype";
 import rehypeKatex from "rehype-katex";
 import rehypeStringify from "rehype-stringify";
+import type { Root } from "hast";
+import type { VFile } from "vfile";
 import { visit } from "unist-util-visit";
 import {
   createNotesMarkdownProcessor,
@@ -331,6 +333,20 @@ function rehypeReadingMathClasses() {
 // Frozen pipeline — built once, reused for every renderMarkdown() call
 // ─────────────────────────────────────────────────────────────────────────────
 
+function rehypeNotesImages() {
+  return (tree: Root, file: VFile) => {
+    const resolve = file.data.notesResolveImageSource as RemarkRenderOptions["resolveImageSource"];
+    if (!resolve) return;
+    visit(tree, "element", (node) => {
+      if (node.tagName !== "img") return;
+      const source = typeof node.properties.src === "string" ? node.properties.src : "";
+      const resolved = resolve(source);
+      if (resolved) node.properties.src = resolved;
+      else delete node.properties.src;
+    });
+  };
+}
+
 const pipeline = createNotesMarkdownProcessor()
   .use(remarkRehype)
   .use(rehypeKatex, {
@@ -342,6 +358,7 @@ const pipeline = createNotesMarkdownProcessor()
   .use(rehypeCallouts)
   .use(rehypeSoftLineBreaks)
   .use(rehypeReadingMathClasses)
+  .use(rehypeNotesImages)
   .use(rehypeStringify)
   .freeze();
 
@@ -388,6 +405,8 @@ function postProcessWikiLinks(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type RemarkRenderOptions = {
+  /** Host-controlled safe resolution of note-relative media. */
+  resolveImageSource?: (source: string) => string | null;
   /** Called for each wiki-link target to determine exists/missing styling. */
   wikiLinkExists?: (target: string) => boolean;
   /** Whether wiki links should render as navigable anchors. */
@@ -405,7 +424,7 @@ export function renderMarkdown(
   try {
     assertNotesMarkdownNestingSafe(source);
     const rawHtml = String(
-      pipeline.processSync(normalizeNotesMathDelimiters(source)),
+      pipeline.processSync({ value: normalizeNotesMathDelimiters(source), data: { notesResolveImageSource: options?.resolveImageSource } }),
     );
     return postProcessWikiLinks(
       rawHtml,

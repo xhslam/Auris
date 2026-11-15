@@ -1,3 +1,4 @@
+import { NIA_CHARACTER_STYLE_KEY } from "@/features/nia/nia-character-appearance";
 import { NIA_AVATAR_CUE_KEY } from "@/features/nia/nia-avatar-behavior";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import {
@@ -21,6 +22,22 @@ describe("NiaWorkspaceSurface split layout", () => {
     __resetNiaTaskStoreForTests();
   });
 
+  it("selects a persistent character style while keeping expression controls independent", () => {
+    const view = render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    const focused = screen.getByRole("button", { name: /04 学习专注版/ });
+    fireEvent.click(focused);
+    expect(focused).toHaveAttribute("aria-pressed", "true");
+    expect(window.localStorage.getItem(NIA_CHARACTER_STYLE_KEY)).toBe("focused");
+    expect(view.container.querySelector(".nia-workspace__mini-avatar svg")).toHaveAttribute("data-variant", "focused");
+    fireEvent.click(screen.getByRole("button", { name: /^开心$/ }));
+    expect(window.localStorage.getItem(NIA_CHARACTER_STYLE_KEY)).toBe("focused");
+    view.unmount();
+    render(<NiaWorkspaceSurface />);
+    fireEvent.click(screen.getByRole("button", { name: "Nia 设置" }));
+    expect(screen.getByRole("button", { name: /04 学习专注版/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("keeps the stage readable while constraining the inspector width", () => {
     expect(constrainNiaInspectorWidth(700, 1_200)).toBe(640);
     expect(constrainNiaInspectorWidth(640, 900)).toBe(402);
@@ -36,15 +53,11 @@ describe("NiaWorkspaceSurface split layout", () => {
     expect(screen.queryByText("当前主题")).not.toBeInTheDocument();
   });
 
-  it("keeps the tool catalogue in the main stage and routing in a non-duplicated inspector", () => {
+  it("removes the tool tab and tool stage completely from workspace", () => {
     render(<NiaWorkspaceSurface />);
 
-    fireEvent.click(screen.getByRole("tab", { name: "工具" }));
-
-    expect(screen.getByRole("article", { name: "可用工具与模型路由" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "工具连接概览" })).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Nia model routing and usage")).toHaveLength(1);
-    expect(screen.getAllByText("独立陪伴模式")).toHaveLength(1);
+    expect(screen.queryByRole("tab", { name: "工具" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "可用工具与模型路由" })).not.toBeInTheDocument();
   });
 
   it("uses the main-process snapshot as the conversation-saving authority", async () => {
@@ -202,5 +215,39 @@ describe("NiaWorkspaceSurface split layout", () => {
     expect(screen.queryByRole("button", { name: "金色主题" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "暖橙主题" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "蓝色主题" })).not.toBeInTheDocument();
+  });
+
+  it("displays live speech bubble pill in center controls when Nia is speaking", async () => {
+    let hostListener: ((event: unknown) => void) | null = null;
+    const subscribe = vi.fn((listener: (event: unknown) => void) => {
+      hostListener = listener;
+      return true;
+    });
+    Object.defineProperty(window, "shadowingDesktop", {
+      configurable: true,
+      value: {
+        niaCompanion: {
+          invoke: vi.fn().mockResolvedValue({ state: "speaking" }),
+          subscribe,
+          unsubscribe: vi.fn(),
+        },
+      },
+    });
+
+    try {
+      render(<NiaWorkspaceSurface />);
+
+      await waitFor(() => expect(subscribe).toHaveBeenCalled());
+      const dispatchReport = hostListener as ((event: unknown) => void) | null;
+      dispatchReport?.({
+        type: "report",
+        report: { type: "saying", generation: 1, delta: "正在测试实时说话胶囊", responseId: "resp-1" },
+      });
+
+      expect(await screen.findByText(/正在测试实时说话胶囊/)).toBeInTheDocument();
+      expect(screen.getByText("ılı.")).toBeInTheDocument();
+    } finally {
+      Reflect.deleteProperty(window, "shadowingDesktop");
+    }
   });
 });

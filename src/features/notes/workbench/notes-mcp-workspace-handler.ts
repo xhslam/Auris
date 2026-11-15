@@ -1,3 +1,4 @@
+import { writeContentMermaid } from "@/features/notes/graph/content-mermaid";
 import {
   createNotesMcpError,
   createNotesMcpRevision,
@@ -68,7 +69,7 @@ export function executeNotesMcpWorkspaceRequest(
     return {
       active_tab_id: context.workspace.activePath,
       capabilities: {
-        document: ["read", "write"],
+        document: ["read", "write", "write_mermaid"],
         selection: ["get", "set"],
         workspace: ["new", "open", "save", "close", "switch_tab"],
       },
@@ -121,6 +122,15 @@ export function executeNotesMcpWorkspaceRequest(
       throwMcpError("NOTES_UNAVAILABLE", "The Auris notes editor is not ready.");
     }
 
+    let nextSource = data.content;
+    if (data.action === "write_mermaid") {
+      try {
+        nextSource = writeContentMermaid(document.rawSource, data.content);
+      } catch (error) {
+        throwMcpError("INVALID_ARGUMENT", error instanceof Error ? error.message : "Invalid Mermaid input.");
+      }
+    }
+
     const evidence = data.evidence
       ? normalizeBrowserEvidence(data.evidence)
       : undefined;
@@ -135,7 +145,7 @@ export function executeNotesMcpWorkspaceRequest(
 
       return createNotesMcpPendingEditResult({
         ...context.onPendingEdit({
-          afterSource: data.content,
+          afterSource: nextSource,
           beforeSource: document.rawSource,
           ...(evidence ? { evidence } : {}),
           expectedRevision: currentRevision,
@@ -143,7 +153,7 @@ export function executeNotesMcpWorkspaceRequest(
           mode: "source",
           path: document.path,
         }),
-        afterSource: data.content,
+        afterSource: nextSource,
         beforeSource: document.rawSource,
         createdAt: new Date().toISOString(),
         ...(evidence ? { evidence } : {}),
@@ -154,10 +164,10 @@ export function executeNotesMcpWorkspaceRequest(
       });
     }
 
-    context.onDocumentChange(document.path, data.content);
+    context.onDocumentChange(document.path, nextSource);
 
     return {
-      revision: createNotesMcpRevision(data.content),
+      revision: createNotesMcpRevision(nextSource),
       tab_id: document.path,
     };
   }

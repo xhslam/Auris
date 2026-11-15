@@ -1,0 +1,457 @@
+/* Note Daily Review Styles */
+
+/* Note Picker Modal */
+.note-picker-modal {
+  width: min(640px, 92vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-picker-modal__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--app-surface-2, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--app-border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  margin-bottom: 12px;
+  color: var(--app-text-muted, #94a3b8);
+}
+
+.note-picker-modal__search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--app-text, #f8fafc);
+  font-size: 14px;
+  outline: none;
+}
+
+.note-picker-modal__search input::placeholder {
+  color: var(--app-text-muted, #64748b);
+}
+
+.note-picker-modal__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--app-text-muted, #94a3b8);
+}
+
+.note-picker-modal__bulk {
+  display: flex;
+  gap: 8px;
+}
+
+.note-picker-modal__bulk button {
+  background: transparent;
+  border: none;
+  color: var(--color-accent, #60a5fa);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.note-picker-modal__bulk button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.note-picker-modal__list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 220px;
+  max-height: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.note-picker-modal__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 16px;
+  color: var(--app-text-muted, #94a3b8);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.note-picker-modal__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--app-surface-1, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--app-border, rgba(255, 255, 255, 0.08));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.note-picker-modal__item:hover {
+  background: var(--app-surface-2, rgba(255, 255, 255, 0.07));
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.note-picker-modal__item[data-selected="true"] {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.note-picker-modal__icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.note-picker-modal__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.note-picker-modal__info strong {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--app-text, #f1f5f9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-picker-modal__info small {
+  font-size: 11.5px;
+  color: var(--app-text-muted, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.note-picker-modal__badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--app-text-muted, #94a3b8);
+  white-space: nowrap;
+}
+
+/* Note Review Card Styles */
+.note-review-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--app-surface-1, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--app-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 16px;
+  gap: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.note-review-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: var(--app-surface-2, rgba(255, 255, 255, 0.05));
+}
+
+.note-review-card[data-status="reviewed"] {
+  border-color: rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.03);
+}
+
+.note-review-card[data-status="needs_practice"] {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.note-review-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.note-review-card__title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-review-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--app-text, #f8fafc);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-review-card__path {
+  font-size: 12px;
+  color: var(--app-text-muted, #64748b);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-review-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-review-status-badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.note-review-status-badge[data-status="pending"] {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+}
+
+.note-review-status-badge[data-status="needs_practice"] {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.note-review-status-badge[data-status="reviewed"],
+.note-review-status-badge[data-status="mastered"] {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.note-review-card__preview-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--app-text-muted, #94a3b8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.note-review-card__preview-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--app-text, #f8fafc);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.note-review-card__preview-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+  max-height: 240px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--app-text, #cbd5e1);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-review-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.note-review-card__actions-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-review-btn-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.note-review-btn-jump:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.note-review-btn-master {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.note-review-btn-master:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.note-review-btn-promote {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--app-text-muted, #94a3b8);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.note-review-btn-promote:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--app-text, #f1f5f9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.note-review-btn-remove {
+  background: transparent;
+  border: none;
+  color: var(--app-text-muted, #64748b);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.note-review-btn-remove:hover {
+  color: #ef4444;
+}
+
+/* Today Note Review Section */
+.today-note-review-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.today-note-review-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.today-note-review-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--app-text, #f8fafc);
+}
+
+.today-note-review-section__badge {
+  font-size: 12px;
+  font-weight: normal;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--app-text-muted, #94a3b8);
+}
+
+.today-note-review-section__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+  gap: 10px;
+  color: var(--app-text-muted, #94a3b8);
+  font-size: 13px;
+}
+
+.today-note-review-section__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Dedicated Notes Review View */
+.notes-review-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.notes-review-view__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.notes-review-view__filters {
+  display: flex;
+  gap: 6px;
+}
+
+.notes-review-view__filters button {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--app-surface-1, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--app-border, rgba(255, 255, 255, 0.08));
+  color: var(--app-text-muted, #94a3b8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.notes-review-view__filters button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--app-text, #f8fafc);
+}
+
+.notes-review-view__filters button[data-active="true"] {
+  background: var(--color-primary, #3b82f6);
+  border-color: var(--color-primary, #3b82f6);
+  color: #fff;
+  font-weight: 500;
+}

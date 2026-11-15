@@ -1,7 +1,7 @@
 "use strict";
 
-const DEFAULT_WIDTH = 320;
-const DEFAULT_HEIGHT = 360;
+const DEFAULT_WIDTH = 340;
+const DEFAULT_HEIGHT = 420;
 const EDGE_MARGIN = 18;
 
 function finite(value, fallback) {
@@ -31,7 +31,9 @@ function clampPlacement(placement, workArea, box = { width: DEFAULT_WIDTH, heigh
 }
 
 function defaultPlacement(workArea, box = { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT }) {
-  return clampPlacement({ x: finite(workArea?.x, 0) + finite(workArea?.width, DEFAULT_WIDTH) - DEFAULT_WIDTH - EDGE_MARGIN, y: finite(workArea?.y, 0) + finite(workArea?.height, DEFAULT_HEIGHT) - DEFAULT_HEIGHT - EDGE_MARGIN }, workArea, box);
+  const width = Math.max(1, finite(box.width, DEFAULT_WIDTH));
+  const height = Math.max(1, finite(box.height, DEFAULT_HEIGHT));
+  return clampPlacement({ x: finite(workArea?.x, 0) + finite(workArea?.width, width) - width - EDGE_MARGIN, y: finite(workArea?.y, 0) + finite(workArea?.height, height) - height - EDGE_MARGIN }, workArea, { width, height });
 }
 
 module.exports = { DEFAULT_HEIGHT, DEFAULT_WIDTH, clampPlacement, defaultPlacement, normalizePlacement };

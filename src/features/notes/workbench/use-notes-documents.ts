@@ -327,7 +327,16 @@ export function useNotesDocuments(input: UseNotesDocumentsInput) {
       return;
     }
 
-    setWorkspace((current) => openWorkspacePath(current, nextPath));
+    // Session hydration may still be pending: this updater can be queued and
+    // replayed against the restored workspace. Re-check its live activePath so
+    // the eager first document never overwrites the last viewed note (or an
+    // earlier queued user navigation / explicit resume target).
+    setWorkspace((current) => {
+      const path = resumePath ?? current.activePath ?? nextPath;
+      return current.activePath === path && current.openTabs.includes(path)
+        ? current
+        : openWorkspacePath(current, path);
+    });
   }, [
     documents,
     resumeNoteId,

@@ -25,9 +25,10 @@ import {
 } from "@/features/notes/workbench/build-notes-command-palette";
 import { executeNotesMcpRequest } from "@/features/notes/workbench/notes-mcp-request-handler";
 import { executeNotesMcpWorkspaceRequest } from "@/features/notes/workbench/notes-mcp-workspace-handler";
-import type {
-  NotesMcpPendingEdit,
-  NotesMcpPendingEditInput,
+import {
+  isNotesMcpDocumentEditCurrent,
+  type NotesMcpPendingEdit,
+  type NotesMcpPendingEditInput,
 } from "@/features/notes/workbench/notes-mcp-edit-review";
 import { useNotesDocuments } from "@/features/notes/workbench/use-notes-documents";
 import { useNotesRuntime } from "@/features/notes/workbench/use-notes-runtime";
@@ -363,6 +364,12 @@ export function useNotesWorkbenchFacade(options?: UseNotesWorkbenchOptions) {
     }
 
     if (pendingMcpEdit.kind === "document") {
+      const currentDocument = documentsRef.current.find(document => document.path === pendingMcpEdit.path);
+      if (!workspaceRef.current.openTabs.includes(pendingMcpEdit.path) || !isNotesMcpDocumentEditCurrent(pendingMcpEdit, currentDocument)) {
+        setErrorMessage("笔记在等待审批期间已变化或关闭，请让 Agent 重新读取后生成。");
+        setPendingMcpEdit(null);
+        return;
+      }
       handleDocumentChangeWithEditTracking(
         pendingMcpEdit.path,
         pendingMcpEdit.afterSource,

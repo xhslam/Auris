@@ -96,38 +96,30 @@ export async function readImageFileAsDataUrl(file: File) {
 }
 
 function buildMarkdownImageSource(alt: string, source: string, title = "") {
-  return title ? `![${alt}](${source} "${title}")` : `![${alt}](${source})`;
+  const safeAlt = alt.replace(/[\\[\]]/g, "\\$&").replace(/[\r\n]/g, " ");
+  return title ? `![${safeAlt}](${source} "${title}")` : `![${safeAlt}](${source})`;
 }
 
 export async function prepareImageInsertion(
   input: PrepareImageInsertionInput,
 ): Promise<PreparedImageInsertion> {
+  validateNotesImageFile(input.file);
   const alt = getFileStem(input.file.name);
   const title = "";
   const usePersistedAttachment = Boolean(input.persistAttachment);
 
   if (usePersistedAttachment) {
-    try {
-      const id = input.createId?.() ?? createAttachmentId();
-      const { referencePath, storagePath } = buildImageAttachmentPaths(
-        input.notePath,
-        input.file,
-        id,
-      );
-      const bytes = new Uint8Array(await input.file.arrayBuffer());
-
-      await input.persistAttachment?.(storagePath, bytes);
-
-      return {
-        alt,
-        markdown: buildMarkdownImageSource(alt, referencePath, title),
-        source: referencePath,
-        storagePath,
-        title,
-      };
-    } catch {
-      // Fall back to an embedded data URL so the paste/drop action still succeeds.
-    }
+    const id = input.createId?.() ?? createAttachmentId();
+    const { referencePath, storagePath } = buildImageAttachmentPaths(input.notePath, input.file, id);
+    const bytes = new Uint8Array(await input.file.arrayBuffer());
+    await input.persistAttachment!(storagePath, bytes);
+    return {
+      alt,
+      markdown: buildMarkdownImageSource(alt, referencePath, title),
+      source: referencePath,
+      storagePath,
+      title,
+    };
   }
 
   const source = await (input.readDataUrl ?? readImageFileAsDataUrl)(input.file);
@@ -139,4 +131,32 @@ export async function prepareImageInsertion(
     storagePath: null,
     title,
   };
+}
+
+// Keep accepted formats consistent with the Notes safe data-image renderer.
+export const NOTES_IMAGE_MAX_BYTES = 20 * 1024 * 1024;
+const IMAGE_EXTENSION = /\.(?:png|jpe?g|gif|webp|avif)$/i;
+const IMAGE_MIME = /^image\/(?:png|jpe?g|gif|webp|avif)$/i;
+
+export function collectNotesImageFiles(transfer: Pick<DataTransfer, "files" | "items"> | null | undefined): File[] {
+  const files = Array.from(transfer?.files ?? []);
+  if (files.length === 0) {
+    for (const item of Array.from(transfer?.items ?? [])) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+  }
+  // Claim unsupported image formats too, so the user receives a useful error
+  // instead of ProseMirror inserting an ephemeral blob URL.
+  return files.filter((file) => file.type.startsWith("image/") || IMAGE_EXTENSION.test(file.name));
+}
+
+export function validateNotesImageFile(file: File) {
+  if (!(file.type ? IMAGE_MIME.test(file.type) : IMAGE_EXTENSION.test(file.name))) {
+    throw new Error("请选择 PNG、JPEG、GIF、WebP 或 AVIF 图片。");
+  }
+  if (file.size === 0) throw new Error("图片文件为空。");
+  if (file.size > NOTES_IMAGE_MAX_BYTES) throw new Error("单张图片不能超过 20 MB。");
 }

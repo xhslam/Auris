@@ -1,3 +1,4 @@
+import { createNotesMcpRevision } from "@/features/notes/workbench/notes-mcp-contract";
 import type { NotesEditorMode, NotesEditorSelectionState } from "@/features/notes/editor/editor-types";
 import type { BrowserEvidence } from "@/features/browser/evidence";
 
@@ -41,4 +42,13 @@ export function createNotesMcpPendingEditResult(edit: NotesMcpPendingEdit) {
       path: edit.path,
     },
   };
+}
+
+/** Recheck after human approval: an earlier revision check cannot protect later edits. */
+export function isNotesMcpDocumentEditCurrent(
+  edit: Extract<NotesMcpPendingEdit, { kind: "document" }>,
+  document: { path: string; rawSource: string } | undefined,
+) {
+  return document?.path === edit.path && document.rawSource === edit.beforeSource &&
+    createNotesMcpRevision(document.rawSource) === edit.expectedRevision;
 }

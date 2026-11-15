@@ -308,11 +308,11 @@ describe("output review page", () => {
     expect(screen.getByLabelText("知识点详情：大数定律与中心极限定理")).toBeInTheDocument();
   });
 
-  it("keeps one shared navigation and add action across the four remaining views", async () => {
+  it("keeps one shared navigation and add action across all views", async () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
     const navigation = screen.getByRole("navigation", { name: "输出复习视图" });
-    const labels = ["今天", "全部", "项目", "复盘热力图"];
+    const labels = ["今天", "书籍回顾", "笔记回顾", "全部", "项目", "复盘热力图"];
     expect(within(navigation).getAllByRole("button").map((button) => button.textContent)).toEqual(labels);
     for (const label of labels) {
       const button = within(navigation).getByRole("button", { name: label });
@@ -322,6 +322,54 @@ describe("output review page", () => {
       expect(navigation.querySelectorAll('[data-active="true"]')).toHaveLength(1);
       expect(within(navigation.parentElement!).getByRole("button", { name: "添加知识点" })).toBeInTheDocument();
     }
+  });
+
+  it("renders today note review section and navigates to 笔记回顾 tab", async () => {
+    const user = userEvent.setup();
+    render(<ReviewPageClient />);
+
+    // In today view, today note review section exists
+    expect(screen.getByRole("region", { name: "今日笔记自选回顾" })).toBeInTheDocument();
+
+    // Click 笔记回顾 tab
+    await user.click(screen.getByRole("button", { name: "笔记回顾" }));
+    expect(screen.getByRole("heading", { name: "笔记回顾工作台" })).toBeInTheDocument();
+  });
+
+  it("promotes a note review item into 1/2/4/7 spaced repetition under 笔记回顾 project", async () => {
+    const user = userEvent.setup();
+    // Seed note review item into localStorage
+    window.localStorage.setItem(
+      "auris.note-review.v1",
+      JSON.stringify({
+        version: 1,
+        items: [
+          {
+            id: "nr_test_1",
+            noteId: "note_alg_1",
+            noteTitle: "线性代数总结",
+            noteRelativePath: "Math/LA.md",
+            scheduledDate: toLocalDateKey(new Date()),
+            addedAt: new Date().toISOString(),
+            lastReviewedAt: null,
+            reviewCount: 0,
+            status: "pending",
+          },
+        ],
+      }),
+    );
+
+    render(<ReviewPageClient />);
+    expect(screen.getByText("线性代数总结")).toBeInTheDocument();
+
+    // Click 纳入 1/2/4/7
+    const promoteBtn = screen.getByRole("button", { name: "纳入 1/2/4/7" });
+    await user.click(promoteBtn);
+
+    // Verify OutputReviewState now has project 笔记回顾 and knowledge point 线性代数总结
+    const outputReview = JSON.parse(window.localStorage.getItem("auris.output-review.v1") ?? "{}");
+    expect(outputReview.projects.some((p: { name: string }) => p.name === "笔记回顾")).toBe(true);
+    expect(outputReview.knowledgePoints.some((kp: { title: string }) => kp.title === "线性代数总结")).toBe(true);
   });
 
   it("displays empty state when no reviews are completed yet", async () => {

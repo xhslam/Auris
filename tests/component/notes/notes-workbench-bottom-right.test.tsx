@@ -147,7 +147,8 @@ describe("NotesWorkbenchBottomRight", () => {
     expect(screen.getByText("保存冲突")).not.toHaveAttribute("data-footer-detail");
     const reviewButton = screen.getByRole("button", { name: "学习依赖待复核" });
     expect(reviewButton).not.toHaveAttribute("data-footer-detail");
-    expect(document.querySelectorAll("button.notes-v2__corner-icon")).toHaveLength(7);
+    expect(screen.queryByRole("button", { name: "大纲" })).not.toBeInTheDocument();
+    expect(document.querySelectorAll("button.notes-v2__corner-icon")).toHaveLength(6);
     await user.click(reviewButton);
     await user.click(screen.getByRole("button", { name: "确认已复核" }));
 

@@ -53,8 +53,8 @@ function createCompanionWindow({
     const display = displayForPlacement(saved ?? {});
     const placement = clampPlacement(saved ?? defaultPlacement(display.workArea), display.workArea);
     window = new BrowserWindow({
-      width: 320,
-      height: 360,
+      width: 340,
+      height: 420,
       x: placement.x,
       y: placement.y,
       show: false,

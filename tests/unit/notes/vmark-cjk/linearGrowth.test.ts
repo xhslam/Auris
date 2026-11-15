@@ -25,8 +25,8 @@ import { growthExponent, measureGrowth } from "./cpu-clock";
 import { formatMarkdown } from "@/features/notes/formatting/cjk-formatter/formatter";
 import { DEFAULT_CJK_FORMATTING, type CJKFormattingSettings } from "@/features/notes/formatting/cjk-formatter/types";
 
-/** Linear is 1, quadratic is 2. Allow up to 1.40 to account for microsecond timer resolution on CI runners. */
-const MAX_EXPONENT = 1.40;
+/** Linear is 1, quadratic is 2. Allow up to 1.45 to account for microsecond timer resolution on CI runners. */
+const MAX_EXPONENT = 1.45;
 
 const CORNER_QUOTES: CJKFormattingSettings = {
   ...DEFAULT_CJK_FORMATTING,

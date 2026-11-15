@@ -25,6 +25,11 @@ function createDocument(rawSource: string): NoteDocument {
 }
 
 describe("NotesReadingPane", () => {
+  it("displays local attachments through the safe Vault media URL", () => {
+    render(<NotesReadingPane document={createDocument("![photo](assets/photo.png)")} />);
+    expect(screen.getByAltText("photo").getAttribute("src")).toMatch(/^shadowing-media:\/\/vault\/Inbox\/assets\/photo.png/);
+  });
+
   it("preserves source line breaks for paragraph-style numbered lines", () => {
     const fullWidthParen = "\uFF09";
     const firstLine = `1${fullWidthParen} protagonist reversal`;

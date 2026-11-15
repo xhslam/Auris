@@ -59,6 +59,17 @@ describe("Markdown image source policy", () => {
     );
   });
 
+  it("decodes imported image URLs once before building the Vault protocol URL", () => {
+    expect(resolveMarkdownImageSource("assets/%E5%9B%BE%E7%89%87%20one.png", "notes/a.md"))
+      .toBe("shadowing-media://vault/notes/assets/%E5%9B%BE%E7%89%87%20one.png");
+    expect(resolveMarkdownImageSource("assets/100%25.png", "a.md"))
+      .toBe("shadowing-media://vault/assets/100%25.png");
+  });
+
+  it.each(["%2fetc/passwd.png", "%2e%2e/%2e%2e/outside.png", "javascript%3Aalert(1)", "%2f%2fexample.com/a.png"])("rejects encoded unsafe image sources %s", source => {
+    expect(resolveMarkdownImageSource(source, "notes/a.md")).toBeNull();
+  });
+
   it("adds a bounded reload key only to local media URLs", () => {
     expect(
       resolveMarkdownImageSource("assets/hero.png", "notes/daily.md", 7),

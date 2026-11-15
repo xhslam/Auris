@@ -44,11 +44,11 @@ const NOTES_TOOL_SNAPSHOT = JSON.stringify([
     name: "auris_workspace",
   },
   {
-    description: "Read or revision-safely replace the complete Markdown source of an open Auris note.",
+    description: "Read or revision-safely update an open Auris note. Use write_mermaid to set its dedicated article diagram without replacing the body; content is Mermaid source (max 50,000 chars), not Markdown. Writes follow edit approval; use auris_workspace save after approval.",
     inputSchema: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["read", "write"] },
+        action: { type: "string", enum: ["read", "write", "write_mermaid"] },
         content: { type: "string" },
         expected_revision: { type: "string" },
         tab_id: { type: "string" },
@@ -162,7 +162,7 @@ describe("Auris Notes MCP server", () => {
     ).resolves.toMatchObject({ isError: true });
   });
 
-  it("adds evidence to auris_document while preserving every pre-existing Notes schema byte-for-byte", async () => {
+  it("exposes diagram writes and evidence while preserving the other Notes schemas", async () => {
     const { createAurisNotesMcpServer } = await loadMcpServer();
     const server = createAurisNotesMcpServer({
       request: async () => ({ revision: "r1", source: "# Daily" }),

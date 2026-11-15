@@ -1,5 +1,6 @@
 "use strict";
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const { chromium } = require("playwright");
 
 (async () => {
@@ -24,8 +25,12 @@ const { chromium } = require("playwright");
     await avatar.waitForSelector('.nia-companion__figure[data-expression="sleepy"]');
     await settings.getByRole("button", { name: "生气", exact: true }).click();
     await avatar.waitForSelector('.nia-companion__figure[data-expression="angry"]');
-    assert.equal(await avatar.locator(".nia-companion__mouth").evaluate(e => getComputedStyle(e).borderTopWidth), "2px");
-    await avatar.screenshot({ path: "docs/nia-mochi-sync/2026-09-08/angry-runtime.png" });
+    assert.equal(await avatar.locator(".nia-character").getAttribute("viewBox"), "-16 -16 786 630");
+    assert.equal(await avatar.locator(".nia-companion__eye--left").evaluate(e => getComputedStyle(e).fill), "rgb(93, 57, 36)");
+    assert.equal(await avatar.locator(".nia-companion__mouth").getAttribute("rx"), "7");
+    assert.equal(await avatar.locator(".nia-companion__eye--left").evaluate(e => getComputedStyle(e).scale), "1 0.65");
+    fs.mkdirSync("/tmp/nia-reference-check", { recursive: true });
+    await avatar.screenshot({ path: "/tmp/nia-reference-check/angry-runtime.png", omitBackground: true });
     await settings.getByRole("button", { name: "轻跳", exact: true }).click();
     await avatar.waitForFunction(() => document.querySelector(".nia-companion__rig").getAnimations().length > 0);
     await avatar.waitForFunction(() => document.querySelector(".nia-companion__rig").getAnimations().length === 0);
@@ -42,7 +47,7 @@ const { chromium } = require("playwright");
     await avatar.mouse.move(2, 2);
     await avatar.waitForFunction(() => window.__captures.at(-1) === false);
     await avatar.waitForSelector('.nia-companion__figure[data-expression="sleepy"]');
-    console.log("PASS: real Nia settings → cross-window expression/motion; frown; hop completion; drift/reduced-motion precedence; pointer hit/release; timed reset.");
+    console.log("PASS: real Nia settings → cross-window expression/motion; reference silhouette and angry expression; hop completion; drift/reduced-motion precedence; pointer hit/release; timed reset.");
     await context.close();
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

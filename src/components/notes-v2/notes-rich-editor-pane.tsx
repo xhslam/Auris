@@ -90,6 +90,10 @@ import { NotesRichImageNodeView } from "@/features/notes/editor/notes-rich-image
 import { getNotesMediaReloadKey, subscribeNotesMediaReloadKey } from "@/features/notes/editor/notes-media-reload";
 import type { Plugin } from "prosemirror-state";
 
+import { useNotesImagePath } from "./use-notes-image-path";
+import { collectNotesImageFiles } from "@/features/notes/editor/editor-image-attachments";
+import { insertNotesImageFiles, reportNotesImageError, saveNotesImageAttachment } from "@/features/notes/editor/notes-image-insertion";
+
 const NOTES_RICH_EDITOR_SYNC_META = "shadowing-notes-rich-editor-sync";
 const NOTES_TOC_REFRESH_EVENT = "auris-notes-toc-refresh";
 const CJK_COMPOSED_RE = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/;
@@ -439,6 +443,9 @@ export function NotesRichEditorPane({
   });
   const viewRef = useRef<EditorView | null>(null);
   const imageViewsRef = useRef(new Set<NotesRichImageNodeView>());
+  const imagePath = useNotesImagePath(document?.path ?? null);
+  const imagePathRef = useRef(imagePath);
+  useLayoutEffect(() => { imagePathRef.current = imagePath; }, [imagePath]);
   const mediaReloadKey = useSyncExternalStore(subscribeNotesMediaReloadKey, getNotesMediaReloadKey, () => 0);
   const bridgeRef = useRef<NotesEditorBridge | null>(null);
   const lastAppliedSourceRef = useRef<string | null>(null);
@@ -582,7 +589,7 @@ export function NotesRichEditorPane({
   useEffect(() => {
     // ProseMirror may reuse an equal image node across different document owners.
     imageViewsRef.current.forEach((image) => image.refresh());
-  }, [document?.path, mediaReloadKey]);
+  }, [document?.path, imagePath, mediaReloadKey]);
 
   useEffect(() => {
     onSelectionStateChangeRef.current = onSelectionStateChange;
@@ -1196,6 +1203,38 @@ export function NotesRichEditorPane({
         return true;
       },
       handleDOMEvents: {
+        paste(imageView, event) {
+          if (viewModeRef.current.readOnly) return false;
+          const files = collectNotesImageFiles((event as ClipboardEvent).clipboardData);
+          if (!files.length) return false;
+          event.preventDefault();
+          const path = documentPathRef.current;
+          if (!path) return true;
+          void insertNotesImageFiles(imageView, files, {
+            notePath: path,
+            persistAttachment: saveNotesImageAttachment,
+            isCurrent: () => documentPathRef.current === path && !viewModeRef.current.readOnly,
+          }).catch(reportNotesImageError);
+          return true;
+        },
+        drop(imageView, event) {
+          if (viewModeRef.current.readOnly) return false;
+          const drop = event as DragEvent;
+          const files = collectNotesImageFiles(drop.dataTransfer);
+          if (!files.length) return false;
+          event.preventDefault();
+          const path = documentPathRef.current;
+          if (!path) return true;
+          const position = imageView.posAtCoords({ left: drop.clientX, top: drop.clientY })?.pos ?? imageView.state.selection.from;
+          void insertNotesImageFiles(imageView, files, {
+            notePath: path,
+            from: position,
+            to: position,
+            persistAttachment: saveNotesImageAttachment,
+            isCurrent: () => documentPathRef.current === path && !viewModeRef.current.readOnly,
+          }).catch(reportNotesImageError);
+          return true;
+        },
         click(_clickView, event) {
           const mouseEvent = event as MouseEvent;
           if (mouseEvent.button !== 0) return false;
@@ -1274,7 +1313,7 @@ export function NotesRichEditorPane({
       nodeViews: {
         image: (node) => {
           const image = new NotesRichImageNodeView(node, hostRef.current, () => ({
-            path: documentPathRef.current,
+            path: imagePathRef.current,
             reloadKey: getNotesMediaReloadKey(),
           }), () => imageViewsRef.current.delete(image));
           imageViewsRef.current.add(image);

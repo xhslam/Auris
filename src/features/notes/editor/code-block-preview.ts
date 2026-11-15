@@ -122,9 +122,21 @@ export function resolveMarkdownImageSource(
     return normalizedSource;
   }
 
+  // remark-rehype normalizes Unicode/space-bearing image URLs to percent
+  // escapes on import. Decode exactly once before encoding the protocol path;
+  // validate again so encoded traversal or a scheme cannot bypass the policy.
+  let localSource = normalizedSource;
+  try {
+    localSource = decodeURIComponent(localSource);
+  } catch {
+    // A literal malformed percent escape is a valid local filename.
+  }
+  if (!isSafeRelativeImagePath(localSource)) return null;
+  localSource = localSource.replace(/\\/g, "/");
+
   const noteDirectory = notePath?.split("/").slice(0, -1).join("/") ?? "";
   const resolvedPath = normalizeVaultPathSegments(
-    [noteDirectory, normalizedSource].filter(Boolean).join("/"),
+    [noteDirectory, localSource].filter(Boolean).join("/"),
   );
 
   if (!resolvedPath) {
