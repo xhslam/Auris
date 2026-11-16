@@ -30,27 +30,13 @@ describe("Review motion boundaries", () => {
     });
   });
 
-  it("rotates only decorative spokes, preserving the centered hub and existing manual wheel logic", () => {
-    const wheel = read("review-wheel-workspace.tsx");
-    expect(wheel).toContain('"--review-wheel-turn": `${-rotation * 120}deg`');
-    expect(wheel).toContain('inert={active !== index}');
-    expect(wheel).toContain('performance.now() - lastTurn.current < 1200');
-    tree.walkRules((rule) => {
-      const hasRotate = rule.nodes.some((node) => node.type === "decl" && node.prop === "rotate" && node.value.includes("--review-wheel-turn"));
-      if (hasRotate) {
-        expect(rule.selector).toContain(".review-wheel__rim::before");
-        expect(rule.selector).toContain(".review-wheel__rim > i");
-      }
-    });
-  });
-
   it("uses composited entry motion, without holding transforms on ancestors of fixed overlays", () => {
     tree.walkDecls("animation", (decl) => {
       expect(decl.value).toContain("backwards");
       expect(decl.value).not.toMatch(/\bforwards\b|\bboth\b/);
     });
     const metrics = read("review-page-client.tsx");
-    expect(metrics).toContain('key={`${metrics.completedToday}/${metrics.totalActionableToday}`}');
+    expect(metrics).toContain('key={`${completedToday}/${totalActionableToday}`}');
     expect(metrics).toContain('key={notice} role="status"');
   });
 });

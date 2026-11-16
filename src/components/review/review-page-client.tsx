@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  ArrowUpRightIcon, CalendarDaysIcon, CheckIcon, ChevronRightIcon,
-  FolderIcon, HistoryIcon, PlusIcon, RotateCcwIcon, SearchIcon, SunIcon, Trash2Icon,
+  ArrowUpRightIcon, CheckIcon, ChevronRightIcon,
+  ActivityIcon, BookmarkIcon, BookOpenIcon, CalendarDaysIcon, FolderIcon, HomeIcon, ListChecksIcon, PlusIcon, RotateCcwIcon, Trash2Icon,
 } from "@/components/auris-ui/auris-icons";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
-import { ReviewWheelWorkspace } from "./review-wheel-workspace";
+import { ReviewPrioritySection } from "./review-priority-section";
+import { ReviewBatch, ReviewCalendar, ReviewLibrary, ReviewPlan, ReviewTodayLanding } from "./review-workspace-views";
 import { ReviewHeatmap } from "./review-heatmap";
 import { ReadingBookReview } from "./reading-book-review";
 import { TodayBookReviewCard } from "./today-book-review-card";
 import {
-  KnowledgePointRow, OutputReviewCard, ReviewProgress, formatReviewDate, statusLabel,
+  KnowledgePointRow, ReviewProgress, formatReviewDate, statusLabel,
 } from "@/components/review/output-review-card";
 import {
   EMPTY_OUTPUT_REVIEW_STATE, STAGE_LABELS,
@@ -19,7 +20,7 @@ import {
   deleteKnowledgePoint, getDashboardMetrics, getProjectStats,
   getReviewQueue, refreshReviewStatuses, restartReviewCycle, setKnowledgePointStatus,
   toLocalDateKey, updateKnowledgePoint,
-  type CreateKnowledgePointInput, type KnowledgePoint, type KnowledgePointStatus,
+  type CreateKnowledgePointInput, type KnowledgePoint,
   type OutputReviewProject, type OutputReviewState, type ReviewDifficulty,
   type ReviewEvent, type ReviewQueueItem,
 } from "@/features/output-review/output-review-model";
@@ -30,7 +31,6 @@ import { getNotesStorage } from "@/platform/notes/get-notes-storage";
 import {
   addNotesToReview,
   deleteNoteReviewItem,
-  getTodayNoteReviewMetrics,
   getTodayNoteReviewQueue,
   markNoteEnrolledInSpaced,
   removeNoteFromToday,
@@ -49,16 +49,23 @@ import { NotePickerModal } from "./note-picker-modal";
 import { TodayNoteReviewSection } from "./today-note-review-section";
 import { NotesReviewView } from "./notes-review-view";
 import "@/components/review/output-review-page.css";
+import "@/components/review/review-today.css";
 import "@/components/review/review-motion.css";
+import "./review-workspace.css";
 
-type ReviewView = "today" | "reading" | "notes" | "all" | "projects" | "heatmap";
+type ReviewView = "today" | "plan" | "catalog" | "all" | "heatmap" | "reading" | "notes" | "projects";
 type ConfirmAction =
   | { kind: "complete"; knowledgePointId: string }
   | { kind: "restart" | "master" | "archive" | "delete"; knowledgePointId: string };
 
-const VIEW_LABELS: Record<ReviewView, string> = {
-  today: "今天", reading: "书籍回顾", notes: "笔记回顾", all: "全部", projects: "项目", heatmap: "复盘热力图",
-};
+const REVIEW_DESTINATIONS = [
+  ["today", "今日复习", HomeIcon],
+  ["plan", "复习计划", BookOpenIcon],
+  ["catalog", "知识点目录", ListChecksIcon],
+  ["all", "全部条目", BookmarkIcon],
+  ["calendar", "复习日历", CalendarDaysIcon],
+  ["heatmap", "复习统计", ActivityIcon],
+] as const;
 const timestampFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
 });
@@ -78,6 +85,10 @@ export function ReviewPageClient({
   const [state, setState] = useState<OutputReviewState>(cloneEmptyState);
   const [hydrated, setHydrated] = useState(false);
   const [view, setView] = useState<ReviewView>("today");
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  const [calendarAnchor, setCalendarAnchor] = useState<HTMLButtonElement | null>(null);
+  const [todayQueueOpen, setTodayQueueOpen] = useState(false);
+  const [batchIds, setBatchIds] = useState<string[] | null>(null);
   const [formPoint, setFormPoint] = useState<KnowledgePoint | "new" | null>(null);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -145,6 +156,7 @@ export function ReviewPageClient({
     setHasHandledKnowledgePointIntent(true);
     if (state.knowledgePoints.some((point) => point.id === initialKnowledgePointId)) {
       setView("today");
+      setTodayQueueOpen(true);
       setDetailId(initialKnowledgePointId);
     }
   }, [hasHandledKnowledgePointIntent, hydrated, initialKnowledgePointId, state.knowledgePoints]);
@@ -174,7 +186,23 @@ export function ReviewPageClient({
   const detailPoint = state.knowledgePoints.find((point) => point.id === detailId);
 
   const noteQueue = useMemo(() => getTodayNoteReviewQueue(noteState, today), [noteState, today]);
-  const noteMetrics = useMemo(() => getTodayNoteReviewMetrics(noteState, today), [noteState, today]);
+  const navigate = (destination: ReviewView) => {
+    const firstPoint = destination === "catalog" || destination === "all"
+      ? state.knowledgePoints.reduce<(typeof state.knowledgePoints)[number] | undefined>(
+          (latest, point) => !latest || point.updatedAt > latest.updatedAt ? point : latest,
+          undefined,
+        )
+      : undefined;
+    setDetailId(firstPoint?.id ?? null);
+    setBatchIds(null);
+    setCalendarAnchor(null);
+    setTodayQueueOpen(false);
+    setView(destination);
+  };
+  const openTodayQueue = () => {
+    navigate("today");
+    setTodayQueueOpen(true);
+  };
 
   const handleNoteStatusChange = useCallback((itemId: string, status: NoteReviewStatus) => {
     const next = updateNoteReviewStatus(noteState, itemId, status, today);
@@ -261,65 +289,136 @@ export function ReviewPageClient({
     setConfirmAction(null);
   };
 
-  return (
-    <DesktopAppFrame activeNavId="review" activeWorkspace="home" subtitle="Review" title="输出复习">
-      <main className="auris-page auris-review output-review-page">
-        <div className="output-review-page__container">
-          <div className="output-review-navigation">
-            <nav aria-label="输出复习视图" className="output-review-tabs">
-              {(Object.keys(VIEW_LABELS) as ReviewView[]).map((item) => (
-                <button aria-current={view === item ? "page" : undefined} data-active={view === item} key={item} onClick={() => setView(item)} type="button">
-                  {VIEW_LABELS[item]}
-                  {item === "today" && metrics.overdueCount > 0 ? <span aria-label={`${metrics.overdueCount} 项逾期`}>{metrics.overdueCount}</span> : null}
-                  {item === "notes" && noteMetrics.pendingToday > 0 ? <span aria-label={`${noteMetrics.pendingToday} 篇待复习`}>{noteMetrics.pendingToday}</span> : null}
-                </button>
-              ))}
-            </nav>
-            <button aria-label="添加知识点" className="output-review-primary output-review-add" onClick={() => setFormPoint("new")} type="button"><PlusIcon size={15} /><span>添加知识点</span></button>
-          </div>
+  const detail = detailPoint ? <KnowledgeDetail
+    cycles={state.cycles.filter((cycle) => cycle.knowledgePointId === detailPoint.id)}
+    onAction={(kind) => setConfirmAction({ kind, knowledgePointId: detailPoint.id })}
+    onClose={() => setDetailId(null)}
+    onEdit={() => setFormPoint(detailPoint)}
+    onPauseResume={() => {
+      const action = detailPoint.status === "paused" ? "resume" : "pause";
+      if (!commit((current) => setKnowledgePointStatus(current, detailPoint.id, action))) return;
+      setNotice(action === "pause" ? "复习周期已暂停。" : "复习周期已从今天恢复。");
+    }}
+    point={detailPoint}
+    project={state.projects.find((project) => project.id === detailPoint.projectId)}
+  /> : null;
+  const inlineDetail = (view === "all" || view === "catalog") && !batchIds;
+  const activeDestination = view === "reading" || view === "notes" ? "today" : view === "projects" ? "plan" : view;
+  const requestAdd = () => {
+    if (state.projects.length) setFormPoint("new");
+    else {
+      setContinueKnowledgePointAfterProject(true);
+      setProjectFormOpen(true);
+    }
+  };
 
-          {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
-            : view === "today" ? (
-                <ReviewWheelWorkspace state={state} queue={queue} onOpen={setDetailId} onAddProject={() => setProjectFormOpen(true)}>
-                  <TodayView
-                    metrics={metrics}
-                    noteQueue={noteQueue}
-                    notesStorage={notesStorage}
-                    onAdd={() => setFormPoint("new")}
-                    onComplete={(knowledgePointId) => setConfirmAction({ kind: "complete", knowledgePointId })}
-                    onDeleteNoteReview={handleDeleteNoteReview}
-                    onGoToReadingReview={() => setView("reading")}
-                    onNoteStatusChange={handleNoteStatusChange}
-                    onNotice={setNotice}
-                    onOpen={setDetailId}
-                    onOpenNotePicker={() => setNotePickerOpen(true)}
-                    onPromoteNoteToSpaced={handlePromoteNoteToSpaced}
-                    onRemoveNoteFromToday={handleRemoveNoteFromToday}
-                    onShowAll={() => setView("all")}
-                    onShowHeatmap={() => setView("heatmap")}
-                    queue={queue}
-                    today={today}
-                  />
-                </ReviewWheelWorkspace>
-              )
-              : view === "reading" ? <ReadingBookReview onGoToToday={() => setView("today")} onNotice={setNotice} />
-              : view === "notes" ? (
-                  <NotesReviewView
-                    notesStorage={notesStorage}
-                    onDelete={handleDeleteNoteReview}
-                    onOpenPicker={() => setNotePickerOpen(true)}
-                    onPromoteToSpaced={handlePromoteNoteToSpaced}
-                    onRemoveFromToday={handleRemoveNoteFromToday}
-                    onStatusChange={handleNoteStatusChange}
-                    state={noteState}
-                    today={today}
-                  />
-                )
-              : view === "all" ? <AllView onOpen={setDetailId} state={state} />
+  return (
+    <DesktopAppFrame
+      activeNavId="review"
+      activeWorkspace="home"
+      reviewNavigation={{
+        expanded: navigationOpen,
+        onToggle: () => setNavigationOpen(value => !value),
+        children: <div aria-label="复习导航" className="review-workspace__subnav" role="group">
+          {REVIEW_DESTINATIONS.map(([destination, label, Icon]) => (
+            <button
+              aria-controls={destination === "calendar" ? "review-calendar" : undefined}
+              aria-current={activeDestination === destination ? "page" : undefined}
+              aria-expanded={destination === "calendar" ? Boolean(calendarAnchor) : undefined}
+              aria-label={label}
+              key={destination}
+              onClick={event => {
+                if (destination === "calendar") setCalendarAnchor(event.currentTarget);
+                else navigate(destination);
+              }}
+              title={label}
+              type="button"
+            ><Icon size={14} /></button>
+          ))}
+        </div>,
+      }}
+      subtitle="Review"
+      title="输出复习"
+    >
+      <main className="auris-page auris-review output-review-page review-workspace">
+        <div className="output-review-page__container">
+          <header className="review-workspace__header">
+            {((view === "today" && todayQueueOpen) || view === "reading" || view === "notes" || view === "projects") &&
+              <button className="review-workspace__back" onClick={() => navigate(view === "projects" ? "plan" : "today")} type="button">
+                ← {view === "projects" ? "复习计划" : "今日复习"}
+              </button>}
+            <button aria-label="添加知识点" className="review-workspace__primary" onClick={requestAdd} type="button"><PlusIcon size={15} />添加知识点</button>
+          </header>
+          <div className="review-workspace__surface">
+            {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
+              : batchIds ? <ReviewBatch
+                  onBack={() => navigate("all")}
+                  onComplete={id => setConfirmAction({ kind: "complete", knowledgePointId: id })}
+                  onOpen={setDetailId}
+                  queue={queue.filter(item => item.urgency !== "upcoming" && batchIds.includes(item.knowledgePoint.id))}
+                />
+              : view === "today" && !todayQueueOpen ? <ReviewTodayLanding
+                  actionable={metrics.overdueCount + metrics.dueTodayCount}
+                  onAll={() => navigate("all")}
+                  onBooks={() => navigate("reading")}
+                  onContinue={openTodayQueue}
+                  onNotes={() => navigate("notes")}
+                  state={state}
+                  today={today}
+                />
+              : view === "today" ? <TodayView
+                  hasKnowledgePoints={state.knowledgePoints.length > 0}
+                  metrics={metrics}
+                  noteQueue={noteQueue}
+                  notesStorage={notesStorage}
+                  onAdd={requestAdd}
+                  onComplete={id => setConfirmAction({ kind: "complete", knowledgePointId: id })}
+                  onDeleteNoteReview={handleDeleteNoteReview}
+                  onGoToReadingReview={() => navigate("reading")}
+                  onNoteStatusChange={handleNoteStatusChange}
+                  onNotice={setNotice}
+                  onOpen={setDetailId}
+                  onOpenNotePicker={() => setNotePickerOpen(true)}
+                  onPromoteNoteToSpaced={handlePromoteNoteToSpaced}
+                  onRemoveNoteFromToday={handleRemoveNoteFromToday}
+                  onShowAll={() => navigate("all")}
+                  queue={queue}
+                />
+              : view === "reading" ? <ReadingBookReview onGoToToday={() => navigate("today")} onNotice={setNotice} />
+              : view === "notes" ? <NotesReviewView
+                  notesStorage={notesStorage}
+                  onDelete={handleDeleteNoteReview}
+                  onOpenPicker={() => setNotePickerOpen(true)}
+                  onPromoteToSpaced={handlePromoteNoteToSpaced}
+                  onRemoveFromToday={handleRemoveNoteFromToday}
+                  onStatusChange={handleNoteStatusChange}
+                  state={noteState}
+                  today={today}
+                />
+              : view === "all" || view === "catalog" ? <ReviewLibrary
+                  catalog={view === "catalog"}
+                  detail={detail}
+                  key={view}
+                  onReview={ids => { setDetailId(null); setBatchIds(ids); }}
+                  onSelect={setDetailId}
+                  selectedId={detailId}
+                  state={state}
+                  today={today}
+                />
+              : view === "plan" ? <ReviewPlan onOpen={setDetailId} onProjects={() => navigate("projects")} onToday={openTodayQueue} state={state} today={today} />
               : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
-              : <ReviewHeatmap onGoToToday={() => setView("today")} onOpen={setDetailId} state={state} today={today} />}
+              : <ReviewHeatmap onGoToToday={openTodayQueue} onOpen={setDetailId} state={state} today={today} />}
+          </div>
         </div>
 
+        {calendarAnchor && <ReviewCalendar
+          anchor={calendarAnchor}
+          onClose={() => setCalendarAnchor(null)}
+          onOpen={id => { setCalendarAnchor(null); setBatchIds(null); setView("all"); setDetailId(id); }}
+          onToday={openTodayQueue}
+          state={state}
+          today={today}
+        />}
         {formPoint ? <KnowledgePointForm
           initial={formPoint === "new" ? undefined : formPoint}
           startDateLocked={formPoint !== "new" && Boolean(currentCycleFor(state, formPoint.id)?.events.some((event) => event.status === "completed"))}
@@ -346,15 +445,7 @@ export function ReviewPageClient({
             setFormPoint("new");
           }
         }} /> : null}
-        {detailPoint ? <KnowledgeDetail
-          cycles={state.cycles.filter((cycle) => cycle.knowledgePointId === detailPoint.id)}
-          onAction={(kind) => setConfirmAction({ kind, knowledgePointId: detailPoint.id })}
-          onClose={() => setDetailId(null)} onEdit={() => setFormPoint(detailPoint)}
-          onPauseResume={() => {
-            const action = detailPoint.status === "paused" ? "resume" : "pause";
-            if (!commit((current) => setKnowledgePointStatus(current, detailPoint.id, action))) return;
-            setNotice(action === "pause" ? "复习周期已暂停。" : "复习周期已从今天恢复。");
-          }} point={detailPoint} project={state.projects.find((project) => project.id === detailPoint.projectId)} /> : null}
+        {!inlineDetail && detail ? <div className="output-review-detail-overlay">{detail}</div> : null}
         {confirmAction ? <ConfirmationDialog action={confirmAction} onCancel={() => setConfirmAction(null)} onConfirm={handleConfirm} /> : null}
         {notePickerOpen ? (
           <NotePickerModal
@@ -377,16 +468,15 @@ export function ReviewPageClient({
 }
 
 function TodayView({
+  hasKnowledgePoints,
   queue,
   metrics,
   noteQueue,
-  today,
   notesStorage,
   onAdd,
   onComplete,
   onOpen,
   onShowAll,
-  onShowHeatmap,
   onGoToReadingReview,
   onNotice,
   onOpenNotePicker,
@@ -395,145 +485,61 @@ function TodayView({
   onRemoveNoteFromToday,
   onDeleteNoteReview,
 }: {
+  hasKnowledgePoints: boolean;
   queue: ReviewQueueItem[];
   metrics: ReturnType<typeof getDashboardMetrics>;
   noteQueue: NoteReviewItem[];
-  today: string;
   notesStorage: NotesStorage | null;
   onAdd: () => void;
   onComplete: (knowledgePointId: string) => void;
   onOpen: (knowledgePointId: string) => void;
   onShowAll: () => void;
-  onShowHeatmap?: () => void;
-  onGoToReadingReview?: () => void;
-  onNotice?: (text: string) => void;
+  onGoToReadingReview: () => void;
+  onNotice: (text: string) => void;
   onOpenNotePicker: () => void;
   onNoteStatusChange: (itemId: string, status: NoteReviewStatus) => void;
   onPromoteNoteToSpaced: (item: NoteReviewItem) => void;
   onRemoveNoteFromToday: (itemId: string) => void;
   onDeleteNoteReview: (itemId: string) => void;
 }) {
-  const [upcomingOpen, setUpcomingOpen] = useState(true);
-  const taskTrack = useRef<HTMLDivElement>(null);
-  const slideTask = (direction: number) => {
-    const track = taskTrack.current;
-    if (!track) return;
-    track.scrollBy({ left: direction * track.clientWidth, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-  };
-  const progress = metrics.totalActionableToday ? Math.round((metrics.completedToday / metrics.totalActionableToday) * 100) : 100;
+  const { completedToday, totalActionableToday, overdueCount, dueTodayCount } = metrics;
+  const progress = totalActionableToday ? Math.round((completedToday / totalActionableToday) * 100) : 100;
+
   return (
-    <div className="output-review-today">
-      <section className="output-review-overview" aria-label="今日复盘概览">
-        <div className="output-review-summary" aria-label="今日复习数据">
-          <div><span>今日执行</span><strong key={`${metrics.completedToday}/${metrics.totalActionableToday}`}>{metrics.completedToday} / {metrics.totalActionableToday}</strong><small>完成输出</small></div>
-          <div><span>逾期</span><strong data-warning={metrics.overdueCount > 0} key={metrics.overdueCount}>{metrics.overdueCount}</strong><small>需要优先处理</small></div>
-          <div><span>今天到期</span><strong key={metrics.dueTodayCount}>{metrics.dueTodayCount}</strong><small>尚未完成</small></div>
-          <div className="output-review-summary__progress"><span><span>执行进度</span><b key={progress}>{progress}%</b></span><div aria-label={`今日执行进度 ${progress}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div></div>
-        </div>
-      </section>
-      {onGoToReadingReview ? (
-        <TodayBookReviewCard onGoToReadingReview={onGoToReadingReview} onNotice={onNotice} />
-      ) : null}
-      <TodayNoteReviewSection
-        notesStorage={notesStorage}
-        onDelete={onDeleteNoteReview}
-        onOpenPicker={onOpenNotePicker}
-        onPromoteToSpaced={onPromoteNoteToSpaced}
-        onRemoveFromToday={onRemoveNoteFromToday}
-        onStatusChange={onNoteStatusChange}
-        queue={noteQueue}
-        today={today}
-      />
-      {queue.length > 0 ? <details aria-label="接下来复习预览" className="output-review-upcoming" onToggle={(event) => setUpcomingOpen(event.currentTarget.open)} open={upcomingOpen}>
-        <summary><span className="output-review-upcoming__title"><span className="output-review-upcoming__icon"><CalendarDaysIcon size={17} /></span><strong>优先处理</strong><i>· 复习预览</i></span><span className="output-review-upcoming__count">{queue.length} 项计划</span></summary>
-        <section aria-label="选择优先处理任务" className="output-review-task-picker">
-          {queue.length > 1 ? <div className="output-review-task-picker__controls">
-            <span>左右滑动选择任务 · {queue.length} 项</span>
-            <div>
-              <button aria-label="上一项复习任务" onClick={() => slideTask(-1)} type="button">←</button>
-              <button aria-label="下一项复习任务" onClick={() => slideTask(1)} type="button">→</button>
+    <section aria-label="复习执行工作区" className="output-review-today">
+      <div className="output-review-today__content">
+        <section aria-label="今日复盘概览" className="output-review-summary">
+          <div><span>今日执行</span><strong key={`${completedToday}/${totalActionableToday}`}>{completedToday} / {totalActionableToday}</strong></div>
+          <div><span>逾期</span><strong data-warning={overdueCount > 0} key={overdueCount}>{overdueCount}</strong></div>
+          <div><span>今天到期</span><strong key={dueTodayCount}>{dueTodayCount}</strong></div>
+          <div className="output-review-summary__progress">
+            <span><span>执行进度</span><b key={progress}>{progress}%</b></span>
+            <div aria-label="今日执行进度" aria-valuemax={100} aria-valuemin={0} aria-valuenow={progress} role="progressbar">
+              <i style={{ width: `${progress}%` }} />
             </div>
-          </div> : null}
-          <div aria-label="左右滑动浏览复习任务" className="output-review-task-picker__track" ref={taskTrack} tabIndex={0}>
-            {queue.map((item, index) => <div aria-label={`${index + 1} / ${queue.length}：${item.knowledgePoint.title}`} className="output-review-task-picker__slide" key={item.knowledgePoint.id} role="group">
-              <OutputReviewCard item={item} onComplete={onComplete} onOpen={onOpen} />
-            </div>)}
           </div>
         </section>
-        <div className="output-review-followup-actions">
-          <button className="output-review-followups__all" onClick={onShowAll} type="button">查看全部计划 <ArrowUpRightIcon size={14} /></button>
-          {onShowHeatmap ? (
-            <button className="output-review-followups__all" onClick={onShowHeatmap} type="button">查看复盘热力图 <ArrowUpRightIcon size={14} /></button>
-          ) : null}
-        </div>
-        <p className="output-review-upcoming__tip"><SunIcon size={14} />建议在安静环境中复习，先回忆，再校验。</p>
-      </details> : <EmptyReviewState onAdd={onAdd} />}
-    </div>
-  );
-}
-
-function EmptyReviewState({ onAdd }: { onAdd: () => void }) {
-  return <section className="output-review-empty"><HistoryIcon size={32} /><h2>还没有复习周期</h2><p>学完并完成第一次讲解后，添加知识点，1/2/4/7 计划会自动开始。</p><button className="output-review-primary" onClick={onAdd} type="button"><PlusIcon size={17} />添加知识点</button></section>;
-}
-
-function AllView({ state, onOpen }: { state: OutputReviewState; onOpen: (id: string) => void }) {
-  const [filter, setFilter] = useState<KnowledgePointStatus | "all">("all");
-  const [search, setSearch] = useState("");
-  const normalizedSearch = search.trim().toLocaleLowerCase();
-  const points = state.knowledgePoints.filter((point) => {
-    if (filter !== "all" && point.status !== filter) return false;
-    const project = state.projects.find((item) => item.id === point.projectId);
-    const haystack = [point.title, point.description, project?.name, ...point.tags].filter(Boolean).join(" ").toLocaleLowerCase();
-    return !normalizedSearch || haystack.includes(normalizedSearch);
-  }).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
-  return (
-    <section className="output-review-view output-review-view--all" aria-label="全部知识点">
-      <div className="output-review-view__heading">
-        <div>
-          <h2>全部知识点</h2>
-          <p>搜索并检查所有周期，包括已掌握和归档项目。</p>
-        </div>
-        <span className="output-review-view__badge">{points.length} 项</span>
-      </div>
-      <div className="output-review-toolbar">
-        <label className="output-review-search">
-          <SearchIcon size={16} />
-          <span className="sr-only">搜索知识点</span>
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="搜索标题、描述、项目或标签"
+        <ReviewPrioritySection
+          actionableCount={overdueCount + dueTodayCount}
+          hasKnowledgePoints={hasKnowledgePoints}
+          onAdd={onAdd}
+          onComplete={onComplete}
+          onOpen={onOpen}
+          onShowAll={onShowAll}
+          queue={queue}
+        />
+        <div className="output-review-today__recall">
+          <TodayBookReviewCard onGoToReadingReview={onGoToReadingReview} onNotice={onNotice} />
+          <TodayNoteReviewSection
+            notesStorage={notesStorage}
+            onDelete={onDeleteNoteReview}
+            onOpenPicker={onOpenNotePicker}
+            onPromoteToSpaced={onPromoteNoteToSpaced}
+            onRemoveFromToday={onRemoveNoteFromToday}
+            onStatusChange={onNoteStatusChange}
+            queue={noteQueue}
           />
-        </label>
-        <div className="output-review-filter" aria-label="状态筛选">
-          {(["all", "active", "overdue", "mastered", "paused", "archived"] as const).map((status) => (
-            <button
-              data-active={filter === status}
-              key={status}
-              onClick={() => setFilter(status)}
-              type="button"
-            >
-              {status === "all" ? "全部" : statusLabel(status)}
-            </button>
-          ))}
         </div>
-      </div>
-      <div className="output-review-list">
-        {points.map((point) => {
-          const project = state.projects.find((item) => item.id === point.projectId);
-          return project ? (
-            <KnowledgePointRow
-              cycle={currentCycleFor(state, point.id)}
-              key={point.id}
-              onOpen={onOpen}
-              point={point}
-              project={project}
-            />
-          ) : null;
-        })}
-        {!points.length ? (
-          <div className="output-review-list__empty">没有符合当前条件的知识点。</div>
-        ) : null}
       </div>
     </section>
   );
@@ -667,7 +673,7 @@ function ProjectForm({ onCancel, onSave }: { onCancel: () => void; onSave: (name
 function KnowledgeDetail({ point, project, cycles, onClose, onEdit, onPauseResume, onAction }: { point: KnowledgePoint; project?: OutputReviewProject; cycles: OutputReviewState["cycles"]; onClose: () => void; onEdit: () => void; onPauseResume: () => void; onAction: (kind: "restart" | "master" | "archive" | "delete") => void }) {
   const currentCycle = cycles.find((cycle) => cycle.isCurrent);
   const fields = [{ label: "描述", value: point.description }, { label: "为什么要复习", value: point.reviewReason }, { label: "备注", value: point.notes }].filter((field) => field.value);
-  return <div className="output-review-detail-overlay"><aside aria-label={`知识点详情：${point.title}`} className="output-review-detail"><header><div><span>{project?.name ?? "未知项目"}</span><h2>{point.title}</h2><div><span className="output-review-status" data-status={point.status}>{statusLabel(point.status)}</span>{point.difficulty ? <small>{({ easy: "简单", medium: "中等", hard: "困难" } as const)[point.difficulty]}</small> : null}</div></div><button aria-label="关闭详情" onClick={onClose} type="button">×</button></header>{currentCycle ? <ReviewProgress cycle={currentCycle} currentEvent={currentCycle.events.find((event) => event.stage === point.currentStage)} /> : null}<div className="output-review-detail__actions"><button onClick={onEdit} type="button">编辑</button>{point.status !== "mastered" && point.status !== "archived" ? <button onClick={onPauseResume} type="button">{point.status === "paused" ? "恢复周期" : "暂停周期"}</button> : null}<button onClick={() => onAction("restart")} type="button"><RotateCcwIcon size={14} />重新开始</button>{point.status !== "mastered" ? <button onClick={() => onAction("master")} type="button"><CheckIcon size={14} />标记掌握</button> : null}<button onClick={() => onAction("archive")} type="button">归档</button><button data-danger onClick={() => onAction("delete")} type="button"><Trash2Icon size={14} />删除</button></div>{fields.length || point.materialUrl || point.tags.length ? <section className="output-review-detail__context"><h3>学习语境</h3>{fields.map((field) => <div key={field.label}><span>{field.label}</span><p>{field.value}</p></div>)}{point.materialUrl ? <div><span>学习材料</span><a href={point.materialUrl} rel="noreferrer" target="_blank">打开学习材料<ArrowUpRightIcon size={14} /></a></div> : null}{point.tags.length ? <div><span>标签</span><p className="output-review-tags">{point.tags.map((tag) => <span key={tag}>#{tag}</span>)}</p></div> : null}</section> : null}<section className="output-review-timeline"><h3>复习时间线</h3>{cycles.slice().reverse().map((cycle, cycleIndex) => <div className="output-review-cycle" key={cycle.id}><div className="output-review-cycle__heading"><strong>{cycle.isCurrent ? "当前周期" : `历史周期 ${cycles.length - cycleIndex - 1}`}</strong><span>Day 0 · {timestampFormatter.format(new Date(cycle.startedAt))}</span></div>{cycle.events.map((event) => <TimelineEvent event={event} key={event.id} />)}</div>)}</section></aside></div>;
+  return <aside aria-label={`知识点详情：${point.title}`} className="output-review-detail"><header><div><span>{project?.name ?? "未知项目"}</span><h2>{point.title}</h2><div><span className="output-review-status" data-status={point.status}>{statusLabel(point.status)}</span>{point.difficulty ? <small>{({ easy: "简单", medium: "中等", hard: "困难" } as const)[point.difficulty]}</small> : null}</div></div><button aria-label="关闭详情" onClick={onClose} type="button">×</button></header>{currentCycle ? <ReviewProgress cycle={currentCycle} currentEvent={currentCycle.events.find((event) => event.stage === point.currentStage)} /> : null}<div className="output-review-detail__actions"><button onClick={onEdit} type="button">编辑</button>{point.status !== "mastered" && point.status !== "archived" ? <button onClick={onPauseResume} type="button">{point.status === "paused" ? "恢复周期" : "暂停周期"}</button> : null}<button onClick={() => onAction("restart")} type="button"><RotateCcwIcon size={14} />重新开始</button>{point.status !== "mastered" ? <button onClick={() => onAction("master")} type="button"><CheckIcon size={14} />标记掌握</button> : null}<button onClick={() => onAction("archive")} type="button">归档</button><button data-danger onClick={() => onAction("delete")} type="button"><Trash2Icon size={14} />删除</button></div>{fields.length || point.materialUrl || point.tags.length ? <section className="output-review-detail__context"><h3>学习语境</h3>{fields.map((field) => <div key={field.label}><span>{field.label}</span><p>{field.value}</p></div>)}{point.materialUrl ? <div><span>学习材料</span><a href={point.materialUrl} rel="noreferrer" target="_blank">打开学习材料<ArrowUpRightIcon size={14} /></a></div> : null}{point.tags.length ? <div><span>标签</span><p className="output-review-tags">{point.tags.map((tag) => <span key={tag}>#{tag}</span>)}</p></div> : null}</section> : null}<section className="output-review-timeline"><h3>复习时间线</h3>{cycles.slice().reverse().map((cycle, cycleIndex) => <div className="output-review-cycle" key={cycle.id}><div className="output-review-cycle__heading"><strong>{cycle.isCurrent ? "当前周期" : `历史周期 ${cycles.length - cycleIndex - 1}`}</strong><span>Day 0 · {timestampFormatter.format(new Date(cycle.startedAt))}</span></div>{cycle.events.map((event) => <TimelineEvent event={event} key={event.id} />)}</div>)}</section></aside>;
 }
 
 function TimelineEvent({ event }: { event: ReviewEvent }) {

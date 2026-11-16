@@ -20,6 +20,7 @@ import {
   buildReviewHeatmapModel,
   formatChineseDateOnly,
   reviewActivityLevel,
+  type HeatmapMetricDimension,
   type OutputReviewState,
   type ReviewHeatmapMode,
 } from "@/features/output-review/output-review-model";
@@ -76,7 +77,11 @@ export function ReviewHeatmap({
 }) {
   const [detailPage, setDetailPage] = useState(0);
   const detailRef = useRef<HTMLDialogElement>(null);
-  const openDetails = () => { setDetailPage(0); detailRef.current?.showModal(); };
+  const openDetails = useCallback(() => {
+    setDetailPage(0);
+    detailRef.current?.showModal();
+  }, []);
+  const [dimension, setDimension] = useState<HeatmapMetricDimension>("count");
   const [mode, setMode] = useState<ReviewHeatmapMode>("day");
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [activeHoverDate, setActiveHoverDate] = useState<string | null>(null);
@@ -114,10 +119,13 @@ export function ReviewHeatmap({
   const activeCell = activeHoverDate ? cellByDate.get(activeHoverDate) : null;
   const activeWeek = activeCell ? weekByIndex.get(activeCell.weekIndex) : null;
 
-  const peakDisplayValue = mode === "day" ? model.peakDailyReviews : mode === "week" ? model.peakWeeklyReviews : model.totalReviews;
+  const byTime = dimension === "duration";
+  const total = byTime ? model.totalDurationMinutes : model.totalReviews;
+  const average = byTime ? model.averageDailyMinutes : model.averageDailyReviews;
+  const dailyPeak = byTime ? model.peakDailyMinutes : model.peakDailyReviews;
 
   const activeModeItem = HEATMAP_MODES.find((m) => m.id === mode) ?? HEATMAP_MODES[0];
-  const unitLabel = "个知识点";
+  const unitLabel = byTime ? "分钟" : "个知识点";
 
   const handleGridKeyDown = useCallback(
     (event: KeyboardEvent<SVGRectElement>, currentDate: string) => {
@@ -149,7 +157,7 @@ export function ReviewHeatmap({
         nextElem?.focus();
       }
     },
-    [dates],
+    [dates, openDetails],
   );
 
   const selectedWeekIndex = useMemo(() => {
@@ -185,27 +193,29 @@ export function ReviewHeatmap({
     const week = weekByIndex.get(activeCell.weekIndex);
 
     const text = mode === "week" && week
-      ? `${formatChineseDateOnly(week.rangeStart)}—${formatChineseDateOnly(week.rangeEnd)}：${week.totalCount} 个知识点`
+      ? `${formatChineseDateOnly(week.rangeStart)}—${formatChineseDateOnly(week.rangeEnd)}：${byTime ? week.totalDurationMinutes : week.totalCount} ${unitLabel}`
       : mode === "cumulative"
-        ? `累计至 ${formatChineseDateOnly(activeCell.date)}：${activeCell.cumulativeCount} 个知识点`
-        : `${formatChineseDateOnly(activeCell.date)}：${activeCell.count} 个知识点`;
+        ? `累计至 ${formatChineseDateOnly(activeCell.date)}：${byTime ? activeCell.cumulativeDurationMinutes : activeCell.cumulativeCount} ${unitLabel}`
+        : `${formatChineseDateOnly(activeCell.date)}：${byTime ? activeCell.durationMinutes : activeCell.count} ${unitLabel}`;
 
     return { text };
-  }, [activeCell, mode, weekByIndex]);
+  }, [activeCell, byTime, mode, unitLabel, weekByIndex]);
 
   const isEmpty = model.totalReviews === 0;
 
   return (
     <section aria-label="复盘热力图" className="output-review-view review-heatmap-view">
-      {/* 1. Page Header aligned with other Auris views, with Dimension Switcher */}
-      <div className="output-review-view__heading review-heatmap-view__heading">
+      <header className="review-heatmap-view__heading">
         <div className="review-heatmap-view__title-group">
-          <h2>复盘热力图</h2>
-          <p>过去 365 天 · 按知识点统计你的复习足迹</p>
+          <span aria-hidden="true" className="review-heatmap-avatar">A</span>
+          <h2>复习统计</h2>
+          <p>过去 365 天{byTime ? " · 未记录的时长按阶段估算" : ""}</p>
         </div>
-
-        <span className="review-heatmap-unit">统计单位 · 知识点</span>
-      </div>
+        <div aria-label="统计维度" className="review-heatmap-dimension-tabs" role="group">
+          <button aria-pressed={!byTime} data-active={!byTime} onClick={() => setDimension("count")} type="button">复习量</button>
+          <button aria-pressed={byTime} data-active={byTime} onClick={() => setDimension("duration")} type="button">复习时长</button>
+        </div>
+      </header>
 
       {/* 2. Single-screen Body */}
       <div className="review-heatmap-body">
@@ -213,26 +223,23 @@ export function ReviewHeatmap({
         <div aria-label="核心复盘指标" className="review-heatmap-5col" role="region">
           <div className="review-heatmap-5col__item">
             <strong className="review-heatmap-5col__val">
-              {`${model.totalReviews} 个知识点`}
+              {`${total} ${unitLabel}`}
             </strong>
             <span className="review-heatmap-5col__label">累计复习</span>
-            <span className="sr-only">累计复盘 {model.totalReviews} 近 365 天完成</span>
           </div>
 
           <div className="review-heatmap-5col__item">
             <strong className="review-heatmap-5col__val">
-              {`${model.averageDailyReviews} 个知识点`}
+              {`${average} ${unitLabel}`}
             </strong>
             <span className="review-heatmap-5col__label">平均每日</span>
-            <span className="sr-only">日均复盘</span>
           </div>
 
           <div className="review-heatmap-5col__item">
             <strong className="review-heatmap-5col__val">
-              {`${model.peakDailyReviews} 个知识点`}
+              {`${dailyPeak} ${unitLabel}`}
             </strong>
             <span className="review-heatmap-5col__label">单日最多</span>
-            <span className="sr-only">单日最高</span>
           </div>
 
           <div className="review-heatmap-5col__item">
@@ -240,7 +247,6 @@ export function ReviewHeatmap({
               {model.currentStreak} 天
             </strong>
             <span className="review-heatmap-5col__label">当前连续</span>
-            <span className="sr-only">连续复盘</span>
           </div>
 
           <div className="review-heatmap-5col__item">
@@ -248,7 +254,6 @@ export function ReviewHeatmap({
               {model.longestStreak} 天
             </strong>
             <span className="review-heatmap-5col__label">最长连续</span>
-            <span className="sr-only">历史最长打卡</span>
           </div>
         </div>
 
@@ -259,17 +264,12 @@ export function ReviewHeatmap({
             <div className="review-heatmap-view__controls">
               {!isEmpty && (
                 <div className="review-heatmap-legend">
-                  {peakDisplayValue > 0 ? (
-                    <span className="review-heatmap-legend__text">
-                      最深≈{activeModeItem.unit} {peakDisplayValue} {unitLabel}
-                    </span>
-                  ) : null}
                   <span
-                    aria-label={`颜色由浅到深代表${activeModeItem.unit}复盘量递增`}
+                    aria-label={`颜色由浅到深代表${activeModeItem.unit}${byTime ? "复习时长" : "复盘量"}递增`}
                     className="review-heatmap-legend__swatches"
                     role="img"
                   >
-                    {[1, 2, 3, 4].map((level) => (
+                    {[0, 1, 2, 3, 4].map((level) => (
                       <span
                         aria-hidden="true"
                         className="review-heatmap-legend__swatch"
@@ -300,7 +300,7 @@ export function ReviewHeatmap({
           {/* SVG Heatmap Container */}
           <div className="review-heatmap-canvas-container" ref={containerRef}>
             <p className="sr-only" id={summaryId}>
-              过去 365 天，共 {model.studiedDayCount} 天有复盘记录，累计复习 {model.totalReviews} 个知识点，单日最高 {model.peakDailyReviews} 个知识点
+              过去 365 天，共 {model.studiedDayCount} 天有复盘记录，累计复习 {total} {unitLabel}，单日最高 {dailyPeak} {unitLabel}
             </p>
             {tooltipInfo && (
               <div
@@ -334,17 +334,22 @@ export function ReviewHeatmap({
                       .map((cell) => {
                         const y = cell.weekday * (blockSize + blockMargin);
                         let level = 0;
-                        if (mode === "day") level = cell.level;
-                        else if (mode === "week") level = week.level;
-                        else level = reviewActivityLevel(cell.cumulativeCount, model.totalReviews);
+                        if (mode === "day") level = byTime ? cell.durationLevel : cell.level;
+                        else if (mode === "week") level = byTime ? week.durationLevel : week.level;
+                        else level = reviewActivityLevel(byTime ? cell.cumulativeDurationMinutes : cell.cumulativeCount, total);
 
                         const fill = `var(--heatmap-level-${level})`;
                         const isCellActive = activeHoverDate === cell.date || selectedDate === cell.date;
                         const isWeekActive = mode === "week" && isHoveredWeek;
+                        const cellLabel = mode === "week"
+                          ? `${week.rangeStart}至${week.rangeEnd}，${byTime ? week.totalDurationMinutes : week.totalCount}`
+                          : mode === "cumulative"
+                            ? `累计至${cell.date}，${byTime ? cell.cumulativeDurationMinutes : cell.cumulativeCount}`
+                            : `${cell.date}，${byTime ? cell.durationMinutes : cell.count}`;
 
                         return (
                           <rect
-                            aria-label={`${cell.date}，${cell.count} 个知识点`}
+                            aria-label={`${cellLabel} ${unitLabel}`}
                             className="review-heatmap-cell"
                             data-active={isCellActive ? "true" : undefined}
                             data-date={cell.date}
@@ -416,7 +421,7 @@ export function ReviewHeatmap({
             {isInfoOpen && (
               <div aria-label="统计口径说明" className="review-insights-popover" role="dialog">
                 <div className="review-insights-popover__content">
-                  <h4>📊 统计口径说明</h4>
+                  <h4>统计口径说明</h4>
                   <ul>
                     <li><strong>累计复习</strong>：过去 365 天完成复习的知识点去重个数。</li>
                     <li><strong>每日 / 每周 / 累计</strong>：按对应周期内的知识点 ID 去重；重复复习不会增加该周期的个数。</li>
@@ -541,7 +546,7 @@ export function ReviewHeatmap({
       </dialog>
 
       <p aria-live="polite" className="sr-only">
-        按知识点个数统计，{activeModeItem.label}视图
+        按{byTime ? "复习时长" : "知识点个数"}统计，{activeModeItem.label}视图
       </p>
     </section>
   );

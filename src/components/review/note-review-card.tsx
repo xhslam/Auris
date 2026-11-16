@@ -76,7 +76,6 @@ export function NoteReviewCard({
       <header className="note-review-card__header">
         <div className="note-review-card__title-area">
           <h3 className="note-review-card__title" title={item.noteTitle}>
-            <span>📝</span>
             <span>{item.noteTitle}</span>
           </h3>
           <div className="note-review-card__path" title={item.noteRelativePath}>
@@ -105,7 +104,7 @@ export function NoteReviewCard({
         onClick={togglePreview}
         type="button"
       >
-        <span>{showPreview ? "收起正文预览" : "预览正文 ⌄"}</span>
+        <span>{showPreview ? "收起正文预览" : "预览正文"}</span>
         <ChevronRightIcon
           data-open={showPreview}
           size={13}
@@ -134,7 +133,7 @@ export function NoteReviewCard({
             title="跳转至笔记工作台查看完整笔记"
             type="button"
           >
-            <span>不会 / 打开笔记 ↗</span>
+            <span>不会，打开笔记</span>
             <ArrowUpRightIcon size={14} />
           </button>
           <button
@@ -144,11 +143,11 @@ export function NoteReviewCard({
             type="button"
           >
             <CheckIcon size={14} />
-            <span>已掌握 ✓</span>
+            <span>标记已回顾</span>
           </button>
         </div>
 
-        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+        <div className="note-review-card__management">
           {!item.inSpacedRepetition ? (
             <button
               className="note-review-btn-promote"
@@ -166,12 +165,13 @@ export function NoteReviewCard({
             title="移出今日复习（保留在库中）"
             type="button"
           >
-            移出
+            移出今日
           </button>
           {onDelete ? (
             <button
               className="note-review-btn-remove"
               onClick={() => onDelete(item.id)}
+              aria-label="从复习库彻底删除"
               title="从复习库彻底删除"
               type="button"
             >

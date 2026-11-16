@@ -48,23 +48,9 @@
 .output-review-page .output-review-navigation {
   animation: review-rise-in 400ms var(--review-motion-ease) backwards;
 }
-.output-review-page :is(.output-review-overview, .output-review-view, .output-review-empty) {
+.output-review-page :is(.review-priority, .output-review-view) {
   animation: review-rise-in var(--review-motion-enter) var(--review-motion-ease) backwards;
 }
-.output-review-page .output-review-upcoming {
-  animation: review-rise-in var(--review-motion-enter) var(--review-motion-ease) 70ms backwards;
-}
-.output-review-page .review-wheel__heading,
-.output-review-page .review-wheel__tabs {
-  animation: review-rise-in var(--review-motion-enter) var(--review-motion-ease) 100ms backwards;
-}
-.output-review-page .review-wheel__stage {
-  animation: review-fade-in 650ms ease 160ms backwards;
-}
-.output-review-page .review-wheel__controls {
-  animation: review-rise-in var(--review-motion-enter) var(--review-motion-ease) 180ms backwards;
-}
-
 /* Values stay truthful and update immediately; only their presentation animates. */
 .output-review-page .output-review-summary :is(strong, b) {
   animation: review-value-in 420ms var(--review-motion-ease) backwards;
@@ -79,46 +65,22 @@
   animation: review-check-in 420ms var(--review-motion-ease) backwards;
 }
 
-/* Rotate only the spokes/dashed rim when the existing manual handler turns.
- * Leave the centered rim and hub text untouched: their transforms position them. */
-.output-review-page .review-wheel__rim::before,
-.output-review-page .review-wheel__rim > i {
-  rotate: var(--review-wheel-turn, 0deg);
-  transition: rotate 900ms cubic-bezier(.22, .61, .36, 1);
-}
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__cabin > header {
-  animation: review-fade-in 480ms ease 120ms backwards;
-}
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__items > :nth-child(-n + 6) {
-  animation: review-rise-in 420ms var(--review-motion-ease) 160ms backwards;
-}
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__items > :nth-child(2) { animation-delay: 200ms; }
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__items > :nth-child(3) { animation-delay: 240ms; }
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__items > :nth-child(4) { animation-delay: 280ms; }
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__items > :nth-child(5) { animation-delay: 320ms; }
-.output-review-page .review-wheel__gondola[data-active="true"] .review-wheel__items > :nth-child(6) { animation-delay: 360ms; }
-.output-review-page .review-wheel__project-points {
-  animation: review-rise-in 260ms var(--review-motion-ease) backwards;
-}
-
 /* Hover/press feedback does not change hit targets, layout or disabled behavior. */
-.output-review-page :is(.output-review-card__complete, .output-review-task-picker__controls button, .review-wheel__joystick button, .output-review-tabs button) {
+.output-review-page :is(.output-review-card__complete, .review-priority__task, .output-review-tabs button) {
   transition: background-color var(--review-motion-quick) ease, border-color var(--review-motion-quick) ease, color var(--review-motion-quick) ease, box-shadow var(--review-motion-quick) ease, scale var(--review-motion-quick) var(--review-motion-ease);
 }
-.output-review-page :is(.output-review-card__complete, .output-review-followups__all) svg {
+.output-review-page :is(.output-review-card__complete, .review-today-link) svg {
   transition: translate 220ms var(--review-motion-ease);
 }
-.output-review-page :is(.review-wheel__item, .output-review-project-card, .output-review-row) {
+.output-review-page :is(.output-review-project-card, .output-review-row) {
   transition: background-color var(--review-motion-quick) ease, border-color var(--review-motion-quick) ease, translate 220ms var(--review-motion-ease);
 }
 @media (hover: hover) and (pointer: fine) {
-  .output-review-page :is(.output-review-card__complete, .output-review-followups__all):hover svg { translate: 3px 0; }
-  .output-review-page .review-wheel__item:hover { translate: 3px 0; }
+  .output-review-page :is(.output-review-card__complete, .review-today-link):hover svg { translate: 3px 0; }
   .output-review-page :is(.output-review-project-card, .output-review-row):hover { translate: 0 -2px; }
   .output-review-page .output-review-card:focus-within { border-color: var(--accent); }
-  .output-review-page .output-review-task-picker__controls button:hover { box-shadow: 0 0 0 3px var(--accent-10); }
 }
-.output-review-page :is(.output-review-card__complete, .output-review-task-picker__controls button, .review-wheel__joystick button, .output-review-primary):active:not(:disabled) {
+.output-review-page :is(.output-review-card__complete, .review-priority__task, .output-review-primary):active:not(:disabled) {
   scale: .96;
 }
 
@@ -142,8 +104,7 @@
   animation: review-check-in 420ms var(--review-motion-ease) 100ms backwards;
 }
 
-/* Match VMark's duration-collapse approach: preserve resting states and native
- * scroll snapping without delaying controls or depending on animationend. */
+/* Match VMark's duration-collapse approach: preserve resting states without delaying controls or depending on animationend. */
 @media (prefers-reduced-motion: reduce) {
   .output-review-page *,
   .output-review-page *::before,

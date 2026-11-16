@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { DesktopAppSidebar } from "@/components/desktop/desktop-app-sidebar";
+import { DesktopAppSidebar, type DesktopReviewNavigation } from "@/components/desktop/desktop-app-sidebar";
 import { SharedAuthBackgroundFrame } from "@/components/shell/shared-auth-background-frame";
 import { AppUpdateIndicator } from "@/components/updates/app-update-indicator";
 import { useAppUpdateChecker } from "@/features/updates/use-app-updates";
@@ -24,6 +24,7 @@ type DesktopAppFrameProps = {
   windowTitle?: string | null;
   /** Keep the rail visible for focused workspaces such as Nia. */
   sidebarVisible?: boolean;
+  reviewNavigation?: DesktopReviewNavigation;
 };
 
 export function DesktopAppFrame({
@@ -33,6 +34,7 @@ export function DesktopAppFrame({
   persistActiveWorkspace = true,
   windowTitle = null,
   sidebarVisible = false,
+  reviewNavigation,
 }: DesktopAppFrameProps) {
   const router = useRouter();
   const { desktopBridge, hasHydratedDesktopBridge } = useHydratedDesktopBridge();
@@ -85,6 +87,7 @@ export function DesktopAppFrame({
           activeWorkspace={activeWorkspace}
           isPersistentRail
           isVisible={sidebarVisible}
+          reviewNavigation={reviewNavigation}
         />
 
         <div className="desktop-app-frame">

@@ -48,7 +48,7 @@ describe("NoteReviewCard", () => {
     expect(screen.getByText("Linear Algebra Notes")).toBeInTheDocument();
     expect(screen.getByText("Math/Linear Algebra.md")).toBeInTheDocument();
 
-    const masterBtn = screen.getByRole("button", { name: "已掌握 ✓" });
+    const masterBtn = screen.getByRole("button", { name: "标记已回顾" });
     await user.click(masterBtn);
     expect(onStatusChange).toHaveBeenCalledWith(mockItem.id, "reviewed");
   });
@@ -74,7 +74,7 @@ describe("NoteReviewCard", () => {
     });
   });
 
-  it("navigates to /notes with resumeNoteId when clicking '不会 / 打开笔记 ↗'", async () => {
+  it("navigates to /notes with resumeNoteId when clicking '不会，打开笔记'", async () => {
     const user = userEvent.setup();
     const onStatusChange = vi.fn();
 
@@ -88,7 +88,7 @@ describe("NoteReviewCard", () => {
       />,
     );
 
-    const jumpBtn = screen.getByRole("button", { name: "不会 / 打开笔记 ↗" });
+    const jumpBtn = screen.getByRole("button", { name: "不会，打开笔记" });
     await user.click(jumpBtn);
 
     expect(onStatusChange).toHaveBeenCalledWith(mockItem.id, "needs_practice");

@@ -194,14 +194,13 @@ export function TodayBookReviewCard({
 
   return (
     <section aria-label="Reading 书籍每日回顾" className="today-book-review-card">
-      <div className="today-book-review-card__header">
-        <h3 className="today-book-review-card__title">
+      <div className="review-today-module__header">
+        <h2>
           <BookOpenIcon size={18} />
-          <span>Reading 书籍回顾</span>
-          <span className="today-book-review-card__badge">书籍精读</span>
-        </h3>
+          <span>书籍回顾</span>
+        </h2>
         <button
-          className="today-book-review-card__open-full"
+          className="review-today-link"
           onClick={onGoToReadingReview}
           type="button"
         >
@@ -227,16 +226,21 @@ export function TodayBookReviewCard({
         <div className="today-book-review-card__stats">
           <span>掌握 {metrics.mastered} / {metrics.total} 段 ({metrics.progressPercent}%)</span>
           {metrics.unknown > 0 ? (
-            <span style={{ color: "#ff8a80" }}>· {metrics.unknown} 段待攻克</span>
+            <span className="today-book-review-card__unknown">· {metrics.unknown} 段待攻克</span>
           ) : null}
         </div>
+        {metrics.total > 0 ? (
+          <div className="review-today-meter" aria-label="书籍掌握进度" aria-valuemax={metrics.total} aria-valuemin={0} aria-valuenow={metrics.mastered} role="progressbar">
+            <i style={{ width: `${metrics.progressPercent}%` }} />
+          </div>
+        ) : null}
       </div>
 
       {currentParagraph ? (
         <div className="today-book-review-card__preview">
-          <p className="today-book-review-card__preview-quote">
+          <blockquote className="today-book-review-card__preview-quote" lang="en">
             “{currentParagraph.english}”
-          </p>
+          </blockquote>
 
           <div className="today-book-review-card__actions">
             <button
@@ -260,7 +264,7 @@ export function TodayBookReviewCard({
             </button>
           </div>
         </div>
-      ) : null}
+      ) : <p className="review-today-module__empty">这本书还没有可回顾的段落。</p>}
     </section>
   );
 }

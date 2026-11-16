@@ -359,59 +359,6 @@
   color: #ef4444;
 }
 
-/* Today Note Review Section */
-.today-note-review-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.today-note-review-section__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.today-note-review-section__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--app-text, #f8fafc);
-}
-
-.today-note-review-section__badge {
-  font-size: 12px;
-  font-weight: normal;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--app-text-muted, #94a3b8);
-}
-
-.today-note-review-section__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  text-align: center;
-  gap: 10px;
-  color: var(--app-text-muted, #94a3b8);
-  font-size: 13px;
-}
-
-.today-note-review-section__list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 /* Dedicated Notes Review View */
 .notes-review-view {
   display: flex;
@@ -454,4 +401,11 @@
   border-color: var(--color-primary, #3b82f6);
   color: #fff;
   font-weight: 500;
+}
+
+.note-review-card__management {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }

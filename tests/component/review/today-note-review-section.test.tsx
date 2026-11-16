@@ -28,7 +28,6 @@ describe("TodayNoteReviewSection", () => {
         onRemoveFromToday={vi.fn()}
         onStatusChange={vi.fn()}
         queue={queue}
-        today="2026-11-14"
       />,
     );
 
@@ -49,7 +48,6 @@ describe("TodayNoteReviewSection", () => {
         onRemoveFromToday={vi.fn()}
         onStatusChange={vi.fn()}
         queue={[]}
-        today="2026-11-14"
       />,
     );
 

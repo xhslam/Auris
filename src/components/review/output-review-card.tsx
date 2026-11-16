@@ -48,16 +48,21 @@ export function ReviewProgress({ cycle, currentEvent }: { cycle: ReviewCycle; cu
   );
 }
 
+export function reviewUrgencyLabel(item: ReviewQueueItem) {
+  if (item.urgency === "overdue") return `逾期 ${item.overdueDays} 天`;
+  if (item.urgency === "today") return "今天到期";
+  return `${formatReviewDate(item.event.currentPlannedDate)} 到期`;
+}
+
 export function OutputReviewCard({ item, onComplete, onOpen }: OutputReviewCardProps) {
   const completed = item.cycle.events.filter((event) => event.status === "completed").length;
-  const urgencyCopy = item.urgency === "overdue" ? `逾期 ${item.overdueDays} 天` : item.urgency === "today" ? "今天到期" : `${formatReviewDate(item.event.currentPlannedDate)} 到期`;
   const difficultyCopy = item.knowledgePoint.difficulty === "hard" ? "高强度" : item.knowledgePoint.difficulty === "easy" ? "轻量" : "标准";
   return (
     <article className="output-review-card" data-urgency={item.urgency}>
-      <div className="output-review-card__topline"><span className="output-review-card__project">{item.project.name}</span><span className="output-review-card__badges"><span className="output-review-card__urgency">{urgencyCopy}</span><span className="output-review-card__stage">当前 {STAGE_LABELS[item.event.stage]}</span></span></div>
+      <div className="output-review-card__topline"><span className="output-review-card__project" title={item.project.name}>{item.project.name} · {difficultyCopy}</span><span className="output-review-card__badges"><span className="output-review-card__urgency">{reviewUrgencyLabel(item)}</span><span className="output-review-card__stage">当前 {STAGE_LABELS[item.event.stage]}</span></span></div>
       <button aria-label={`查看知识点：${item.knowledgePoint.title}`} className="output-review-card__open" onClick={() => onOpen(item.knowledgePoint.id)} type="button">
         <span className="output-review-card__title">{item.knowledgePoint.title}</span>
-        <span className="output-review-card__meta">复习阶段：{difficultyCopy} · {item.project.name}{item.knowledgePoint.tags.length ? ` · ${item.knowledgePoint.tags.slice(0, 2).join(" / ")}` : ""}</span>
+        {item.knowledgePoint.tags.length ? <span className="output-review-card__meta">{item.knowledgePoint.tags.slice(0, 2).join(" / ")}</span> : null}
       </button>
       <div className="output-review-card__body">
         <ReviewProgress cycle={item.cycle} currentEvent={item.event} />

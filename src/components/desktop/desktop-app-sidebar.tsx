@@ -9,6 +9,7 @@ import {
   type FocusEventHandler,
   type MouseEvent,
   type MouseEventHandler,
+  type ReactNode,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,14 @@ import { createNotesRootNavigateEvent } from "@/components/notes-v2/notes-naviga
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
 import "@/components/auris-ui/auris-ui.css";
 
+export type DesktopReviewNavigation = {
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+};
+
 type DesktopAppSidebarProps = {
+  reviewNavigation?: DesktopReviewNavigation;
   activeNavId?: string;
   activeWorkspace: AppWorkspaceId;
   isVisible: boolean;
@@ -367,6 +375,7 @@ export function DesktopAppSidebar({
   onMouseEnter,
   onMouseLeave,
   isPersistentRail = false,
+  reviewNavigation,
 }: DesktopAppSidebarProps) {
   const resolvedActiveId = activeNavId ?? (activeWorkspace === "home" ? "review" : activeWorkspace);
   const [isNotesVaultOpen, setIsNotesVaultOpen] = useState(false);
@@ -419,6 +428,7 @@ export function DesktopAppSidebar({
           : NAV_GROUP_ORDER
         ).map((group) =>
           renderNavGroup(group, resolvedActiveId, onNavigate, {
+            reviewNavigation: resolvedActiveId === "review" ? reviewNavigation : undefined,
             notesVaultOpen: showNotesVaultNav,
             onNotesVaultNavigate: handleNotesRootNavigate,
             onNotesVaultToggle: handleNotesRootNavigate,
@@ -438,6 +448,7 @@ function renderNavGroup(
   resolvedActiveId: string,
   onNavigate?: () => void,
   options: {
+    reviewNavigation?: DesktopReviewNavigation;
     notesVaultOpen?: boolean;
     onNotesVaultNavigate?: () => void;
     onNotesVaultToggle?: () => void;
@@ -456,6 +467,28 @@ function renderNavGroup(
         className="desktop-app-sidebar__nav"
       >
         {items.map((item) => {
+          const review = item.id === "review" ? options.reviewNavigation : undefined;
+          if (review) {
+            return (
+              <div className="desktop-app-sidebar__nav-entry" key={item.id}>
+                <button
+                  aria-controls="desktop-review-subnavigation"
+                  aria-expanded={review.expanded}
+                  aria-label={item.label}
+                  className="desktop-app-sidebar__link"
+                  data-active="true"
+                  onClick={review.onToggle}
+                  title={item.label}
+                  type="button"
+                >
+                  <span className="desktop-app-sidebar__link-mark"><NavGlyph itemId="review" /></span>
+                </button>
+                <div hidden={!review.expanded} id="desktop-review-subnavigation">
+                  {review.children}
+                </div>
+              </div>
+            );
+          }
           return (
             <div className="desktop-app-sidebar__nav-entry" key={item.id}>
               <DesktopSidebarLink

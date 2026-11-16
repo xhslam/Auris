@@ -1,6 +1,7 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { DesktopReviewNavigation } from "@/components/desktop/desktop-app-sidebar";
 import { ReviewPageClient } from "@/components/review/review-page-client";
 import {
   EMPTY_OUTPUT_REVIEW_STATE,
@@ -14,8 +15,23 @@ import { executeReviewMcpRequest } from "@/features/output-review/review-mcp-han
 import { OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 
 vi.mock("@/components/desktop/desktop-app-frame", () => ({
-  DesktopAppFrame: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DesktopAppFrame: ({ children, reviewNavigation }: { children: React.ReactNode; reviewNavigation: DesktopReviewNavigation }) => <>
+    <button aria-expanded={reviewNavigation.expanded} onClick={reviewNavigation.onToggle} type="button">每日回顾</button>
+    <div hidden={!reviewNavigation.expanded}>{reviewNavigation.children}</div>
+    {children}
+  </>,
 }));
+
+async function goTo(user: ReturnType<typeof userEvent.setup>, name: string) {
+  const toggle = screen.getByRole("button", { name: "每日回顾" });
+  if (toggle.getAttribute("aria-expanded") === "false") await user.click(toggle);
+  await user.click(within(screen.getByRole("group", { name: "复习导航" })).getByRole("button", { name }));
+}
+
+async function goToProjects(user: ReturnType<typeof userEvent.setup>) {
+  await goTo(user, "复习计划");
+  await user.click(screen.getByRole("button", { name: "管理项目" }));
+}
 
 describe("output review page", () => {
   beforeEach(() => {
@@ -25,14 +41,14 @@ describe("output review page", () => {
   it("shows Agent-created records live and keeps them when the user creates another project", async () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
-    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    await goToProjects(user);
     act(() => { executeReviewMcpRequest({ method: "review.mcp.action", params: { action: "create_project", name: "Agent 项目" } }, window.localStorage); });
     expect(await screen.findByText("Agent 项目", { exact: true })).toBeInTheDocument();
     const stored = JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!);
     act(() => { executeReviewMcpRequest({ method: "review.mcp.action", params: { action: "create_knowledge_point", project_id: stored.projects[0].id, title: "Agent 知识点" } }, window.localStorage); });
-    await user.click(screen.getByRole("button", { name: /^全部$/ }));
-    expect(await screen.findByText("Agent 知识点", { exact: true })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    await goTo(user, "全部条目");
+    expect(await screen.findByRole("heading", { name: "Agent 知识点" })).toBeInTheDocument();
+    await goToProjects(user);
     await user.click(screen.getByRole("button", { name: "新建项目" }));
     const form = screen.getByRole("form", { name: "新建项目" });
     await user.type(within(form).getByLabelText(/项目名称/), "用户项目");
@@ -46,7 +62,7 @@ describe("output review page", () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
 
-    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    await goToProjects(user);
     await user.click(screen.getByRole("button", { name: "新建项目" }));
     const projectForm = screen.getByRole("form", { name: "新建项目" });
     await user.type(within(projectForm).getByLabelText(/项目名称/), "线性代数");
@@ -61,13 +77,14 @@ describe("output review page", () => {
     await user.type(within(knowledgeForm).getByLabelText("开始日期"), yesterday);
     await user.click(within(knowledgeForm).getByRole("button", { name: "开始 1/2/4/7 复习" }));
 
-    await user.click(screen.getByRole("button", { name: /^今天$/ }));
+    await goTo(user, "今日复习");
+    await user.click(screen.getByRole("button", { name: "继续今日复习" }));
     expect(screen.getByLabelText("今日复盘概览")).toBeInTheDocument();
     expect(screen.queryByLabelText("Nia 复习监督")).not.toBeInTheDocument();
     expect(within(screen.getByLabelText("复习执行工作区")).getByText("特征值与特征向量")).toBeInTheDocument();
     expect(screen.getAllByText("今天到期")).toHaveLength(2);
-    expect(screen.getByRole("region", { name: "复习摩天轮" })).toBeInTheDocument();
-    expect(screen.getByRole("separator", { name: "调整复习左右区域宽度" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "复习摩天轮" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("separator", { name: "调整复习左右区域宽度" })).not.toBeInTheDocument();
     expect(screen.queryByText("复习要点")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "完成输出" }));
@@ -79,13 +96,13 @@ describe("output review page", () => {
     expect(saved.knowledgePoints[0]).toMatchObject({ currentStage: "day2", status: "active" });
     expect(saved.cycles[0].events[0]).toMatchObject({ delayDays: 0, status: "completed" });
     expect(screen.getByRole("status")).toHaveTextContent("输出复习已完成");
-    expect(screen.getByLabelText("接下来复习预览")).toHaveAttribute("open");
+    expect(screen.getByRole("region", { name: "优先处理" })).toHaveTextContent("今天没有待处理的到期任务");
 
-    await user.click(screen.getByRole("button", { name: /^全部$/ }));
-    expect(screen.getByRole("heading", { name: "全部知识点" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    await goTo(user, "全部条目");
+    expect(screen.getByRole("region", { name: "全部知识点" })).toBeInTheDocument();
+    await goToProjects(user);
     expect(screen.getByRole("heading", { name: "项目" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^日历$/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "复习日历" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
   });
 
@@ -101,32 +118,34 @@ describe("output review page", () => {
     window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
     const user = userEvent.setup();
     render(<ReviewPageClient />);
-    const carousel = screen.getByRole("region", { name: "选择优先处理任务" });
-    expect(within(carousel).getAllByRole("article")).toHaveLength(3);
-    const track = within(carousel).getByLabelText("左右滑动浏览复习任务");
-    const scrollBy = vi.fn();
-    Object.defineProperty(track, "scrollBy", { value: scrollBy });
-    Object.defineProperty(track, "clientWidth", { value: 480 });
-    await user.click(within(carousel).getByRole("button", { name: "下一项复习任务" }));
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: 480, behavior: "smooth" });
-    await user.click(within(carousel).getByRole("button", { name: "上一项复习任务" }));
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: -480, behavior: "smooth" });
-    expect(JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!).cycles.every((cycle: { events: { status: string }[] }) => cycle.events[0].status !== "completed")).toBe(true);
-    const second = within(carousel).getByRole("group", { name: /第二项任务/ });
-    await user.click(within(second).getByRole("button", { name: "完成输出" }));
+    fireEvent.click(screen.getByRole("button", { name: "继续今日复习" }));
+    const priority = screen.getByRole("region", { name: "优先处理" });
+    const queue = within(priority).getByRole("region", { name: "复习队列" });
+    const second = within(queue).getByRole("button", { name: /第二项任务/ });
+    expect(within(queue).getAllByRole("button")).toHaveLength(3);
+    expect(second).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(second);
+
+    expect(second).toHaveAttribute("aria-pressed", "true");
+    const task = within(priority).getByRole("article");
+    expect(within(task).getByRole("button", { name: "查看知识点：第二项任务" })).toBeInTheDocument();
+    await user.click(within(task).getByRole("button", { name: "完成输出" }));
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "完成" }));
     const saved = JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!);
     expect(saved.knowledgePoints.find((point: { title: string }) => point.title === "第二项任务").currentStage).toBe("day2");
     expect(saved.knowledgePoints.find((point: { title: string }) => point.title === "第一项任务").currentStage).toBe("day1");
+    expect(within(within(priority).getByRole("article")).getByRole("button", { name: /查看知识点：(?:第一项|第三项)任务/ })).toBeInTheDocument();
   });
 
-  it("hides slide controls for a single priority task", () => {
+  it("shows a single priority task directly", () => {
     let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "单项复习" });
     state = createKnowledgePoint(state, { projectId: state.projects[0].id, title: "单项任务", startDate: toLocalDateKey(new Date()) });
     window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
     render(<ReviewPageClient />);
-    expect(screen.getByRole("region", { name: "选择优先处理任务" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "下一项复习任务" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "查看今日回顾" }));
+    expect(screen.getByRole("button", { name: "查看知识点：单项任务" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "复习队列" })).not.toBeInTheDocument();
   });
 
   it("opens a valid knowledge point deep link after local state hydration", async () => {
@@ -147,45 +166,26 @@ describe("output review page", () => {
   it("ignores an unknown knowledge point deep link", async () => {
     render(<ReviewPageClient initialKnowledgePointId="missing-point" />);
 
-    expect(await screen.findByText("还没有复习周期")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "今日复习" })).toBeInTheDocument();
     expect(screen.queryByLabelText(/知识点详情/)).not.toBeInTheDocument();
   });
 
-  it("browses overdue tasks and project knowledge through the wheel and remembers the split", async () => {
+  it("shows overdue work ahead of future plans and the recall modules", () => {
     let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "控制原理" });
-    state = createKnowledgePoint(state, {
-      projectId: state.projects[0].id,
-      startDate: addCalendarDays(toLocalDateKey(new Date()), -10),
-      title: "闭环反馈",
-    });
+    const today = toLocalDateKey(new Date());
+    for (const [title, offset] of [["未来任务", 5], ["闭环反馈", -10]] as const) {
+      state = createKnowledgePoint(state, {
+        projectId: state.projects[0].id, startDate: addCalendarDays(today, offset), title,
+      });
+    }
     window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
-    const user = userEvent.setup();
-    let now = 10000;
-    const clock = vi.spyOn(performance, "now").mockImplementation(() => now);
-    const rendered = render(<ReviewPageClient />);
-    try {
-      const divider = screen.getByRole("separator");
-      divider.focus();
-      await user.keyboard("{ArrowRight}");
-      expect(divider).toHaveAttribute("aria-valuenow", "47");
-      expect(window.localStorage.getItem("auris.review.split")).toBe("47");
-
-      await user.click(screen.getByRole("button", { name: "按下摇杆切换下一组" }));
-      const overdue = screen.getByRole("tabpanel", { name: /已经逾期的任务/ });
-      await user.click(within(overdue).getByRole("button", { name: /闭环反馈/ }));
-      expect(screen.getByLabelText("知识点详情：闭环反馈")).toBeInTheDocument();
-      await user.click(screen.getByRole("button", { name: "关闭详情" }));
-
-      now += 1300;
-      await user.click(screen.getByRole("button", { name: "下一组卡片" }));
-      const projects = screen.getByRole("tabpanel", { name: /我创建的项目/ });
-      await user.click(within(projects).getByRole("button", { name: /控制原理/ }));
-      await user.click(within(projects).getByRole("button", { name: /闭环反馈/ }));
-      expect(screen.getByLabelText("知识点详情：闭环反馈")).toBeInTheDocument();
-      rendered.unmount();
-      render(<ReviewPageClient />);
-      expect(screen.getByRole("separator")).toHaveAttribute("aria-valuenow", "47");
-    } finally { clock.mockRestore(); }
+    render(<ReviewPageClient />);
+    fireEvent.click(screen.getByRole("button", { name: "继续今日复习" }));
+    const priority = screen.getByRole("region", { name: "优先处理" });
+    expect(within(priority).getByRole("article")).toHaveTextContent("闭环反馈");
+    expect(within(priority).getByText("项待处理").parentElement).toHaveTextContent("1项待处理");
+    expect(priority.compareDocumentPosition(screen.getByRole("region", { name: "今日笔记自选回顾" })))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it("navigates through all, projects, and heatmap app workspace views seamlessly", async () => {
@@ -201,13 +201,13 @@ describe("output review page", () => {
     render(<ReviewPageClient />);
 
     // 1. 全部视图 (AllView)
-    await user.click(screen.getByRole("button", { name: /^全部$/ }));
+    await goTo(user, "全部条目");
     expect(screen.getByRole("region", { name: "全部知识点" })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/搜索标题、描述、项目或标签/)).toBeInTheDocument();
-    expect(screen.getByText("TCP 三次握手")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "搜索知识点" })).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "全部知识点" })).getByRole("button", { name: /TCP 三次握手/ })).toBeInTheDocument();
 
     // 2. 项目视图 (ProjectsView) & 项目内详情
-    await user.click(screen.getByRole("button", { name: /^项目$/ }));
+    await goToProjects(user);
     expect(screen.getByRole("region", { name: "项目列表" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /计算机网络/ })).toBeInTheDocument();
 
@@ -221,10 +221,10 @@ describe("output review page", () => {
     await user.click(screen.getByRole("button", { name: "← 返回项目" }));
     expect(screen.getByRole("region", { name: "项目列表" })).toBeInTheDocument();
 
-    // 3. 热力图保留，日历入口和界面移除
-    await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
+    // 3. 统计和日历共用侧栏
+    await goTo(user, "复习统计");
     expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^日历$/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "复习日历" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "日历视图" })).not.toBeInTheDocument();
 
     // 4. 洞察视图已移除
@@ -251,16 +251,18 @@ describe("output review page", () => {
     HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
 
     // Click heatmap tab
-    await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
+    await goTo(user, "复习统计");
     expect(screen.getByRole("region", { name: "复盘热力图" })).toBeInTheDocument();
 
-    // Verify heading aligned with other pages, and verify user profile bar is NOT rendered
-    expect(screen.getByRole("heading", { name: "复盘热力图", level: 2 })).toBeInTheDocument();
-    expect(screen.getByText("过去 365 天 · 按知识点统计你的复习足迹")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "复习统计", level: 2 })).toBeInTheDocument();
+    expect(screen.getByText("过去 365 天")).toBeInTheDocument();
     expect(screen.queryByText("落花流水")).not.toBeInTheDocument();
     expect(screen.queryByText("@gan798798@qq.com")).not.toBeInTheDocument();
 
-    expect(screen.queryByRole("tab", { name: "学习时长" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "复习时长" }));
+    expect(screen.getByText(/未记录的时长按阶段估算/)).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "核心复盘指标" })).getAllByText("5 分钟").length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("button", { name: "复习量" }));
     // Verify 5 metric cards matching IMG_6320
     expect(screen.getByText("累计复习")).toBeInTheDocument();
     expect(screen.getByText("平均每日")).toBeInTheDocument();
@@ -308,30 +310,34 @@ describe("output review page", () => {
     expect(screen.getByLabelText("知识点详情：大数定律与中心极限定理")).toBeInTheDocument();
   });
 
-  it("keeps one shared navigation and add action across all views", async () => {
+  it("expands six icon destinations beneath the existing Review entry", async () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
-    const navigation = screen.getByRole("navigation", { name: "输出复习视图" });
-    const labels = ["今天", "书籍回顾", "笔记回顾", "全部", "项目", "复盘热力图"];
-    expect(within(navigation).getAllByRole("button").map((button) => button.textContent)).toEqual(labels);
-    for (const label of labels) {
+    const toggle = screen.getByRole("button", { name: "每日回顾" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    const navigation = screen.getByRole("group", { name: "复习导航" });
+    const labels = ["今日复习", "复习计划", "知识点目录", "全部条目", "复习日历", "复习统计"];
+    expect(within(navigation).getAllByRole("button").map(button => button.getAttribute("aria-label"))).toEqual(labels);
+    for (const label of labels.filter(item => item !== "复习日历")) {
       const button = within(navigation).getByRole("button", { name: label });
       await user.click(button);
-      expect(screen.getByRole("navigation", { name: "输出复习视图" })).toBe(navigation);
       expect(button).toHaveAttribute("aria-current", "page");
-      expect(navigation.querySelectorAll('[data-active="true"]')).toHaveLength(1);
-      expect(within(navigation.parentElement!).getByRole("button", { name: "添加知识点" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "添加知识点" })).toBeInTheDocument();
     }
+    await user.click(toggle);
+    expect(navigation).not.toBeVisible();
   });
 
   it("renders today note review section and navigates to 笔记回顾 tab", async () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
 
+    await user.click(screen.getByRole("button", { name: "查看今日回顾" }));
     // In today view, today note review section exists
     expect(screen.getByRole("region", { name: "今日笔记自选回顾" })).toBeInTheDocument();
 
-    // Click 笔记回顾 tab
+    await user.click(screen.getByRole("button", { name: "← 今日复习" }));
     await user.click(screen.getByRole("button", { name: "笔记回顾" }));
     expect(screen.getByRole("heading", { name: "笔记回顾工作台" })).toBeInTheDocument();
   });
@@ -360,6 +366,7 @@ describe("output review page", () => {
     );
 
     render(<ReviewPageClient />);
+    await user.click(screen.getByRole("button", { name: "查看今日回顾" }));
     expect(screen.getByText("线性代数总结")).toBeInTheDocument();
 
     // Click 纳入 1/2/4/7
@@ -376,7 +383,7 @@ describe("output review page", () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
 
-    await user.click(screen.getByRole("button", { name: /^复盘热力图$/ }));
+    await goTo(user, "复习统计");
     expect(screen.getByRole("heading", { name: "还没有复盘记录" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "去今日复习" })).toBeInTheDocument();
 
