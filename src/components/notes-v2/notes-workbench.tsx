@@ -12,6 +12,7 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { NotesImagePreview, isNotesImagePath } from "./notes-image-preview";
 import { NotesExplorer } from "./notes-explorer";
 import { NOTES_ROOT_NAVIGATE_EVENT, NOTES_FOLDER_NAVIGATE_EVENT } from "./notes-navigation";
 import { NotesBreadcrumbBar } from "@/components/notes-v2/notes-breadcrumb-bar";
@@ -251,7 +252,7 @@ export function NotesWorkbench({
   onEditLink,
   pendingMarkdownFragment = null,
   onMarkdownFragmentHandled,
-  onOpenPath,
+  onOpenPath: onOpenDocumentPath,
   onOpenWikiLink,
   onPickDirectory,
   onOpenFile,
@@ -440,6 +441,18 @@ export function NotesWorkbench({
       window.removeEventListener("storage", onStorage);
     };
   }, []);
+  const [imagePreview, setImagePreview] = useState<{ path: string; root: string | null; owner: string | null } | null>(null);
+  const imagePreviewPath = imagePreview?.root === (directoryInfo?.vaultPath ?? null) && imagePreview?.owner === activePath
+    ? imagePreview.path : null;
+  const onOpenPath = useCallback((path: string) => {
+    if (isNotesImagePath(path)) {
+      setImagePreview({ path, root: directoryInfo?.vaultPath ?? null, owner: activePath });
+      return;
+    }
+    setImagePreview(null);
+    onOpenDocumentPath(path);
+  }, [activePath, directoryInfo?.vaultPath, onOpenDocumentPath]);
+
   const activeDocument = getActiveDocument(documents, activePath);
   useLayoutEffect(() => {
     editorBridgeDocumentPathRef.current = activeDocument?.path ?? null;
@@ -917,7 +930,7 @@ export function NotesWorkbench({
       >
         <div className="notes-v2__minimal-workspace">
           {explorerOpen ? <NotesExplorer
-            activePath={activePath} entries={entries} directoryInfo={directoryInfo}
+            activePath={imagePreviewPath ?? activePath} entries={entries} directoryInfo={directoryInfo}
             onOpenPath={onOpenPath} onCreateNoteInPath={onCreateNoteInPath}
             onCreateFolderInPath={onCreateFolderInPath} onDeletePath={onDeletePath}
             onRenamePath={onRenamePath} onRevealPath={onRevealPath}
@@ -926,14 +939,16 @@ export function NotesWorkbench({
             onOpenCommands={onOpenCommandPaletteChange ? () => onOpenCommandPaletteChange(true) : undefined}
             onOpenFile={onOpenFile} onCollapse={() => setExplorerOpen(false)}
           /> : null}
-          <main className="notes-v2__minimal-canvas">
+          <main className="notes-v2__minimal-canvas" style={imagePreviewPath ? { display: "flex", flexDirection: "column" } : undefined}>
             <div className="notes-v2__editor-navigation">
               {!explorerOpen ? <button className="notes-explorer__reopen" type="button" onClick={() => setExplorerOpen(true)} aria-label="展开文件栏">☰</button> : null}
               <NotesBreadcrumbBar
-                path={activeDocument?.path ?? null}
+                path={imagePreviewPath ?? activeDocument?.path ?? null}
                 vaultName={directoryInfo?.directoryName}
               />
             </div>
+            {imagePreviewPath ? <NotesImagePreview key={`${directoryInfo?.vaultPath}:${imagePreviewPath}`} path={imagePreviewPath} onClose={() => setImagePreview(null)} /> : null}
+            <div style={{ display: imagePreviewPath ? "none" : "contents" }}>
             <NotesWorkbenchCenter
               activeDocument={activeDocument}
               activePath={activePath}
@@ -957,6 +972,7 @@ export function NotesWorkbench({
               rightToolbarActions={null}
               viewPreferences={viewPreferences}
             />
+            </div>
           </main>
           {isBrowserPaneOpen ? (
             <>

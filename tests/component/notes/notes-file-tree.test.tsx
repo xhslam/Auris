@@ -282,3 +282,12 @@ describe("NotesFileTree", () => {
     expect(onOpenPath).toHaveBeenCalledWith("notes/daily.md");
   });
 });
+
+ it("opens a Chinese PNG attachment on click", async () => {
+  const onOpenPath = vi.fn();
+  render(<NotesFileTree activePath={null} entries={[{kind: "file", name: "中文 图片.png", path: "附件/中文 图片.png", size: 1, mtime: null}]} onOpenPath={onOpenPath} />);
+  const button = screen.getByRole("button", {name: "中文 图片.png"});
+  expect(button).toBeEnabled();
+  await userEvent.setup().click(button);
+  expect(onOpenPath).toHaveBeenCalledWith("附件/中文 图片.png");
+});

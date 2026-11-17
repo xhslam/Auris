@@ -535,6 +535,26 @@ describe("NotesEditorPane", () => {
 });
 
 describe("NotesWorkbench", () => {
+  it("views a PNG without opening it as text and preserves the mounted editor", async () => {
+    const user = userEvent.setup();
+    const onOpenPath = vi.fn();
+    render(<NotesWorkbench activePath="notes/daily.md" documents={[createDocument()]}
+      entries={[...ENTRIES, {kind: "file", name: "图片.png", path: "图片.png", size: 1, mtime: null}]}
+      onDocumentChange={vi.fn()} onOpenPath={onOpenPath} openTabs={["notes/daily.md"]} />);
+    const host = screen.getByTestId("notes-prosemirror-host");
+    await user.click(screen.getByRole("button", {name: "图片.png"}));
+    expect(screen.getByRole("region", {name: "图片查看"})).toBeVisible();
+    expect(onOpenPath).not.toHaveBeenCalled();
+    expect(host).not.toBeVisible();
+    await user.click(screen.getByRole("button", {name: "关闭图片"}));
+    expect(screen.getByTestId("notes-prosemirror-host")).toBe(host);
+    expect(host).toBeVisible();
+    await user.click(screen.getByRole("button", {name: "图片.png"}));
+    await user.click(screen.getByRole("button", {name: "daily.md"}));
+    expect(screen.queryByRole("region", {name: "图片查看"})).not.toBeInTheDocument();
+    expect(onOpenPath).toHaveBeenCalledWith("notes/daily.md");
+  });
+
   it("applies persisted status-bar hiding and focus dim intensity", async () => {
     window.localStorage.setItem(
       "auris.appearance.window-preferences.v1",

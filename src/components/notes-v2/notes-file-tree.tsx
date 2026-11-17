@@ -11,6 +11,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
+import { isNotesImagePath } from "./notes-image-preview";
 import { NOTES_UI_COPY } from "@/components/notes-v2/notes-ui-copy";
 import {
   NotesFileTreeContextMenu,
@@ -536,7 +537,7 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
             if (currentItem) {
               if (currentItem.node.kind === "directory") {
                 toggleFolder(currentItem.node.path, currentItem.isExpanded);
-              } else {
+              } else if (currentItem.node.displayKind !== "attachment" || isNotesImagePath(currentItem.node.path)) {
                 onOpenPath(currentItem.node.path);
               }
             }
@@ -686,6 +687,7 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
                   node.displayKind === "markdown" ||
                   node.displayKind === "text" ||
                   node.displayKind === "structured-data";
+                const canOpen = isEditable || isNotesImagePath(node.path);
                 const extensionLabel = getExtensionLabel(node.name);
 
                 return (
@@ -703,10 +705,10 @@ export const NotesFileTree = forwardRef<NotesFileTreeHandle, NotesFileTreeProps>
                       className="notes-v2__tree-file"
                       data-active={activePath === node.path ? "true" : "false"}
                       data-kind={node.displayKind ?? undefined}
-                      disabled={!isEditable}
+                      disabled={!canOpen}
                       draggable={Boolean(onMovePath) && isEditable}
                       onClick={
-                        isEditable ? () => onOpenPath(node.path) : undefined
+                        canOpen ? () => onOpenPath(node.path) : undefined
                       }
                       onContextMenu={(e) => handleContextMenu(e, node)}
                       onDragEnd={handleDragEnd}
