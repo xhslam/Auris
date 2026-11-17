@@ -7,6 +7,7 @@ import rehypeStringify from "rehype-stringify";
 import remarkRehype from "remark-rehype";
 import { parseNotesMarkdownAst } from "@/features/notes/markdown/notes-markdown-dialect";
 import { unified } from "unified";
+import { getDailyJournalPrefix } from "./daily-journal-source";
 import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 
 const evaluationMarkdown = unified()
@@ -38,14 +39,12 @@ type Evaluation = { html: string } | { message: string };
 
 async function readEvaluation(date: string): Promise<Evaluation> {
   const vault = getDesktopBridge()?.vault;
-  const directory = await vault?.getDirectoryInfo();
-  if (!vault || !directory?.hasVault) {
+  const prefix = vault ? await getDailyJournalPrefix(vault) : null;
+  if (!vault || prefix === null) {
     return { message: "请先在笔记中打开 daily 文件夹或包含它的目录。" };
   }
 
-  const filename = `${date}.md`;
-  const relativePath = directory.directoryName?.toLowerCase() === "daily" ? filename : `daily/${filename}`;
-  const markdown = await vault.readFile(relativePath);
+  const markdown = await vault.readFile(`${prefix}${date}.md`);
   if (markdown === null) {
     return { message: "当前笔记目录中没有这一天的 daily 日记。" };
   }

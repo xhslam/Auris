@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DesktopReviewNavigation } from "@/components/desktop/desktop-app-sidebar";
@@ -33,6 +33,40 @@ describe("daily evaluation calendar", () => {
   it.each([
     ["daily", ""],
     ["学习笔记", "daily/"],
+  ])("counts unique recorded dates and updates when %s changes", async (directoryName, prefix) => {
+    const paths = [
+      { relativePath: `${prefix}2024-02-28.md` },
+      { relativePath: `${prefix}2024-02-29.md` },
+      { relativePath: `${prefix}2024-02-29.md` },
+      { relativePath: `${prefix}2024-02-30.md` },
+      { relativePath: `${prefix}模板.md` },
+      { relativePath: `${prefix}archive/2024-02-20.md` },
+      { relativePath: `${prefix}2024-02-21.md`, isDirectory: true },
+      { relativePath: `${prefix}2024-02-22.md`, size: 0 },
+      { relativePath: `${prefix}${addCalendarDays(today, 1)}.md` },
+    ];
+    let notifyChange: (() => void) | undefined;
+    vi.mocked(getDesktopBridge).mockReturnValue({
+      vault: {
+        getDirectoryInfo: vi.fn().mockResolvedValue({ hasVault: true, directoryName }),
+        listFiles: vi.fn(async () => paths),
+        onDidChange: vi.fn((listener: () => void) => {
+          notifyChange = listener;
+          return () => undefined;
+        }),
+      },
+    } as unknown as NonNullable<ReturnType<typeof getDesktopBridge>>);
+
+    render(<ReviewPageClient />);
+    expect(await screen.findByRole("heading", { name: "Day 2" })).toBeInTheDocument();
+    paths.push({ relativePath: `${prefix}${today}.md` });
+    act(() => notifyChange?.());
+    expect(await screen.findByRole("heading", { name: "Day 3" })).toBeInTheDocument();
+  });
+
+  it.each([
+    ["daily", ""],
+    ["学习笔记", "daily/"],
   ])("opens only the evaluation from the selected Markdown file under %s", async (directoryName, prefix) => {
     const user = userEvent.setup();
     const readFile = vi.fn().mockResolvedValue([
@@ -41,7 +75,12 @@ describe("daily evaluation calendar", () => {
       "", "## 三点建议", "后续内容",
     ].join("\n"));
     vi.mocked(getDesktopBridge).mockReturnValue({
-      vault: { getDirectoryInfo: vi.fn().mockResolvedValue({ hasVault: true, directoryName }), readFile },
+      vault: {
+        getDirectoryInfo: vi.fn().mockResolvedValue({ hasVault: true, directoryName }),
+        listFiles: vi.fn().mockResolvedValue([]),
+        onDidChange: vi.fn(() => () => undefined),
+        readFile,
+      },
     } as unknown as NonNullable<ReturnType<typeof getDesktopBridge>>);
     Object.defineProperties(HTMLDialogElement.prototype, {
       showModal: { configurable: true, writable: true, value() { this.setAttribute("open", ""); } },
@@ -122,16 +161,12 @@ describe("output review page", () => {
     await user.click(within(knowledgeForm).getByRole("button", { name: "开始 1/2/4/7 复习" }));
 
     await goTo(user, "今日复习");
-    await user.click(screen.getByRole("button", { name: "继续今日复习" }));
-    expect(screen.getByLabelText("今日复盘概览")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Nia 复习监督")).not.toBeInTheDocument();
-    expect(within(screen.getByLabelText("复习执行工作区")).getByText("特征值与特征向量")).toBeInTheDocument();
-    expect(screen.getAllByText("今天到期")).toHaveLength(2);
-    expect(screen.queryByRole("region", { name: "复习摩天轮" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("separator", { name: "调整复习左右区域宽度" })).not.toBeInTheDocument();
-    expect(screen.queryByText("复习要点")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "复习全部" }));
+    expect(screen.queryByLabelText("今日复盘概览")).not.toBeInTheDocument();
+    const batch = screen.getByRole("region", { name: "条目复习" });
+    expect(within(batch).getByRole("heading", { name: "特征值与特征向量" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "完成输出" }));
+    await user.click(within(batch).getByRole("button", { name: "完成复习" }));
     const confirmation = screen.getByRole("dialog");
     expect(within(confirmation).getByText("完成这次输出复习？")).toBeInTheDocument();
     await user.click(within(confirmation).getByRole("button", { name: "完成" }));
@@ -140,7 +175,9 @@ describe("output review page", () => {
     expect(saved.knowledgePoints[0]).toMatchObject({ currentStage: "day2", status: "active" });
     expect(saved.cycles[0].events[0]).toMatchObject({ delayDays: 0, status: "completed" });
     expect(screen.getByRole("status")).toHaveTextContent("输出复习已完成");
-    expect(screen.getByRole("region", { name: "优先处理" })).toHaveTextContent("今天没有待处理的到期任务");
+    expect(within(batch).getByRole("heading", { name: "所选条目没有待完成的复习" })).toBeInTheDocument();
+    await user.click(within(batch).getByRole("button", { name: "返回今日复习" }));
+    expect(screen.getByRole("region", { name: "今日复习" })).toBeInTheDocument();
 
     await goTo(user, "全部条目");
     expect(screen.getByRole("region", { name: "全部知识点" })).toBeInTheDocument();
@@ -148,48 +185,6 @@ describe("output review page", () => {
     expect(screen.getByRole("heading", { name: "项目" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "复习日历" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^洞察$/ })).not.toBeInTheDocument();
-  });
-
-  it("lets users browse and complete a non-first priority task without completing other tasks", async () => {
-    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "滑动复习" });
-    for (const title of ["第一项任务", "第二项任务", "第三项任务"]) {
-      state = createKnowledgePoint(state, {
-        projectId: state.projects[0].id,
-        startDate: addCalendarDays(toLocalDateKey(new Date()), -1),
-        title,
-      });
-    }
-    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
-    const user = userEvent.setup();
-    render(<ReviewPageClient />);
-    fireEvent.click(screen.getByRole("button", { name: "继续今日复习" }));
-    const priority = screen.getByRole("region", { name: "优先处理" });
-    const queue = within(priority).getByRole("region", { name: "复习队列" });
-    const second = within(queue).getByRole("button", { name: /第二项任务/ });
-    expect(within(queue).getAllByRole("button")).toHaveLength(3);
-    expect(second).toHaveAttribute("aria-pressed", "false");
-
-    await user.click(second);
-
-    expect(second).toHaveAttribute("aria-pressed", "true");
-    const task = within(priority).getByRole("article");
-    expect(within(task).getByRole("button", { name: "查看知识点：第二项任务" })).toBeInTheDocument();
-    await user.click(within(task).getByRole("button", { name: "完成输出" }));
-    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "完成" }));
-    const saved = JSON.parse(window.localStorage.getItem(OUTPUT_REVIEW_STORAGE_KEY)!);
-    expect(saved.knowledgePoints.find((point: { title: string }) => point.title === "第二项任务").currentStage).toBe("day2");
-    expect(saved.knowledgePoints.find((point: { title: string }) => point.title === "第一项任务").currentStage).toBe("day1");
-    expect(within(within(priority).getByRole("article")).getByRole("button", { name: /查看知识点：(?:第一项|第三项)任务/ })).toBeInTheDocument();
-  });
-
-  it("shows a single priority task directly", () => {
-    let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "单项复习" });
-    state = createKnowledgePoint(state, { projectId: state.projects[0].id, title: "单项任务", startDate: toLocalDateKey(new Date()) });
-    window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
-    render(<ReviewPageClient />);
-    fireEvent.click(screen.getByRole("button", { name: "查看今日回顾" }));
-    expect(screen.getByRole("button", { name: "查看知识点：单项任务" })).toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "复习队列" })).not.toBeInTheDocument();
   });
 
   it("opens a valid knowledge point deep link after local state hydration", async () => {
@@ -210,26 +205,34 @@ describe("output review page", () => {
   it("ignores an unknown knowledge point deep link", async () => {
     render(<ReviewPageClient initialKnowledgePointId="missing-point" />);
 
-    expect(await screen.findByRole("heading", { name: "今日复习" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Day 0" })).toBeInTheDocument();
     expect(screen.queryByLabelText(/知识点详情/)).not.toBeInTheDocument();
   });
 
-  it("shows overdue work ahead of future plans and the recall modules", () => {
+  it("moves the batch entry to the homepage and advances from overdue to due items", async () => {
     let state = createProject(EMPTY_OUTPUT_REVIEW_STATE, { name: "控制原理" });
     const today = toLocalDateKey(new Date());
-    for (const [title, offset] of [["未来任务", 5], ["闭环反馈", -10]] as const) {
+    for (const [title, offset] of [["未来任务", 5], ["闭环反馈", -10], ["今日任务", -1]] as const) {
       state = createKnowledgePoint(state, {
         projectId: state.projects[0].id, startDate: addCalendarDays(today, offset), title,
       });
     }
     window.localStorage.setItem(OUTPUT_REVIEW_STORAGE_KEY, JSON.stringify(state));
+    const user = userEvent.setup();
     render(<ReviewPageClient />);
-    fireEvent.click(screen.getByRole("button", { name: "继续今日复习" }));
-    const priority = screen.getByRole("region", { name: "优先处理" });
-    expect(within(priority).getByRole("article")).toHaveTextContent("闭环反馈");
-    expect(within(priority).getByText("项待处理").parentElement).toHaveTextContent("1项待处理");
-    expect(priority.compareDocumentPosition(screen.getByRole("region", { name: "今日笔记自选回顾" })))
-      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    await goTo(user, "全部条目");
+    expect(screen.queryByRole("button", { name: "复习全部" })).not.toBeInTheDocument();
+    await goTo(user, "今日复习");
+    await user.click(screen.getByRole("button", { name: "复习全部" }));
+
+    const batch = screen.getByRole("region", { name: "条目复习" });
+    expect(batch).toHaveTextContent("剩余 2 项");
+    expect(within(batch).getByRole("heading", { name: "闭环反馈" })).toBeInTheDocument();
+    await user.click(within(batch).getByRole("button", { name: "完成复习" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "完成" }));
+    expect(batch).toHaveTextContent("剩余 1 项");
+    expect(within(batch).getByRole("heading", { name: "今日任务" })).toBeInTheDocument();
+    expect(batch).not.toHaveTextContent("未来任务");
   });
 
   it("navigates through all, projects, and heatmap app workspace views seamlessly", async () => {
@@ -373,15 +376,10 @@ describe("output review page", () => {
     expect(navigation).not.toBeVisible();
   });
 
-  it("renders today note review section and navigates to 笔记回顾 tab", async () => {
+  it("opens 笔记回顾 directly from the landing page", async () => {
     const user = userEvent.setup();
     render(<ReviewPageClient />);
 
-    await user.click(screen.getByRole("button", { name: "查看今日回顾" }));
-    // In today view, today note review section exists
-    expect(screen.getByRole("region", { name: "今日笔记自选回顾" })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "← 今日复习" }));
     await user.click(screen.getByRole("button", { name: "笔记回顾" }));
     expect(screen.getByRole("heading", { name: "笔记回顾工作台" })).toBeInTheDocument();
   });
@@ -410,7 +408,7 @@ describe("output review page", () => {
     );
 
     render(<ReviewPageClient />);
-    await user.click(screen.getByRole("button", { name: "查看今日回顾" }));
+    await user.click(screen.getByRole("button", { name: "笔记回顾" }));
     expect(screen.getByText("线性代数总结")).toBeInTheDocument();
 
     // Click 纳入 1/2/4/7
@@ -433,6 +431,6 @@ describe("output review page", () => {
 
     // Clicking '去今日复习' takes user back to today view
     await user.click(screen.getByRole("button", { name: "去今日复习" }));
-    expect(screen.getByLabelText("今日复盘概览")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "今日复习" })).toBeInTheDocument();
   });
 });

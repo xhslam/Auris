@@ -5,28 +5,49 @@ import {
   BookOpenIcon, CalendarDaysIcon, ListChecksIcon, SearchIcon,
 } from "@/components/auris-ui/auris-icons";
 import {
-  addCalendarDays, currentCycleFor, differenceInCalendarDays, getCompletedReviewEvents,
+  addCalendarDays, currentCycleFor, getCompletedReviewEvents,
   getDashboardMetrics, STAGE_LABELS, type KnowledgePointStatus,
   type OutputReviewState, type ReviewQueueItem,
 } from "@/features/output-review/output-review-model";
+import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
+import { countDailyJournalDays } from "./daily-journal-source";
 import { DailyEvaluationDialog } from "./daily-evaluation-dialog";
 import { formatReviewDate, statusLabel } from "./output-review-card";
 
 export function ReviewTodayLanding({
-  state, today, actionable, onContinue, onAll, onBooks, onNotes,
+  state, today, actionable, onReview, onAll, onBooks, onNotes,
 }: {
   state: OutputReviewState; today: string; actionable: number;
-  onContinue: () => void; onAll: () => void; onBooks: () => void; onNotes: () => void;
+  onReview: () => void; onAll: () => void; onBooks: () => void; onNotes: () => void;
 }) {
-  const earliest = state.knowledgePoints.filter(point => point.status !== "archived")
-    .map(point => point.startDate).sort()[0];
-  const day = earliest ? Math.max(1, differenceInCalendarDays(today, earliest) + 1) : null;
+  const [day, setDay] = useState(0);
+
+  useEffect(() => {
+    const vault = getDesktopBridge()?.vault;
+    if (!vault) return;
+
+    let request = 0;
+    const refresh = () => {
+      const current = ++request;
+      void countDailyJournalDays(vault, today).then(
+        count => { if (current === request) setDay(count); },
+        () => { if (current === request) setDay(0); },
+      );
+    };
+    const unsubscribe = vault.onDidChange(refresh);
+    refresh();
+    return () => {
+      request++;
+      unsubscribe();
+    };
+  }, [today]);
+
   return (
     <section aria-label="今日复习" className="review-workspace__today">
       <div>
-        <h1>{day ? `Day ${day}` : "今日复习"}</h1>
-        <button className="review-workspace__primary" onClick={onContinue} type="button">
-          {actionable ? "继续今日复习" : "查看今日回顾"}
+        <h1>Day {day}</h1>
+        <button className="review-workspace__primary" disabled={!state.knowledgePoints.length} onClick={onReview} type="button">
+          复习全部
         </button>
         <p>{actionable ? `今日还剩 ${actionable} 项` : "今天没有到期知识点"}</p>
         <div className="review-workspace__actions">
@@ -121,10 +142,10 @@ export function ReviewPlan({
 const filters: Array<KnowledgePointStatus | "all"> = ["all", "active", "overdue", "mastered", "paused", "archived"];
 
 export function ReviewLibrary({
-  state, today, catalog = false, selectedId, onSelect, detail, onReview,
+  state, today, catalog = false, selectedId, onSelect, detail,
 }: {
   state: OutputReviewState; today: string; catalog?: boolean; selectedId: string | null;
-  onSelect: (id: string) => void; detail?: React.ReactNode; onReview: (ids: string[]) => void;
+  onSelect: (id: string) => void; detail?: React.ReactNode;
 }) {
   const [projectId, setProjectId] = useState("");
   const [filter, setFilter] = useState<KnowledgePointStatus | "all">("all");
@@ -161,7 +182,6 @@ export function ReviewLibrary({
               {filters.map(status => <option key={status} value={status}>{status === "all" ? "全部状态" : statusLabel(status)}</option>)}
             </select>
             <button aria-pressed={hideSummary} onClick={() => setHideSummary(value => !value)} type="button">{hideSummary ? "显示摘要" : "隐藏摘要"}</button>
-            <button className="review-workspace__primary" disabled={!points.length} onClick={() => onReview(points.map(point => point.id))} type="button">复习全部</button>
           </>}
         </div>
         <div className="review-workspace__entries" data-grid={!catalog && grid}>
@@ -280,7 +300,7 @@ export function ReviewBatch({
             <button className="review-workspace__primary" onClick={() => onComplete(item.knowledgePoint.id)} type="button">完成复习</button>
           </div>
         </> : <h2>所选条目没有待完成的复习</h2>}
-        <button onClick={onBack} type="button">返回全部条目</button>
+        <button onClick={onBack} type="button">返回今日复习</button>
       </div>
     </section>
   );

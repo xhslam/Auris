@@ -36,7 +36,6 @@ describe("Review motion boundaries", () => {
       expect(decl.value).not.toMatch(/\bforwards\b|\bboth\b/);
     });
     const metrics = read("review-page-client.tsx");
-    expect(metrics).toContain('key={`${completedToday}/${totalActionableToday}`}');
     expect(metrics).toContain('key={notice} role="status"');
   });
 });

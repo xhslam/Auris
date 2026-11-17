@@ -6,32 +6,28 @@ import {
   ActivityIcon, BookmarkIcon, BookOpenIcon, CalendarDaysIcon, FolderIcon, HomeIcon, ListChecksIcon, PlusIcon, RotateCcwIcon, Trash2Icon,
 } from "@/components/auris-ui/auris-icons";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
-import { ReviewPrioritySection } from "./review-priority-section";
 import { ReviewBatch, ReviewCalendar, ReviewLibrary, ReviewPlan, ReviewTodayLanding } from "./review-workspace-views";
 import { ReviewHeatmap } from "./review-heatmap";
 import { ReadingBookReview } from "./reading-book-review";
-import { TodayBookReviewCard } from "./today-book-review-card";
 import {
   KnowledgePointRow, ReviewProgress, formatReviewDate, statusLabel,
 } from "@/components/review/output-review-card";
 import {
   EMPTY_OUTPUT_REVIEW_STATE, STAGE_LABELS,
   completeCurrentReview, createKnowledgePoint, createProject, currentCycleFor,
-  deleteKnowledgePoint, getDashboardMetrics, getProjectStats,
+  deleteKnowledgePoint, getProjectStats,
   getReviewQueue, refreshReviewStatuses, restartReviewCycle, setKnowledgePointStatus,
   toLocalDateKey, updateKnowledgePoint,
   type CreateKnowledgePointInput, type KnowledgePoint,
   type OutputReviewProject, type OutputReviewState, type ReviewDifficulty,
-  type ReviewEvent, type ReviewQueueItem,
+  type ReviewEvent,
 } from "@/features/output-review/output-review-model";
 import { readOutputReviewState, OUTPUT_REVIEW_STORAGE_EVENT, OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 import { readReviewMcpState, persistReviewMcpState } from "@/features/output-review/review-mcp-handler";
-import type { NotesStorage } from "@/features/notes/note-types";
 import { getNotesStorage } from "@/platform/notes/get-notes-storage";
 import {
   addNotesToReview,
   deleteNoteReviewItem,
-  getTodayNoteReviewQueue,
   markNoteEnrolledInSpaced,
   removeNoteFromToday,
   updateNoteReviewStatus,
@@ -46,7 +42,6 @@ import {
   writeNoteReviewState,
 } from "@/features/note-review/note-review-storage";
 import { NotePickerModal } from "./note-picker-modal";
-import { TodayNoteReviewSection } from "./today-note-review-section";
 import { NotesReviewView } from "./notes-review-view";
 import "@/components/review/output-review-page.css";
 import "@/components/review/review-today.css";
@@ -87,7 +82,6 @@ export function ReviewPageClient({
   const [view, setView] = useState<ReviewView>("today");
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [calendarAnchor, setCalendarAnchor] = useState<HTMLButtonElement | null>(null);
-  const [todayQueueOpen, setTodayQueueOpen] = useState(false);
   const [batchIds, setBatchIds] = useState<string[] | null>(null);
   const [formPoint, setFormPoint] = useState<KnowledgePoint | "new" | null>(null);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
@@ -156,7 +150,6 @@ export function ReviewPageClient({
     setHasHandledKnowledgePointIntent(true);
     if (state.knowledgePoints.some((point) => point.id === initialKnowledgePointId)) {
       setView("today");
-      setTodayQueueOpen(true);
       setDetailId(initialKnowledgePointId);
     }
   }, [hasHandledKnowledgePointIntent, hydrated, initialKnowledgePointId, state.knowledgePoints]);
@@ -182,10 +175,8 @@ export function ReviewPageClient({
   }, []);
 
   const queue = useMemo(() => getReviewQueue(state, today), [state, today]);
-  const metrics = useMemo(() => getDashboardMetrics(state, today), [state, today]);
   const detailPoint = state.knowledgePoints.find((point) => point.id === detailId);
 
-  const noteQueue = useMemo(() => getTodayNoteReviewQueue(noteState, today), [noteState, today]);
   const navigate = (destination: ReviewView) => {
     const firstPoint = destination === "catalog" || destination === "all"
       ? state.knowledgePoints.reduce<(typeof state.knowledgePoints)[number] | undefined>(
@@ -196,13 +187,14 @@ export function ReviewPageClient({
     setDetailId(firstPoint?.id ?? null);
     setBatchIds(null);
     setCalendarAnchor(null);
-    setTodayQueueOpen(false);
     setView(destination);
   };
-  const openTodayQueue = () => {
-    navigate("today");
-    setTodayQueueOpen(true);
+  const showToday = () => navigate("today");
+  const startBatch = () => {
+    setDetailId(null);
+    setBatchIds(state.knowledgePoints.map(point => point.id));
   };
+  const actionableQueue = queue.filter(item => item.urgency !== "upcoming");
 
   const handleNoteStatusChange = useCallback((itemId: string, status: NoteReviewStatus) => {
     const next = updateNoteReviewStatus(noteState, itemId, status, today);
@@ -343,7 +335,7 @@ export function ReviewPageClient({
       <main className="auris-page auris-review output-review-page review-workspace">
         <div className="output-review-page__container">
           <header className="review-workspace__header">
-            {((view === "today" && todayQueueOpen) || view === "reading" || view === "notes" || view === "projects") &&
+            {(view === "reading" || view === "notes" || view === "projects") &&
               <button className="review-workspace__back" onClick={() => navigate(view === "projects" ? "plan" : "today")} type="button">
                 ← {view === "projects" ? "复习计划" : "今日复习"}
               </button>}
@@ -352,37 +344,19 @@ export function ReviewPageClient({
           <div className="review-workspace__surface">
             {!hydrated ? <div className="output-review-loading" role="status">正在读取本地复习计划…</div>
               : batchIds ? <ReviewBatch
-                  onBack={() => navigate("all")}
+                  onBack={showToday}
                   onComplete={id => setConfirmAction({ kind: "complete", knowledgePointId: id })}
                   onOpen={setDetailId}
-                  queue={queue.filter(item => item.urgency !== "upcoming" && batchIds.includes(item.knowledgePoint.id))}
+                  queue={actionableQueue.filter(item => batchIds.includes(item.knowledgePoint.id))}
                 />
-              : view === "today" && !todayQueueOpen ? <ReviewTodayLanding
-                  actionable={metrics.overdueCount + metrics.dueTodayCount}
+              : view === "today" ? <ReviewTodayLanding
+                  actionable={actionableQueue.length}
                   onAll={() => navigate("all")}
                   onBooks={() => navigate("reading")}
-                  onContinue={openTodayQueue}
+                  onReview={startBatch}
                   onNotes={() => navigate("notes")}
                   state={state}
                   today={today}
-                />
-              : view === "today" ? <TodayView
-                  hasKnowledgePoints={state.knowledgePoints.length > 0}
-                  metrics={metrics}
-                  noteQueue={noteQueue}
-                  notesStorage={notesStorage}
-                  onAdd={requestAdd}
-                  onComplete={id => setConfirmAction({ kind: "complete", knowledgePointId: id })}
-                  onDeleteNoteReview={handleDeleteNoteReview}
-                  onGoToReadingReview={() => navigate("reading")}
-                  onNoteStatusChange={handleNoteStatusChange}
-                  onNotice={setNotice}
-                  onOpen={setDetailId}
-                  onOpenNotePicker={() => setNotePickerOpen(true)}
-                  onPromoteNoteToSpaced={handlePromoteNoteToSpaced}
-                  onRemoveNoteFromToday={handleRemoveNoteFromToday}
-                  onShowAll={() => navigate("all")}
-                  queue={queue}
                 />
               : view === "reading" ? <ReadingBookReview onGoToToday={() => navigate("today")} onNotice={setNotice} />
               : view === "notes" ? <NotesReviewView
@@ -399,15 +373,14 @@ export function ReviewPageClient({
                   catalog={view === "catalog"}
                   detail={detail}
                   key={view}
-                  onReview={ids => { setDetailId(null); setBatchIds(ids); }}
                   onSelect={setDetailId}
                   selectedId={detailId}
                   state={state}
                   today={today}
                 />
-              : view === "plan" ? <ReviewPlan onProjects={() => navigate("projects")} onToday={openTodayQueue} state={state} today={today} />
+              : view === "plan" ? <ReviewPlan onProjects={() => navigate("projects")} onToday={showToday} state={state} today={today} />
               : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
-              : <ReviewHeatmap onGoToToday={openTodayQueue} onOpen={setDetailId} state={state} today={today} />}
+              : <ReviewHeatmap onGoToToday={showToday} onOpen={setDetailId} state={state} today={today} />}
           </div>
         </div>
 
@@ -415,7 +388,7 @@ export function ReviewPageClient({
           anchor={calendarAnchor}
           onClose={() => setCalendarAnchor(null)}
           onOpen={id => { setCalendarAnchor(null); setBatchIds(null); setView("all"); setDetailId(id); }}
-          onToday={openTodayQueue}
+          onToday={showToday}
           state={state}
           today={today}
         />}
@@ -464,84 +437,6 @@ export function ReviewPageClient({
         {notice ? <div className="output-review-toast" key={notice} role="status"><CheckIcon size={16} />{notice}</div> : null}
       </main>
     </DesktopAppFrame>
-  );
-}
-
-function TodayView({
-  hasKnowledgePoints,
-  queue,
-  metrics,
-  noteQueue,
-  notesStorage,
-  onAdd,
-  onComplete,
-  onOpen,
-  onShowAll,
-  onGoToReadingReview,
-  onNotice,
-  onOpenNotePicker,
-  onNoteStatusChange,
-  onPromoteNoteToSpaced,
-  onRemoveNoteFromToday,
-  onDeleteNoteReview,
-}: {
-  hasKnowledgePoints: boolean;
-  queue: ReviewQueueItem[];
-  metrics: ReturnType<typeof getDashboardMetrics>;
-  noteQueue: NoteReviewItem[];
-  notesStorage: NotesStorage | null;
-  onAdd: () => void;
-  onComplete: (knowledgePointId: string) => void;
-  onOpen: (knowledgePointId: string) => void;
-  onShowAll: () => void;
-  onGoToReadingReview: () => void;
-  onNotice: (text: string) => void;
-  onOpenNotePicker: () => void;
-  onNoteStatusChange: (itemId: string, status: NoteReviewStatus) => void;
-  onPromoteNoteToSpaced: (item: NoteReviewItem) => void;
-  onRemoveNoteFromToday: (itemId: string) => void;
-  onDeleteNoteReview: (itemId: string) => void;
-}) {
-  const { completedToday, totalActionableToday, overdueCount, dueTodayCount } = metrics;
-  const progress = totalActionableToday ? Math.round((completedToday / totalActionableToday) * 100) : 100;
-
-  return (
-    <section aria-label="复习执行工作区" className="output-review-today">
-      <div className="output-review-today__content">
-        <section aria-label="今日复盘概览" className="output-review-summary">
-          <div><span>今日执行</span><strong key={`${completedToday}/${totalActionableToday}`}>{completedToday} / {totalActionableToday}</strong></div>
-          <div><span>逾期</span><strong data-warning={overdueCount > 0} key={overdueCount}>{overdueCount}</strong></div>
-          <div><span>今天到期</span><strong key={dueTodayCount}>{dueTodayCount}</strong></div>
-          <div className="output-review-summary__progress">
-            <span><span>执行进度</span><b key={progress}>{progress}%</b></span>
-            <div aria-label="今日执行进度" aria-valuemax={100} aria-valuemin={0} aria-valuenow={progress} role="progressbar">
-              <i style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        </section>
-        <ReviewPrioritySection
-          actionableCount={overdueCount + dueTodayCount}
-          hasKnowledgePoints={hasKnowledgePoints}
-          onAdd={onAdd}
-          onComplete={onComplete}
-          onOpen={onOpen}
-          onShowAll={onShowAll}
-          queue={queue}
-        />
-        <div className="output-review-today__recall">
-          <TodayBookReviewCard onGoToReadingReview={onGoToReadingReview} onNotice={onNotice} />
-          <TodayNoteReviewSection
-            notesStorage={notesStorage}
-            onDelete={onDeleteNoteReview}
-            onOpenPicker={onOpenNotePicker}
-            onPromoteToSpaced={onPromoteNoteToSpaced}
-            onRemoveFromToday={onRemoveNoteFromToday}
-            onStatusChange={onNoteStatusChange}
-            queue={noteQueue}
-          />
-        </div>
-      </div>
-    </section>
   );
 }
 
