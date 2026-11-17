@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DesktopReviewNavigation } from "@/components/desktop/desktop-app-sidebar";
 import { ReviewPageClient } from "@/components/review/review-page-client";
 import {
@@ -12,6 +12,7 @@ import {
   toLocalDateKey,
 } from "@/features/output-review/output-review-model";
 import { executeReviewMcpRequest } from "@/features/output-review/review-mcp-handler";
+import { getDesktopBridge } from "@/platform/desktop/desktop-runtime";
 import { OUTPUT_REVIEW_STORAGE_KEY } from "@/features/output-review/output-review-storage";
 
 vi.mock("@/components/desktop/desktop-app-frame", () => ({
@@ -21,6 +22,49 @@ vi.mock("@/components/desktop/desktop-app-frame", () => ({
     {children}
   </>,
 }));
+
+vi.mock("@/platform/desktop/desktop-runtime", { spy: true });
+
+describe("daily evaluation calendar", () => {
+  const today = toLocalDateKey(new Date());
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it.each([
+    ["daily", ""],
+    ["学习笔记", "daily/"],
+  ])("opens only the evaluation from the selected Markdown file under %s", async (directoryName, prefix) => {
+    const user = userEvent.setup();
+    const readFile = vi.fn().mockResolvedValue([
+      "# 日记", "## 原始记录", "原始内容", "## 具体评价",
+      "- **可确认的学习产出**：完成一套习题", "", "### 补充", "复核错题",
+      "", "## 三点建议", "后续内容",
+    ].join("\n"));
+    vi.mocked(getDesktopBridge).mockReturnValue({
+      vault: { getDirectoryInfo: vi.fn().mockResolvedValue({ hasVault: true, directoryName }), readFile },
+    } as unknown as NonNullable<ReturnType<typeof getDesktopBridge>>);
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: { configurable: true, writable: true, value() { this.setAttribute("open", ""); } },
+      close: { configurable: true, writable: true, value() { this.removeAttribute("open"); } },
+    });
+
+    render(<ReviewPageClient />);
+    await goTo(user, "复习计划");
+    expect(screen.getByRole("heading", { name: "每日评价" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "学习阶段" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "复习阶段" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "前 30 天" }));
+    const date = addCalendarDays(today, -30);
+    await user.click(screen.getByRole("button", { name: `${date} 的每日评价` }));
+    const dialog = screen.getByRole("dialog", { name: "每日评价" });
+    expect(await within(dialog).findByText("可确认的学习产出")).toHaveProperty("tagName", "STRONG");
+    expect(dialog).toHaveTextContent("复核错题");
+    expect(dialog).not.toHaveTextContent(/原始内容|后续内容/);
+    expect(readFile).toHaveBeenCalledWith(`${prefix}${date}.md`);
+    await user.click(within(dialog).getByRole("button", { name: "关闭每日评价" }));
+    expect(dialog).not.toBeInTheDocument();
+  });
+});
 
 async function goTo(user: ReturnType<typeof userEvent.setup>, name: string) {
   const toggle = screen.getByRole("button", { name: "每日回顾" });

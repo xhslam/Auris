@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BookOpenIcon, CalendarDaysIcon, ChevronRightIcon, ListChecksIcon, SearchIcon,
+  BookOpenIcon, CalendarDaysIcon, ListChecksIcon, SearchIcon,
 } from "@/components/auris-ui/auris-icons";
 import {
   addCalendarDays, currentCycleFor, differenceInCalendarDays, getCompletedReviewEvents,
-  getDashboardMetrics, getProjectStats, STAGE_LABELS, type KnowledgePointStatus,
+  getDashboardMetrics, STAGE_LABELS, type KnowledgePointStatus,
   type OutputReviewState, type ReviewQueueItem,
 } from "@/features/output-review/output-review-model";
+import { DailyEvaluationDialog } from "./daily-evaluation-dialog";
 import { formatReviewDate, statusLabel } from "./output-review-card";
 
 export function ReviewTodayLanding({
@@ -52,69 +53,67 @@ function plannedByDate(state: OutputReviewState) {
   return days;
 }
 
+const EVALUATION_PAGE_DAYS = 30;
+
 export function ReviewPlan({
-  state, today, onProjects, onToday, onOpen,
+  state, today, onProjects, onToday,
 }: {
-  state: OutputReviewState; today: string; onProjects: () => void;
-  onToday: () => void; onOpen: (id: string) => void;
+  state: OutputReviewState; today: string; onProjects: () => void; onToday: () => void;
 }) {
-  const [projectId, setProjectId] = useState("");
-  const [phase, setPhase] = useState<"study" | "review">("review");
-  const [selected, setSelected] = useState(today);
-  const points = state.knowledgePoints.filter(point => !projectId || point.projectId === projectId);
-  const stats = projectId ? getProjectStats(state, projectId) : {
-    total: points.filter(point => point.status !== "archived").length,
-    mastered: points.filter(point => point.status === "mastered").length,
-  };
-  const dates = useMemo(() => plannedByDate(state), [state]);
-  const pointsOnDate = (date: string) => phase === "review"
-    ? (dates.get(date) ?? []).filter(point => !projectId || point.projectId === projectId)
-    : points.filter(point => point.status !== "archived" && point.startDate === date);
-  const selectedPoints = pointsOnDate(selected);
-  const percent = stats.total ? Math.round(stats.mastered / stats.total * 100) : 0;
+  const [page, setPage] = useState(0);
+  const [evaluation, setEvaluation] = useState<{ date: string; trigger: HTMLButtonElement } | null>(null);
+  const total = state.knowledgePoints.filter(point => point.status !== "archived").length;
+  const mastered = state.knowledgePoints.filter(point => point.status === "mastered").length;
+  const percent = total ? Math.round(mastered / total * 100) : 0;
+  const lastDate = addCalendarDays(today, -page * EVALUATION_PAGE_DAYS);
+  const firstDate = addCalendarDays(lastDate, 1 - EVALUATION_PAGE_DAYS);
   return (
     <section aria-label="复习计划" className="review-workspace__plan">
       <header className="review-workspace__plan-header">
         <div className="review-workspace__book"><BookOpenIcon size={19} />复习计划</div>
         <div className="review-workspace__plan-progress">
-          <div className="review-workspace__bar">
-            <div><strong>{stats.mastered}</strong> / {stats.total}</div>
-            <div className="review-workspace__segments" aria-label="计划阶段" role="group">
-              <button aria-pressed={phase === "study"} onClick={() => setPhase("study")} type="button">学习阶段</button>
-              <button aria-pressed={phase === "review"} onClick={() => setPhase("review")} type="button">复习阶段</button>
-            </div>
-          </div>
-          <p>已掌握 {percent}% · 待掌握 {stats.total - stats.mastered} 项</p>
+          <div><strong>{mastered}</strong> / {total}</div>
+          <p>已掌握 {percent}% · 待掌握 {total - mastered} 项</p>
           <progress aria-label="掌握进度" max={100} value={percent} />
         </div>
       </header>
       <div className="review-workspace__bar review-workspace__plan-toolbar">
-        <label>学习项目 <select onChange={event => setProjectId(event.target.value)} value={projectId}>
-          <option value="">全部项目</option>
-          {state.projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
-        </select></label>
+        <h2>每日评价</h2>
         <div className="review-workspace__actions">
           <button onClick={onToday} type="button">今日复盘</button>
           <button onClick={onProjects} type="button">管理项目</button>
         </div>
       </div>
-      <div className="review-workspace__plan-grid">
-        {Array.from({ length: 30 }, (_, index) => {
-          const date = addCalendarDays(today, index);
+      <div className="review-workspace__bar review-workspace__plan-range">
+        <span aria-live="polite">{firstDate} 至 {lastDate}</span>
+        <div className="review-workspace__actions">
+          <button onClick={() => setPage(value => value + 1)} type="button">前 30 天</button>
+          <button disabled={page === 0} onClick={() => setPage(value => Math.max(0, value - 1))} type="button">后 30 天</button>
+        </div>
+      </div>
+      <div aria-label="每日评价日期" className="review-workspace__plan-grid" role="group">
+        {Array.from({ length: EVALUATION_PAGE_DAYS }, (_, index) => {
+          const date = addCalendarDays(firstDate, index);
+          const isToday = date === today;
           return (
-            <button aria-label={`${formatReviewDate(date)}，${pointsOnDate(date).length} 项`} aria-pressed={date === selected} data-today={date === today} key={date} onClick={() => setSelected(date)} type="button">
+            <button
+              aria-current={isToday ? "date" : undefined}
+              aria-haspopup="dialog"
+              aria-label={`${date} 的每日评价`}
+              key={date}
+              onClick={event => setEvaluation({ date, trigger: event.currentTarget })}
+              type="button"
+            >
               <strong>{Number(date.slice(-2))}</strong>
-              <span>{phase === "review" ? "复习" : "学习"} {pointsOnDate(date).length} 项</span>
+              <span>{isToday ? "今天" : `${Number(date.slice(5, 7))} 月`}</span>
             </button>
           );
         })}
       </div>
-      <section className="review-workspace__plan-selection">
-        <h3>{formatReviewDate(selected)}{selected === today ? " · 今天" : ""}</h3>
-        {selectedPoints.length ? selectedPoints.map((point, index) => (
-          <button key={`${point.id}-${index}`} onClick={() => onOpen(point.id)} type="button">{point.title}<ChevronRightIcon size={14} /></button>
-        )) : <p>这天暂无安排。</p>}
-      </section>
+      {evaluation && <DailyEvaluationDialog date={evaluation.date} onClose={() => {
+        evaluation.trigger.focus();
+        setEvaluation(null);
+      }} />}
     </section>
   );
 }

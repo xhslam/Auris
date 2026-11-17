@@ -405,7 +405,7 @@ export function ReviewPageClient({
                   state={state}
                   today={today}
                 />
-              : view === "plan" ? <ReviewPlan onOpen={setDetailId} onProjects={() => navigate("projects")} onToday={openTodayQueue} state={state} today={today} />
+              : view === "plan" ? <ReviewPlan onProjects={() => navigate("projects")} onToday={openTodayQueue} state={state} today={today} />
               : view === "projects" ? <ProjectsView onAddProject={() => setProjectFormOpen(true)} onOpen={setDetailId} state={state} />
               : <ReviewHeatmap onGoToToday={openTodayQueue} onOpen={setDetailId} state={state} today={today} />}
           </div>
