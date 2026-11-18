@@ -25,7 +25,6 @@ type NotesWorkbenchBottomLeftProps = {
   onRenamePath?: (path: string, kind: "directory" | "file") => void;
   onRevealPath?: (path: string) => void;
   onMovePath?: (sourcePath: string, targetFolderPath: string) => void;
-  onOpenBrowser?: () => void;
   onOpenPath: (path: string) => void;
   onToggleExplorer?: () => void;
   onPickDirectory?: () => void;
@@ -56,7 +55,6 @@ export function NotesWorkbenchBottomLeft({
   onRenamePath,
   onRevealPath,
   onMovePath,
-  onOpenBrowser,
   onOpenPath,
   onToggleExplorer,
   onPickDirectory,
@@ -120,15 +118,6 @@ export function NotesWorkbenchBottomLeft({
         <span className="notes-v2__active-note-title" title={getDocumentTitle(activeDocument)}>
           {getDocumentTitle(activeDocument)}
         </span>
-      </button>
-      <button
-        aria-label="打开内置浏览器"
-        className="notes-v2__corner-icon"
-        onClick={() => onOpenBrowser?.()}
-        title="打开内置浏览器"
-        type="button"
-      >
-        <span aria-hidden="true">◎</span>
       </button>
       <button
         aria-label={NOTES_UI_COPY.headerActions.newNote}

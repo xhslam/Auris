@@ -289,8 +289,17 @@ async function verifyFooterBoundary(app, page, evidence, diagnostic = false) {
   await page.keyboard.press("Escape");
   await page.locator("#notes-v2-dependency-review-popover-title").waitFor({ state: "hidden" });
   evidence.footerReviewPopoverReachable = true;
-  await clickFooterButton(page, "打开内置浏览器");
+  const browserLauncher = page.getByRole("button", { name: "打开内置浏览器", exact: true });
+  const launcherBox = await browserLauncher.boundingBox();
+  const layoutBox = await page.locator(".desktop-app-frame__layout").boundingBox();
+  assert(launcherBox && layoutBox, "The browser launcher and desktop layout must be visible");
+  assert(Math.abs(launcherBox.y - layoutBox.y) <= 1, "The browser launcher must align with the top of the layout");
+  assert(Math.abs(launcherBox.x + launcherBox.width - layoutBox.x - layoutBox.width) <= 1, "The browser launcher must align with the right of the layout");
+  assert.equal(await page.locator(".notes-v2__status-footer").getByRole("button", { name: "打开内置浏览器" }).count(), 0);
+  assert.equal(await page.locator(".auris-update-indicator").count(), 0);
+  await browserLauncher.click();
   await page.waitForFunction(() => document.querySelector(".notes-v2")?.dataset.browserPaneOpen === "true");
+  await page.getByRole("button", { name: "新建标签页", exact: true }).click({ trial: true });
   await wakeFooter(page);
   const browserMetrics = await footerMetrics(page);
   evidence.footerCases.push({ requestedWidth: 1440, expanded: true, pane: "browser", ...browserMetrics });
@@ -375,6 +384,9 @@ async function main() {
     const page = await waitForNotesWindow(app);
     page.setDefaultTimeout(15_000);
     await page.locator(".ProseMirror table").first().waitFor({ state: "visible", timeout: 90_000 });
+    if (!baseline) {
+      assert(!evidence.rendererMessages.some(message => message.type === "pageerror" && /Hydration failed/i.test(message.text)), "Notes must hydrate without a desktop bridge mismatch");
+    }
     if (footerCssProbePath) {
       const sourcePath = path.resolve(footerCssProbePath);
       const css = fs.readFileSync(sourcePath, "utf8");

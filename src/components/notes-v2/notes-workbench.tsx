@@ -928,6 +928,20 @@ export function NotesWorkbench({
           } as CSSProperties
         }
       >
+        <button
+          aria-expanded={isBrowserPaneOpen}
+          aria-label="打开内置浏览器"
+          className="notes-v2__browser-launcher"
+          onClick={() => {
+            setOpenLeftPopover(null);
+            setIsTerminalSplitOpen(false);
+            setIsBrowserPaneOpen(true);
+          }}
+          title="打开内置浏览器"
+          type="button"
+        >
+          <span aria-hidden="true">◎</span>
+        </button>
         <div className="notes-v2__minimal-workspace">
           {explorerOpen ? <NotesExplorer
             activePath={imagePreviewPath ?? activePath} entries={entries} directoryInfo={directoryInfo}
@@ -1065,11 +1079,6 @@ export function NotesWorkbench({
             onRenamePath={onRenamePath}
             onRevealPath={onRevealPath}
             onMovePath={onMovePath}
-            onOpenBrowser={() => {
-              setOpenLeftPopover(null);
-              setIsTerminalSplitOpen(false);
-              setIsBrowserPaneOpen(true);
-            }}
             onOpenPath={onOpenPath}
             onPickDirectory={onPickDirectory}
             onReturnToFolder={onReturnToFolder}

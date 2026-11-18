@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { DesktopAppSidebar, type DesktopReviewNavigation } from "@/components/desktop/desktop-app-sidebar";
 import { SharedAuthBackgroundFrame } from "@/components/shell/shared-auth-background-frame";
-import { AppUpdateIndicator } from "@/components/updates/app-update-indicator";
 import { useAppUpdateChecker } from "@/features/updates/use-app-updates";
 import { persistLastWorkspace } from "@/features/app-runtime/app-runtime-storage";
 import type { AppWorkspaceId } from "@/features/app-runtime/app-runtime.types";
@@ -94,7 +93,6 @@ export function DesktopAppFrame({
           <div className="desktop-app-frame__viewport">
             <div className="desktop-app-frame__layout">
               <div className="desktop-app-frame__main">{children}</div>
-              <AppUpdateIndicator />
             </div>
           </div>
         </div>

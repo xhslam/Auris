@@ -14819,13 +14819,43 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
   height: 100%;
 }
 
-/* The update affordance is a floating 30px control, not a layout rail. Keeping
-   it out of the grid lets page surfaces reach the physical right edge. */
-.desktop-app-frame__layout > .auris-update-indicator {
+.desktop-app-frame .notes-v2 .notes-v2__browser-launcher {
   position: absolute;
-  top: 0;
-  right: 0;
+  inset: 0 0 auto auto;
   z-index: 110;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__browser-launcher:hover,
+.desktop-app-frame .notes-v2 .notes-v2__browser-launcher[aria-expanded="true"] {
+  background: var(--app-fill);
+  color: var(--app-text);
+}
+
+.desktop-app-frame .notes-v2 .notes-v2__browser-launcher:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.desktop-app-frame .notes-v2__embedded-browser .browser-tab-strip {
+  padding-inline-end: max(var(--browser-header-padding-x), 36px);
+}
+
+.desktop-app-frame .notes-v2[data-browser-pane-open="false"][data-terminal-open="false"]
+  .notes-v2__editor-navigation {
+  padding-inline-end: 36px;
 }
 
 .desktop-app-frame__main {
@@ -18205,7 +18235,15 @@ body:has(.notes-v2--minimal)::-webkit-scrollbar,
 .desktop-app-frame .notes-v2--explorer .notes-explorer :is(button, input, summary, a):focus-visible { outline: 2px solid var(--notes-accent); outline-offset: -2px; }
 .desktop-app-frame .notes-v2--explorer .notes-explorer__title { min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .desktop-app-frame .notes-v2--explorer .notes-explorer__icon-button { flex: 0 0 28px; width: 28px; justify-content: center; padding: 4px; color: var(--notes-muted); }
-.desktop-app-frame .notes-v2--explorer .notes-explorer__actions { display: flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 12px 4px; color: var(--notes-muted); }
+.desktop-app-frame .notes-v2--explorer .notes-explorer__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px 4px;
+  border-bottom: 1px solid var(--notes-line);
+  color: var(--notes-muted);
+}
 .desktop-app-frame .notes-v2--explorer .notes-explorer__actions > button { flex: 0 0 28px; width: 28px; height: 28px; justify-content: center; padding: 4px; }
 .desktop-app-frame .notes-v2--explorer .notes-explorer__actions > button[aria-pressed="true"] { background: color-mix(in srgb, var(--notes-text) 7%, transparent); }
 .desktop-app-frame .notes-v2--explorer .notes-explorer__more { position: relative; margin-inline-start: auto; }
