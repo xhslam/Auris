@@ -82,14 +82,29 @@
   overflow: auto;
   padding: 24px;
 }
-.review-workspace__today h1 {
-  margin: 0 0 24px;
+.review-workspace__journal-day {
+  --journal-descender-space: .08em;
+  margin: 0 0 calc(24px - var(--journal-descender-space));
+  padding-block-end: var(--journal-descender-space);
   color: transparent;
   font: 700 clamp(56px, 18vw, 275px)/1.04 Arial, "PingFang SC", sans-serif;
   letter-spacing: -.047em;
   -webkit-text-stroke: 1px var(--app-line);
-  background: linear-gradient(to top, var(--app-fill-strong) 21%, transparent 21%);
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-position: center bottom;
+  background-repeat: no-repeat;
   background-clip: text;
+  transition: background-size 450ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .review-workspace__journal-day { transition: none; }
+}
+@media (forced-colors: active) {
+  .review-workspace__journal-day {
+    color: CanvasText;
+    -webkit-text-stroke: 0;
+    background-image: none;
+  }
 }
 .review-workspace__today p { margin: 14px 0; color: var(--app-text-soft); }
 .review-workspace__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }

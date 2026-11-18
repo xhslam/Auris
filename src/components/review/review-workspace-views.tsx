@@ -14,13 +14,15 @@ import { countDailyJournalDays } from "./daily-journal-source";
 import { DailyEvaluationDialog } from "./daily-evaluation-dialog";
 import { formatReviewDate, statusLabel } from "./output-review-card";
 
+const JOURNAL_CYCLE_DAYS = 21;
+
 export function ReviewTodayLanding({
   state, today, actionable, onReview, onAll, onBooks, onNotes,
 }: {
   state: OutputReviewState; today: string; actionable: number;
   onReview: () => void; onAll: () => void; onBooks: () => void; onNotes: () => void;
 }) {
-  const [day, setDay] = useState(0);
+  const [recordedDays, setRecordedDays] = useState(0);
 
   useEffect(() => {
     const vault = getDesktopBridge()?.vault;
@@ -30,8 +32,8 @@ export function ReviewTodayLanding({
     const refresh = () => {
       const current = ++request;
       void countDailyJournalDays(vault, today).then(
-        count => { if (current === request) setDay(count); },
-        () => { if (current === request) setDay(0); },
+        count => { if (current === request) setRecordedDays(count); },
+        () => { if (current === request) setRecordedDays(0); },
       );
     };
     const unsubscribe = vault.onDidChange(refresh);
@@ -42,10 +44,17 @@ export function ReviewTodayLanding({
     };
   }, [today]);
 
+  const day = recordedDays === 0 ? 0 : (recordedDays - 1) % JOURNAL_CYCLE_DAYS + 1;
+  const progressLabel = `日记周期：${day} / ${JOURNAL_CYCLE_DAYS} 天`;
+
   return (
     <section aria-label="今日复习" className="review-workspace__today">
       <div>
-        <h1>Day {day}</h1>
+        <h1
+          className="review-workspace__journal-day"
+          style={{ backgroundSize: `100% ${day / JOURNAL_CYCLE_DAYS * 100}%` }}
+          title={progressLabel}
+        >Day {day}</h1>
         <button className="review-workspace__primary" disabled={!state.knowledgePoints.length} onClick={onReview} type="button">
           复习全部
         </button>

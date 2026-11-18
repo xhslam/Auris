@@ -64,6 +64,34 @@ describe("daily evaluation calendar", () => {
     expect(await screen.findByRole("heading", { name: "Day 3" })).toBeInTheDocument();
   });
 
+  it("fills on the 21st recorded day and starts a new cycle on the next recorded day", async () => {
+    let recordedDays = 0;
+    let notifyChange: (() => void) | undefined;
+    vi.mocked(getDesktopBridge).mockReturnValue({
+      vault: {
+        getDirectoryInfo: vi.fn().mockResolvedValue({ hasVault: true, directoryName: "daily" }),
+        listFiles: vi.fn(async () => Array.from({ length: recordedDays }, (_, index) => ({
+          relativePath: `${addCalendarDays(today, -2 * index)}.md`,
+        }))),
+        onDidChange: vi.fn((listener: () => void) => {
+          notifyChange = listener;
+          return () => undefined;
+        }),
+      },
+    } as unknown as NonNullable<ReturnType<typeof getDesktopBridge>>);
+
+    render(<ReviewPageClient />);
+    expect(screen.getByRole("heading", { name: "Day 0" })).toHaveStyle({ backgroundSize: "100% 0%" });
+
+    for (const [count, day] of [[20, 20], [21, 21], [22, 1], [42, 21]]) {
+      recordedDays = count;
+      act(() => notifyChange?.());
+      const heading = await screen.findByRole("heading", { name: `Day ${day}` });
+      expect(heading).toHaveAccessibleDescription(`日记周期：${day} / 21 天`);
+      expect(heading).toHaveStyle({ backgroundSize: `100% ${day / 21 * 100}%` });
+    }
+  });
+
   it.each([
     ["daily", ""],
     ["学习笔记", "daily/"],
