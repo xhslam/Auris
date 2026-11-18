@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Toaster, toast } from "sonner";
 import { DesktopAppFrame } from "@/components/desktop/desktop-app-frame";
 import { createNoteDocument } from "@/features/notes/documents/document-repository";
@@ -50,7 +50,17 @@ function getExternalMarkdownConflictHash(error: unknown) {
   return match?.[1] ?? null;
 }
 
-export function NotesPageClient({ resumeNoteId = null }: NotesPageClientProps) {
+const subscribeHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+
+export function NotesPageClient(props: NotesPageClientProps) {
+  // Notes reads the native vault and Nia bridges during its first render.
+  const hydrated = useSyncExternalStore(subscribeHydration, clientReady, serverReady);
+  return hydrated ? <NotesPageContent {...props} /> : null;
+}
+
+function NotesPageContent({ resumeNoteId = null }: NotesPageClientProps) {
   const windowPreferences = useAppWindowPreferences();
   const { promptFn, confirmFn, renderDialogs } = useNotesDialog();
   const workbench = useNotesWorkbench({
