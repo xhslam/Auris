@@ -384,6 +384,7 @@ export function NotesWorkbench({
   // 能对上具体 start() 调用的关联标识，加判断绕不过去。所以全应用只有一个
   // session，选择器把提示词交给它。
   const [pendingNiaPrompt, setPendingNiaPrompt] = useState<string | null>(null);
+  const [isNiaPanelOpen, setIsNiaPanelOpen] = useState(false);
   const [shellWidth, setShellWidth] = useState(NOTES_CENTER_FALLBACK_WIDTH);
   const [terminalWidth, setTerminalWidth] = useState(
     getDefaultRightSidebarWidth("terminal"),
@@ -1132,14 +1133,32 @@ export function NotesWorkbench({
             onViewPreferencesChange={handleViewPreferencesChange}
           />
         </div>
+        {/* Keep one session mounted, but never put its UI after the full-height
+            workspace: overflow:hidden ancestors can still scroll it into view. */}
+        <div
+          aria-label="笔记助手"
+          className="notes-v2__nia-overlay"
+          hidden={!isNiaPanelOpen}
+          role="region"
+        >
+          <button
+            aria-label="关闭笔记助手"
+            className="notes-v2__nia-close"
+            onClick={() => {
+              setIsNiaPanelOpen(false);
+              editorBridgeRef.current?.focus();
+            }}
+            type="button"
+          >×</button>
+          <NiaPanel
+            onApplyProposal={onApplyNiaProposal}
+            onExternalPromptConsumed={() => setPendingNiaPrompt(null)}
+            onRequestContext={onRequestNiaContext}
+            externalPrompt={pendingNiaPrompt}
+            supportedContexts={["selection", "document"]}
+          />
+        </div>
       </section>
-      <NiaPanel
-        onApplyProposal={onApplyNiaProposal}
-        onExternalPromptConsumed={() => setPendingNiaPrompt(null)}
-        onRequestContext={onRequestNiaContext}
-        externalPrompt={pendingNiaPrompt}
-        supportedContexts={["selection", "document"]}
-      />
       {/* 选择器只负责挑动作与合成提示词；提交走面板那一个 session。
           绝不能在这里再挂一个 `useNiaSession`——两个并存的 session 会认领同一个
           `started` 事件（它不带任何能对上具体 start() 调用的标识），选择器的回复
@@ -1147,7 +1166,10 @@ export function NotesWorkbench({
       <NotesNiaPicker
         content={niaPickerContent.content}
         hasSelection={niaPickerContent.hasSelection}
-        onSubmit={(submission) => setPendingNiaPrompt(submission.prompt)}
+        onSubmit={(submission) => {
+          setIsNiaPanelOpen(true);
+          setPendingNiaPrompt(submission.prompt);
+        }}
       />
       <NotesCommandPalette
         isOpen={isCommandPaletteOpen}

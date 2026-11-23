@@ -3,9 +3,13 @@ import type { NiaLiveVoice } from "@/features/nia/nia-live-session-config";
 export const NIA_REALTIME_TRANSCRIPTION_MODEL = "gpt-transcribe";
 export const NIA_REALTIME_INSTRUCTIONS = "You are Nia, Auris's concise learning assistant. Respect explicit user choices, never claim browser or note access unless a separate approved tool session provides it, and keep spoken responses brief by default.";
 
+export type NiaAudioMode = "conversation" | "transcription";
+
 export type NiaRealtimeServerEvent =
+  | { kind: "hearing"; delta: string; itemId: string }
   | { kind: "session-created"; expiresAt: number | null }
-  | { kind: "session-updated" }
+  | { kind: "session-updated"; noResponse?: boolean }
+  | { kind: "input-speech"; active: boolean }
   | { kind: "heard"; transcript: string; itemId: string }
   | { kind: "saying"; delta: string; responseId: string }
   | { kind: "said"; transcript: string; responseId: string; itemId: string }
@@ -62,7 +66,9 @@ export function createNiaTurnDetectionConfig(turnTaking?: NiaTurnTaking): {
 export function createNiaRealtimeSessionUpdate({
   voice = "ballad",
   turnTaking,
+  mode = "conversation",
 }: {
+  mode?: NiaAudioMode;
   voice?: NiaLiveVoice;
   turnTaking?: NiaTurnTaking;
 } = {}) {
@@ -76,7 +82,9 @@ export function createNiaRealtimeSessionUpdate({
         output: { voice },
         input: {
           noise_reduction: { type: "far_field" },
-          turn_detection: createNiaTurnDetectionConfig(turnTaking),
+          turn_detection: mode === "transcription"
+            ? { type: "server_vad", threshold: 0.5, prefix_padding_ms: 300, silence_duration_ms: 600, create_response: false, interrupt_response: false }
+            : createNiaTurnDetectionConfig(turnTaking),
           transcription: { model: NIA_REALTIME_TRANSCRIPTION_MODEL },
         },
       },
@@ -100,7 +108,22 @@ export function parseNiaRealtimeServerEvent(raw: unknown): NiaRealtimeServerEven
     const expiresAt = typeof session?.expires_at === "number" ? session.expires_at * 1000 : null;
     return { kind: "session-created", expiresAt };
   }
-  if (type === "session.updated") return { kind: "session-updated" };
+  if (type === "session.updated") {
+    const session = isRecord(value.session) ? value.session : {};
+    const audio = isRecord(session.audio) ? session.audio : {};
+    const input = isRecord(audio.input) ? audio.input : {};
+    const detection = isRecord(input.turn_detection) ? input.turn_detection : {};
+    return { kind: "session-updated", ...(detection.create_response === false ? { noResponse: true } : {}) };
+  }
+  if (type === "input_audio_buffer.speech_started" || type === "input_audio_buffer.speech_stopped") {
+    return { kind: "input-speech", active: type.endsWith("speech_started") };
+  }
+
+  if (type === "conversation.item.input_audio_transcription.delta") {
+    const missing = missingStrings(value, ["delta", "item_id"]);
+    if (missing.length) return { kind: "malformed", type, missing };
+    return { kind: "hearing", delta: value.delta as string, itemId: value.item_id as string };
+  }
 
   if (type === "conversation.item.input_audio_transcription.completed") {
     const missing = missingStrings(value, ["transcript", "item_id"]);

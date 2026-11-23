@@ -12,6 +12,7 @@ import { isNiaLiveVoice } from "@/features/nia/nia-live-session-config";
 import type { NiaVoiceAnswer, NiaVoiceOpened } from "@/features/nia/nia-companion-answers";
 
 export type CompanionTransportReport =
+  | { type: "hearing"; generation: number; text: string; itemId: string }
   | { type: "opened"; generation: number; sessionId: string; expiresAt: number | null }
   | { type: "state"; generation: number; state: string }
   | { type: "heard" | "said"; generation: number; text: string; at?: number; responseId?: string; itemId?: string; cut?: boolean }
@@ -37,6 +38,8 @@ export type CompanionBridge = {
 };
 
 type TransportHandlers = {
+  mode?: "conversation" | "transcription";
+  muted?: boolean;
   report: (report: CompanionTransportReport) => void;
   playAudio: (stream: MediaStream) => void;
 };
@@ -100,12 +103,23 @@ export class NiaRealtimeTransport {
   private configurationTimer: number | null = null;
   private configured = false;
   private operation = 0;
+  private mode: "conversation" | "transcription" = "conversation";
+  private muted = false;
+  private inputSpeaking = false;
+  private drainTimer: number | null = null;
+  private inputDrafts = new Map<string, string>();
+  private completedInputs = new Set<string>();
 
   async open(generation: number, handlers: TransportHandlers): Promise<boolean> {
     this.flushPending(generation);
     this.shutdownMedia();
     this.generation = generation;
     this.handlers = handlers;
+    this.mode = handlers.mode ?? "conversation";
+    this.muted = handlers.muted === true;
+    this.inputSpeaking = false;
+    this.inputDrafts.clear();
+    this.completedInputs.clear();
     this.pending = createNiaRealtimePendingTurns();
     this.configured = false;
     const operation = ++this.operation;
@@ -141,16 +155,19 @@ export class NiaRealtimeTransport {
         closeRealtimeResources(null, null, localMicrophone);
         return false;
       }
+      // Never transmit microphone audio until the no-response configuration is acknowledged.
+      for (const track of localMicrophone.getAudioTracks()) track.enabled = false;
       localPeer = new RTCPeerConnection();
       for (const track of localMicrophone.getAudioTracks()) localPeer.addTrack(track, localMicrophone);
       localPeer.ontrack = (event) => {
         if (operation !== this.operation) return;
         const [stream] = event.streams;
-        if (stream) handlers.playAudio(stream);
+        if (stream && this.mode !== "transcription") handlers.playAudio(stream);
       };
       localPeer.onconnectionstatechange = () => {
         if (operation !== this.operation) return;
         if (["failed", "disconnected", "closed"].includes(localPeer?.connectionState ?? "closed")) {
+          this.shutdownMedia();
           this.emit(errorReport(generation, "REALTIME_CONNECTION_LOST", "The Realtime connection ended.", "Wake Nia again to reconnect."));
         }
       };
@@ -203,6 +220,7 @@ export class NiaRealtimeTransport {
   }
 
   sendText(text: string) {
+    if (this.mode === "transcription") return false;
     const value = text.trim().slice(0, 20_000);
     if (!value || this.channel?.readyState !== "open") return false;
     this.send({ type: "conversation.item.create", item: { type: "message", role: "user", content: [{ type: "input_text", text: value }] } });
@@ -215,6 +233,10 @@ export class NiaRealtimeTransport {
   }
 
   sendConfig(config: Record<string, unknown> | null) {
+    if (this.mode === "transcription") {
+      const update = createNiaRealtimeSessionUpdate({ mode: "transcription" });
+      return this.send({ ...update, session: { ...update.session, tools: [] } });
+    }
     if (!config || this.channel?.readyState !== "open") return false;
     this.send({
       type: "session.update",
@@ -229,11 +251,32 @@ export class NiaRealtimeTransport {
   }
 
   setMuted(muted: boolean) {
-    for (const track of this.microphone?.getAudioTracks() ?? []) track.enabled = !muted;
+    this.muted = muted;
+    for (const track of this.microphone?.getAudioTracks() ?? []) track.enabled = this.configured && !muted;
     return true;
   }
 
   close(generation = this.generation, report = true) {
+    if (this.drainTimer !== null) return;
+    if (this.mode === "transcription" && report && this.channel?.readyState === "open") {
+      // Stop capture immediately; retain only the data channel briefly for final ASR text.
+      this.operation += 1;
+      for (const track of this.microphone?.getTracks() ?? []) track.stop();
+      if (this.inputSpeaking) {
+        this.send({ type: "input_audio_buffer.commit" });
+        this.inputSpeaking = false;
+      }
+      this.drainTimer = window.setTimeout(() => {
+        this.drainTimer = null;
+        for (const [itemId, text] of this.inputDrafts) {
+          if (text.trim()) this.emit({ type: "heard", generation, itemId, text, cut: true, at: Date.now() });
+        }
+        this.inputDrafts.clear();
+        this.shutdownMedia();
+        this.emit({ type: "closed", generation, at: Date.now() });
+      }, 1_800);
+      return;
+    }
     this.operation += 1;
     this.flushPending(generation);
     this.shutdownMedia();
@@ -272,19 +315,42 @@ export class NiaRealtimeTransport {
   private handleServerEvent(raw: unknown) {
     const generation = this.generation;
     const event = parseNiaRealtimeServerEvent(raw);
+    if (this.mode === "transcription" && ["saying", "said", "item-added", "truncated", "audio-buffer", "tool", "response-created", "response-done"].includes(event.kind)) {
+      if (event.kind === "response-created") this.send({ type: "response.cancel" });
+      return;
+    }
     switch (event.kind) {
       case "session-created":
         if (event.expiresAt !== null) this.expiresAt = event.expiresAt;
         return;
+      case "input-speech":
+        this.inputSpeaking = event.active;
+        return;
       case "session-updated":
+        if (this.mode === "transcription" && !event.noResponse) {
+          this.shutdownMedia();
+          this.emit(errorReport(generation, "TRANSCRIPTION_CONFIG_REFUSED", "语音服务未确认禁用自动回答，转写已停止，麦克风已释放。"));
+          return;
+        }
         this.clearConfigurationTimer();
         if (!this.configured && this.sessionId) {
           this.configured = true;
+          for (const track of this.microphone?.getAudioTracks() ?? []) track.enabled = !this.muted;
           this.emit({ type: "opened", generation, sessionId: this.sessionId, expiresAt: this.expiresAt });
           this.emit({ type: "state", generation, state: "listening" });
         }
         return;
+      case "hearing": {
+        if (this.mode !== "transcription" || this.completedInputs.has(event.itemId)) return;
+        const text = (this.inputDrafts.get(event.itemId) ?? "") + event.delta;
+        this.inputDrafts.set(event.itemId, text);
+        this.emit({ type: "hearing", generation, text, itemId: event.itemId });
+        return;
+      }
       case "heard":
+        if (this.completedInputs.has(event.itemId)) return;
+        this.completedInputs.add(event.itemId);
+        this.inputDrafts.delete(event.itemId);
         this.emit({ type: "heard", generation, text: event.transcript, at: Date.now(), itemId: event.itemId });
         return;
       case "item-added":
@@ -323,9 +389,11 @@ export class NiaRealtimeTransport {
       case "response-done":
         return;
       case "error":
+        this.shutdownMedia();
         this.emit(errorReport(generation, event.code, event.message, "Rest Nia, then wake her again."));
         return;
       case "malformed":
+        this.shutdownMedia();
         this.emit(errorReport(generation, "REALTIME_PROTOCOL_MALFORMED", `${event.type} is missing ${event.missing.join(", ")}.`, "Rest Nia, then wake her again."));
         return;
       case "other":
@@ -356,6 +424,7 @@ export class NiaRealtimeTransport {
     this.configurationTimer = window.setTimeout(() => {
       this.configurationTimer = null;
       if (this.generation !== generation || this.configured) return;
+      this.shutdownMedia();
       this.emit(errorReport(generation, "REALTIME_SESSION_NOT_CONFIGURED", "Realtime did not confirm Nia's audio and transcription configuration.", "Rest Nia, then wake her again."));
     }, 5_000);
   }
@@ -366,6 +435,15 @@ export class NiaRealtimeTransport {
   }
 
   private shutdownMedia() {
+    if (this.mode === "transcription") {
+      const drafts = [...this.inputDrafts];
+      this.inputDrafts.clear();
+      for (const [itemId, text] of drafts) {
+        if (text.trim()) this.emit({ type: "heard", generation: this.generation, itemId, text, cut: true, at: Date.now() });
+      }
+    }
+    if (this.drainTimer !== null) window.clearTimeout(this.drainTimer);
+    this.drainTimer = null;
     this.clearConfigurationTimer();
     const channel = this.channel;
     const peer = this.peer;

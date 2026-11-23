@@ -73,7 +73,7 @@ function createNiaCompanionHostDispatcher({
         return coordinator.setConversationSaving?.(payload.enabled !== false) ?? false;
       }
       case "wake": {
-        return coordinator.open({ reason: "nia-page" });
+        return coordinator.open({ reason: "nia-page", mode: payload.mode === "transcription" ? "transcription" : "conversation" });
       }
       case "rest": {
         return coordinator.rest("nia-page");

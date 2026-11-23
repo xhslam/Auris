@@ -33,4 +33,28 @@ describe("notes editor layout styles", () => {
       /\.notes-v2__corner-icon\s*\{[^}]*width:\s*24px\s*!important[^}]*height:\s*24px\s*!important/,
     );
   });
+
+  it("shares canvas height between navigation and editor instead of adding a full-height editor", () => {
+    const css = readFileSync(globalsCssPath, "utf-8");
+    expect(css).toMatch(/\.notes-v2__minimal-canvas\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*clip/);
+    expect(css).toMatch(/\.notes-v2__minimal-canvas\s+\.notes-v2__center-stack\s*\{[^}]*flex:\s*1 1 0[^}]*min-height:\s*0[^}]*height:\s*auto/);
+    expect(css).toMatch(/\.notes-v2-page\s*\{[^}]*overflow:\s*clip/);
+  });
+
+  it("keeps the Notes assistant out of normal flow and noninteractive while hidden", () => {
+    const css = readFileSync(globalsCssPath, "utf-8");
+    expect(css).toMatch(/\.notes-v2__nia-overlay\s*\{[^}]*position:\s*absolute/);
+    expect(css).toMatch(/\.notes-v2__nia-overlay\[hidden\]\s*\{[^}]*display:\s*none/);
+  });
+
+  it("scrolls oversized images inside their own paragraph, not the whole note", () => {
+    const css = readFileSync(globalsCssPath, "utf-8");
+
+    expect(css).toMatch(
+      /\.desktop-app-frame\s+\.notes-v2__editor-host--wysiwyg\s+\.ProseMirror\s*>\s*p:has\(>\s+img:only-child\)\s*\{[^}]*overflow-x:\s*auto/,
+    );
+    expect(css).toMatch(
+      /\.desktop-app-frame\s+\.notes-v2__editor-host--wysiwyg\s+\.ProseMirror\s*>\s*p:has\(>\s+img:only-child\)\s*>\s+img\s*\{[^}]*max-width:\s*none/,
+    );
+  });
 });

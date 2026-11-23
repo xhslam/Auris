@@ -25,6 +25,7 @@ function createRealtimeCoordinator({
   if (typeof saveConversationSaving !== "function") throw new TypeError("Conversation preference persistence must be a function.");
   let generation = 0;
   let state = "resting";
+  let mode = "conversation";
   let sessionId = null;
   let expiresAt = null;
   let conversationId = null;
@@ -47,6 +48,7 @@ function createRealtimeCoordinator({
       expiresAt,
       generation,
       muted,
+      mode,
       pendingReminder,
       pendingText: pendingText !== null,
       savingConversations,
@@ -111,7 +113,10 @@ function createRealtimeCoordinator({
     return true;
   }
 
-  async function open({ reason = "wake", replace = false } = {}) {
+  async function open({ reason = "wake", replace = false, mode: requestedMode = mode } = {}) {
+    if (!["conversation", "transcription"].includes(requestedMode)) return false;
+    if (requestedMode === "transcription" && !["nia-page", "rotate"].includes(reason)) return false;
+    if (requestedMode !== mode && state !== "resting") rest("mode-switch");
     if (disposed) return false;
     if (!replace && ["opening", "listening", "attending", "thinking", "speaking", "working"].includes(state)) return true;
     const requested = ++generation;
@@ -123,6 +128,11 @@ function createRealtimeCoordinator({
     // transport can start. A subsequent rest invalidates this queued wake too.
     if (closingGeneration !== null) await new Promise((resolve) => closeWaiters.add(resolve));
     if (disposed || requested !== generation) return false;
+    if (mode !== requestedMode) { pendingText = null; pendingReminder = null; }
+    mode = requestedMode;
+    conversation.setSource?.(mode === "transcription" ? "transcription" : "realtime");
+    conversation.setSaving?.(mode === "transcription" || savingConversations);
+    publish();
     const auth = await credentialBroker.read();
     if (disposed || requested !== generation) return false;
     if (!auth?.ok) {
@@ -132,7 +142,7 @@ function createRealtimeCoordinator({
       return false;
     }
     try {
-      transport.send({ type: "open", generation: requested, reason, credential: auth.credential, personaId });
+      transport.send({ type: "open", generation: requested, reason, credential: auth.credential, personaId, ...(mode === "transcription" ? { mode } : {}), ...(muted ? { muted: true } : {}) });
     } catch (error) {
       state = "failed";
       note("REALTIME_TRANSPORT_UNAVAILABLE", "The Nia companion renderer is unavailable.", "Show Nia again, then wake her.", { message: error instanceof Error ? error.message : String(error) });
@@ -157,12 +167,14 @@ function createRealtimeCoordinator({
         if (["listening", "attending", "thinking", "speaking", "working", "resting", "failed"].includes(report.state)) state = report.state;
         break;
       case "heard":
-        conversation.file("user", report.text ?? "", { at: report.at, responseId: report.responseId, itemId: report.itemId });
+        conversation.file("user", report.text ?? "", { at: report.at, cut: report.cut === true, responseId: report.responseId, itemId: report.itemId });
         break;
       case "said":
+        if (mode === "transcription") return false;
         conversation.file("nia", report.text ?? "", { at: report.at, cut: report.cut === true, responseId: report.responseId, itemId: report.itemId });
         break;
       case "tool":
+        if (mode === "transcription") return false;
         conversation.tool(report.name, report.callId, report.status ?? "arrived", report.at ?? now());
         break;
       case "closed": {
@@ -195,6 +207,7 @@ function createRealtimeCoordinator({
   }
 
   function sendText(text) {
+    if (mode === "transcription") return false;
     if (typeof text !== "string" || text.trim() === "") return false;
     if (pendingText !== null) return false;
     if (state === "resting" || state === "failed") pendingText = text.trim().slice(0, 20_000);
@@ -206,6 +219,7 @@ function createRealtimeCoordinator({
   }
 
   function queueReminder(reminder) {
+    if (mode === "transcription") return false;
     if (!reminder || typeof reminder !== "object") return false;
     pendingReminder = Object.freeze({ count: Number(reminder.count) || 0, items: Array.isArray(reminder.items) ? reminder.items.slice(0, 32) : [] });
     if (state === "listening") transport.send({ type: "reminder", generation, reminder: pendingReminder });
@@ -227,7 +241,7 @@ function createRealtimeCoordinator({
 
   function setConversationSaving(value) {
     savingConversations = value === true;
-    conversation.setSaving?.(savingConversations);
+    conversation.setSaving?.(mode === "transcription" || savingConversations);
     try { saveConversationSaving(savingConversations); } catch (error) {
       note("CONVERSATION_PREFERENCE_SAVE_FAILED", "The conversation-saving preference could not be persisted.", "Try the setting again.", { message: error instanceof Error ? error.message : String(error) });
     }

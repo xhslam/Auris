@@ -1,5 +1,6 @@
 "use client";
 
+import { NiaTranscriptionPanel } from "./nia-transcription-panel";
 import { NiaCharacter } from "./nia-character";
 import { NIA_CHARACTER_STYLES, saveNiaCharacterStyle, useNiaCharacterStyle } from "@/features/nia/nia-character-appearance";
 import {
@@ -41,6 +42,7 @@ import { NIA_EXPRESSIONS, NIA_MOTIONS, sendNiaAvatarCue, type NiaExpression, typ
 
 type InspectorTab = "conversations";
 type CompanionSnapshot = {
+  mode?: "conversation" | "transcription";
   state?: string;
   muted?: boolean;
   visible?: boolean;
@@ -131,6 +133,7 @@ function daysInMonth(year: number, month: number) {
 }
 
 function openingLabel(conversation: Conversation) {
+  if (conversation.source === "transcription") return `转写 · ${conversation.opening?.trim() || "录音文字"}`;
   if (conversation.subject?.trim()) return conversation.subject.trim();
   if (conversation.opening?.trim()) return `“${conversation.opening.trim()}”`;
   return "这段对话没有留下可显示的开场语";
@@ -145,6 +148,7 @@ export function NiaWorkspaceSurface() {
   const open = useNiaStandaloneStore((state) => state.open);
   const origin = useNiaStandaloneStore((state) => state.origin);
   const [tab] = useState<InspectorTab>("conversations");
+  const [audioMode, setAudioMode] = useState<"conversation" | "transcription">("conversation");
   const [routingPreference] = useState(loadNiaRoutingPreference);
   const [companion, setCompanion] = useState<CompanionSnapshot>({ state: "resting", muted: false });
   const [companionVisible, setCompanionVisible] = useState(true);
@@ -167,7 +171,9 @@ export function NiaWorkspaceSurface() {
   const resizeGestureRef = useRef<{ startWidth: number; startX: number } | null>(null);
 
   // Mochi conversations state
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [allConversations, setConversations] = useState<Conversation[]>([]);
+  const conversations = useMemo(() => allConversations.filter((item) =>
+    (item.source === "transcription") === (audioMode === "transcription")), [allConversations, audioMode]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [month, setMonth] = useState(() => ({ year: new Date().getFullYear(), month: new Date().getMonth() }));
@@ -179,6 +185,8 @@ export function NiaWorkspaceSurface() {
   const [copiedTurnId, setCopiedTurnId] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const detailRequest = useRef(0);
+  const selectedConversationIdRef = useRef<string | null>(null);
+  useEffect(() => { selectedConversationIdRef.current = selectedConversation?.id ?? null; }, [selectedConversation]);
 
   const review = useOutputReviewMetrics();
   const reviewCount = review.metrics ? review.metrics.dueTodayCount + review.metrics.overdueCount : 0;
@@ -222,6 +230,7 @@ export function NiaWorkspaceSurface() {
       if (!value || typeof value !== "object") return;
       const snapshot = value as CompanionSnapshot;
       setCompanion(snapshot);
+      if (snapshot.mode === "transcription") setAudioMode("transcription");
       if (typeof snapshot.visible === "boolean") setCompanionVisible(snapshot.visible);
       if (typeof snapshot.savingConversations === "boolean") setSaveConversations(snapshot.savingConversations);
     }).catch(() => undefined);
@@ -250,10 +259,25 @@ export function NiaWorkspaceSurface() {
       const item = event as { type?: string; snapshot?: CompanionSnapshot; report?: { type?: string } };
       if (item.type === "snapshot" && item.snapshot) {
         setCompanion(item.snapshot);
+        if (item.snapshot.state !== "resting" && item.snapshot.mode) setAudioMode(item.snapshot.mode);
         if (typeof item.snapshot.savingConversations === "boolean") setSaveConversations(item.snapshot.savingConversations);
       }
       if (item.type === "visibility" && typeof (item as { visible?: unknown }).visible === "boolean") setCompanionVisible((item as { visible: boolean }).visible);
       if (item.type === "report" && item.report) {
+        if (["heard", "closed"].includes(item.report.type ?? "")) {
+          void bridge.invoke("conversations").then((rows) => {
+            if (!active || !Array.isArray(rows)) return;
+            setConversations([...rows]);
+            if (!rows.length) return;
+            const selectedId = selectedConversationIdRef.current;
+            if (selectedId) loadConversationDetail(selectedId);
+            else {
+              setSelectedConversation(rows[0]);
+              setSelectedDay(startOfLocalDay(rows[0].startedAt));
+              loadConversationDetail(rows[0].id);
+            }
+          }).catch(() => undefined);
+        }
         const report = item.report as { type?: string; delta?: string; text?: string; state?: string };
         if (report.type === "state" && report.state) {
           setCompanion((current) => ({ ...current, state: report.state }));
@@ -388,6 +412,22 @@ export function NiaWorkspaceSurface() {
     event.preventDefault();
   };
 
+  useEffect(() => {
+    if (audioMode === "transcription" && ["opening", "listening", "attending"].includes(companionState) && !selectedConversation) return;
+    if (selectedConversation && conversations.some((item) => item.id === selectedConversation.id)) return;
+    const next = conversations[0] ?? null;
+    setSelectedConversation(next);
+    setSelectedDay(next ? startOfLocalDay(next.startedAt) : null);
+    if (next) {
+      setMonth(fromMonthIndex(monthIndex(next.startedAt)));
+      loadConversationDetail(next.id);
+    } else {
+      detailRequest.current += 1;
+      setDetail({ turns: [], tools: [] });
+      setDetailLoading(false);
+    }
+  }, [audioMode, conversations, selectedConversation, loadConversationDetail, companionState]);
+
   const dayCounts = useMemo(() => {
     const counts = new Map<number, number>();
     for (const conversation of conversations) {
@@ -406,6 +446,7 @@ export function NiaWorkspaceSurface() {
   const visibleConversations = useMemo(() => (
     conversations.filter((item) => selectedDay !== null && startOfLocalDay(item.startedAt) === selectedDay)
   ), [conversations, selectedDay]);
+  const visibleHits = hits.filter((hit) => (allConversations.find((item) => item.id === hit.conversationId)?.source === "transcription") === (audioMode === "transcription"));
   const interruptions = detail.turns.filter((turn) => turn.speaker === "nia" && Boolean(turn.cut)).length;
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -474,11 +515,15 @@ export function NiaWorkspaceSurface() {
   const toggleWakeRest = () => {
     const bridge = getNiaCompanionHostBridge(window);
     const active = ["opening", "listening", "attending", "thinking", "speaking", "working"].includes(companionState);
-    void bridge?.invoke(active ? "rest" : "wake");
+    if (audioMode === "transcription" && !active) {
+      document.getElementById("nia-start-transcription")?.focus();
+      return;
+    }
+    void bridge?.invoke(active ? "rest" : "wake", { mode: audioMode });
   };
 
   return (
-    <main className="nia-workspace" data-accent-theme="auto" data-origin={origin} data-status={companionState}>
+    <main className="nia-workspace" data-accent-theme="auto" data-origin={origin} data-status={companionState} data-audio-mode={audioMode}>
       <header className="nia-workspace__topbar">
         <div className="nia-workspace__brand">
           <button
@@ -497,6 +542,7 @@ export function NiaWorkspaceSurface() {
         </div>
 
         <div className="nia-workspace__center-controls">
+
           <button
             aria-label={companionState !== "resting" ? "让 Nia 休息" : "唤醒 Nia"}
             className="nia-workspace__status"
@@ -511,7 +557,7 @@ export function NiaWorkspaceSurface() {
                 <strong>Nia:</strong> {liveSpokenText}
               </span>
             ) : (
-              statusCopy(companionState)
+              audioMode === "transcription" ? (companionState === "resting" ? "未录音" : companionState === "opening" ? "正在连接" : companionState === "failed" ? "连接失败" : companion.muted ? "转写已暂停" : "正在转写") : statusCopy(companionState)
             )}
           </button>
         </div>
@@ -558,7 +604,6 @@ export function NiaWorkspaceSurface() {
           </button>
         </div>
       </header>
-
       {archiveOpen ? (
         <NiaConversationArchive initialConversationId={archiveConversationId} onClose={() => setArchiveOpen(false)} />
       ) : (
@@ -571,7 +616,12 @@ export function NiaWorkspaceSurface() {
         >
           {/* Right: primary transcript reading stage or tool catalogue. */}
           <section className="nia-workspace__main-column">
-            {tab === "conversations" && (
+            {audioMode === "transcription" ? (
+              <NiaTranscriptionPanel state={companionState} muted={companion.muted === true}
+                history={selectedConversation?.source === "transcription" ? detail.turns : []}
+                historyTitle={selectedConversation?.source === "transcription" ? openingLabel(selectedConversation) : undefined}
+                onStart={() => { setSelectedConversation(null); setDetail({ turns: [], tools: [] }); }} />
+            ) : tab === "conversations" && (
               selectedConversation ? (
                 <article className="nia-workspace__reading-stage" aria-label="会话详情">
                   <header className="nia-workspace__transcript-head">
@@ -581,7 +631,7 @@ export function NiaWorkspaceSurface() {
                       <div className="nia-workspace__transcript-meta">
                         <span className="nia-workspace__meta-clock">{clock(selectedConversation.startedAt)}</span>
                         <span className="nia-workspace__meta-sep">·</span>
-                        <span>{detail.turns.length || selectedConversation.turnCount || 0} 轮对话</span>
+                        <span>{detail.turns.length || selectedConversation.turnCount || 0} {selectedConversation.source === "transcription" ? "段转写" : "轮对话"}</span>
                         <span className="nia-workspace__meta-sep">·</span>
                         <span>时长 {durationLabel(selectedConversation.startedAt, selectedConversation.endedAt)}</span>
                         <span className="nia-workspace__meta-sep">·</span>
@@ -623,9 +673,9 @@ export function NiaWorkspaceSurface() {
                           )}
                           <div className="nia-workspace__turn-bubble">
                             <p>{turn.text || "（内容在结束前被截断）"}</p>
-                            {turn.speaker !== "user" && (
+                            {(turn.speaker !== "user" || selectedConversation.source === "transcription") && (
                               <small>
-                                {turn.cut && <b className="nia-workspace__turn-cut">被打断</b>}
+                                {turn.cut && <b className="nia-workspace__turn-cut">{selectedConversation.source === "transcription" ? "未确认片段" : "被打断"}</b>}
                                 <span>{clock(turn.at, true)}</span>
                                 <button
                                   onClick={() => {
@@ -695,13 +745,18 @@ export function NiaWorkspaceSurface() {
           ) : (
             <aside className="nia-workspace__inspector" aria-label="Nia 信息面板">
               <nav className="nia-workspace__tabs" role="tablist" aria-label="Nia 面板">
-                <button
-                  aria-selected="true"
-                  role="tab"
-                  type="button"
-                >
-                  会话记录
-                </button>
+                {(["conversation", "transcription"] as const).map((mode) => (
+                  <button key={mode} aria-selected={audioMode === mode} role="tab" type="button"
+                    onClick={() => {
+                      if (audioMode === mode) return;
+                      void getNiaCompanionHostBridge(window)?.invoke("rest");
+                      setTextPaneOpen(false);
+                      setQuery("");
+                      setAudioMode(mode);
+                    }}>
+                    {mode === "conversation" ? "会话记录" : "实时转写"}
+                  </button>
+                ))}
               </nav>
 
               <section className="nia-workspace__inspector-content nia-workspace__inspector-conversations">
@@ -754,17 +809,17 @@ export function NiaWorkspaceSurface() {
                   {/* Section Title */}
                   <div className="nia-workspace__section-title">
                     <span>{query.trim() ? "搜索结果" : selectedDay !== null ? dayHeading(selectedDay) : "最近会话"}</span>
-                    <b>{query.trim() ? hits.length : visibleConversations.length}</b>
+                    <b>{query.trim() ? visibleHits.length : visibleConversations.length}</b>
                   </div>
 
                   {/* Conversation List */}
                   <div className="nia-workspace__conversation-scroll">
                     {query.trim() ? (
-                      searchReady && hits.length === 0 ? (
+                      searchReady && visibleHits.length === 0 ? (
                         <p className="nia-workspace__empty">没有找到匹配的内容。</p>
                       ) : (
                         <ul aria-label="搜索结果" className="nia-workspace__conversation-list">
-                          {hits.map((hit) => (
+                          {visibleHits.map((hit) => (
                             <li key={hit.turnId}>
                               <button
                                 aria-current={selectedConversation?.id === hit.conversationId}

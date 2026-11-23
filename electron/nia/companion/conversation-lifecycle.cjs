@@ -11,6 +11,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
   if (!store || typeof store.begin !== "function" || typeof store.say !== "function") throw new TypeError("A conversation store is required.");
   if (typeof personaId !== "string" || personaId.trim() === "") throw new TypeError("A personaId is required.");
   let conversationId = null;
+  let currentSource = source;
   let wearing = personaId.trim();
   let saving = true;
   const pendingTools = [];
@@ -22,7 +23,7 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
 
   function ensure() {
     if (conversationId || !saving || !keeps(wearing)) return conversationId;
-    conversationId = store.begin({ personaId: wearing, source, startedAt: now() });
+    conversationId = store.begin({ personaId: wearing, source: currentSource, startedAt: now() });
     flushTools();
     log(`conversation begun for ${wearing}`);
     return conversationId;
@@ -82,6 +83,11 @@ function createConversationLifecycle({ store, personaId, source = "realtime", ke
     isLive: () => conversationId !== null,
     liveToken: () => conversationId,
     setSaving,
+    setSource(next) {
+      const value = next === "transcription" ? "transcription" : "realtime";
+      if (value !== currentSource) end();
+      currentSource = value;
+    },
     tool,
     wear,
   });

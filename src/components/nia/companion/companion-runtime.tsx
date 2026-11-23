@@ -23,7 +23,7 @@ import { createUtterance } from "./bubble-utterance";
 import "./companion.css";
 
 type CompanionCommand =
-  | { type: "open"; generation: number; reason?: string }
+  | { type: "open"; generation: number; reason?: string; mode?: "conversation" | "transcription"; muted?: boolean }
   | { type: "close"; generation: number; reason?: string }
   | { type: "text"; generation: number; text: string }
   | { type: "reminder"; generation: number; reminder: { count: number; items: unknown[] } }
@@ -48,6 +48,7 @@ function readableStatus(status: string) {
 export function CompanionRuntime() {
   const driftEnabled = useNiaCompanionDrift();
   const [status, setStatus] = useState("resting");
+  const [audioMode, setAudioMode] = useState("conversation");
   const [lastText, setLastText] = useState("");
   const [isDragging, setDragging] = useState(false);
   const [companionScale, setCompanionScale] = useState(DEFAULT_NIA_COMPANION_SCALE);
@@ -156,8 +157,11 @@ export function CompanionRuntime() {
       const command = raw as CompanionCommand;
       if (command.type === "open") {
         setStatus("opening");
+        setAudioMode(command.mode ?? "conversation");
         void transport.open(command.generation, {
           report: onReport,
+          mode: command.mode,
+          muted: command.muted,
           playAudio: (stream) => {
             const audio = audioRef.current;
             if (!audio) return;
@@ -345,6 +349,7 @@ export function CompanionRuntime() {
       onPointerUp={endPointer}
     >
       <audio aria-hidden="true" ref={audioRef} />
+      {audioMode === "transcription" && status !== "resting" && status !== "failed" && <span className="nia-companion__transcription-status">{status === "opening" ? "转写连接中" : "实时转写"}</span>}
       <NiaSpeechBubble
         text={bubbleText}
         cursor={bubbleCursor}

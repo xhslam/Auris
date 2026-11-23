@@ -17,6 +17,7 @@
 export interface NiaCompanionSnapshot {
   readonly state: string;
   readonly muted?: boolean;
+  readonly mode?: "conversation" | "transcription";
   readonly visible?: boolean;
   readonly [key: string]: unknown;
 }
@@ -106,7 +107,7 @@ export interface NiaCompanionHostPayloads {
   readonly "conversation-detail": { readonly conversationId: string };
   readonly "conversation-search": { readonly query: string };
   readonly "conversation-saving": { readonly enabled: boolean };
-  readonly wake: Record<string, unknown> | undefined;
+  readonly wake: { readonly mode?: "conversation" | "transcription" } | undefined;
   readonly rest: Record<string, unknown> | undefined;
   readonly mute: { readonly muted: boolean };
   readonly "companion-visibility": { readonly visible: boolean };

@@ -251,3 +251,28 @@ describe("NiaWorkspaceSurface split layout", () => {
     }
   });
 });
+
+it("places transcription beside conversation history and renders its content in the existing right column", async () => {
+  const invoke = vi.fn(async (command: string) => {
+    if (command === "snapshot") return { state: "resting" };
+    if (command === "conversations") return [
+      { id: "chat", source: "realtime", startedAt: "2026-11-22T10:00:00Z", opening: "普通对话" },
+      { id: "transcript", source: "transcription", startedAt: "2026-11-22T11:00:00Z", opening: "今日转写" },
+    ];
+    if (command === "conversation-detail") return { tools: [], turns: [{ id: "line", speaker: "user", text: "已保存的转写内容", at: "2026-11-22T11:01:00Z" }] };
+    return true;
+  });
+  Object.defineProperty(window, "shadowingDesktop", { configurable: true, value: { niaCompanion: { invoke, subscribe: vi.fn(), unsubscribe: vi.fn() } } });
+  try {
+    const view = render(<NiaWorkspaceSurface />);
+    const tab = screen.getByRole("tab", { name: "实时转写" });
+    expect(tab.parentElement).toBe(screen.getByRole("tab", { name: "会话记录" }).parentElement);
+    expect(view.container.querySelector(".nia-audio-mode-bar")).toBeNull();
+    fireEvent.click(tab);
+    expect(tab).toHaveAttribute("aria-selected", "true");
+    await waitFor(() => expect(screen.getByText("已保存的转写内容")).toBeInTheDocument());
+    expect(view.container.querySelector(".nia-workspace__main-column > .nia-transcription")).not.toBeNull();
+    expect(view.container.querySelector(".nia-workspace__conversation-list")?.textContent).not.toContain("普通对话");
+    expect(invoke).not.toHaveBeenCalledWith("wake", expect.anything());
+  } finally { Reflect.deleteProperty(window, "shadowingDesktop"); }
+});
